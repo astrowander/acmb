@@ -64,15 +64,15 @@ private:
 
         auto threshold = static_cast<ChannelType>(std::min(static_cast<uint32_t>(*median * (1 + _threshold / 100)), static_cast<uint32_t>(std::numeric_limits<ChannelType>::max())));
 
-        auto pData = &data[0];
+        auto pData = pGrayBitmap->GetScanline(0);
         for (uint32_t i = 0; i < h; ++i)
         {
             for (uint32_t j = 0; j < w; ++j)
             {
                 if (pData[i * h + j] > threshold)
                 {
-                    Star star {Rect {i, j, 1, 1}, 0, 0};
-                    InspectStar(star, threshold, pData, i, j, w, h);
+                    Star star {Rect {j, i, 1, 1}, 0, 0};
+                    InspectStar(star, threshold, pData, j, i, w, h);
                     if (star.rect.width >= _minStarSize && star.rect.width <= _maxStarSize && star.rect.height >= _minStarSize && star.rect.height <= _maxStarSize)
                         _stars.push_back(star);
                 }

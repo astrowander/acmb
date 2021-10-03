@@ -46,8 +46,8 @@ void Rect::ExpandLeft(uint32_t left)
 
 void Rect::ExpandDown(uint32_t bottom)
 {
-    if (height < bottom - y - 1)
+    if (bottom > y + height - 1)
     {
-        height = bottom - y - 1;
+        height = bottom - y + 1;
     }
 }
