@@ -1,4 +1,5 @@
 #include "test.h"
+#include "testtools.h"
 #include "Codecs/PPM/ppmdecoder.h"
 #include "Core/bitmap.h"
 #include <cstring>
@@ -7,7 +8,7 @@ BEGIN_SUITE( PpmDecoder )
 
 BEGIN_TEST(PpmDecoder, TestGray8)
     auto pDecoder = std::make_unique<PpmDecoder>();
-    pDecoder->Attach("./../TestFiles/PPM/gray8.pgm");
+    pDecoder->Attach(GetPathToTestFile("PPM/gray8.pgm"));
     EXPECT_EQ(PixelFormat::Gray8, pDecoder->GetPixelFormat());
     EXPECT_EQ(500, pDecoder->GetWidth());
     EXPECT_EQ(500, pDecoder->GetHeight());
@@ -15,7 +16,7 @@ END_TEST
 
 BEGIN_TEST(PpmDecoder, TestGray16)
     auto pDecoder = std::make_unique<PpmDecoder>();
-    pDecoder->Attach("./../TestFiles/PPM/gray16.pgm");
+    pDecoder->Attach(GetPathToTestFile("PPM/gray16.pgm"));
     EXPECT_EQ(PixelFormat::Gray16, pDecoder->GetPixelFormat());
     EXPECT_EQ(500, pDecoder->GetWidth());
     EXPECT_EQ(500, pDecoder->GetHeight());
@@ -23,7 +24,7 @@ END_TEST
 
 BEGIN_TEST(PpmDecoder, TestRgb24)
     auto pDecoder = std::make_unique<PpmDecoder>();
-    pDecoder->Attach("./../TestFiles/PPM/rgb24.ppm");
+    pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
     EXPECT_EQ(PixelFormat::RGB24, pDecoder->GetPixelFormat());
     EXPECT_EQ(640, pDecoder->GetWidth());
     EXPECT_EQ(426, pDecoder->GetHeight());
@@ -31,7 +32,7 @@ END_TEST
 
 BEGIN_TEST(PpmDecoder, TestRgb48)
     auto pDecoder = std::make_unique<PpmDecoder>();
-    pDecoder->Attach("./../TestFiles/PPM/rgb48.ppm");
+    pDecoder->Attach(GetPathToTestFile("PPM/rgb48.ppm"));
     EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
     EXPECT_EQ(500, pDecoder->GetWidth());
     EXPECT_EQ(500, pDecoder->GetHeight());
@@ -40,7 +41,7 @@ END_TEST
 BEGIN_TEST(PpmDecoder, TestPlain)
     auto pDecoder = std::make_unique<PpmDecoder>();
 
-    std::string fileNames[2] = { "./../TestFiles/PPM/plain.ppm", "./../TestFiles/PPM/binary.ppm" };
+    std::string fileNames[2] = { GetPathToTestFile("PPM/plain.ppm"), GetPathToTestFile("PPM/binary.ppm") };
 
     for (auto& fileName : fileNames)
     {
