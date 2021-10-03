@@ -100,6 +100,11 @@ public:
     {
         return _width * _height * BytesPerPixel(pixelFormat);
     }
+
+    const auto& GetData()
+    {
+        return _data;
+    }
 };
 
 

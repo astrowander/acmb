@@ -12,4 +12,8 @@ BEGIN_TEST(Converter, TestRgb48ToGray16)
     EXPECT_TRUE((BitmapsAreEqual(GetPathToPattern("Converter/TestRgb48ToGray16.ppm"), Convert(IBitmap::Create(GetPathToTestFile("PPM/rgb48.ppm")), PixelFormat::Gray16))));
 END_TEST
 
+BEGIN_TEST(Converter, TestAstrophoto)
+    EXPECT_TRUE((BitmapsAreEqual(GetPathToPattern("Converter/IMG_4030.ppm"), Convert(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")), PixelFormat::Gray16))));
+END_TEST
+
 END_SUITE
