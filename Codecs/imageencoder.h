@@ -10,13 +10,13 @@ class IBitmap;
 class ImageEncoder
 {
 protected:
-    std::unique_ptr<std::ostream> _pStream;
+    std::shared_ptr<std::ostream> _pStream;
 
 public:
 
-    virtual void Attach(std::unique_ptr<std::ostream> pStream);
+    virtual void Attach(std::shared_ptr<std::ostream> pStream);
     virtual void Attach(const std::string& fileName);
-    virtual std::unique_ptr<std::ostream> Detach();
+    virtual void Detach();
 
     virtual ~ImageEncoder() = default;
 

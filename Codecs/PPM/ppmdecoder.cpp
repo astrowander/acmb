@@ -6,7 +6,7 @@ void PpmDecoder::Attach(const std::string &fileName)
     ImageDecoder::Attach(fileName);
 }
 
-void PpmDecoder::Attach(std::unique_ptr<std::istream> pStream)
+void PpmDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
     ImageDecoder::Attach(std::move(pStream));
 
@@ -51,6 +51,32 @@ void PpmDecoder::Attach(std::unique_ptr<std::istream> pStream)
     }
 }
 
+template<>
+void PpmDecoder::ParseBinary<1>()
+{
+    for (uint32_t i = 0; i < _height; ++i)
+    {
+        auto pScanline = _pBitmap->GetPlanarScanline(i);
+        _pStream->read(pScanline, _width * BytesPerPixel(_pixelFormat));
+    }
+}
+
+template<>
+void PpmDecoder::ParseBinary<2>()
+{
+    for (uint32_t i = 0; i < _height; ++i)
+    {
+        auto pScanline = _pBitmap->GetPlanarScanline(i);
+        for (uint32_t j = 0; j < _width * ChannelCount(_pixelFormat); ++j)
+        {
+            char bytes[2];
+            _pStream->read(bytes, 2);
+            *pScanline++ = bytes[1];
+            *pScanline++ = bytes[0];
+        }
+    }
+}
+
 std::shared_ptr<IBitmap> PpmDecoder::GetBitmap()
 {
     if (_pBitmap)
@@ -77,17 +103,12 @@ std::shared_ptr<IBitmap> PpmDecoder::GetBitmap()
         throw std::runtime_error("not implemented");
     }
 
-    _ppmMode == PpmMode::Binary ? ParseBinary() : ParseText();
-    return _pBitmap;
-}
+    if (_ppmMode == PpmMode::Text)
+        ParseText();
+    else
+        BytesPerChannel(_pixelFormat) == 1 ? ParseBinary<1>() : ParseBinary<2>();
 
-void PpmDecoder::ParseBinary()
-{
-    for (uint32_t i = 0; i < _height; ++i)
-    {
-        auto pScanline = _pBitmap->GetPlanarScanline(i);
-        _pStream->read(pScanline, _width * BytesPerPixel(_pixelFormat));
-    }
+    return _pBitmap;
 }
 
 void PpmDecoder::ParseText()

@@ -73,8 +73,8 @@ BEGIN_TEST(PpmDecoder, TestByteOrdering)
     auto pBitmap = pDecoder->GetBitmap();
     auto pScanLine = pBitmap->GetPlanarScanline(0);
     char bytes[2] = {pScanLine[0], pScanLine[1]};
-    EXPECT_EQ(0x63, bytes[0]);
-    EXPECT_EQ(0x7b, bytes[1]);
+    EXPECT_EQ(0x7b, bytes[0]);
+    EXPECT_EQ(0x63, bytes[1]);
 
     auto pGray16Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap);
     auto pix = pGray16Bitmap->GetChannel(0,0,0);

@@ -3,7 +3,7 @@
 
 #include "Codecs/imagedecoder.h"
 #include "Core/enums.h"
-
+#include <iostream>
 class PpmDecoder : public ImageDecoder
 {
     PpmMode _ppmMode;
@@ -12,11 +12,12 @@ class PpmDecoder : public ImageDecoder
 
 public:
     void Attach(const std::string& fileName) override;
-    void Attach(std::unique_ptr<std::istream> pStream) override;
-    std::shared_ptr<IBitmap> GetBitmap() override;
+    void Attach(std::shared_ptr<std::istream> pStream) override;
+    std::shared_ptr<IBitmap> GetBitmap() override;    
 
 private:
 
+    template<uint32_t bytes>
     void ParseBinary();
 
     void ParseText();

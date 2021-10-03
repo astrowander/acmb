@@ -13,7 +13,9 @@ public:
     void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) override;
 
 private:
+    template<uint32_t bytes>
     void WriteBinary(std::shared_ptr<IBitmap> pBitmap);
+
     void WriteText(std::shared_ptr<IBitmap> pBitmap);
 };
 

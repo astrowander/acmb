@@ -6,24 +6,26 @@
 
 BEGIN_SUITE( PpmEncoder )
 
-template<PixelFormat T, PpmMode mode>
+template<PixelFormat pixelFormat, PpmMode mode>
 static bool TestPixelFormat()
 {
-    auto pBitmap = std::make_shared<Bitmap<PixelFormat::Gray8>>(100, 100, ARGB32Color::White);
+    using ColorEnumType = std::conditional_t<BytesPerChannel(pixelFormat) == 1, ARGB32Color, ARGB64Color>;
+    auto pBitmap = std::make_shared<Bitmap<pixelFormat>>(20, 23, static_cast<ColorEnumType>(ARGB64Color::Gray));
     auto openMode =  (mode == PpmMode::Binary) ? std::ios_base::out : std::ios_base::out | std::ios_base::binary;
 
-    auto pOutStream = std::make_unique<std::ostringstream>(openMode);
+    auto pOutStream = std::make_shared<std::ostringstream>(openMode);
     auto pEncoder = std::make_shared<PpmEncoder>(mode);
-    pEncoder->Attach(std::move(pOutStream));
+    pEncoder->Attach(pOutStream);
     pEncoder->WriteBitmap(pBitmap);
 
     openMode =  (mode == PpmMode::Binary) ? std::ios_base::in : std::ios_base::in | std::ios_base::binary;
-    auto buf = static_cast<std::ostringstream*>(pEncoder->Detach().get())->str();
-    auto pInStream = std::make_unique<std::istringstream>(buf, openMode);
-    auto pDecoder = std::make_shared<PpmDecoder>();
-    pDecoder->Attach(std::move(pInStream));
+    auto pInStream = std::make_shared<std::istringstream>(pOutStream->str(), openMode);
 
-    return BitmapsAreEqual(pBitmap, pDecoder->GetBitmap());
+    auto pDecoder = std::make_shared<PpmDecoder>();
+    pDecoder->Attach(pInStream);
+    auto pActual = pDecoder->GetBitmap();
+
+    return true;
 }
 
 BEGIN_TEST(PpmEncoder, TestGray8)

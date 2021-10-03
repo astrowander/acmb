@@ -7,6 +7,32 @@ PpmEncoder::PpmEncoder(PpmMode ppmMode)
 
 }
 
+template<>
+void PpmEncoder::WriteBinary<1>(std::shared_ptr<IBitmap> pBitmap)
+{
+    *_pStream << std::endl;
+    for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
+    {
+        _pStream->write(pBitmap->GetPlanarScanline(i), pBitmap->GetWidth() * BytesPerPixel(pBitmap->GetPixelFormat()));
+    }
+}
+
+template<>
+void PpmEncoder::WriteBinary<2>(std::shared_ptr<IBitmap> pBitmap)
+{
+    *_pStream << std::endl;
+    for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
+    {
+        auto pScanLine = pBitmap->GetPlanarScanline(i);
+        for (uint32_t j = 0; j < pBitmap->GetWidth() * ChannelCount(pBitmap->GetPixelFormat()); ++j)
+        {
+            char bytes[2] = {pScanLine[1], pScanLine[0]};
+            _pStream->write(bytes, 2);
+            pScanLine += 2;
+        }
+    }
+}
+
 void PpmEncoder::WriteBitmap(std::shared_ptr<IBitmap> pBitmap)
 {
     if (!pBitmap)
@@ -29,16 +55,10 @@ void PpmEncoder::WriteBitmap(std::shared_ptr<IBitmap> pBitmap)
     *_pStream << pBitmap->GetWidth() << " " << pBitmap->GetHeight() << std::endl;
     *_pStream << ((BytesPerChannel(pixelFormat) == 1) ? 255 : 65535);
 
-    (_ppmMode == PpmMode::Binary) ? WriteBinary(pBitmap) : WriteText(pBitmap);
-}
-
-void PpmEncoder::WriteBinary(std::shared_ptr<IBitmap> pBitmap)
-{
-    *_pStream << std::endl;
-    for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
-    {
-        _pStream->write(pBitmap->GetPlanarScanline(i), pBitmap->GetWidth() * BytesPerPixel(pBitmap->GetPixelFormat()));
-    }
+    if (_ppmMode == PpmMode::Text)
+        WriteText(pBitmap);
+    else
+        (BytesPerChannel(pixelFormat) == 1) ? WriteBinary<1>(pBitmap) : WriteBinary<2>(pBitmap);
 }
 
 void PpmEncoder::WriteText(std::shared_ptr<IBitmap> pBitmap)

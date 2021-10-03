@@ -1,12 +1,12 @@
 #include "imagedecoder.h"
 #include <fstream>
 
-void ImageDecoder::Attach(std::unique_ptr<std::istream> pStream)
+void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
     if (!pStream)
         throw std::runtime_error("pStream is null");
 
-    _pStream = std::move(pStream);
+    _pStream = pStream;
 }
 
 void ImageDecoder::Attach(const std::string &fileName)
@@ -18,10 +18,9 @@ void ImageDecoder::Attach(const std::string &fileName)
     Attach(std::move(pStream));
 }
 
-std::unique_ptr<std::istream> ImageDecoder::Detach()
+void ImageDecoder::Detach()
 {
-    _pStream->seekg(0);
-    return std::move(_pStream);
+    _pStream.reset();
 }
 
 std::unique_ptr<std::istringstream> ImageDecoder::ReadLine()
