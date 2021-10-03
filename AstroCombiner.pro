@@ -16,9 +16,9 @@ SOURCES += \
         Transforms/converter.cpp \
         Codecs/imagedecoder.cpp \
         Codecs/imageencoder.cpp \
-        main.cpp \
         Codecs/PPM/ppmdecoder.cpp \
-        Codecs/PPM/ppmencoder.cpp
+        Codecs/PPM/ppmencoder.cpp\
+        main.cpp
 
 
 HEADERS += \
