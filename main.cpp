@@ -28,6 +28,8 @@ int main()
     RUN_TEST(Converter, TestAstrophoto);
 
     RUN_TEST(Registrator, BasicTest);
+    RUN_TEST(Registrator, TestVertical);
+    RUN_TEST(Registrator, RegistrateHugePhoto);
 
     return 0;
 }

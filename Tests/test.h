@@ -26,6 +26,7 @@ public:
 #define EXPECT_EQ(arg1, arg2) isTrue &= (arg1 == arg2);
 #define EXPECT_TRUE(arg) isTrue &= arg;
 #define EXPECT_FALSE(arg) isTrue &= !arg;
+#define EXPECT_NEAR(arg1, arg2, eps) isTrue &= (arg1 > arg2 - eps) && (arg1 < arg2 + eps);
 
 #define RUN_TEST(TestSuite, TestName)                                      \
 {                                                                          \

@@ -65,7 +65,7 @@ private:
         {
             for (uint32_t j = 0; j < w; ++j)
             {
-                if (pData[i * h + j] > threshold)
+                if (pData[i * w + j] > threshold)
                 {
                     Star star {Rect {j, i, 1, 1}, 0, 0};
                     InspectStar(star, threshold, pData, j, i, w, h);
@@ -83,29 +83,29 @@ private:
     void InspectStar(Star& star, ChannelType threshold, ChannelType* pData, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
     {
         ++star.pixelCount;
-        star.luminance += pData[y * h + x];
-        pData[y * h + x] = 0;
+        star.luminance += pData[y * w + x];
+        pData[y * w + x] = 0;
 
-        if (x + 1 < w && pData[y * h + x + 1] > threshold)
+        if (x + 1 < w && pData[y * w + x + 1] > threshold)
         {
             star.rect.ExpandRight(x + 1);
             InspectStar(star, threshold, pData, x + 1, y, w, h);
         }
 
-        if (x + 1 < w && y + 1 < h && pData[(y + 1) * h + x + 1] > threshold)
+        if (x + 1 < w && y + 1 < h && pData[(y + 1) * w + x + 1] > threshold)
         {
             star.rect.ExpandRight(x + 1);
             star.rect.ExpandDown(y + 1);
             InspectStar(star, threshold, pData, x + 1, y + 1, w, h);
         }
 
-        if (y + 1 < h && pData[(y + 1) * h + x] > threshold)
+        if (y + 1 < h && pData[(y + 1) * w + x] > threshold)
         {
             star.rect.ExpandDown(y + 1);
             InspectStar(star, threshold, pData, x, y + 1, w, h);
         }
 
-        if (x > 0 && y + 1 < h && pData[(y + 1) * h + x - 1] > threshold)
+        if (x > 0 && y + 1 < h && pData[(y + 1) * w + x - 1] > threshold)
         {
             star.rect.ExpandDown(y + 1);
             star.rect.ExpandLeft(x - 1);
