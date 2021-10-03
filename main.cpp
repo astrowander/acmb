@@ -1,12 +1,12 @@
 #include <iostream>
-#include "ppmdecoder.h"
-#include "ppmencoder.h"
-#include "converter.h"
+#include "Codecs/PPM/ppmdecoder.h"
+#include "Codecs/PPM/ppmencoder.h"
+#include "Transforms/converter.h"
 
-#include "TestBitmap.cpp"
-#include "TestPpmDecoder.cpp"
-#include "TestPpmEncoder.cpp"
-#include "TestConverter.cpp"
+#include "Tests/TestBitmap.cpp"
+#include "Tests/TestPpmDecoder.cpp"
+#include "Tests/TestPpmEncoder.cpp"
+#include "Tests/TestConverter.cpp"
 
 int main()
 {

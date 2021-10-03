@@ -1,9 +1,8 @@
 #ifndef PPMDECODER_H
 #define PPMDECODER_H
 
-#include "imagedecoder.h"
-#include "enums.h"
-#include "test.h"
+#include "Codecs/imagedecoder.h"
+#include "Core/enums.h"
 
 class PpmDecoder : public ImageDecoder
 {

@@ -1,5 +1,5 @@
 #include "test.h"
-#include "bitmap.h"
+#include "Core/bitmap.h"
 
 BEGIN_SUITE(Bitmap)
 

@@ -6,28 +6,30 @@ CONFIG -= qt
 LIBS += -lraw
 
 SOURCES += \
-        TestBitmap.cpp \
-        TestConverter.cpp \
-        TestPpmDecoder.cpp \
-        TestPpmEncoder.cpp \
-        bitmap.cpp \
-        converter.cpp \
-        imagedecoder.cpp \
-        imageencoder.cpp \
-        imageparams.cpp \
+        Tests/TestBitmap.cpp \
+        Tests/TestConverter.cpp \
+        Tests/TestPpmDecoder.cpp \
+        Tests/TestPpmEncoder.cpp \
+        Tests/test.cpp \
+        Tests/testtools.cpp \
+        Core/bitmap.cpp \
+        Core/imageparams.cpp \
+        Transforms/converter.cpp \
+        Codecs/imagedecoder.cpp \
+        Codecs/imageencoder.cpp \
         main.cpp \
-        ppmdecoder.cpp \
-        ppmencoder.cpp \
-        testtools.cpp
+        Codecs/PPM/ppmdecoder.cpp \
+        Codecs/PPM/ppmencoder.cpp
+
 
 HEADERS += \
-    bitmap.h \
-    converter.h \
-    enums.h \
-    imagedecoder.h \
-    imageencoder.h \
-    imageparams.h \
-    ppmdecoder.h \
-    ppmencoder.h \
-    test.h \
-    testtools.h
+    Core/bitmap.h \
+    Core/imageparams.h \
+    Core/enums.h \
+    Transforms/converter.h \
+    Codecs/imagedecoder.h \
+    Codecs/imageencoder.h \
+    Codecs/PPM/ppmdecoder.h \
+    Codecs/PPM/ppmencoder.h \
+    Tests/test.h \
+    Tests/testtools.h

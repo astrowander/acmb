@@ -1,5 +1,5 @@
 #include "ppmdecoder.h"
-#include "bitmap.h"
+#include "Core/bitmap.h"
 
 void PpmDecoder::Attach(const std::string &fileName)
 {

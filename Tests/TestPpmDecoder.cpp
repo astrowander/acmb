@@ -1,6 +1,6 @@
 #include "test.h"
-#include "ppmdecoder.h"
-#include "bitmap.h"
+#include "Codecs/PPM/ppmdecoder.h"
+#include "Core/bitmap.h"
 #include <cstring>
 
 BEGIN_SUITE( PpmDecoder )

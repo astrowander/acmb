@@ -1,6 +1,6 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
-#include "bitmap.h"
+#include "Core/bitmap.h"
 #include <memory>
 #include <stdexcept>
 

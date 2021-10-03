@@ -1,8 +1,8 @@
 #include "test.h"
 #include "testtools.h"
-#include "ppmdecoder.h"
-#include "ppmencoder.h"
-#include "bitmap.h"
+#include "Codecs/PPM/ppmdecoder.h"
+#include "Codecs/PPM/ppmencoder.h"
+#include "Core/bitmap.h"
 
 BEGIN_SUITE( PpmEncoder )
 

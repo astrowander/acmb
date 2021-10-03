@@ -1,5 +1,5 @@
 #include "ppmencoder.h"
-#include "bitmap.h"
+#include "Core/bitmap.h"
 
 PpmEncoder::PpmEncoder(PpmMode ppmMode)
 : _ppmMode(ppmMode)

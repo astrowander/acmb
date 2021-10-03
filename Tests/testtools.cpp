@@ -1,6 +1,6 @@
 //#define GENERATE_PATTERNS
 #include "testtools.h"
-#include "bitmap.h"
+#include "Core/bitmap.h"
 #include <cstring>
 
 bool BitmapsAreEqual(std::shared_ptr<IBitmap> lhs, std::shared_ptr<IBitmap> rhs)

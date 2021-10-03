@@ -1,8 +1,8 @@
 #include "bitmap.h"
 #include <fstream>
 #include <filesystem>
-#include "ppmdecoder.h"
-#include "ppmencoder.h"
+#include "Codecs/PPM/ppmdecoder.h"
+#include "Codecs/PPM/ppmencoder.h"
 
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName)
 {

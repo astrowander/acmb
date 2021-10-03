@@ -4,7 +4,7 @@
 #include <string>
 #include <istream>
 #include <memory>
-#include "imageparams.h"
+#include "Core/imageparams.h"
 #include <sstream>
 
 class IBitmap;
