@@ -2,9 +2,6 @@
 #define TEST_H
 #include <iomanip>
 #include <iostream>
-#include <memory>
-
-#define EMPTY
 
 #define BEGIN_SUITE( TestSuite ) \
 class Test##TestSuite \

@@ -13,28 +13,12 @@ uint32_t ImageParams::GetWidth() const
     return _width;
 }
 
-/*void ImageParams::SetWidth(uint32_t val)
-{
-    _width = val;
-}*/
-
 uint32_t ImageParams::GetHeight() const
 {
     return _height;
 }
 
-/*void ImageParams::SetHeight(uint32_t val)
-{
-    _height = val;
-}*/
-
 PixelFormat ImageParams::GetPixelFormat() const
 {
     return _pixelFormat;
 }
-
-/*void ImageParams::SetPixelFormat(PixelFormat val)
-{
-    _pixelFormat = val;
-}
-*/

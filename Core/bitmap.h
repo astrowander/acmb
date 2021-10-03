@@ -21,7 +21,6 @@ public:
 
     static std::shared_ptr<IBitmap> Create(const std::string& fileName);
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
-    //static std::shared_ptr<IBitmap> Create(std::unique_ptr<std::istream> pStream);
 };
 
 

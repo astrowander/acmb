@@ -1,8 +1,3 @@
-#include <iostream>
-#include "Codecs/PPM/ppmdecoder.h"
-#include "Codecs/PPM/ppmencoder.h"
-#include "Transforms/converter.h"
-
 #include "Tests/TestBitmap.cpp"
 #include "Tests/TestPpmDecoder.cpp"
 #include "Tests/TestPpmEncoder.cpp"
@@ -11,7 +6,7 @@
 
 int main()
 {
-    /*RUN_TEST(Bitmap, TestGray8);
+    RUN_TEST(Bitmap, TestGray8);
     RUN_TEST(Bitmap, TestGray16);
     RUN_TEST(Bitmap, TestRgb48);
     RUN_TEST(Bitmap, TestRgb24);
@@ -26,11 +21,13 @@ int main()
     RUN_TEST(PpmEncoder, TestGray8);
     RUN_TEST(PpmEncoder, TestGray16);
     RUN_TEST(PpmEncoder, TestRgb24);
-    RUN_TEST(PpmEncoder, TestRgb48);*/
+    RUN_TEST(PpmEncoder, TestRgb48);
 
     RUN_TEST(Converter, TestRgb24ToGray8);
-    /*RUN_TEST(Converter, TestRgb48ToGray16);
-    RUN_TEST(Converter, TestAstrophoto);*/
+    RUN_TEST(Converter, TestRgb48ToGray16);
+    RUN_TEST(Converter, TestAstrophoto);
+
+    RUN_TEST(Registrator, BasicTest);
 
     return 0;
 }

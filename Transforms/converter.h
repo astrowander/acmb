@@ -1,7 +1,6 @@
 #ifndef CONVERTER_H
 #define CONVERTER_H
 #include "Core/bitmap.h"
-#include <memory>
 #include <stdexcept>
 
 template<PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>

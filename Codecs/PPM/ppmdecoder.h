@@ -3,7 +3,7 @@
 
 #include "Codecs/imagedecoder.h"
 #include "Core/enums.h"
-#include <iostream>
+
 class PpmDecoder : public ImageDecoder
 {
     PpmMode _ppmMode;

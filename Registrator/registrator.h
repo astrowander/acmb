@@ -1,16 +1,8 @@
 #ifndef REGISTRATOR_H
 #define REGISTRATOR_H
-#include <algorithm>
-#include <cstdint>
-#include <memory>
-#include <vector>
-#include <stdexcept>
-#include <limits>
-
-#include "Core/enums.h"
-#include "Core/bitmap.h"
-#include "Transforms/converter.h"
 #include "Tests/testtools.h"
+#include "Transforms/converter.h"
+#include <algorithm>
 
 struct PointF
 {
@@ -28,12 +20,16 @@ struct Rect
     void ExpandRight(uint32_t right);
     void ExpandLeft(uint32_t left);
     void ExpandDown(uint32_t bottom);
+
+    bool operator==(const Rect& rhs);
+
+    bool operator!=(const Rect& lhs);
 };
 
 struct Star
 {
     Rect rect;
-    uint32_t luminance;
+    double luminance;
     uint32_t pixelCount;
 };
 
@@ -54,7 +50,7 @@ private:
     {
         using ChannelType = std::conditional_t<BytesPerChannel(pixelFormat) == 1, uint8_t, uint16_t>;
         auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(Convert(_pBitmap, pixelFormat));
-        IBitmap::Save(pGrayBitmap, GetPathToTestFile("gray.pgm"));
+        //IBitmap::Save(pGrayBitmap, GetPathToTestFile("gray.pgm"));
         auto w = pGrayBitmap->GetWidth();
         auto h = pGrayBitmap->GetHeight();
 
@@ -79,6 +75,8 @@ private:
             }
 
         }
+
+        //IBitmap::Save(pGrayBitmap, GetPathToTestFile("mask.pgm"));
     }
 
     template <typename ChannelType>

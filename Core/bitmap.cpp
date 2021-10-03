@@ -40,4 +40,3 @@ void IBitmap::Save(std::shared_ptr<IBitmap> pBitmap, const std::string &fileName
     pEncoder->Attach(fileName);
     return pEncoder->WriteBitmap(pBitmap);
 }
-
