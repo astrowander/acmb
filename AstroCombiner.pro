@@ -10,7 +10,6 @@ SOURCES += \
         Tests/TestConverter.cpp \
         Tests/TestPpmDecoder.cpp \
         Tests/TestPpmEncoder.cpp \
-        Tests/test.cpp \
         Tests/testtools.cpp \
         Core/bitmap.cpp \
         Core/imageparams.cpp \
