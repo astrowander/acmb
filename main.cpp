@@ -3,10 +3,11 @@
 #include "Tests/TestPpmEncoder.cpp"
 #include "Tests/TestConverter.cpp"
 #include "Tests/TestRegistrator.cpp"
+#include "Tests/TestAligner.cpp"
 
 int main()
 {
-    RUN_TEST(Bitmap, TestGray8);
+    /*RUN_TEST(Bitmap, TestGray8);
     RUN_TEST(Bitmap, TestGray16);
     RUN_TEST(Bitmap, TestRgb48);
     RUN_TEST(Bitmap, TestRgb24);
@@ -25,11 +26,13 @@ int main()
 
     RUN_TEST(Converter, TestRgb24ToGray8);
     RUN_TEST(Converter, TestRgb48ToGray16);
-    RUN_TEST(Converter, TestAstrophoto);
+    RUN_TEST(Converter, TestAstrophoto);*/
 
-    RUN_TEST(Registrator, BasicTest);
+    /*RUN_TEST(Registrator, BasicTest);
     RUN_TEST(Registrator, TestVertical);
-    RUN_TEST(Registrator, RegistrateHugePhoto);
+    RUN_TEST(Registrator, RegistrateHugePhoto);*/
+
+    RUN_TEST(Aligner, BasicTest);
 
     return 0;
 }
