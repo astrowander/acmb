@@ -1,7 +1,7 @@
 #include "registrator.h"
 
 Registrator::Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
-: _pBitmap(pBitmap)
+: _dataset(std::make_shared<AlignmentDataset>(pBitmap))
 , _threshold(threshold)
 , _minStarSize(minStarSize)
 , _maxStarSize(maxStarSize)
@@ -9,7 +9,7 @@ Registrator::Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uin
 
 }
 
-std::vector<Star> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+std::shared_ptr<AlignmentDataset> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
     Registrator reg(pBitmap, threshold, minStarSize, maxStarSize);
 
@@ -18,43 +18,16 @@ std::vector<Star> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap, doub
     else
         reg.Registrate<PixelFormat::Gray16>();
 
-    std::sort(reg._stars.begin(), reg._stars.end(), [](auto& a, auto& b) {return a.luminance > b.luminance;});
-    auto maxLuminance = reg._stars[0].luminance;
-    for (auto& star : reg._stars)
+    std::sort(reg._dataset->stars.begin(), reg._dataset->stars.end(), [](auto& a, auto& b) {return a.luminance > b.luminance;});
+    auto maxLuminance = reg._dataset->stars[0].luminance;
+    //Point p0 = reg._dataset->stars[0].rect.GetOrigin();
+    //reg._dataset->transform.translate(p0.x, p0.y);
+
+    for (auto& star : reg._dataset->stars)
+    {
         star.luminance /= maxLuminance;
-
-    return reg._stars;
-}
-
-void Rect::ExpandRight(uint32_t right)
-{
-    if (width < right - x + 1)
-        width = right - x + 1;
-}
-
-void Rect::ExpandLeft(uint32_t left)
-{
-    if (left < x)
-    {
-        x = left;
-        width += x - left;
+        //star.rect.Translate(-p0.x, -p0.y);
     }
-}
 
-void Rect::ExpandDown(uint32_t bottom)
-{
-    if (bottom > y + height - 1)
-    {
-        height = bottom - y + 1;
-    }
-}
-
-bool Rect::operator==(const Rect &rhs)
-{
-    return (x == rhs.x) && (y == rhs.y) && (width = rhs.width) && (height == rhs.height);
-}
-
-bool Rect::operator!=(const Rect &lhs)
-{
-    return !(*this == lhs);
+    return reg._dataset;
 }

@@ -6,7 +6,12 @@ CONFIG -= qt
 LIBS += -lraw
 
 SOURCES += \
+        AGG/agg_trans_affine.cpp \
+        Geometry/matrix.cpp \
+        Geometry/rect.cpp \
+        Registrator/aligner.cpp \
         Registrator/registrator.cpp \
+        Tests/TestAligner.cpp \
         Tests/TestBitmap.cpp \
         Tests/TestConverter.cpp \
         Tests/TestPpmDecoder.cpp \
@@ -24,10 +29,18 @@ SOURCES += \
 
 
 HEADERS += \
+    AGG/agg_basics.h \
+    AGG/agg_config.h \
+    AGG/agg_trans_affine.h \
     Core/bitmap.h \
     Core/imageparams.h \
     Core/enums.h \
+    Geometry/matrix.h \
+    Geometry/rect.h \
+    Registrator/aligner.h \
+    Registrator/alignmentdataset.h \
     Registrator/registrator.h \
+    Registrator/star.h \
     Transforms/converter.h \
     Codecs/imagedecoder.h \
     Codecs/imageencoder.h \
