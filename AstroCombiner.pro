@@ -7,7 +7,6 @@ LIBS += -lraw
 
 SOURCES += \
         AGG/agg_trans_affine.cpp \
-        Geometry/matrix.cpp \
         Geometry/rect.cpp \
         Registrator/aligner.cpp \
         Registrator/registrator.cpp \
@@ -35,7 +34,6 @@ HEADERS += \
     Core/bitmap.h \
     Core/imageparams.h \
     Core/enums.h \
-    Geometry/matrix.h \
     Geometry/rect.h \
     Registrator/aligner.h \
     Registrator/alignmentdataset.h \

@@ -18,7 +18,7 @@ std::vector<std::shared_ptr<AlignmentDataset>> Aligner::Align()
         }
         else
         {
-            const Star upperVal {Rect {}, 0.5, 0};
+            const Star upperVal {Rect {}, PointF{}, 0.5, 0};
             auto brightCount = std::upper_bound(dataset->stars.begin(), dataset->stars.end(), upperVal, [](const Star& a, const Star& b) { return a.luminance > b.luminance; }) - std::begin(dataset->stars);
             if (brightCount > dataset->valuableStarCount)
                 dataset->valuableStarCount = brightCount;
@@ -39,7 +39,7 @@ std::vector<std::shared_ptr<AlignmentDataset>> Aligner::Align()
 void Aligner::ProcessPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::shared_ptr<AlignmentDataset> target)
 {
     std::pair<Star, Star> refPair { ref->stars[0], ref->stars[1] };
-    std::pair<PointF, PointF> refPoints{refPair.first.rect.GetCenter(), refPair.first.rect.GetCenter()};
+    std::pair<PointF, PointF> refPoints{refPair.first.center, refPair.second.center};
     auto refDist = refPoints.first.Distance(refPoints.second);
 
     std::pair<Star, Star> targetPair { Star{}, Star{} };
@@ -47,12 +47,12 @@ void Aligner::ProcessPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::
     for (uint32_t i = 0; i < target->valuableStarCount - 1; ++i)
     {
         targetPair.first = target->stars[i];
-        targetPoints.first = targetPair.first.rect.GetCenter();
+        targetPoints.first = targetPair.first.center;
 
         for (uint32_t j = i + 1; j < target->valuableStarCount; ++j)
         {
             targetPair.second = target->stars[j];
-            targetPoints.second = targetPair.second.rect.GetCenter();
+            targetPoints.second = targetPair.second.center;
             auto targetDist = targetPoints.first.Distance(targetPoints.second);
 
             if (fabs(targetDist - refDist) > _maxStarSize / 2)
@@ -77,12 +77,12 @@ bool Aligner::CheckPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::sh
 
     for (uint32_t i = 0; i < ref->valuableStarCount; ++i)
     {
-        auto refPoint = ref->stars[i].rect.GetCenter();
+        auto refPoint = ref->stars[i].center;
         target->transform.transform(&refPoint.x, &refPoint.y);
 
         for (uint32_t j = 0; j < target->valuableStarCount; ++j)
         {
-            auto targetPoint = target->stars[j].rect.GetCenter();
+            auto targetPoint = target->stars[j].center;
             auto dist = refPoint.Distance(targetPoint);
             if (dist < _maxStarSize / 2)
             {

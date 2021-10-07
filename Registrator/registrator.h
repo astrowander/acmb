@@ -43,10 +43,14 @@ private:
             {
                 if (pData[i * w + j] > threshold)
                 {
-                    Star star {Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0};
+                    Star star {Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0, 0};
                     InspectStar(star, threshold, pData, j, i, w, h);
                     if (star.rect.width >= _minStarSize && star.rect.width <= _maxStarSize && star.rect.height >= _minStarSize && star.rect.height <= _maxStarSize)
+                    {
+                        star.center.x /= star.luminance;
+                        star.center.y /= star.luminance;
                         _dataset->stars.push_back(star);
+                    }
                 }
             }
 
@@ -58,8 +62,11 @@ private:
     template <typename ChannelType>
     void InspectStar(Star& star, ChannelType threshold, ChannelType* pData, uint32_t x, uint32_t y, uint32_t w, uint32_t h)
     {
-        ++star.pixelCount;
-        star.luminance += pData[y * w + x];
+        ++star.pixelCount;        
+        auto pixelLuminance = pData[y * w + x] - threshold;
+        star.luminance += pixelLuminance;
+        star.center.x += x * pixelLuminance;
+        star.center.y += y * pixelLuminance;
         pData[y * w + x] = 0;
 
         if (x + 1 < w && pData[y * w + x + 1] > threshold)

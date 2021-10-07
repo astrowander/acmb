@@ -5,8 +5,9 @@
 struct Star
 {
     Rect rect;
-    double luminance;
-    uint32_t pixelCount;
+    PointF center;
+    double luminance = 0.0;
+    uint32_t pixelCount = 0;
 };
 
 #endif // STAR_H
