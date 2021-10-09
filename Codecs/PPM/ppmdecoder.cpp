@@ -110,6 +110,9 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadTextStripe(uint32_t stripeHeight)
 
 std::shared_ptr<IBitmap> PpmDecoder::ReadBitmap()
 {
+    if (!_pStream)
+        throw std::runtime_error("decoder is detached");
+
     _pStream->seekg(_dataOffset, std::ios_base::beg);
     _currentScanline = 0;
     return ReadStripe();

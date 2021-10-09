@@ -6,7 +6,7 @@
 #include "AGG/agg_trans_affine.h"
 
 
-class IBitmap;
+class ImageDecoder;
 struct AlignmentDataset;
 
 using StarPair = std::pair<Star, Star>;
@@ -18,10 +18,10 @@ class Aligner
     uint32_t _minStarSize = 5;
     uint32_t _maxStarSize = 25;
 
-    std::vector<std::shared_ptr<IBitmap>> _bitmaps;
+    std::vector<std::shared_ptr<ImageDecoder>> _decoders;
 
 
-    Aligner(std::vector<std::shared_ptr<IBitmap>> bitmaps);
+    Aligner(std::vector<std::shared_ptr<ImageDecoder>> decoders);
 
     std::vector<std::shared_ptr<AlignmentDataset>> Align();
 
@@ -30,7 +30,7 @@ class Aligner
     agg::trans_affine CalculateTransform(PointFPair& refPoints,PointFPair& targetPoints);
 
 public:
-    static std::vector<std::shared_ptr<AlignmentDataset>> Align(std::vector<std::shared_ptr<IBitmap>> bitmaps);
+    static std::vector<std::shared_ptr<AlignmentDataset>> Align(std::vector<std::shared_ptr<ImageDecoder>> decoders);
 };
 
 #endif // ALIGNER_H

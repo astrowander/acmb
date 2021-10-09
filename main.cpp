@@ -7,7 +7,7 @@
 
 int main()
 {
-    /*RUN_TEST(Bitmap, TestGray8);
+    RUN_TEST(Bitmap, TestGray8);
     RUN_TEST(Bitmap, TestGray16);
     RUN_TEST(Bitmap, TestRgb48);
     RUN_TEST(Bitmap, TestRgb24);
@@ -17,10 +17,11 @@ int main()
     RUN_TEST(PpmDecoder, TestGray16);
     RUN_TEST(PpmDecoder, TestRgb24);
     RUN_TEST(PpmDecoder, TestRgb48);
-    RUN_TEST(PpmDecoder, TestByteOrdering);*/
+    RUN_TEST(PpmDecoder, TestByteOrdering);
     RUN_TEST(PpmDecoder, ReadTwice);
+    RUN_TEST(PpmDecoder, ReadStripes);
 
-   /* RUN_TEST(PpmEncoder, TestGray8);
+    RUN_TEST(PpmEncoder, TestGray8);
     RUN_TEST(PpmEncoder, TestGray16);
     RUN_TEST(PpmEncoder, TestRgb24);
     RUN_TEST(PpmEncoder, TestRgb48);
@@ -31,7 +32,7 @@ int main()
 
     RUN_TEST(Registrator, BasicTest);
     RUN_TEST(Registrator, TestVertical);
-    RUN_TEST(Registrator, RegistrateHugePhoto);*/
+    RUN_TEST(Registrator, RegistrateHugePhoto);
 
    // RUN_TEST(Aligner, BasicTest);
 

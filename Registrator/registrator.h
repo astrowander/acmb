@@ -2,13 +2,14 @@
 #define REGISTRATOR_H
 #include "Tests/testtools.h"
 #include "Transforms/converter.h"
+#include "Codecs/imagedecoder.h"
 #include <algorithm>
 
 #include "star.h"
 
 #include "alignmentdataset.h"
 
-class IBitmap;
+//class IBitmap;
 class Registrator
 {
     std::shared_ptr<AlignmentDataset> _dataset;
@@ -19,13 +20,13 @@ class Registrator
     //std::vector<Star> _stars;
 
 private:
-    Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize);
+    Registrator(std::shared_ptr<ImageDecoder> pDecoder, double threshold, uint32_t minStarSize, uint32_t maxStarSize);
 
     template <PixelFormat pixelFormat>
     void Registrate()
     {
         using ChannelType = std::conditional_t<BytesPerChannel(pixelFormat) == 1, uint8_t, uint16_t>;
-        auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(Convert(_dataset->pBitmap, pixelFormat));
+        auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(Convert(_dataset->pDecoder->ReadBitmap(), pixelFormat));
         //IBitmap::Save(pGrayBitmap, GetPathToTestFile("gray.pgm"));
         auto w = pGrayBitmap->GetWidth();
         auto h = pGrayBitmap->GetHeight();
@@ -97,7 +98,7 @@ private:
     }
 
 public:
-    static std::shared_ptr<AlignmentDataset> Registrate(std::shared_ptr<IBitmap> pBitmap, double threshold = 10, uint32_t minStarSize = 3, uint32_t maxStarSize = 20);
+    static std::shared_ptr<AlignmentDataset> Registrate(std::shared_ptr<ImageDecoder> pDecoder, double threshold = 10, uint32_t minStarSize = 3, uint32_t maxStarSize = 20);
 };
 
 #endif

@@ -6,8 +6,7 @@ BEGIN_SUITE(Registrator)
 
 BEGIN_TEST(Registrator, BasicTest)
 
-auto pBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm"));
-auto dataset = Registrator::Registrate(pBitmap);
+auto dataset = Registrator::Registrate(ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4030.ppm")));
 auto& stars = dataset->stars;
 EXPECT_EQ(675, stars.size());
 EXPECT_EQ(1.0, stars[0].luminance);
@@ -17,8 +16,7 @@ EXPECT_EQ((Rect{327, 229, 12, 20}), stars[0].rect);
 END_TEST
 
 BEGIN_TEST(Registrator, RegistrateHugePhoto)
-auto pBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm"));
-auto dataset = Registrator::Registrate(pBitmap, 50, 5, 25);
+auto dataset = Registrator::Registrate(ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4314.ppm")), 50, 5, 25);
 auto& stars = dataset->stars;
 EXPECT_EQ(8971, stars.size());
 EXPECT_EQ(196, stars[2].pixelCount);
@@ -27,8 +25,7 @@ EXPECT_EQ((Rect{1336, 1782, 11, 20}), stars[2].rect);
 END_TEST
 
 BEGIN_TEST(Registrator, TestVertical)
-auto pBitmap = IBitmap::Create(GetPathToTestFile("PPM/vertical.ppm"));
-auto dataset = Registrator::Registrate(pBitmap, 40, 5, 25);
+auto dataset = Registrator::Registrate(ImageDecoder::Create(GetPathToTestFile("PPM/vertical.ppm")), 40, 5, 25);
 auto& stars = dataset->stars;
 EXPECT_EQ(1654, stars.size());
 EXPECT_EQ(115, stars[1].pixelCount);

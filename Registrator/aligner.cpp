@@ -1,16 +1,16 @@
 #include "aligner.h"
 #include "registrator.h"
 
-Aligner::Aligner(std::vector<std::shared_ptr<IBitmap> > bitmaps)
-    :_bitmaps(bitmaps)
+Aligner::Aligner(std::vector<std::shared_ptr<ImageDecoder> > decoders)
+    :_decoders(decoders)
 {}
 
 std::vector<std::shared_ptr<AlignmentDataset>> Aligner::Align()
 {
     std::vector<std::shared_ptr<AlignmentDataset>> datasets;
-    for (auto& bitmap : _bitmaps)
+    for (auto& decoder : _decoders)
     {
-        datasets.push_back(Registrator::Registrate(bitmap, 50, 5, 25));
+        datasets.push_back(Registrator::Registrate(decoder, 50, 5, 25));
         auto & dataset = datasets.back();
         if (dataset->stars.size() < dataset->valuableStarCount)
         {
@@ -110,8 +110,8 @@ agg::trans_affine Aligner::CalculateTransform(PointFPair &refPoints, PointFPair 
     return agg::trans_affine (cosa, sina, -sina, cosa, targetPoints.first.x + sina * refPoints.first.y - cosa * refPoints.first.x, targetPoints.first.y - cosa * refPoints.first.y - sina * refPoints.first.x);
 }
 
-std::vector<std::shared_ptr<AlignmentDataset> > Aligner::Align(std::vector<std::shared_ptr<IBitmap> > bitmaps)
+std::vector<std::shared_ptr<AlignmentDataset> > Aligner::Align(std::vector<std::shared_ptr<ImageDecoder>> decoders)
 {
-    Aligner aligner(bitmaps);
+    Aligner aligner(decoders);
     return aligner.Align();
 }

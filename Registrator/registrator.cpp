@@ -1,7 +1,7 @@
 #include "registrator.h"
 
-Registrator::Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
-: _dataset(std::make_shared<AlignmentDataset>(pBitmap))
+Registrator::Registrator(std::shared_ptr<ImageDecoder> pDecoder, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+: _dataset(std::make_shared<AlignmentDataset>(pDecoder))
 , _threshold(threshold)
 , _minStarSize(minStarSize)
 , _maxStarSize(maxStarSize)
@@ -9,11 +9,11 @@ Registrator::Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uin
 
 }
 
-std::shared_ptr<AlignmentDataset> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+std::shared_ptr<AlignmentDataset> Registrator::Registrate(std::shared_ptr<ImageDecoder> pDecoder, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
-    Registrator reg(pBitmap, threshold, minStarSize, maxStarSize);
+    Registrator reg(pDecoder, threshold, minStarSize, maxStarSize);
 
-    if (BytesPerChannel(pBitmap->GetPixelFormat()) == 1)
+    if (BytesPerChannel(pDecoder->GetPixelFormat()) == 1)
         reg.Registrate<PixelFormat::Gray8>();
     else
         reg.Registrate<PixelFormat::Gray16>();

@@ -38,6 +38,7 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
     if (!pDecoder)
         throw std::invalid_argument("fileName");
 
+    pDecoder->Attach(fileName);
     return pDecoder;
 }
 

@@ -2,19 +2,19 @@
 #include "testtools.h"
 #include "Registrator/aligner.h"
 #include "Registrator/registrator.h"
-#include "Core/bitmap.h"
+#include "Codecs/imagedecoder.h"
 
 BEGIN_SUITE(Aligner)
 
 BEGIN_TEST(Aligner, BasicTest)
 
-std::vector<std::shared_ptr<IBitmap>> bitmaps
+std::vector<std::shared_ptr<ImageDecoder>> decoders
 {
-    IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm")),
-    IBitmap::Create(GetPathToTestFile("PPM/IMG_4322.ppm"))
+    ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4314.ppm")),
+    ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4322.ppm"))
 };
 
-auto datasets = Aligner::Align(bitmaps);
+auto datasets = Aligner::Align(decoders);
 
 std::cout << std::setw(8) <<  datasets[0]->transform.tx << std::setw(8) << datasets[0]->transform.ty << std::setw(40) << datasets[1]->transform.tx << std::setw(8) << datasets[1]->transform.ty << std::endl;
 for (uint32_t i = 0; i < 20; ++ i)
