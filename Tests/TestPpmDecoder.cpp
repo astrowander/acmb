@@ -92,4 +92,13 @@ BEGIN_TEST (PpmDecoder, ReadTwice)
 
 END_TEST
 
+BEGIN_TEST (PpmDecoder, ReadStripes)
+    auto pDecoder = std::make_unique<PpmDecoder>();
+    pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
+
+    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("PpmDecoder/ReadStripes/stripe0.ppm"), pDecoder->ReadStripe(200)));
+    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("PpmDecoder/ReadStripes/stripe1.ppm"), pDecoder->ReadStripe(200)));
+    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("PpmDecoder/ReadStripes/stripe2.ppm"), pDecoder->ReadStripe(0)));
+END_TEST
+
 END_SUITE
