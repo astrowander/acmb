@@ -10,6 +10,7 @@ SOURCES += \
         Geometry/rect.cpp \
         Registrator/aligner.cpp \
         Registrator/registrator.cpp \
+        Registrator/stacker.cpp \
         Tests/TestAligner.cpp \
         Tests/TestBitmap.cpp \
         Tests/TestConverter.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
     Registrator/aligner.h \
     Registrator/alignmentdataset.h \
     Registrator/registrator.h \
+    Registrator/stacker.h \
     Registrator/star.h \
     Transforms/converter.h \
     Codecs/imagedecoder.h \
