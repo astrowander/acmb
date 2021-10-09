@@ -23,9 +23,9 @@ static bool TestPixelFormat()
 
     auto pDecoder = std::make_shared<PpmDecoder>();
     pDecoder->Attach(pInStream);
-    auto pActual = pDecoder->GetBitmap();
+    auto pActual = pDecoder->ReadBitmap();
 
-    return true;
+    return BitmapsAreEqual(pBitmap, pActual);
 }
 
 BEGIN_TEST(PpmEncoder, TestGray8)

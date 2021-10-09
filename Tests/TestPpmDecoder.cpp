@@ -50,7 +50,7 @@ BEGIN_TEST(PpmDecoder, TestPlain)
         EXPECT_EQ(4, pDecoder->GetWidth());
         EXPECT_EQ(4, pDecoder->GetHeight());
 
-        auto pBitmap = pDecoder->GetBitmap();
+        auto pBitmap = pDecoder->ReadBitmap();
         EXPECT_EQ(PixelFormat::RGB24, pBitmap->GetPixelFormat());
         EXPECT_EQ(4, pBitmap->GetWidth());
         EXPECT_EQ(4, pBitmap->GetHeight());
@@ -70,7 +70,7 @@ END_TEST
 BEGIN_TEST(PpmDecoder, TestByteOrdering)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/IMG_4030.ppm"));
-    auto pBitmap = pDecoder->GetBitmap();
+    auto pBitmap = pDecoder->ReadBitmap();
     auto pScanLine = pBitmap->GetPlanarScanline(0);
     char bytes[2] = {pScanLine[0], pScanLine[1]};
     EXPECT_EQ(0x7b, bytes[0]);
@@ -79,6 +79,16 @@ BEGIN_TEST(PpmDecoder, TestByteOrdering)
     auto pGray16Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap);
     auto pix = pGray16Bitmap->GetChannel(0,0,0);
     EXPECT_EQ(0x637b, pix);
+
+END_TEST
+
+BEGIN_TEST (PpmDecoder, ReadTwice)
+
+    auto pDecoder = std::make_unique<PpmDecoder>();
+    pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
+    auto pFirstBitmap = pDecoder->ReadBitmap();
+    auto pSecondBitmap = pDecoder->ReadBitmap();
+    EXPECT_TRUE(BitmapsAreEqual(pFirstBitmap, pSecondBitmap));
 
 END_TEST
 

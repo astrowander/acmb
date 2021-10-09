@@ -8,7 +8,7 @@ void PpmDecoder::Attach(const std::string &fileName)
 
 void PpmDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
-    ImageDecoder::Attach(std::move(pStream));
+    ImageDecoder::Attach(pStream);
 
     auto pStringStream = ReadLine();
     char magicNumber[2];
@@ -49,24 +49,32 @@ void PpmDecoder::Attach(std::shared_ptr<std::istream> pStream)
     default:
         throw std::runtime_error("not supported");
     }
+
+    _dataOffset = pStream->tellg();
 }
 
 template<>
-void PpmDecoder::ParseBinary<1>()
+std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<1>(uint32_t stripeHeight)
 {
-    for (uint32_t i = 0; i < _height; ++i)
+    auto res = CreateStripe(stripeHeight);
+
+    for (uint32_t i = 0; i < stripeHeight; ++i)
     {
-        auto pScanline = _pBitmap->GetPlanarScanline(i);
+        auto pScanline = res->GetPlanarScanline(i);
         _pStream->read(pScanline, _width * BytesPerPixel(_pixelFormat));
     }
+
+    return res;
 }
 
 template<>
-void PpmDecoder::ParseBinary<2>()
+std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<2>(uint32_t stripeHeight)
 {
-    for (uint32_t i = 0; i < _height; ++i)
+    auto res = CreateStripe(stripeHeight);
+
+    for (uint32_t i = 0; i < stripeHeight; ++i)
     {
-        auto pScanline = _pBitmap->GetPlanarScanline(i);
+        auto pScanline = res->GetPlanarScanline(i);
         for (uint32_t j = 0; j < _width * ChannelCount(_pixelFormat); ++j)
         {
             char bytes[2];
@@ -75,45 +83,15 @@ void PpmDecoder::ParseBinary<2>()
             *pScanline++ = bytes[0];
         }
     }
+
+    return res;
 }
 
-std::shared_ptr<IBitmap> PpmDecoder::GetBitmap()
+std::shared_ptr<IBitmap> PpmDecoder::ReadTextStripe(uint32_t stripeHeight)
 {
-    if (_pBitmap)
-        return _pBitmap;
+    auto pStripe = CreateStripe(stripeHeight);
 
-    if (!_pStream)
-        throw std::runtime_error("decoder is detached");
-
-    switch(_pixelFormat)
-    {
-    case PixelFormat::Gray8:
-        _pBitmap.reset(new Bitmap<PixelFormat::Gray8>(_width, _height));
-        break;
-    case PixelFormat::Gray16:
-        _pBitmap.reset(new Bitmap<PixelFormat::Gray16>(_width, _height));
-        break;
-    case PixelFormat::RGB24:
-        _pBitmap.reset(new Bitmap<PixelFormat::RGB24>(_width, _height));
-        break;
-    case PixelFormat::RGB48:
-        _pBitmap.reset(new Bitmap<PixelFormat::RGB48>(_width, _height));
-        break;
-    default:
-        throw std::runtime_error("not implemented");
-    }
-
-    if (_ppmMode == PpmMode::Text)
-        ParseText();
-    else
-        BytesPerChannel(_pixelFormat) == 1 ? ParseBinary<1>() : ParseBinary<2>();
-
-    return _pBitmap;
-}
-
-void PpmDecoder::ParseText()
-{
-    for (uint32_t i = 0; i < _height; ++i)
+    for (uint32_t i = 0; i < stripeHeight; ++i)
     {
         for (uint32_t j = 0; j < _width; ++j)
         {
@@ -121,8 +99,65 @@ void PpmDecoder::ParseText()
             {
                 uint32_t v;
                 *_pStream >> v;
-                _pBitmap->SetChannel(i, j, k, v);
+                pStripe->SetChannel(i, j, k, v);
             }
         }
     }
+
+    return pStripe;
+}
+
+
+std::shared_ptr<IBitmap> PpmDecoder::ReadBitmap()
+{
+    _pStream->seekg(_dataOffset, std::ios_base::beg);
+    _currentScanline = 0;
+    return ReadStripe();
+}
+
+std::shared_ptr<IBitmap> PpmDecoder::ReadStripe(uint32_t stripeHeight)
+{
+    if (!_pStream)
+        throw std::runtime_error("decoder is detached");
+
+    if (stripeHeight > _height - _currentScanline)
+        throw std::invalid_argument("stripe height exceeds the remainder");
+
+    if (stripeHeight == 0)
+        stripeHeight = _height - _currentScanline;
+
+    _currentScanline += stripeHeight;
+
+    if (_ppmMode == PpmMode::Text)
+        return ReadTextStripe(stripeHeight);
+
+    return BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
+}
+
+std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
+{
+    switch(_pixelFormat)
+    {
+    case PixelFormat::Gray8:
+        return std::make_shared<Bitmap<PixelFormat::Gray8>>(_width, stripeHeight);
+    case PixelFormat::Gray16:
+        return std::make_shared<Bitmap<PixelFormat::Gray16>>(_width, stripeHeight);
+    case PixelFormat::RGB24:
+        return std::make_shared<Bitmap<PixelFormat::RGB24>>(_width, stripeHeight);
+    case PixelFormat::RGB48:
+        return std::make_shared<Bitmap<PixelFormat::RGB48>>(_width, stripeHeight);
+    default:
+        throw std::runtime_error("not implemented");
+    }
+}
+
+
+
+std::unique_ptr<std::istringstream> PpmDecoder::ReadLine()
+{
+    auto res = ImageDecoder::ReadLine();
+    while (res->peek() == '#')
+        res = ImageDecoder::ReadLine();
+
+    return res;
 }

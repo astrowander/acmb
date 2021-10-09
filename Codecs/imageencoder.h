@@ -21,6 +21,8 @@ public:
     virtual ~ImageEncoder() = default;
 
     virtual void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) = 0;
+
+    static std::shared_ptr<ImageEncoder> Create(const std::string& fileName);
 };
 
 #endif // IMAGEENCODER_H

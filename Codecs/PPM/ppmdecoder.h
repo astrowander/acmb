@@ -8,28 +8,27 @@ class PpmDecoder : public ImageDecoder
 {
     PpmMode _ppmMode;
     uint32_t _maxval;
-    std::shared_ptr<IBitmap> _pBitmap;
+
+    std::streampos _dataOffset;
+    uint32_t _currentScanline;
 
 public:
     void Attach(const std::string& fileName) override;
     void Attach(std::shared_ptr<std::istream> pStream) override;
-    std::shared_ptr<IBitmap> GetBitmap() override;    
 
-private:
+    std::shared_ptr<IBitmap> ReadBitmap() override;
+    std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;
+
+private:    
+
+    std::shared_ptr<IBitmap> CreateStripe(uint32_t stripeHeight);
 
     template<uint32_t bytes>
-    void ParseBinary();
+    std::shared_ptr<IBitmap> ReadBinaryStripe(uint32_t stripeHeight);
 
-    void ParseText();
+    std::shared_ptr<IBitmap> ReadTextStripe(uint32_t stripeHeight);
 
-    std::unique_ptr<std::istringstream> ReadLine() override
-    {
-        auto res = ImageDecoder::ReadLine();
-        while (res->peek() == '#')
-            res = ImageDecoder::ReadLine();
-
-        return res;
-    }
+    std::unique_ptr<std::istringstream> ReadLine() override;
 };
 
 #endif // PPMDECODER_H
