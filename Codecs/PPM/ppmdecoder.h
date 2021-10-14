@@ -19,6 +19,7 @@ public:
     std::shared_ptr<IBitmap> ReadBitmap() override;
     std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;
 
+    uint32_t GetCurrentScanline() const override;
 private:    
 
     std::shared_ptr<IBitmap> CreateStripe(uint32_t stripeHeight);

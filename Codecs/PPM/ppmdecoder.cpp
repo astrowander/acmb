@@ -137,6 +137,11 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadStripe(uint32_t stripeHeight)
     return BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
 }
 
+uint32_t PpmDecoder::GetCurrentScanline() const
+{
+    return _currentScanline;
+}
+
 std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
 {
     switch(_pixelFormat)

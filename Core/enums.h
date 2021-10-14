@@ -2,6 +2,7 @@
 #define PIXELFORMATS_H
 
 #include <cstdint>
+#include <type_traits>
 
 enum class PixelFormat : uint32_t
 {
@@ -87,6 +88,21 @@ enum class PpmMode
 {
     Text,
     Binary
+};
+
+template<PixelFormat pixelFormat>
+struct PixelFormatTraits
+{
+    using ChannelType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint8_t, uint16_t>;
+    using ColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint32_t, uint64_t>;
+    using EnumColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, ARGB32Color, ARGB64Color>;
+    static constexpr auto colorSpace = GetColorSpace(pixelFormat);
+    static constexpr auto channelCount = ChannelCount(pixelFormat);
+    static constexpr auto bytesPerChannel = BytesPerChannel(pixelFormat);
+    static constexpr auto bitsPerChannel = BitsPerChannel(pixelFormat);
+    static constexpr auto bytesPerPixel = BytesPerPixel(pixelFormat);
+    static constexpr auto bitsPerPixel = BitsPerPixel(pixelFormat);
+    PixelFormatTraits() = delete;
 };
 
 #endif // PIXELFORMATS_H

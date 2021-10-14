@@ -26,6 +26,8 @@ public:
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;
     virtual std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight) = 0;
 
+    virtual uint32_t GetCurrentScanline() const = 0;
+
     static std::shared_ptr<ImageDecoder> Create(const std::string& fileName);
 
 

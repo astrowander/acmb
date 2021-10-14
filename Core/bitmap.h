@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "imageparams.h"
 
-#include <type_traits>
+
 #include <vector>
 
 #include <memory>
@@ -23,7 +23,7 @@ public:
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
 };
 
-
+using IBitmapPtr = std::shared_ptr<IBitmap>;
 
 template<PixelFormat pixelFormat>
 class Bitmap : public IBitmap
