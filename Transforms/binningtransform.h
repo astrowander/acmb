@@ -10,7 +10,7 @@ class IBinningTransform : public BaseTransform
 {
 public:
     IBinningTransform(std::shared_ptr<IBitmap> pSrcBitmap)
-    : IBinningTransform(pSrcBitmap)
+    : BaseTransform(pSrcBitmap)
     {
     }
 
@@ -26,7 +26,7 @@ class BinningTransform : public IBinningTransform<hBinSize, vBinSize>
     std::array<ChannelType, hBinSize * vBinSize> _buf;
 
 public:
-    BinningTransform(std::shared_ptr<Bitmap<pixelFormat>> pSrcBitmap)
+    BinningTransform(std::shared_ptr<IBitmap> pSrcBitmap)
     : IBinningTransform<hBinSize, vBinSize>(pSrcBitmap)
     {
     }
@@ -90,7 +90,7 @@ std::shared_ptr<IBinningTransform<hBinSize, vBinSize>> IBinningTransform<hBinSiz
         case PixelFormat::RGB24:
             return std::make_shared<BinningTransform<PixelFormat::RGB24, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pSrcBitmap));
         case PixelFormat::RGB48:
-            return std::make_shared<BinningTransform<PixelFormat::RGB24, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pSrcBitmap));
+            return std::make_shared<BinningTransform<PixelFormat::RGB48, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pSrcBitmap));
         default:
             throw std::runtime_error("Pixel format must be known");
     }

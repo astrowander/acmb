@@ -12,6 +12,7 @@ SOURCES += \
         Registrator/registrator.cpp \
         Registrator/stacker.cpp \
         Tests/TestAligner.cpp \
+        Tests/TestBinningTransform.cpp \
         Tests/TestBitmap.cpp \
         Tests/TestConverter.cpp \
         Tests/TestPpmDecoder.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
         Tests/testtools.cpp \
         Core/bitmap.cpp \
         Core/imageparams.cpp \
+        Transforms/basetransform.cpp \
         Transforms/converter.cpp \
         Codecs/imagedecoder.cpp \
         Codecs/imageencoder.cpp \
@@ -41,6 +43,8 @@ HEADERS += \
     Registrator/registrator.h \
     Registrator/stacker.h \
     Registrator/star.h \
+    Transforms/basetransform.h \
+    Transforms/binningtransform.h \
     Transforms/converter.h \
     Codecs/imagedecoder.h \
     Codecs/imageencoder.h \
