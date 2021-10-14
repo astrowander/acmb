@@ -4,6 +4,7 @@
 #include "Tests/TestConverter.cpp"
 #include "Tests/TestRegistrator.cpp"
 #include "Tests/TestAligner.cpp"
+#include "Tests/TestBinningTransform.cpp"
 
 int main()
 {
@@ -34,7 +35,10 @@ int main()
     RUN_TEST(Registrator, TestVertical);
     RUN_TEST(Registrator, RegistrateHugePhoto);
 
-   // RUN_TEST(Aligner, BasicTest);
+    RUN_TEST(Aligner, BasicTest);
+
+    RUN_TEST(BinningTransform, TestRGB24);
+    RUN_TEST(BinningTransform, TestHugePicture);
 
     return 0;
 }
