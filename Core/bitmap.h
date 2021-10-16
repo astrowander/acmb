@@ -2,11 +2,12 @@
 #define BITMAP_H
 #include "enums.h"
 #include "imageparams.h"
-
+#include "Tools/mathtools.h"
 
 #include <vector>
-
 #include <memory>
+#include <stdexcept>
+
 
 class IBitmap : public ImageParams
 {
@@ -19,6 +20,8 @@ public:
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
     virtual uint32_t GetByteSize() = 0;
 
+    virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) = 0;
+
     static std::shared_ptr<IBitmap> Create(const std::string& fileName);
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
 };
@@ -28,10 +31,11 @@ using IBitmapPtr = std::shared_ptr<IBitmap>;
 template<PixelFormat pixelFormat>
 class Bitmap : public IBitmap
 {
-    using ChannelType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint8_t, uint16_t>;
-    using ColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint32_t, uint64_t>;
-    using EnumColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, ARGB32Color, ARGB64Color>;
-    static constexpr auto channelCount = ChannelCount(pixelFormat);
+    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+    using ColorType = typename PixelFormatTraits<pixelFormat>::ColorType;
+    using EnumColorType = typename PixelFormatTraits<pixelFormat>::EnumColorType;
+
+    static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
     std::vector<ChannelType> _data;
 
@@ -103,6 +107,39 @@ public:
     const auto& GetData()
     {
         return _data;
+    }
+
+    float GetInterpolatedChannel(float x, float y, uint32_t ch) override
+    {
+        if (x < 0 || x >= _width - 1)
+            throw std::invalid_argument("x");
+
+        if (y < 0 || y >= _width - 1)
+            throw std::invalid_argument("y");
+
+        if (ch >= channelCount)
+            throw std::invalid_argument("ch");
+
+        uint32_t x0 = FastRound<uint32_t>(x);
+        if (x0 == _width - 1)
+            x0 -= 2;
+        else if (x0 >= 1)
+            x0 -= 1;
+
+        uint32_t y0 = FastRound<uint32_t>(y);
+        if (y0 == _height - 1)
+            y0 -= 2;
+        else if (y0 >= 1)
+            y0 -= 1;
+
+        float yIn[3] =
+        {
+            QuadraticInterpolation(x - x0, _data[(y0 * _width + x0) * channelCount + ch], _data[(y0 * _width + x0 + 1) * channelCount + ch], _data[(y0 * _width + x0 + 2) * channelCount + ch]),
+            QuadraticInterpolation(x - x0, _data[((y0 + 1) * _width + x0) * channelCount + ch], _data[((y0 + 1) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 1) * _width + x0 + 2) * channelCount + ch]),
+            QuadraticInterpolation(x - x0, _data[((y0 + 2) * _width + x0) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 2) * channelCount + ch])
+        };
+
+        return QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]);
     }
 };
 

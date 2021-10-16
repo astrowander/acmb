@@ -84,13 +84,13 @@ std::shared_ptr<IBinningTransform<hBinSize, vBinSize>> IBinningTransform<hBinSiz
     switch (pSrcBitmap->GetPixelFormat())
     {
         case PixelFormat::Gray8:
-            return std::make_shared<BinningTransform<PixelFormat::Gray8, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pSrcBitmap));
+            return std::make_shared<BinningTransform<PixelFormat::Gray8, hBinSize, vBinSize>>(pSrcBitmap);
         case PixelFormat::Gray16:
-            return std::make_shared<BinningTransform<PixelFormat::Gray16, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pSrcBitmap));
+            return std::make_shared<BinningTransform<PixelFormat::Gray16, hBinSize, vBinSize>>(pSrcBitmap);
         case PixelFormat::RGB24:
-            return std::make_shared<BinningTransform<PixelFormat::RGB24, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pSrcBitmap));
+            return std::make_shared<BinningTransform<PixelFormat::RGB24, hBinSize, vBinSize>>(pSrcBitmap);
         case PixelFormat::RGB48:
-            return std::make_shared<BinningTransform<PixelFormat::RGB48, hBinSize, vBinSize>>(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pSrcBitmap));
+            return std::make_shared<BinningTransform<PixelFormat::RGB48, hBinSize, vBinSize>>(pSrcBitmap);
         default:
             throw std::runtime_error("Pixel format must be known");
     }

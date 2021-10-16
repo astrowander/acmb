@@ -22,6 +22,9 @@ void ConvertPixel<PixelFormat::RGB48, PixelFormat::Gray16>(uint16_t* pSrcPixel, 
 
 std::shared_ptr<IBitmap> Convert(std::shared_ptr<IBitmap> pSrcBitmap, PixelFormat pDstPixelFormat)
 {
+    if (!pSrcBitmap)
+        throw std::invalid_argument("pSrcBitmap is null");
+
     if (pSrcBitmap->GetPixelFormat() == PixelFormat::RGB24 && pDstPixelFormat == PixelFormat::Gray8)
     {
         return ConvertBitmap<PixelFormat::RGB24, PixelFormat::Gray8>(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pSrcBitmap));

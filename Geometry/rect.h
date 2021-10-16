@@ -34,15 +34,9 @@ struct Rect
 
     bool operator!=(const Rect& lhs);
 
-    Point GetOrigin()
-    {
-        return Point {x, y};
-    }
+    Point GetOrigin();
 
-    PointF GetCenter()
-    {
-        return {x + width / 2.0, y + height / 2.0 };
-    }
+    PointF GetCenter();
 };
 
 #endif // RECT_H

@@ -10,14 +10,9 @@ class ImageDecoder;
 
 struct AlignmentDataset
 {
-    std::shared_ptr<ImageDecoder> pDecoder;
     std::vector<Star> stars;
     agg::trans_affine transform;
     uint32_t valuableStarCount = 20;
-
-    AlignmentDataset(std::shared_ptr<ImageDecoder> pDecoder)
-    :pDecoder(pDecoder)
-    {}
 };
 
 #endif // ALIGNMENTDATASET_H

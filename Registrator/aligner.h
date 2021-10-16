@@ -6,7 +6,7 @@
 #include "AGG/agg_trans_affine.h"
 
 
-class ImageDecoder;
+class IBitmap;
 struct AlignmentDataset;
 
 using StarPair = std::pair<Star, Star>;
@@ -14,23 +14,17 @@ using PointFPair = std::pair<PointF, PointF>;
 
 class Aligner
 {
-    double _threshold = 10;
-    uint32_t _minStarSize = 5;
-    uint32_t _maxStarSize = 25;
+    std::shared_ptr<AlignmentDataset> _pRefDataset;
+    std::shared_ptr<AlignmentDataset> _pTargetDataset;
 
-    std::vector<std::shared_ptr<ImageDecoder>> _decoders;
+    Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset);
 
-
-    Aligner(std::vector<std::shared_ptr<ImageDecoder>> decoders);
-
-    std::vector<std::shared_ptr<AlignmentDataset>> Align();
-
-    void ProcessPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::shared_ptr<AlignmentDataset> target);
-    bool CheckPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::shared_ptr<AlignmentDataset> target);
+    void Align();
+    bool CheckTransform();
     agg::trans_affine CalculateTransform(PointFPair& refPoints,PointFPair& targetPoints);
 
 public:
-    static std::vector<std::shared_ptr<AlignmentDataset>> Align(std::vector<std::shared_ptr<ImageDecoder>> decoders);
+    static void Align(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset);
 };
 
 #endif // ALIGNER_H

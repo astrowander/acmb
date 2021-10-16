@@ -21,6 +21,7 @@ SOURCES += \
         Tests/testtools.cpp \
         Core/bitmap.cpp \
         Core/imageparams.cpp \
+        Tools/mathtools.cpp \
         Transforms/basetransform.cpp \
         Transforms/converter.cpp \
         Codecs/imagedecoder.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
     Registrator/registrator.h \
     Registrator/stacker.h \
     Registrator/star.h \
+    Tools/mathtools.h \
     Transforms/basetransform.h \
     Transforms/binningtransform.h \
     Transforms/converter.h \

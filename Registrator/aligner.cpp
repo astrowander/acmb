@@ -1,90 +1,63 @@
 #include "aligner.h"
 #include "registrator.h"
 
-Aligner::Aligner(std::vector<std::shared_ptr<ImageDecoder> > decoders)
-    :_decoders(decoders)
+Aligner::Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset)
+: _pRefDataset(pRefDataset)
+, _pTargetDataset(pTargetDataset)
 {}
 
-std::vector<std::shared_ptr<AlignmentDataset>> Aligner::Align()
+void Aligner::Align()
 {
-    std::vector<std::shared_ptr<AlignmentDataset>> datasets;
-    for (auto& decoder : _decoders)
-    {
-        datasets.push_back(Registrator::Registrate(decoder, 50, 5, 25));
-        auto & dataset = datasets.back();
-        if (dataset->stars.size() < dataset->valuableStarCount)
-        {
-            dataset->valuableStarCount = dataset->stars.size();
-        }
-        else
-        {
-            const Star upperVal {Rect {}, PointF{}, 0.5, 0};
-            auto brightCount = std::upper_bound(dataset->stars.begin(), dataset->stars.end(), upperVal, [](const Star& a, const Star& b) { return a.luminance > b.luminance; }) - std::begin(dataset->stars);
-            if (brightCount > dataset->valuableStarCount)
-                dataset->valuableStarCount = brightCount;
-        }
-    }
-
-    if (datasets.size() < 2)
-        return datasets;
-
-    for (uint32_t i = 1; i < datasets.size(); ++i)
-    {
-        ProcessPairOfDatasets(datasets[0], datasets[i]);
-    }
-
-    return datasets;
-}
-
-void Aligner::ProcessPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::shared_ptr<AlignmentDataset> target)
-{
-    std::pair<Star, Star> refPair { ref->stars[0], ref->stars[1] };
+    std::pair<Star, Star> refPair { _pRefDataset->stars[0], _pRefDataset->stars[1] };
     std::pair<PointF, PointF> refPoints{refPair.first.center, refPair.second.center};
     auto refDist = refPoints.first.Distance(refPoints.second);
 
     std::pair<Star, Star> targetPair { Star{}, Star{} };
     std::pair<PointF, PointF> targetPoints{ PointF{}, PointF{} };
-    for (uint32_t i = 0; i < target->valuableStarCount - 1; ++i)
+    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount - 1; ++i)
     {
-        targetPair.first = target->stars[i];
+        targetPair.first = _pTargetDataset->stars[i];
         targetPoints.first = targetPair.first.center;
 
-        for (uint32_t j = i + 1; j < target->valuableStarCount; ++j)
+        for (uint32_t j = i + 1; j < _pTargetDataset->valuableStarCount; ++j)
         {
-            targetPair.second = target->stars[j];
+            targetPair.second = _pTargetDataset->stars[j];
             targetPoints.second = targetPair.second.center;
             auto targetDist = targetPoints.first.Distance(targetPoints.second);
 
-            if (fabs(targetDist - refDist) > _maxStarSize / 2)
+            //BUGBUG magic number
+            if (fabs(targetDist - refDist) > 5)
                 continue;
 
-            target->transform = CalculateTransform(refPoints, targetPoints);
+            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
 
-            if (CheckPairOfDatasets(ref, target))
+            if (CheckTransform())
                 return;
 
             std::swap(targetPoints.first, targetPoints.second);
+            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
 
-            if (CheckPairOfDatasets(ref, target))
+            if (CheckTransform())
                 return;
         }
     }
 }
 
-bool Aligner::CheckPairOfDatasets(std::shared_ptr<AlignmentDataset> ref, std::shared_ptr<AlignmentDataset> target)
+bool Aligner::CheckTransform()
 {
     uint32_t matches = 0;
 
-    for (uint32_t i = 0; i < ref->valuableStarCount; ++i)
+    for (uint32_t i = 0; i < _pRefDataset->valuableStarCount; ++i)
     {
-        auto refPoint = ref->stars[i].center;
-        target->transform.transform(&refPoint.x, &refPoint.y);
+        auto refPoint = _pRefDataset->stars[i].center;
+        _pTargetDataset->transform.transform(&refPoint.x, &refPoint.y);
 
-        for (uint32_t j = 0; j < target->valuableStarCount; ++j)
+        for (uint32_t j = 0; j < _pTargetDataset->valuableStarCount; ++j)
         {
-            auto targetPoint = target->stars[j].center;
+            auto targetPoint = _pTargetDataset->stars[j].center;
             auto dist = refPoint.Distance(targetPoint);
-            if (dist < _maxStarSize / 2)
+            //BUGBUG magic number
+            if (dist < 5)
             {
                 ++matches;
                 break;
@@ -110,8 +83,8 @@ agg::trans_affine Aligner::CalculateTransform(PointFPair &refPoints, PointFPair 
     return agg::trans_affine (cosa, sina, -sina, cosa, targetPoints.first.x + sina * refPoints.first.y - cosa * refPoints.first.x, targetPoints.first.y - cosa * refPoints.first.y - sina * refPoints.first.x);
 }
 
-std::vector<std::shared_ptr<AlignmentDataset> > Aligner::Align(std::vector<std::shared_ptr<ImageDecoder>> decoders)
+void Aligner::Align(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset)
 {
-    Aligner aligner(decoders);
+    Aligner aligner(pRefDataset, pTargetDataset);
     return aligner.Align();
 }

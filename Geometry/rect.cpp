@@ -40,6 +40,16 @@ bool Rect::operator!=(const Rect &lhs)
     return !(*this == lhs);
 }
 
+Point Rect::GetOrigin()
+{
+    return Point {x, y};
+}
+
+PointF Rect::GetCenter()
+{
+    return {x + width / 2.0, y + height / 2.0 };
+}
+
 double PointF::Distance(const PointF &rhs)
 {
     return sqrt((rhs.x - x) * (rhs.x - x) + (rhs.y - y) * (rhs.y - y));
