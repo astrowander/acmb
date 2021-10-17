@@ -8,27 +8,52 @@ Aligner::Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<
 
 void Aligner::Align()
 {
+    std::vector<double> txs;
+    std::vector<double> tys;
+    std::vector<double> rotations;
+
     for (uint32_t i = 0; i < _pRefDataset->valuableStarCount - 1; ++i)
     for (uint32_t j = i + 1; j < _pRefDataset->valuableStarCount; ++j)
     {
         if (TryRefPair({ _pRefDataset->stars[i], _pRefDataset->stars[j] }))
-            return;
+        {
+            txs.push_back(_pTargetDataset->transform.tx);
+            tys.push_back(_pTargetDataset->transform.ty);
+            auto rotation = _pTargetDataset->transform.rotation();
+            if (rotation == rotation)
+                rotations.push_back(rotation);
+        }
     }
 
+    auto medianTx = std::begin(txs) + txs.size() / 2;
+    std::nth_element(std::begin(txs), medianTx, std::end(txs));
+
+    auto medianTy = std::begin(tys) + tys.size() / 2;
+    std::nth_element(std::begin(tys), medianTy, std::end(tys));
+
+    auto medianRotation = std::begin(rotations) + rotations.size() / 2;
+    std::nth_element(std::begin(rotations), medianRotation, std::end(rotations));
+
+    auto mtx = *medianTx;
+    auto mty = *medianTy;
+    auto mtr = *medianRotation;
+
+    _pTargetDataset->transform = agg::trans_affine(cos(mtr), -sin(mtr), sin(mtr), cos(mtr), -mtx, -mty);
+    std::cout << _transforms.size() << std::endl;
 }
 
 bool Aligner::CheckTransform()
 {
     uint32_t matches = 0;
 
-    for (uint32_t i = 0; i < _pRefDataset->valuableStarCount; ++i)
+    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount; ++i)
     {
-        auto refPoint = _pRefDataset->stars[i].center;
-        _pTargetDataset->transform.transform(&refPoint.x, &refPoint.y);
+        auto targetPoint = _pTargetDataset->stars[i].center;
+        _pTargetDataset->transform.transform(&targetPoint.x, &targetPoint.y);
 
-        for (uint32_t j = 0; j < _pTargetDataset->valuableStarCount; ++j)
+        for (uint32_t j = 0; j < _pRefDataset->valuableStarCount; ++j)
         {
-            auto targetPoint = _pTargetDataset->stars[j].center;
+            auto refPoint = _pRefDataset->stars[j].center;
             auto dist = refPoint.Distance(targetPoint);
             //BUGBUG magic number
             if (dist < 5)
@@ -39,11 +64,12 @@ bool Aligner::CheckTransform()
         }
     }
 
-    if (matches > 2)
+    if (matches > 10)
     {
         std::cout << "match count = " << matches << std::endl;
     }
-    return (matches > 2);
+
+    return (matches > 10);
 }
 
 bool Aligner::TryRefPair(const std::pair<Star, Star>& refPair)
@@ -86,17 +112,24 @@ bool Aligner::TryRefPair(const std::pair<Star, Star>& refPair)
 
 agg::trans_affine Aligner::CalculateTransform(PointFPair &refPoints, PointFPair &targetPoints)
 {
-    auto dx = refPoints.first.x - refPoints.second.x;
-    auto dy = refPoints.first.y - refPoints.second.y;
-    double det = dx * dx + dy * dy;
+    auto refAngle = atan2(refPoints.second.y - refPoints.first.y, refPoints.second.x - refPoints.first.x);
+    auto targetAngle = atan2(targetPoints.second.y - targetPoints.first.y, targetPoints.second.x - targetPoints.first.x);
 
-    auto dx1 = targetPoints.first.x - targetPoints.second.x;
-    auto dy1 = targetPoints.first.y - targetPoints.second.y;
+    auto rotation = refAngle - targetAngle;
+    if (rotation > M_PI)
+            rotation -= M_PI;
+    if (rotation < -M_PI)
+        rotation += M_PI;
 
-    double cosa = (dx1 * dx + dy1 * dy) / det;
-    double sina = (dx1 * dy1 - dx1 * dy) / det;
+    auto rotateMatrix = agg::trans_affine_rotation(rotation);
+    auto targetPoint = targetPoints.first;
+    rotateMatrix.transform(&targetPoint.x, &targetPoint.y);
+    auto dx = refPoints.first.x - targetPoint.x;
+    auto dy = refPoints.first.y - targetPoint.y;
+    auto translate_matrix = agg::trans_affine_translation(dx, dy);
 
-    return agg::trans_affine (cosa, sina, -sina, cosa, targetPoints.first.x + sina * refPoints.first.y - cosa * refPoints.first.x, targetPoints.first.y - cosa * refPoints.first.y - sina * refPoints.first.x);
+    auto res = rotateMatrix * translate_matrix;
+    return res;
 }
 
 void Aligner::Align(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset)

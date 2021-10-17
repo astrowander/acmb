@@ -40,6 +40,8 @@ std::shared_ptr<AlignmentDataset> Registrator::Registrate(std::shared_ptr<IBitma
         auto brightCount = std::upper_bound(reg._dataset->stars.begin(), reg._dataset->stars.end(), upperVal, [](const Star& a, const Star& b) { return a.luminance > b.luminance; }) - std::begin(reg._dataset->stars);
         if (brightCount > reg._dataset->valuableStarCount)
             reg._dataset->valuableStarCount = brightCount;
+
+        reg._dataset->stars.erase(std::begin(reg._dataset->stars) + reg._dataset->valuableStarCount, std::end(reg._dataset->stars));
     }
 
     return reg._dataset;
