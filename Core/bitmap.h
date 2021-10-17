@@ -111,10 +111,10 @@ public:
 
     float GetInterpolatedChannel(float x, float y, uint32_t ch) override
     {
-        if (x < 0 || x >= _width - 1)
+        if (x < 0 || x > _width - 1)
             throw std::invalid_argument("x");
 
-        if (y < 0 || y >= _width - 1)
+        if (y < 0 || y > _height - 1)
             throw std::invalid_argument("y");
 
         if (ch >= channelCount)

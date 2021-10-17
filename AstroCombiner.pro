@@ -18,6 +18,7 @@ SOURCES += \
         Tests/TestPpmDecoder.cpp \
         Tests/TestPpmEncoder.cpp \
         Tests/TestRegistrator.cpp \
+        Tests/TestStacker.cpp \
         Tests/testtools.cpp \
         Core/bitmap.cpp \
         Core/imageparams.cpp \

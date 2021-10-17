@@ -8,7 +8,7 @@ BEGIN_SUITE(Aligner)
 
 BEGIN_TEST(Aligner, BasicTest)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm"));
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4296.ppm"));
 auto pRefDataset = Registrator::Registrate(pRefBitmap);
 pRefBitmap.reset();
 

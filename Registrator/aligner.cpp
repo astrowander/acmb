@@ -8,39 +8,13 @@ Aligner::Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<
 
 void Aligner::Align()
 {
-    std::pair<Star, Star> refPair { _pRefDataset->stars[0], _pRefDataset->stars[1] };
-    std::pair<PointF, PointF> refPoints{refPair.first.center, refPair.second.center};
-    auto refDist = refPoints.first.Distance(refPoints.second);
-
-    std::pair<Star, Star> targetPair { Star{}, Star{} };
-    std::pair<PointF, PointF> targetPoints{ PointF{}, PointF{} };
-    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount - 1; ++i)
+    for (uint32_t i = 0; i < _pRefDataset->valuableStarCount - 1; ++i)
+    for (uint32_t j = i + 1; j < _pRefDataset->valuableStarCount; ++j)
     {
-        targetPair.first = _pTargetDataset->stars[i];
-        targetPoints.first = targetPair.first.center;
-
-        for (uint32_t j = i + 1; j < _pTargetDataset->valuableStarCount; ++j)
-        {
-            targetPair.second = _pTargetDataset->stars[j];
-            targetPoints.second = targetPair.second.center;
-            auto targetDist = targetPoints.first.Distance(targetPoints.second);
-
-            //BUGBUG magic number
-            if (fabs(targetDist - refDist) > 5)
-                continue;
-
-            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
-
-            if (CheckTransform())
-                return;
-
-            std::swap(targetPoints.first, targetPoints.second);
-            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
-
-            if (CheckTransform())
-                return;
-        }
+        if (TryRefPair({ _pRefDataset->stars[i], _pRefDataset->stars[j] }))
+            return;
     }
+
 }
 
 bool Aligner::CheckTransform()
@@ -65,7 +39,49 @@ bool Aligner::CheckTransform()
         }
     }
 
+    if (matches > 2)
+    {
+        std::cout << "match count = " << matches << std::endl;
+    }
     return (matches > 2);
+}
+
+bool Aligner::TryRefPair(const std::pair<Star, Star>& refPair)
+{
+    std::pair<PointF, PointF> refPoints{refPair.first.center, refPair.second.center};
+    auto refDist = refPoints.first.Distance(refPoints.second);
+
+    std::pair<Star, Star> targetPair { Star{}, Star{} };
+    std::pair<PointF, PointF> targetPoints{ PointF{}, PointF{} };
+    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount - 1; ++i)
+    {
+        targetPair.first = _pTargetDataset->stars[i];
+        targetPoints.first = targetPair.first.center;
+
+        for (uint32_t j = i + 1; j < _pTargetDataset->valuableStarCount; ++j)
+        {
+            targetPair.second = _pTargetDataset->stars[j];
+            targetPoints.second = targetPair.second.center;
+            auto targetDist = targetPoints.first.Distance(targetPoints.second);
+
+            //BUGBUG magic number
+            if (fabs(targetDist - refDist) > 5)
+                continue;
+
+            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
+
+            if (CheckTransform())
+                return true;
+
+            std::swap(targetPoints.first, targetPoints.second);
+            _pTargetDataset->transform = CalculateTransform(refPoints, targetPoints);
+
+            if (CheckTransform())
+                return true;
+        }
+    }
+
+    return false;
 }
 
 agg::trans_affine Aligner::CalculateTransform(PointFPair &refPoints, PointFPair &targetPoints)

@@ -21,6 +21,7 @@ class Aligner
 
     void Align();
     bool CheckTransform();
+    bool TryRefPair(const std::pair<Star, Star>& refPair);
     agg::trans_affine CalculateTransform(PointFPair& refPoints,PointFPair& targetPoints);
 
 public:
