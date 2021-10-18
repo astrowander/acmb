@@ -51,7 +51,7 @@ class Stacker
                     auto& dev = stackedChannels[ch]->dev;
 
                     dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
-                    mean = (n * mean + interpolatedChannel) / (n + 1);
+                    mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
                 }
 
                 stackedChannels[ch] += ChannelCount(pixelFormat);
