@@ -1,7 +1,7 @@
 #include "test.h"
 #include "testtools.h"
-#include "Codecs/imagedecoder.h"
-#include "Registrator/stacker.h"
+#include "../Codecs/imagedecoder.h"
+#include "../Registrator/stacker.h"
 
 BEGIN_SUITE(Stacker)
 

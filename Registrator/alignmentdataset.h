@@ -1,6 +1,6 @@
 #ifndef ALIGNMENTDATASET_H
 #define ALIGNMENTDATASET_H
-#include "AGG/agg_trans_affine.h"
+#include "../AGG/agg_trans_affine.h"
 #include <memory>
 #include <vector>
 

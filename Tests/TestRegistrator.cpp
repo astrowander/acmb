@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "Registrator/registrator.h"
+#include "../Registrator/registrator.h"
 
 BEGIN_SUITE(Registrator)
 

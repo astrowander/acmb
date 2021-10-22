@@ -1,6 +1,6 @@
 #ifndef STAR_H
 #define STAR_H
-#include "Geometry/rect.h"
+#include "../Geometry/rect.h"
 
 struct Star
 {

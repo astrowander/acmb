@@ -1,6 +1,6 @@
 #ifndef BASETRANSFORM_H
 #define BASETRANSFORM_H
-#include "Core/bitmap.h"
+#include "../Core/bitmap.h"
 
 class BaseTransform
 {

@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 #include "star.h"
-#include "AGG/agg_trans_affine.h"
+#include "../AGG/agg_trans_affine.h"
 
 
 class IBitmap;

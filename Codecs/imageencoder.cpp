@@ -13,7 +13,7 @@ void ImageEncoder::Attach(std::shared_ptr<std::ostream> pStream)
 
 void ImageEncoder::Attach(const std::string &fileName)
 {
-    std::shared_ptr<std::ofstream> pStream(new std::ofstream(fileName));
+    std::shared_ptr<std::ofstream> pStream(new std::ofstream(fileName, std::ios_base::binary | std::ios_base::out));
     if (!pStream->is_open())
         throw std::invalid_argument("pStream");
 

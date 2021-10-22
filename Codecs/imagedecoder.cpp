@@ -1,7 +1,10 @@
 #include "imagedecoder.h"
 #include <fstream>
 #include <filesystem>
+#include <set>
+
 #include "PPM/ppmdecoder.h"
+#include "RAW/rawdecoder.h"
 
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
@@ -25,6 +28,8 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
+const std::set<std::string> rawExtensions = { ".cr2", ".CR2" };
+
 std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
 {
     auto path = std::filesystem::path(fileName);
@@ -33,6 +38,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
     if (extension == ".pgm" || extension == ".ppm")
     {
         pDecoder.reset(new PpmDecoder());
+    }
+    else if (rawExtensions.find(extension.generic_string()) != std::end(rawExtensions))
+    {
+        pDecoder.reset(new RawDecoder());
     }
 
     if (!pDecoder)

@@ -4,9 +4,9 @@
 #include <vector>
 #include <string>
 
-#include "Core/bitmap.h"
-#include "Geometry/rect.h"
-#include "AGG/agg_trans_affine.h"
+#include "../Core/bitmap.h"
+#include "../Geometry/rect.h"
+#include "../AGG/agg_trans_affine.h"
 
 class ImageDecoder;
 struct AlignmentDataset;

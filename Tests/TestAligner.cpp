@@ -1,8 +1,8 @@
 #include "test.h"
 #include "testtools.h"
-#include "Registrator/aligner.h"
-#include "Registrator/registrator.h"
-#include "Codecs/imagedecoder.h"
+#include "../Registrator/aligner.h"
+#include "../Registrator/registrator.h"
+#include "../Codecs/imagedecoder.h"
 
 BEGIN_SUITE(Aligner)
 

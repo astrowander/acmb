@@ -2,7 +2,7 @@
 #define BITMAP_H
 #include "enums.h"
 #include "imageparams.h"
-#include "Tools/mathtools.h"
+#include "../Tools/mathtools.h"
 
 #include <vector>
 #include <memory>
@@ -23,6 +23,7 @@ public:
     virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) = 0;
 
     static std::shared_ptr<IBitmap> Create(const std::string& fileName);
+    static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
 };
 

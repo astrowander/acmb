@@ -1,5 +1,5 @@
 #include "ppmencoder.h"
-#include "Core/bitmap.h"
+#include "../../Core/bitmap.h"
 
 PpmEncoder::PpmEncoder(PpmMode ppmMode)
 : _ppmMode(ppmMode)
@@ -10,7 +10,7 @@ PpmEncoder::PpmEncoder(PpmMode ppmMode)
 template<>
 void PpmEncoder::WriteBinary<1>(std::shared_ptr<IBitmap> pBitmap)
 {
-    *_pStream << std::endl;
+    _pStream->put('\n');
     for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
     {
         _pStream->write(pBitmap->GetPlanarScanline(i), pBitmap->GetWidth() * BytesPerPixel(pBitmap->GetPixelFormat()));
@@ -20,7 +20,7 @@ void PpmEncoder::WriteBinary<1>(std::shared_ptr<IBitmap> pBitmap)
 template<>
 void PpmEncoder::WriteBinary<2>(std::shared_ptr<IBitmap> pBitmap)
 {
-    *_pStream << std::endl;
+    _pStream->put('\n');
     for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
     {
         auto pScanLine = pBitmap->GetPlanarScanline(i);

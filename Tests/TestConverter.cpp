@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "Transforms/converter.h"
+#include "../Transforms/converter.h"
 
 BEGIN_SUITE(Converter)
 

@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "Core/bitmap.h"
+#include "../Core/bitmap.h"
 
 BEGIN_SUITE(Bitmap)
 

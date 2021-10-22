@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "Transforms/binningtransform.h"
+#include "../Transforms/binningtransform.h"
 
 BEGIN_SUITE(BinningTransform)
 

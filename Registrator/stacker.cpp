@@ -1,5 +1,5 @@
 #include "stacker.h"
-#include "Codecs/imagedecoder.h"
+#include "../Codecs/imagedecoder.h"
 #include "aligner.h"
 #include "alignmentdataset.h"
 #include "registrator.h"

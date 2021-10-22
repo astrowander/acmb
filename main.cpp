@@ -5,6 +5,7 @@
 #include "Tests/TestRegistrator.cpp"
 #include "Tests/TestAligner.cpp"
 #include "Tests/TestBinningTransform.cpp"
+#include "Tests/TestRawDecoder.cpp"
 
 int main()
 {
@@ -39,6 +40,9 @@ int main()
 
     RUN_TEST(BinningTransform, TestRGB24);
     RUN_TEST(BinningTransform, TestHugePicture);
+
+    RUN_TEST(RawDecoder, TestAttach);
+    RUN_TEST(RawDecoder, TestReadBitmap);
 
     return 0;
 }

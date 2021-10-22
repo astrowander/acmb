@@ -1,8 +1,8 @@
 #ifndef REGISTRATOR_H
 #define REGISTRATOR_H
-#include "Tests/testtools.h"
-#include "Transforms/converter.h"
-#include "Codecs/imagedecoder.h"
+#include "../Tests/testtools.h"
+#include "../Transforms/converter.h"
+#include "../Codecs/imagedecoder.h"
 #include <algorithm>
 
 #include "star.h"
