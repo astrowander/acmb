@@ -39,21 +39,18 @@ public:
         this->_pDstBitmap.reset(new Bitmap<pixelFormat>(w , h));
         auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(this->_pDstBitmap);
 
-        auto pSrcPixel = pSrcBitmap->GetScanline(0);
-        auto pDstPixel = pDstBitmap->GetScanline(0);
-
         for (uint32_t i = 0; i < h; ++i)
         {
+            auto pSrcPixel = pSrcBitmap->GetScanline(i * vBinSize);
+            auto pDstPixel = pDstBitmap->GetScanline(i);
+
             for (uint32_t j = 0; j < w; ++j)
             {
                 ProcessPixel(pSrcPixel, pDstPixel);
                 pSrcPixel += channelCount * hBinSize;
                 pDstPixel += channelCount;
             }
-
-            pSrcPixel += (vBinSize - 1) * pSrcBitmap->GetWidth() * channelCount;
         }
-
     }
 
 private:

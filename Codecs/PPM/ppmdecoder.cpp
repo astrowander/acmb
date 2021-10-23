@@ -58,11 +58,8 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<1>(uint32_t stripeHeight)
 {
     auto res = CreateStripe(stripeHeight);
 
-    for (uint32_t i = 0; i < stripeHeight; ++i)
-    {
-        auto pScanline = res->GetPlanarScanline(i);
-        _pStream->read(pScanline, _width * BytesPerPixel(_pixelFormat));
-    }
+    auto pScanline = res->GetPlanarScanline(_currentScanline);
+    _pStream->read(pScanline, _width * stripeHeight * BytesPerPixel(_pixelFormat));    
 
     return res;
 }
@@ -129,12 +126,14 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadStripe(uint32_t stripeHeight)
     if (stripeHeight == 0)
         stripeHeight = _height - _currentScanline;
 
-    _currentScanline += stripeHeight;
-
+    std::shared_ptr<IBitmap> pRes;
     if (_ppmMode == PpmMode::Text)
-        return ReadTextStripe(stripeHeight);
+        pRes = ReadTextStripe(stripeHeight);
+    else 
+        pRes = BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
 
-    return BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
+    _currentScanline += stripeHeight;
+    return pRes;
 }
 
 uint32_t PpmDecoder::GetCurrentScanline() const

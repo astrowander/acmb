@@ -13,9 +13,19 @@ END_TEST
 BEGIN_TEST(BinningTransform, TestRGB24)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/rgb24.ppm"));
+pSrcBitmap->Save(pSrcBitmap, GetPathToPattern("BinningTransform/RGB24.ppm"));
 auto pTransform = IBinningTransform<2, 2>::Create(pSrcBitmap);
 auto pDstBitmap = pTransform->RunAndGetBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/RGB24_2x2.ppm"), pDstBitmap));
+
+END_TEST
+
+BEGIN_TEST(BinningTransform, Test3x3)
+
+auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/rgb24.ppm"));
+auto pTransform = IBinningTransform<3, 3>::Create(pSrcBitmap);
+auto pDstBitmap = pTransform->RunAndGetBitmap();
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/RGB24_3x3.ppm"), pDstBitmap));
 
 END_TEST
 
