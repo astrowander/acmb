@@ -33,7 +33,7 @@ EXPECT_EQ(PixelFormat::RGB24, pDecoder->GetPixelFormat());
 EXPECT_EQ(8192, pDecoder->GetWidth());
 EXPECT_EQ(6144, pDecoder->GetHeight());
 auto pBitmap = pDecoder->ReadBitmap();
-auto pBinningTransform = IBinningTransform<3,3>::Create(pBitmap);
+auto pBinningTransform = IBinningTransform<4,4>::Create(pBitmap);
 pBitmap = pBinningTransform->RunAndGetBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_20211020_190808.ppm"), pBitmap));
 

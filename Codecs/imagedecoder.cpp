@@ -9,7 +9,7 @@
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
     if (!pStream)
-        throw std::runtime_error("pStream is null");
+        throw std::invalid_argument("pStream is null");
 
     _pStream = pStream;
 }

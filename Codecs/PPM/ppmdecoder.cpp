@@ -58,7 +58,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<1>(uint32_t stripeHeight)
 {
     auto res = CreateStripe(stripeHeight);
 
-    auto pScanline = res->GetPlanarScanline(_currentScanline);
+    auto pScanline = res->GetPlanarScanline(0);
     _pStream->read(pScanline, _width * stripeHeight * BytesPerPixel(_pixelFormat));    
 
     return res;

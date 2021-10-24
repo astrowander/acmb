@@ -2,6 +2,7 @@
 #define TEST_H
 #include <iomanip>
 #include <iostream>
+#include <chrono>
 
 #define BEGIN_SUITE( TestSuite ) \
 class Test##TestSuite \
@@ -30,9 +31,21 @@ public:
 
 #define RUN_TEST(TestSuite, TestName)                                      \
 {                                                                          \
-   bool ret = Test##TestSuite::test__##TestSuite##__##TestName();                           \
+   auto startTime = std::chrono::system_clock::now();\
+   bool ret = true;\
+   try                                                                     \
+   {                                                                        \
+    ret = Test##TestSuite::test__##TestSuite##__##TestName();          \
+   }                                                                        \
+   catch (std::exception& e)                                         \
+   {\
+        std::cout << "Exception has been thrown. Message: " << e.what() << std::endl;\
+        ret = false;\
+   }\
+   auto elapsed = std::chrono::system_clock::now() - startTime;            \
    std::cout << std::left << std::setfill('-')                             \
-   << std::setw(50) << #TestSuite " --> " #TestName " ";                   \
+   << std::setw(50) << #TestSuite " --> " #TestName " " << std::chrono::duration_cast<std::chrono::seconds>(elapsed).count() \
+    << "s " << std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count() % 1000 << "ms ";                   \
                                                                            \
    if(ret)                                                                 \
    {                                                                       \
