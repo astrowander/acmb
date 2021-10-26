@@ -21,6 +21,7 @@ int main()
     RUN_TEST(PpmDecoder, TestRgb48);
     RUN_TEST(PpmDecoder, TestByteOrdering);
     RUN_TEST(PpmDecoder, ReadTwice);
+    
     RUN_TEST(PpmDecoder, ReadStripes);
 
     RUN_TEST(PpmEncoder, TestGray8);
@@ -41,8 +42,11 @@ int main()
     RUN_TEST(BinningTransform, TestRGB24);
     RUN_TEST(BinningTransform, TestHugePicture);
 
+    RUN_TEST(BinningTransform, Test3x3);
+
     RUN_TEST(RawDecoder, TestAttach);
     RUN_TEST(RawDecoder, TestReadBitmap);
+    RUN_TEST(RawDecoder, TestDNG);
 
     return 0;
 }

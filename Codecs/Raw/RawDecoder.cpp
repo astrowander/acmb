@@ -2,8 +2,9 @@
 #include "libraw/libraw.h"
 #include "../../Core/bitmap.h"
 
-RawDecoder::RawDecoder()
+RawDecoder::RawDecoder(bool halfSize)
 : _pLibRaw(new LibRaw())
+, _halfSize(halfSize)
 {
 
 }
@@ -11,10 +12,16 @@ RawDecoder::RawDecoder()
 void RawDecoder::Attach(const std::string& fileName)
 {
 	_pLibRaw->open_file(fileName.data());
+    _pLibRaw->imgdata.params.output_bps = 16;
+    _pLibRaw->imgdata.params.no_interpolation = 1;
+    _pLibRaw->imgdata.params.fbdd_noiserd = 0;
+    _pLibRaw->imgdata.params.med_passes = 0;
+    _pLibRaw->imgdata.params.half_size = _halfSize;
+
 	_pLibRaw->raw2image_start();
-	_width = _pLibRaw->imgdata.sizes.width;
-	_height = _pLibRaw->imgdata.sizes.height;
-	_pixelFormat = _pLibRaw->imgdata.params.output_bps == 8 ? PixelFormat::RGB24 : PixelFormat::RGB48;
+	_width = _pLibRaw->imgdata.sizes.iwidth;
+	_height = _pLibRaw->imgdata.sizes.iheight;
+	_pixelFormat = PixelFormat::RGB48;
 }
 
 void RawDecoder::Attach(std::shared_ptr<std::istream> pStream)
@@ -30,9 +37,27 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	auto pRes = IBitmap::Create(_width, _height, _pixelFormat);
 
 	auto ret = _pLibRaw->unpack();
+	if (ret != LIBRAW_SUCCESS)
+	{
+		throw std::runtime_error("raw processing error");
+	}
+
 	ret = _pLibRaw->dcraw_process();
+	if (ret != LIBRAW_SUCCESS)
+	{
+		_pLibRaw->free_image();
+		throw std::runtime_error("raw processing error");
+	}
+
 	libraw_processed_image_t* image = _pLibRaw->dcraw_make_mem_image(&ret);
+	if (ret != LIBRAW_SUCCESS)
+	{
+		_pLibRaw->dcraw_clear_mem(image);
+		_pLibRaw->free_image();
+		throw std::runtime_error("raw processing error");
+	}
 	std::memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
+
 	_pLibRaw->dcraw_clear_mem(image);
 	_pLibRaw->free_image();
 	return pRes;

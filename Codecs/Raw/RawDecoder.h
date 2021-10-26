@@ -9,9 +9,10 @@ class LibRaw;
 class RawDecoder : public ImageDecoder
 {
 	std::unique_ptr<LibRaw> _pLibRaw;
+    bool _halfSize;
 
 public:
-	RawDecoder();
+	RawDecoder(bool halfSize = false);
 
 public:
     void Attach(const std::string& fileName) override;
