@@ -28,16 +28,16 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     switch(pRefBitmap->GetPixelFormat())
     {
     case PixelFormat::Gray8:
-        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pRefBitmap), 0, agg::trans_affine());
+        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pRefBitmap), agg::trans_affine());
         break;
     case PixelFormat::Gray16:
-        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pRefBitmap), 0, agg::trans_affine());
+        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pRefBitmap), agg::trans_affine());
         break;
     case PixelFormat::RGB24:
-        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pRefBitmap), 0, agg::trans_affine());
+        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pRefBitmap), agg::trans_affine());
         break;
     case PixelFormat::RGB48:
-        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pRefBitmap), 0, agg::trans_affine());
+        AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pRefBitmap), agg::trans_affine());
         break;
     default:
         throw std::runtime_error("pixel format should be known");
@@ -57,16 +57,16 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         switch(pTargetBitmap->GetPixelFormat())
         {
         case PixelFormat::Gray8:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap), i, doAlignment ? pTargetDataset->transform : agg::trans_affine());
+            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap), doAlignment ? pTargetDataset->transform : agg::trans_affine());
             break;
         case PixelFormat::Gray16:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap), i, doAlignment ? pTargetDataset->transform : agg::trans_affine());
+            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap), doAlignment ? pTargetDataset->transform : agg::trans_affine());
             break;
         case PixelFormat::RGB24:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap), i, doAlignment ? pTargetDataset->transform : agg::trans_affine());
+            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap), doAlignment ? pTargetDataset->transform : agg::trans_affine());
             break;
         case PixelFormat::RGB48:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap), i, doAlignment ? pTargetDataset->transform : agg::trans_affine());
+            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap), doAlignment ? pTargetDataset->transform : agg::trans_affine());
             break;
         default:
             throw std::runtime_error("pixel format should be known");

@@ -15,6 +15,7 @@ struct StackedChannel
 {
     float mean = 0;
     float dev = 0;
+    uint16_t n = 0;
 };
 
 class Stacker
@@ -27,7 +28,7 @@ class Stacker
     uint32_t _height;
 
     template<PixelFormat pixelFormat>
-    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, uint32_t n, const agg::trans_affine& transform)
+    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const agg::trans_affine& transform)
     {
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)];
 
@@ -39,19 +40,27 @@ class Stacker
         for (uint32_t y = 0; y < _height; ++y)
         for (uint32_t x = 0; x < _width; ++x)
         {
-            PointF targetPoint {static_cast<float>(x), static_cast<float>(y)};
+            PointF targetPoint {static_cast<double>(x), static_cast<double>(y)};
             transform.transform(&targetPoint.x, &targetPoint.y);
 
             for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
             {
                 if (targetPoint.x >= 0 && targetPoint.x <= _width - 1 && targetPoint.y >= 0 && targetPoint.y <= _height - 1)
                 {
-                    auto interpolatedChannel = pBitmap->GetInterpolatedChannel(targetPoint.x , targetPoint.y, ch);
+                    auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(targetPoint.x) , static_cast<float>(targetPoint.y), ch);
                     auto& mean = stackedChannels[ch]->mean;
                     auto& dev = stackedChannels[ch]->dev;
+                    auto& n = stackedChannels[ch]->n;
+                    auto sigma = sqrt(dev);
+                    const auto kappa = 3.0;
 
-                    dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
-                    mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                    if (n <= 5 || fabs(mean - interpolatedChannel) < kappa * sigma)
+                    {                        
+                        dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
+
+                        mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                        ++n;
+                    }
                 }
 
                 stackedChannels[ch] += ChannelCount(pixelFormat);
