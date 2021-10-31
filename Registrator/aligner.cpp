@@ -40,7 +40,6 @@ void Aligner::Align()
     auto mtr = *medianRotation;
 
     _pTargetDataset->transform = agg::trans_affine(cos(mtr), -sin(mtr), sin(mtr), cos(mtr), -mtx, -mty);
-    std::cout << _transforms.size() << std::endl;
 }
 
 bool Aligner::CheckTransform()

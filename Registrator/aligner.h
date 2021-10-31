@@ -16,7 +16,6 @@ class Aligner
 {
     std::shared_ptr<AlignmentDataset> _pRefDataset;
     std::shared_ptr<AlignmentDataset> _pTargetDataset;
-    std::vector<agg::trans_affine> _transforms;
 
     Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset);
 
