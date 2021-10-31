@@ -28,7 +28,7 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
-const std::set<std::string> rawExtensions = { ".cr2", ".CR2" };
+const std::set<std::string> rawExtensions = { ".cr2", ".CR2", ".dng" };
 
 std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
 {

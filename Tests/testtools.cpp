@@ -28,12 +28,12 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
 const std::string testFilesPath {"./../AstroCombiner/Tests/TestFiles/" };
 const std::string patternsPath {"./../AstroCombiner/Tests/Patterns/" };
 
-const std::string GetPathToPattern(const std::string &fileName)
+std::string GetPathToPattern(const std::string &fileName)
 {
     return patternsPath + fileName;
 }
 
-const std::string GetPathToTestFile(const std::string &fileName)
+std::string GetPathToTestFile(const std::string &fileName)
 {
     return testFilesPath + fileName;
 }

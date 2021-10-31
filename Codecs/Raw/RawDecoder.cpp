@@ -19,8 +19,9 @@ void RawDecoder::Attach(const std::string& fileName)
     _pLibRaw->imgdata.params.half_size = _halfSize;
 
 	_pLibRaw->raw2image_start();
-	_width = _pLibRaw->imgdata.sizes.iwidth;
-	_height = _pLibRaw->imgdata.sizes.iheight;
+	_width = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iwidth : _pLibRaw->imgdata.sizes.iheight;
+	_height = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iheight : _pLibRaw->imgdata.sizes.iwidth;
+
 	_pixelFormat = PixelFormat::RGB48;
 }
 
@@ -45,7 +46,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	ret = _pLibRaw->dcraw_process();
 	if (ret != LIBRAW_SUCCESS)
 	{
-		_pLibRaw->free_image();
+		_pLibRaw->recycle();
 		throw std::runtime_error("raw processing error");
 	}
 
@@ -53,13 +54,13 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	if (ret != LIBRAW_SUCCESS)
 	{
 		_pLibRaw->dcraw_clear_mem(image);
-		_pLibRaw->free_image();
+		_pLibRaw->recycle();
 		throw std::runtime_error("raw processing error");
 	}
 	std::memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
 
 	_pLibRaw->dcraw_clear_mem(image);
-	_pLibRaw->free_image();
+	_pLibRaw->recycle();
 	return pRes;
 }
 

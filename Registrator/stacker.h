@@ -92,8 +92,10 @@ class Stacker
     }
 
 public:
+
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders);
-    std::shared_ptr<IBitmap> Stack();
+
+    std::shared_ptr<IBitmap> Stack(bool doAlignment);
 
 };
 
