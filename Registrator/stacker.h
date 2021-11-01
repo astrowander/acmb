@@ -7,6 +7,7 @@
 #include "../Core/bitmap.h"
 #include "../Geometry/rect.h"
 #include "../AGG/agg_trans_affine.h"
+#include "../Tests/test.h"
 
 class ImageDecoder;
 struct AlignmentDataset;
@@ -20,8 +21,7 @@ struct StackedChannel
 
 class Stacker
 {
-    std::vector<std::shared_ptr<ImageDecoder>> _decoders;
-    std::vector<std::shared_ptr<AlignmentDataset>> _datasets;
+    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::shared_ptr<AlignmentDataset>>> _decoderDatasetPairs;
     std::vector<StackedChannel> _stacked;
 
     uint32_t _width;
@@ -104,7 +104,10 @@ public:
 
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders);
 
+    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);
+
+    TEST_ACCESS(Stacker);
 
 };
 

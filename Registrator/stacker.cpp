@@ -5,24 +5,40 @@
 #include "registrator.h"
 
 Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders)
-: _decoders(decoders)
 {
+    for (auto& pDecoder : decoders)
+    {
+        _decoderDatasetPairs.push_back({ pDecoder, nullptr });
+    }
+}
 
+void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+{
+    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
+    for (auto& decoderDatasetPair : _decoderDatasetPairs)
+    {
+        auto pBitmap = decoderDatasetPair.first->ReadBitmap();
+        decoderDatasetPair.second = pRegistrator->Registrate(pBitmap);
+    }
+
+    std::sort(std::begin(_decoderDatasetPairs), std::end(_decoderDatasetPairs), [](const auto& a, const auto& b) { return a.second->starCount > b.second->starCount; });
 }
 
 std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 {
-    if (_decoders.size() == 0)
+    if (_decoderDatasetPairs.size() == 0)
         return nullptr;
 
-    auto pRefBitmap = _decoders[0]->ReadBitmap();
+    auto pRefBitmap = _decoderDatasetPairs[0].first->ReadBitmap();
     _width = pRefBitmap->GetWidth();
     _height = pRefBitmap->GetHeight();
 
-    if (_decoders.size() == 1)
+    if (_decoderDatasetPairs.size() == 1)
         return pRefBitmap;
 
-    auto pRefDataset = doAlignment ? Registrator::Registrate(pRefBitmap, 40, 5, 25) : nullptr;
+    auto pRefDataset = doAlignment ? _decoderDatasetPairs[0].second : nullptr;
+    auto pAligner = doAlignment ? std::make_shared<Aligner>(pRefDataset) : nullptr;
+
     _stacked.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
 
     switch(pRefBitmap->GetPixelFormat())
@@ -43,13 +59,15 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         throw std::runtime_error("pixel format should be known");
     }
 
-    for (uint32_t i = 1; i < _decoders.size(); ++i)
+    
+
+    for (uint32_t i = 1; i < _decoderDatasetPairs.size(); ++i)
     {
-        auto pTargetBitmap = _decoders[i]->ReadBitmap();
-        auto pTargetDataset = doAlignment ? Registrator::Registrate(pTargetBitmap, 40, 5, 25) : nullptr;
+        auto pTargetBitmap = _decoderDatasetPairs[i].first->ReadBitmap();
+        auto pTargetDataset = doAlignment ? _decoderDatasetPairs[i].second : nullptr;
 
         if (doAlignment)
-            Aligner::Align(pRefDataset, pTargetDataset);
+            pAligner->Align(pTargetDataset);
 
         if (pRefBitmap->GetPixelFormat() != pRefBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");

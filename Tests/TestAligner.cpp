@@ -8,15 +8,17 @@ BEGIN_SUITE(Aligner)
 
 BEGIN_TEST(Aligner, BasicTest)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4296.ppm"));
-auto pRefDataset = Registrator::Registrate(pRefBitmap);
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
+auto pRegistrator = std::make_unique<Registrator>();
+auto pRefDataset = pRegistrator->Registrate(pRefBitmap);
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("PPM/IMG_4322.ppm"));
-auto pTargetDataset = Registrator::Registrate(pTargetBitmap);
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"));
+auto pTargetDataset = pRegistrator->Registrate(pTargetBitmap);
 pTargetBitmap.reset();
 
-Aligner::Align(pRefDataset, pTargetDataset);
+auto pAligner = std::make_unique<Aligner>(pRefDataset);
+pAligner->Align(pTargetDataset);
 
 std::cout << std::setw(8) <<  pRefDataset->transform.tx << std::setw(8) << pRefDataset->transform.ty << std::setw(40) << pTargetDataset->transform.tx << std::setw(8) << pTargetDataset->transform.ty << std::endl;
 for (uint32_t i = 0; i < 20; ++ i)

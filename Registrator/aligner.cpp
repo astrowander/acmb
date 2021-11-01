@@ -7,14 +7,16 @@ Aligner::Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<
 , _pTargetDataset(pTargetDataset)
 {}
 
-void Aligner::Align()
+void Aligner::Align(std::shared_ptr<AlignmentDataset> pTargetDataset)
 {
+    _pTargetDataset = pTargetDataset;
+
     std::vector<double> txs;
     std::vector<double> tys;
     std::vector<double> rotations;
 
-    for (uint32_t i = 0; i < _pRefDataset->valuableStarCount - 1; ++i)
-    for (uint32_t j = i + 1; j < _pRefDataset->valuableStarCount; ++j)
+    for (uint32_t i = 0; i < _pRefDataset->stars.size() - 1; ++i)
+    for (uint32_t j = i + 1; j < _pRefDataset->stars.size(); ++j)
     {
         if (TryRefPair({ _pRefDataset->stars[i], _pRefDataset->stars[j] }))
         {
@@ -46,12 +48,12 @@ bool Aligner::CheckTransform()
 {
     uint32_t matches = 0;
 
-    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount; ++i)
+    for (uint32_t i = 0; i < _pTargetDataset->stars.size(); ++i)
     {
         auto targetPoint = _pTargetDataset->stars[i].center;
         _pTargetDataset->transform.transform(&targetPoint.x, &targetPoint.y);
 
-        for (uint32_t j = 0; j < _pRefDataset->valuableStarCount; ++j)
+        for (uint32_t j = 0; j < _pRefDataset->stars.size(); ++j)
         {
             auto refPoint = _pRefDataset->stars[j].center;
             auto dist = refPoint.Distance(targetPoint);
@@ -79,12 +81,12 @@ bool Aligner::TryRefPair(const std::pair<Star, Star>& refPair)
 
     std::pair<Star, Star> targetPair { Star{}, Star{} };
     std::pair<PointF, PointF> targetPoints{ PointF{}, PointF{} };
-    for (uint32_t i = 0; i < _pTargetDataset->valuableStarCount - 1; ++i)
+    for (uint32_t i = 0; i < _pTargetDataset->stars.size() - 1; ++i)
     {
         targetPair.first = _pTargetDataset->stars[i];
         targetPoints.first = targetPair.first.center;
 
-        for (uint32_t j = i + 1; j < _pTargetDataset->valuableStarCount; ++j)
+        for (uint32_t j = i + 1; j < _pTargetDataset->stars.size(); ++j)
         {
             targetPair.second = _pTargetDataset->stars[j];
             targetPoints.second = targetPair.second.center;
@@ -130,10 +132,4 @@ agg::trans_affine Aligner::CalculateTransform(PointFPair &refPoints, PointFPair 
 
     auto res = rotateMatrix * translate_matrix;
     return res;
-}
-
-void Aligner::Align(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset)
-{
-    Aligner aligner(pRefDataset, pTargetDataset);
-    return aligner.Align();
 }

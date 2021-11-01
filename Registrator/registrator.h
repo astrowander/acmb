@@ -17,16 +17,18 @@ class Registrator
     double _threshold;
     uint32_t _minStarSize;
     uint32_t _maxStarSize;
-    //std::vector<Star> _stars;
+
+public:
+    Registrator(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+
+    std::shared_ptr<AlignmentDataset> Registrate(std::shared_ptr<IBitmap> pBitmap);
 
 private:
-    Registrator(std::shared_ptr<IBitmap> pBitmap, double threshold, uint32_t minStarSize, uint32_t maxStarSize);
-
     template <PixelFormat pixelFormat>
     void Registrate()
     {
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-        auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(Convert(_pBitmap, pixelFormat));
+        auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
         //IBitmap::Save(pGrayBitmap, GetPathToTestFile("gray.pgm"));
         auto w = pGrayBitmap->GetWidth();
         auto h = pGrayBitmap->GetHeight();
@@ -70,6 +72,9 @@ private:
         star.center.y += y * pixelLuminance;
         pData[y * w + x] = 0;
 
+        if (star.rect.width > _maxStarSize + 1 || star.rect.height > _maxStarSize + 1)
+            return;
+
         if (x + 1 < w && pData[y * w + x + 1] > threshold)
         {
             star.rect.ExpandRight(x + 1);
@@ -96,9 +101,6 @@ private:
             InspectStar(star, threshold, pData, x - 1, y + 1, w, h);
         }
     }
-
-public:
-    static std::shared_ptr<AlignmentDataset> Registrate(std::shared_ptr<IBitmap> pBitmap, double threshold = 10, uint32_t minStarSize = 3, uint32_t maxStarSize = 20);
 };
 
 #endif

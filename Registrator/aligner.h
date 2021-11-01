@@ -17,15 +17,13 @@ class Aligner
     std::shared_ptr<AlignmentDataset> _pRefDataset;
     std::shared_ptr<AlignmentDataset> _pTargetDataset;
 
-    Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset);
-
-    void Align();
     bool CheckTransform();
     bool TryRefPair(const std::pair<Star, Star>& refPair);
     agg::trans_affine CalculateTransform(PointFPair& refPoints,PointFPair& targetPoints);
 
 public:
-    static void Align(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset);
+    Aligner(std::shared_ptr<AlignmentDataset> pRefDataset, std::shared_ptr<AlignmentDataset> pTargetDataset = nullptr);
+    void Align(std::shared_ptr<AlignmentDataset> pTargetDataset = nullptr);
 };
 
 #endif // ALIGNER_H
