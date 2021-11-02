@@ -17,6 +17,7 @@ public:
 public:
     void Attach(const std::string& fileName) override;
     void Attach(std::shared_ptr<std::istream> pStream) override;
+    void Detach() override;
 
     std::shared_ptr<IBitmap> ReadBitmap() override;
     std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;

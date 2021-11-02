@@ -13,6 +13,7 @@ class IBitmap;
 class ImageDecoder : public ImageParams
 {
 protected:
+    std::string _lastFileName;
     std::shared_ptr<std::istream> _pStream;
     virtual std::unique_ptr<std::istringstream> ReadLine();
 
@@ -20,6 +21,7 @@ public:
 
     virtual void Attach(std::shared_ptr<std::istream> pStream);
     virtual void Attach(const std::string& fileName);
+    virtual void Reattach();
     virtual void Detach();
     virtual ~ImageDecoder() = default;
 
@@ -29,6 +31,11 @@ public:
     virtual uint32_t GetCurrentScanline() const = 0;
 
     static std::shared_ptr<ImageDecoder> Create(const std::string& fileName);
+
+    const std::string& GetLastFileName()
+    {
+        return _lastFileName;
+    }
 
 
 };

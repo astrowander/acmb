@@ -11,9 +11,11 @@ RawDecoder::RawDecoder(bool halfSize)
 
 void RawDecoder::Attach(const std::string& fileName)
 {
+	_lastFileName = fileName;
+
 	_pLibRaw->open_file(fileName.data());
     _pLibRaw->imgdata.params.output_bps = 16;
-    _pLibRaw->imgdata.params.no_interpolation = 1;
+    _pLibRaw->imgdata.params.no_interpolation = 0;
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
     _pLibRaw->imgdata.params.med_passes = 0;
     _pLibRaw->imgdata.params.half_size = _halfSize;
@@ -28,6 +30,11 @@ void RawDecoder::Attach(const std::string& fileName)
 void RawDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
 	throw std::runtime_error("not implemented");		
+}
+
+void RawDecoder::Detach()
+{
+	_pLibRaw->recycle();
 }
 
 std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
@@ -46,7 +53,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	ret = _pLibRaw->dcraw_process();
 	if (ret != LIBRAW_SUCCESS)
 	{
-		_pLibRaw->recycle();
+		Detach();
 		throw std::runtime_error("raw processing error");
 	}
 
@@ -54,13 +61,13 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	if (ret != LIBRAW_SUCCESS)
 	{
 		_pLibRaw->dcraw_clear_mem(image);
-		_pLibRaw->recycle();
+		Detach();
 		throw std::runtime_error("raw processing error");
 	}
 	std::memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
 
 	_pLibRaw->dcraw_clear_mem(image);
-	_pLibRaw->recycle();
+	Reattach();
 	return pRes;
 }
 

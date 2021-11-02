@@ -16,11 +16,19 @@ void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 
 void ImageDecoder::Attach(const std::string &fileName)
 {
+    _lastFileName = fileName;
     std::shared_ptr<std::ifstream> pStream(new std::ifstream(fileName, std::ios_base::in | std::ios_base::binary));
     if (!pStream->is_open())
         throw std::invalid_argument("fileName");
 
     Attach(pStream);
+}
+
+void ImageDecoder::Reattach()
+{
+    Detach();
+    if (!_lastFileName.empty())
+        Attach(_lastFileName);
 }
 
 void ImageDecoder::Detach()
