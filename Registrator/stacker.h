@@ -32,38 +32,40 @@ class Stacker
     {
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)];
 
-        for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
-        {
-            stackedChannels[ch] = &_stacked[ch];
-        }
-
         for (uint32_t y = 0; y < _height; ++y)
-        for (uint32_t x = 0; x < _width; ++x)
         {
-            PointF targetPoint {static_cast<double>(x), static_cast<double>(y)};
-            transform.transform(&targetPoint.x, &targetPoint.y);
-
             for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
             {
-                if (targetPoint.x >= 0 && targetPoint.x <= _width - 1 && targetPoint.y >= 0 && targetPoint.y <= _height - 1)
+                stackedChannels[ch] = &_stacked[y * _width * ChannelCount(pixelFormat) + ch];
+            }
+
+            for (uint32_t x = 0; x < _width; ++x)
+            {
+                PointF targetPoint{ static_cast<double>(x), static_cast<double>(y) };
+                transform.transform(&targetPoint.x, &targetPoint.y);
+
+                for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
                 {
-                    auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(targetPoint.x) , static_cast<float>(targetPoint.y), ch);
-                    auto& mean = stackedChannels[ch]->mean;
-                    auto& dev = stackedChannels[ch]->dev;
-                    auto& n = stackedChannels[ch]->n;
-                    auto sigma = sqrt(dev);
-                    const auto kappa = 3.0;
+                    if (targetPoint.x >= 0 && targetPoint.x <= _width - 1 && targetPoint.y >= 0 && targetPoint.y <= _height - 1)
+                    {
+                        auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(targetPoint.x), static_cast<float>(targetPoint.y), ch);
+                        auto& mean = stackedChannels[ch]->mean;
+                        auto& dev = stackedChannels[ch]->dev;
+                        auto& n = stackedChannels[ch]->n;
+                        auto sigma = sqrt(dev);
+                        const auto kappa = 3.0;
 
-                    if (n <= 5 || fabs(mean - interpolatedChannel) < kappa * sigma)
-                    {                        
-                        dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
+                        if (n <= 5 || fabs(mean - interpolatedChannel) < kappa * sigma)
+                        {
+                            dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
 
-                        mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
-                        ++n;
+                            mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                            ++n;
+                        }
                     }
-                }
 
-                stackedChannels[ch] += ChannelCount(pixelFormat);
+                    stackedChannels[ch] += ChannelCount(pixelFormat);
+                }
             }
         }
     }

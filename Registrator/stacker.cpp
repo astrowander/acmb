@@ -19,6 +19,9 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
     {
         auto pBitmap = decoderDatasetPair.first->ReadBitmap();
         decoderDatasetPair.second = pRegistrator->Registrate(pBitmap);
+        std::cout << decoderDatasetPair.first->GetLastFileName() << " is registered" << std::endl;
+        std::cout << decoderDatasetPair.second->starCount << " stars are found" << std::endl;
+        std::cout << decoderDatasetPair.second->stars.size() << " bright stars are found" << std::endl << std::endl;
     }
 
     std::sort(std::begin(_decoderDatasetPairs), std::end(_decoderDatasetPairs), [](const auto& a, const auto& b) { return a.second->starCount > b.second->starCount; });
@@ -30,7 +33,8 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         return nullptr;
 
     auto pRefBitmap = _decoderDatasetPairs[0].first->ReadBitmap();
-    _width = pRefBitmap->GetWidth();
+    IBitmap::Save(pRefBitmap, "E:/test.ppm");
+;    _width = pRefBitmap->GetWidth();
     _height = pRefBitmap->GetHeight();
 
     if (_decoderDatasetPairs.size() == 1)
@@ -64,10 +68,17 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     for (uint32_t i = 1; i < _decoderDatasetPairs.size(); ++i)
     {
         auto pTargetBitmap = _decoderDatasetPairs[i].first->ReadBitmap();
+        IBitmap::Save(pTargetBitmap, "E:/test2.ppm");
         auto pTargetDataset = doAlignment ? _decoderDatasetPairs[i].second : nullptr;
 
         if (doAlignment)
+        {
+            std::cout << _decoderDatasetPairs[i].first->GetLastFileName() << " in process" << std::endl;
             pAligner->Align(pTargetDataset);
+            std::cout << _decoderDatasetPairs[i].first->GetLastFileName() << " is aligned" << std::endl;
+            std::cout << "tx = " << _decoderDatasetPairs[i].second->transform.tx << ", ty = " << _decoderDatasetPairs[i].second->transform.ty
+                << ", rotation = " << _decoderDatasetPairs[i].second->transform.rotation() * 180 / 3.1416 << std::endl;
+        }
 
         if (pRefBitmap->GetPixelFormat() != pRefBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
@@ -89,6 +100,8 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         default:
             throw std::runtime_error("pixel format should be known");
         }
+
+        std::cout << _decoderDatasetPairs[i].first->GetLastFileName() << " is stacked" << std::endl << std::endl;
     }
 
     switch(pRefBitmap->GetPixelFormat())
