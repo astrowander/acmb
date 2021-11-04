@@ -512,6 +512,16 @@ namespace agg
         {}
     };
 
+    class trans_affine_null : public trans_affine
+    {
+    public:
+        trans_affine_null()
+            : trans_affine(0, 0, 0, 0, 0, 0)
+        {
+
+        }
+    };
+
 }
 
 
