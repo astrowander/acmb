@@ -10,11 +10,11 @@ BEGIN_TEST(Aligner, BasicTest)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>();
-auto pRefDataset = pRegistrator->Registrate(pRefBitmap);
+auto pRefDataset = pRegistrator->Registrate(pRefBitmap)->datasets[0];
 pRefBitmap.reset();
 
 auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"));
-auto pTargetDataset = pRegistrator->Registrate(pTargetBitmap);
+auto pTargetDataset = pRegistrator->Registrate(pTargetBitmap)->datasets[0];
 pTargetBitmap.reset();
 
 auto pAligner = std::make_unique<Aligner>(pRefDataset);

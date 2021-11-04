@@ -28,6 +28,13 @@ void Aligner::Align(std::shared_ptr<AlignmentDataset> pTargetDataset)
         }
     }
 
+    if (txs.empty())
+    {
+        std::cout << "unable to align" << std::endl;
+        _pTargetDataset->transform = agg::trans_affine_null();
+        return;
+    }
+
     auto medianTx = std::begin(txs) + txs.size() / 2;
     std::nth_element(std::begin(txs), medianTx, std::end(txs));
 
@@ -66,12 +73,12 @@ bool Aligner::CheckTransform()
         }
     }
 
-    if (matches > 10)
+    /*if (matches > 10)
     {
         std::cout << "match count = " << matches << std::endl;
-    }
+    }*/
 
-    return (matches > 10);
+    return matches > std::max((size_t)10, std::min(_pRefDataset->stars.size(), _pTargetDataset->stars.size()) / 3);
 }
 
 bool Aligner::TryRefPair(const std::pair<Star, Star>& refPair)

@@ -8,9 +8,11 @@
 #include "../Geometry/rect.h"
 #include "../AGG/agg_trans_affine.h"
 #include "../Tests/test.h"
+#include "registrator.h"
 
 class ImageDecoder;
 struct AlignmentDataset;
+struct DatasetTiles;
 
 struct StackedChannel
 {
@@ -21,16 +23,20 @@ struct StackedChannel
 
 class Stacker
 {
-    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::shared_ptr<AlignmentDataset>>> _decoderDatasetPairs;
+    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::shared_ptr<DatasetTiles>>> _decoderDatasetPairs;
     std::vector<StackedChannel> _stacked;
 
-    uint32_t _width;
-    uint32_t _height;
+    uint32_t _width = 0;
+    uint32_t _height = 0;
+    uint32_t _hTiles = 0;
+    uint32_t _vTiles = 1;
 
     template<PixelFormat pixelFormat>
-    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const agg::trans_affine& transform)
+    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, std::shared_ptr<DatasetTiles> pDatasetTiles)
     {
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)];
+        const auto tileWidth = pBitmap->GetWidth() / _hTiles;
+        const auto tileHeight = pBitmap->GetHeight() / _vTiles;
 
         for (uint32_t y = 0; y < _height; ++y)
         {
@@ -39,8 +45,19 @@ class Stacker
                 stackedChannels[ch] = &_stacked[y * _width * ChannelCount(pixelFormat) + ch];
             }
 
+            const auto yTile = std::min(y / tileHeight, _vTiles - 1);
+
             for (uint32_t x = 0; x < _width; ++x)
             {
+                const auto xTile = std::min(x / tileWidth, _hTiles - 1);
+                const auto & transform = pDatasetTiles ? pDatasetTiles->datasets[yTile * _hTiles + xTile]->transform : agg::trans_affine();
+                if (transform == agg::trans_affine_null())
+                {
+                    for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
+                        stackedChannels[ch] += ChannelCount(pixelFormat);
+                    continue;
+                }
+
                 PointF targetPoint{ static_cast<double>(x), static_cast<double>(y) };
                 transform.transform(&targetPoint.x, &targetPoint.y);
 
@@ -106,7 +123,7 @@ public:
 
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders);
 
-    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25, uint32_t hTiles = 1, uint32_t vTiles = 1);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);
 
     TEST_ACCESS(Stacker);

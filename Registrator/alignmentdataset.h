@@ -12,7 +12,7 @@ struct AlignmentDataset
 {
     std::vector<Star> stars;
     agg::trans_affine transform;
-    uint32_t starCount = 0;
+    size_t starCount = 0;
 };
 
 #endif // ALIGNMENTDATASET_H
