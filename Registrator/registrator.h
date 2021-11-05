@@ -51,28 +51,34 @@ private:
         auto median = data.begin() + data.size() / 2;
         std::nth_element(data.begin(), median, data.end());
 
-        auto threshold = static_cast<ChannelType>(std::min(static_cast<uint32_t>(*median * (1 + _threshold / 100)), static_cast<uint32_t>(std::numeric_limits<ChannelType>::max())));
-
-        auto pData = pGrayBitmap->GetScanline(0);
-        
-
-        for (uint32_t i = roi.y; i < roi.y + roi.height; ++i)
+        double thresholdPercent = 50;
+        while (res->stars.size() < 40 && thresholdPercent > 8.0)
         {
-            for (uint32_t j = roi.x; j < roi.x + roi.width; ++j)
+            res->stars.clear();
+            auto threshold = static_cast<ChannelType>(std::min(static_cast<uint32_t>(*median * (1 + thresholdPercent / 100)), static_cast<uint32_t>(std::numeric_limits<ChannelType>::max())));
+
+            auto pData = pGrayBitmap->GetScanline(0);
+
+
+            for (uint32_t i = roi.y; i < roi.y + roi.height; ++i)
             {
-                if (pData[i * w + j] > threshold)
+                for (uint32_t j = roi.x; j < roi.x + roi.width; ++j)
                 {
-                    Star star {Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0, 0};
-                    InspectStar(star, threshold, pData, j, i, w, h, roi);
-                    if (star.rect.width >= _minStarSize && star.rect.width <= _maxStarSize && star.rect.height >= _minStarSize && star.rect.height <= _maxStarSize)
+                    if (pData[i * w + j] > threshold)
                     {
-                        star.center.x /= star.luminance;
-                        star.center.y /= star.luminance;
-                        res->stars.push_back(star);
+                        Star star{ Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0, 0 };
+                        InspectStar(star, threshold, pData, j, i, w, h, roi);
+                        if (star.rect.width >= _minStarSize && star.rect.width <= _maxStarSize && star.rect.height >= _minStarSize && star.rect.height <= _maxStarSize)
+                        {
+                            star.center.x /= star.luminance;
+                            star.center.y /= star.luminance;
+                            res->stars.push_back(star);
+                        }
                     }
                 }
             }
 
+            thresholdPercent /= res->stars.size() > 0 ? std::log(40.0 / res->stars.size()) : 5;
         }
 
         //IBitmap::Save(pGrayBitmap, GetPathToTestFile("mask.pgm"));
