@@ -19,6 +19,7 @@ struct DatasetTiles
 class Registrator
 {
     std::shared_ptr<IBitmap> _pBitmap;
+    std::vector<bool> _visitedPixels;
     double _threshold;
     uint32_t _minStarSize;
     uint32_t _maxStarSize;
@@ -35,6 +36,7 @@ private:
     std::shared_ptr<AlignmentDataset> Registrate(Rect roi)
     {
         auto res = std::make_shared<AlignmentDataset>();
+        _visitedPixels = std::vector<bool>(_pBitmap->GetWidth() * _pBitmap->GetHeight(), false);
 
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
         auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
@@ -64,7 +66,7 @@ private:
             {
                 for (uint32_t j = roi.x; j < roi.x + roi.width; ++j)
                 {
-                    if (pData[i * w + j] > threshold)
+                    if (!_visitedPixels[i * w + j] && pData[i * w + j] > threshold)
                     {
                         Star star{ Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0, 0 };
                         InspectStar(star, threshold, pData, j, i, w, h, roi);
@@ -78,7 +80,7 @@ private:
                 }
             }
 
-            thresholdPercent /= res->stars.size() > 0 ? std::log(40.0 / res->stars.size()) : 5;
+            thresholdPercent /= res->stars.size() > 0 ? std::sqrt(40.0 / res->stars.size()) : 5;
         }
 
         //IBitmap::Save(pGrayBitmap, GetPathToTestFile("mask.pgm"));
@@ -93,7 +95,7 @@ private:
         star.luminance += pixelLuminance;
         star.center.x += x * pixelLuminance;
         star.center.y += y * pixelLuminance;
-        pData[y * w + x] = 0;
+        _visitedPixels[y * w + x] = true;
 
         if (star.rect.width > _maxStarSize + 1 || star.rect.height > _maxStarSize + 1)
             return;

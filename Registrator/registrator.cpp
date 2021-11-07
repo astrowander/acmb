@@ -20,7 +20,7 @@ std::shared_ptr<DatasetTiles> Registrator::Registrate(std::shared_ptr<IBitmap> p
     else
     {
         _pBitmap = Convert(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
-    }
+    }   
     
     auto pDatasetTiles = std::make_shared<DatasetTiles>();
 
