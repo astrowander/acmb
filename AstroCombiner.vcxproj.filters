@@ -84,6 +84,9 @@
     <ClInclude Include="Codecs\Raw\RawDecoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registrator\FastAligner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -162,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestRawDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registrator\FastAligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -33,6 +33,7 @@
     <ClInclude Include="Geometry\rect.h" />
     <ClInclude Include="Registrator\aligner.h" />
     <ClInclude Include="Registrator\alignmentdataset.h" />
+    <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
@@ -55,6 +56,7 @@
     <ClCompile Include="Geometry\rect.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Registrator\aligner.cpp" />
+    <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
     <ClCompile Include="Tests\TestAligner.cpp" />
