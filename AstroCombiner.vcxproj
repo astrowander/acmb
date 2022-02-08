@@ -63,6 +63,7 @@
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
+    <ClCompile Include="Tests\TestFastAligner.cpp" />
     <ClCompile Include="Tests\TestPpmDecoder.cpp" />
     <ClCompile Include="Tests\TestPpmEncoder.cpp" />
     <ClCompile Include="Tests\TestRawDecoder.cpp" />
