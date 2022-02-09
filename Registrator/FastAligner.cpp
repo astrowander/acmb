@@ -6,17 +6,19 @@ using PointFPair = std::pair<PointF, PointF>;
 agg::trans_affine CalculateTransform(PointFPair& refPoints, PointFPair& targetPoints)
 {
 	auto refAngle = atan2(refPoints.second.y - refPoints.first.y, refPoints.second.x - refPoints.first.x);
+	if (refAngle < 0)
+		refAngle += 2 * M_PI;
+
 	auto targetAngle = atan2(targetPoints.second.y - targetPoints.first.y, targetPoints.second.x - targetPoints.first.x);
+	if (targetAngle < 0)
+		targetAngle += 2 * M_PI;
 
-	auto rotation = targetAngle - refAngle;
-	if (rotation > M_PI)
-		rotation -= M_PI;
-	if (rotation < -M_PI)
-		rotation += M_PI;
-
+	auto rotation = refAngle - targetAngle;
 	auto rotateMatrix = agg::trans_affine_rotation(rotation);
+
 	auto targetPoint = targetPoints.first;
 	rotateMatrix.transform(&targetPoint.x, &targetPoint.y);
+
 	auto dx = refPoints.first.x - targetPoint.x;
 	auto dy = refPoints.first.y - targetPoint.y;
 	auto translate_matrix = agg::trans_affine_translation(dx, dy);
