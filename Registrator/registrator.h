@@ -10,11 +10,6 @@
 #include "alignmentdataset.h"
 
 //class IBitmap;
-struct DatasetTiles
-{
-    std::vector<std::shared_ptr<AlignmentDataset>> datasets;
-    uint32_t totalStarCount = 0;
-};
 
 class Registrator
 {
@@ -22,19 +17,17 @@ class Registrator
     double _threshold;
     uint32_t _minStarSize;
     uint32_t _maxStarSize;
-    uint32_t _hTiles;
-    uint32_t _vTiles;
 
 public:
-    Registrator(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25, uint32_t hTiles = 1, uint32_t vTiles = 1);
+    Registrator(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
 
-    std::shared_ptr<DatasetTiles> Registrate(std::shared_ptr<IBitmap> pBitmap);
+    std::vector<Star> Registrate(std::shared_ptr<IBitmap> pBitmap);
 
 private:
     template <PixelFormat pixelFormat>
-    std::shared_ptr<AlignmentDataset> Registrate(Rect roi)
+    std::vector<Star> Registrate(Rect roi)
     {
-        auto res = std::make_shared<AlignmentDataset>();
+        std::vector<Star> res;
 
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
         auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
@@ -68,7 +61,7 @@ private:
                     {
                         star.center.x /= star.luminance;
                         star.center.y /= star.luminance;
-                        res->stars.push_back(star);
+                        res.push_back(star);
                     }
                 }
             }

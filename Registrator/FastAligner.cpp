@@ -42,7 +42,8 @@ void FastAligner::Align(const std::vector<Star>& targetStars)
 	{
 		agg::trans_affine transform;
 		std::unordered_map<size_t, size_t> temp;
-		TryRefStar(i, temp, transform);
+		if (TryRefStar(i, temp, transform))
+			return;
 	}
 }
 
@@ -56,17 +57,21 @@ void FastAligner::SetEps(double eps)
 	_eps = eps;
 }
 
-void FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
+bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
 {
 	if (refIndex == _refStars.size())
 	{
-		if (temp.size() > _matches.size())
+		if (temp.size() > _matches.size() && temp.size() > 2)
+		{
 			_matches = temp;
+			return true;
+		}
 
-		return;
+		return false;
 	}
 
 	const auto& refStar = _refStars[refIndex];
+	const auto eps = std::max(refStar.rect.width, refStar.rect.height) / 2.0;
 
 	for (size_t i = 0; i < _targetStars.size(); ++i)
 	{
@@ -80,7 +85,8 @@ void FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 		switch (temp.size())
 		{
 		case 1:
-			TryRefStar(refIndex + 1, temp, transform);
+			if (TryRefStar(refIndex + 1, temp, transform))
+				return true;
 			//translate transform
 			break;
 		case 2:
@@ -93,10 +99,12 @@ void FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 			PointFPair targetPair{ _targetStars[it->first].center, _targetStars[i].center };
 
 			auto penalty = std::fabs(refPair.first.Distance(refPair.second) - targetPair.first.Distance(targetPair.second));
-			if (penalty < _eps)
+			
+			if (penalty < eps)
 			{
 				auto newTransform = CalculateTransform(refPair, targetPair);
-				TryRefStar(refIndex + 1, temp, newTransform);
+				if (TryRefStar(refIndex + 1, temp, newTransform))
+					return true;
 			}
 
 			break;
@@ -106,11 +114,10 @@ void FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 			PointF targetPos = targetStar.center;
 			transform.transform(&targetPos.x, &targetPos.y);
 			auto penalty = targetPos.Distance(refStar.center);
-			if (penalty < _eps)
+			if (penalty < eps)
 			{
-				TryRefStar(refIndex + 1, temp, transform);
-				if (temp.size() > _matches.size())
-					_matches = temp;
+				if (TryRefStar(refIndex + 1, temp, transform))
+					return true;
 			}
 
 			break;
@@ -119,4 +126,7 @@ void FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 
 		temp.erase(i);
 	}
+
+	if (TryRefStar(refIndex + 1, temp, transform))
+		return true;
 }

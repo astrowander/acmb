@@ -19,7 +19,7 @@ class FastAligner
 	double _eps = 1.0;
 	
 
-	void TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform);
+	bool TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform);
 
 public:
 

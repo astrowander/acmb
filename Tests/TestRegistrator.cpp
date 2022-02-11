@@ -6,10 +6,10 @@ BEGIN_SUITE(Registrator)
 
 BEGIN_TEST(Registrator, BasicTest)
 
-auto pRegistrator = std::make_unique<Registrator>();
-auto dataset = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")))->datasets[0];
-auto& stars = dataset->stars;
-EXPECT_EQ(675, dataset->starCount);
+auto pRegistrator = std::make_unique<Registrator>(10);
+auto stars = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")));
+
+EXPECT_EQ(173, stars.size());
 EXPECT_EQ(1.0, stars[0].luminance);
 EXPECT_EQ(151, stars[0].pixelCount);
 EXPECT_EQ((Rect{327, 229, 12, 20}), stars[0].rect);
@@ -18,9 +18,9 @@ END_TEST
 
 BEGIN_TEST(Registrator, RegistrateHugePhoto)
 auto pRegistrator = std::make_unique<Registrator>(50);
-auto dataset = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm")))->datasets[0];
-auto& stars = dataset->stars;
-EXPECT_EQ(8971, dataset->starCount);
+auto stars = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm")));
+
+EXPECT_EQ(8971, stars.size());
 EXPECT_EQ(196, stars[2].pixelCount);
 EXPECT_NEAR(0.89, stars[2].luminance, 0.01);
 EXPECT_EQ((Rect{1336, 1782, 11, 20}), stars[2].rect);
@@ -29,9 +29,9 @@ END_TEST
 
 BEGIN_TEST(Registrator, TestVertical)
 auto pRegistrator = std::make_unique<Registrator>(40);
-auto dataset = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/vertical.ppm")))->datasets[0];
-auto& stars = dataset->stars;
-EXPECT_EQ(1654, dataset->starCount);
+auto stars = pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/vertical.ppm")));
+
+EXPECT_EQ(1654, stars.size());
 EXPECT_EQ(115, stars[1].pixelCount);
 EXPECT_NEAR(0.46, stars[1].luminance, 0.01);
 EXPECT_EQ((Rect{648, 129, 11, 11}), stars[1].rect);
