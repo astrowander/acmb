@@ -1,42 +1,77 @@
 #ifndef RECT_H
 #define RECT_H
-#include <cstdint>
-#include <math.h>
+#include "point.h"
 
-struct Point
+template<typename T>
+struct RectT
 {
-    int32_t x = 0;
-    int32_t y = 0;
+    T x = 0;
+    T y = 0;
+    T width = 0;
+    T height = 0;
+
+    void ExpandRight(T right)
+    {
+        if (width < static_cast<uint32_t>(right - x + 1))
+            width = right - x + 1;
+    }
+
+    void ExpandLeft(T left)
+    {
+        if (left < x)
+        {
+            x = left;
+            width += x - left;
+        }
+    }
+
+    void ExpandDown(T bottom)
+    {
+        if (bottom > y + static_cast<int32_t>(height) - 1)
+        {
+            height = bottom - y + 1;
+        }
+    }
+
+    void Translate(T tx, T ty)
+    {
+        x += tx;
+        y += ty;
+    }
+
+    inline bool operator==(const RectT& rhs);
+    inline bool operator!=(const RectT& rhs);
+    
+
+    PointT<T> GetOrigin() const 
+    {
+        return PointT<T>{ x, y };
+    }
+
+    PointF GetCenter() const 
+    {
+        return { x + width / 2.0, y + height / 2.0 };
+    }
+
+    bool IsPointInside(PointT<T> p) const
+    {
+        return (p.x >= x) && (p.x <= x + width) && (p.y >= y) && (p.y <= y + height);
+    }
 };
 
-struct PointF
+template<typename T>
+bool RectT<T>::operator==(const RectT<T>& rhs)
 {
-    double x = 0;
-    double y = 0;
+    return (x == rhs.x) && (y == rhs.y) && (width = rhs.width) && (height == rhs.height);
+}
 
-    double Distance(const PointF& rhs);
-};
-
-struct Rect
+template<typename T>
+bool RectT<T>::operator!=(const RectT<T>& rhs)
 {
-    int32_t x = 0;
-    int32_t y = 0;
-    uint32_t width = 0;
-    uint32_t height = 0;
+    return !(*this == rhs);
+}
 
-    void ExpandRight(int32_t right);
-    void ExpandLeft(int32_t left);
-    void ExpandDown(int32_t bottom);
-
-    void Translate(int32_t x, int32_t y);
-
-    bool operator==(const Rect& rhs);
-
-    bool operator!=(const Rect& lhs);
-
-    Point GetOrigin();
-
-    PointF GetCenter();
-};
+using Rect = RectT<int32_t>;
+using RectF = RectT<double>;
 
 #endif // RECT_H

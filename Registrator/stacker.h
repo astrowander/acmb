@@ -5,10 +5,11 @@
 #include <string>
 
 #include "../Core/bitmap.h"
-#include "../Geometry/rect.h"
+#include "../Geometry/triangle.h"
 #include "../AGG/agg_trans_affine.h"
 #include "../Tests/test.h"
 #include "registrator.h"
+#include <array>
 
 class ImageDecoder;
 struct AlignmentDataset;
@@ -18,25 +19,59 @@ struct StackedChannel
 {
     float mean = 0;
     float dev = 0;
-    uint16_t n = 0;
+    uint16_t n = 1;
 };
 
 class Stacker
 {
-    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::shared_ptr<DatasetTiles>>> _decoderDatasetPairs;
+    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::vector<Star>>> _decoderStarPairs;
     std::vector<StackedChannel> _stacked;
 
     uint32_t _width = 0;
     uint32_t _height = 0;
-    uint32_t _hTiles = 0;
-    uint32_t _vTiles = 1;
 
     template<PixelFormat pixelFormat>
-    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, std::shared_ptr<DatasetTiles> pDatasetTiles)
+    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
-        StackedChannel* stackedChannels[ChannelCount(pixelFormat)];
-        const auto tileWidth = pBitmap->GetWidth() / _hTiles;
-        const auto tileHeight = pBitmap->GetHeight() / _vTiles;
+        auto stackedChannel = &_stacked[0];
+        auto pSourceChannel = pBitmap->GetScanline(0);
+
+        for (uint32_t i = 0; i < _height * _width * ChannelCount(pixelFormat); ++i)
+        {
+            (*stackedChannel++).mean = *pSourceChannel++;
+        }
+    }
+
+    void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const std::vector<std::pair<Triangle, agg::trans_affine>>& trianglePairs)
+    {
+        if (lastPair.first.IsPointInside(p))
+            return;
+        
+        auto minSqDist = std::numeric_limits<double>::max();
+        for (const auto& pair : trianglePairs)
+        {
+            if (pair.first.IsPointInside(p))
+            {
+                lastPair = pair;
+                return;
+            }
+            else
+            {
+                double sqDist = pair.first.SquaredDistanceFromPoint(p);
+                if (sqDist < minSqDist)
+                {
+                    lastPair = pair;
+                    minSqDist = sqDist;
+                }
+            }
+        }        
+    }
+
+    template<PixelFormat pixelFormat>
+    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const std::vector<std::pair<Triangle, agg::trans_affine>>& trianglePairs)
+    {
+        StackedChannel* stackedChannels[ChannelCount(pixelFormat)] = {};
+        auto lastPair = trianglePairs[0];
 
         for (uint32_t y = 0; y < _height; ++y)
         {
@@ -45,27 +80,18 @@ class Stacker
                 stackedChannels[ch] = &_stacked[y * _width * ChannelCount(pixelFormat) + ch];
             }
 
-            const auto yTile = std::min(y / tileHeight, _vTiles - 1);
-
             for (uint32_t x = 0; x < _width; ++x)
             {
-                const auto xTile = std::min(x / tileWidth, _hTiles - 1);
-                const auto & transform = pDatasetTiles ? pDatasetTiles->datasets[yTile * _hTiles + xTile]->transform : agg::trans_affine();
-                if (transform == agg::trans_affine_null())
-                {
-                    for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
-                        stackedChannels[ch] += ChannelCount(pixelFormat);
-                    continue;
-                }
-
-                PointF targetPoint{ static_cast<double>(x), static_cast<double>(y) };
-                transform.transform(&targetPoint.x, &targetPoint.y);
+                PointF p { static_cast<double>(x), static_cast<double>(y) };
+                
+                ChooseTriangle(p, lastPair, trianglePairs);
+                lastPair.second.transform(&p.x, &p.y);
 
                 for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
                 {
-                    if (targetPoint.x >= 0 && targetPoint.x <= _width - 1 && targetPoint.y >= 0 && targetPoint.y <= _height - 1)
+                    if (p.x >= 0 && p.x <= _width - 1 && p.y >= 0 && p.y <= _height - 1)
                     {
-                        auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(targetPoint.x), static_cast<float>(targetPoint.y), ch);
+                        auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
                         auto& mean = stackedChannels[ch]->mean;
                         auto& dev = stackedChannels[ch]->dev;
                         auto& n = stackedChannels[ch]->n;
@@ -84,7 +110,7 @@ class Stacker
                     stackedChannels[ch] += ChannelCount(pixelFormat);
                 }
             }
-        }
+        }   
     }
 
     template<PixelFormat pixelFormat>
@@ -123,7 +149,7 @@ public:
 
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders);
 
-    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25, uint32_t hTiles = 1, uint32_t vTiles = 1);
+    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);
 
     TEST_ACCESS(Stacker);

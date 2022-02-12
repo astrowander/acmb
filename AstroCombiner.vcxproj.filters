@@ -48,12 +48,6 @@
     <ClInclude Include="Geometry\rect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Registrator\aligner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Registrator\alignmentdataset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Registrator\registrator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -87,6 +81,15 @@
     <ClInclude Include="Registrator\FastAligner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Geometry\delaunator.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\triangle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry\point.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -110,19 +113,10 @@
     <ClCompile Include="Core\imageparams.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Geometry\rect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Registrator\aligner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Registrator\registrator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Registrator\stacker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestAligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestBinningTransform.cpp">
@@ -171,6 +165,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestFastAligner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry\triangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

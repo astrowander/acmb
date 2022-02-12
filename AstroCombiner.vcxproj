@@ -30,9 +30,10 @@
     <ClInclude Include="Core\bitmap.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
+    <ClInclude Include="Geometry\delaunator.hpp" />
+    <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />
-    <ClInclude Include="Registrator\aligner.h" />
-    <ClInclude Include="Registrator\alignmentdataset.h" />
+    <ClInclude Include="Geometry\triangle.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
@@ -53,13 +54,11 @@
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp" />
     <ClCompile Include="Core\bitmap.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
-    <ClCompile Include="Geometry\rect.cpp" />
+    <ClCompile Include="Geometry\triangle.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Registrator\aligner.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
-    <ClCompile Include="Tests\TestAligner.cpp" />
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
@@ -185,6 +184,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackReserveSize>4194304</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
