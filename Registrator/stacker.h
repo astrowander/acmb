@@ -129,7 +129,7 @@ class Stacker
         if (_width == 0 || _height == 0)
             return pRes;
 
-        ChannelType* channels[ChannelCount(pixelFormat)];
+        ChannelType* channels[ChannelCount(pixelFormat)] = {};
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)];
 
         for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)

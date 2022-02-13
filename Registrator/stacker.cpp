@@ -4,6 +4,8 @@
 #include "../Geometry/delaunator.hpp"
 
 Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders)
+: _gridWidth(0)
+, _gridHeight(0)
 {
     for (auto pDecoder : decoders)
     {
@@ -105,8 +107,8 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
                 {
                     RectF cell =
                     {
-                        (j % _gridWidth) * gridSize,
-                        (j / _gridWidth) * gridSize,
+                        static_cast<double>((j % _gridWidth) * gridSize),
+                        static_cast<double>((j / _gridWidth) * gridSize),
                         gridSize,
                         gridSize
                     };
