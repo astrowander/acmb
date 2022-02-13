@@ -6,11 +6,11 @@
 
 class PpmDecoder : public ImageDecoder
 {
-    PpmMode _ppmMode;
-    uint32_t _maxval;
+    PpmMode _ppmMode = PpmMode::Binary;
+    uint32_t _maxval = 0;
 
-    std::streampos _dataOffset;
-    uint32_t _currentScanline;
+    std::streampos _dataOffset = 0;
+    uint32_t _currentScanline = 0;
 
 public:
     void Attach(const std::string& fileName) override;

@@ -23,7 +23,7 @@ class BinningTransform : public IBinningTransform<hBinSize, vBinSize>
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
-    std::array<ChannelType, hBinSize * vBinSize> _buf;
+    std::array<ChannelType, hBinSize* vBinSize> _buf = {};
 
 public:
     BinningTransform(std::shared_ptr<IBitmap> pSrcBitmap)

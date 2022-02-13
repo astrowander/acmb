@@ -18,8 +18,8 @@ class FastAligner
 
 	double _eps = 1.0;
 
-	std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine> BruteForceSearch(const uint32_t n);
-	void BruteForceCheckTransform(const uint32_t refLim, const uint32_t targetLim, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform);
+	std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine> BruteForceSearch(const size_t n);
+	void BruteForceCheckTransform(const size_t refLim, const size_t targetLim, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform);
 	
 
 	bool TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform);

@@ -63,7 +63,7 @@ void FastAligner::SetEps(double eps)
 	_eps = eps;
 }
 
-std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine>  FastAligner::BruteForceSearch(const uint32_t N)
+std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine>  FastAligner::BruteForceSearch(const size_t N)
 {
 	std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine> res;
 
@@ -106,7 +106,7 @@ std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine>  FastAligner::
 	return res;
 }
 
-void FastAligner::BruteForceCheckTransform(const uint32_t refLim, const uint32_t targetLim, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
+void FastAligner::BruteForceCheckTransform(const size_t refLim, const size_t targetLim, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
 {
 	size_t refs[2] = { temp.begin()->second, std::next(temp.begin())->second };
 	size_t targets[2] = { temp.begin()->first, std::next(temp.begin())->first };

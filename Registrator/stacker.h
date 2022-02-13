@@ -35,9 +35,9 @@ class Stacker
     uint32_t _width = 0;
     uint32_t _height = 0;
 
-    static const int gridSize = 100;
-    uint32_t _gridWidth;
-    uint32_t _gridHeight;
+    static const size_t gridSize = 100;
+    uint32_t _gridWidth = 0;
+    uint32_t _gridHeight = 0;
 
     double _alignmentError = 5.0;
 
