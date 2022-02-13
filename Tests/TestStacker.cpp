@@ -2,7 +2,6 @@
 #include "testtools.h"
 #include "../Codecs/RAW/rawdecoder.h"
 #include "../Registrator/stacker.h"
-#include "../Registrator/alignmentdataset.h"
 #include <filesystem>
 
 BEGIN_SUITE(Stacker)
@@ -44,12 +43,25 @@ BEGIN_TEST(Stacker, TestTwoPics)
     };
 
     auto pStacker = std::make_shared<Stacker>(decoders);
-    pStacker->Registrate(70, 5, 25);
+    pStacker->Registrate(60, 5, 25);
     auto pStacked = pStacker->Stack(true);
-    /*EXPECT_EQ(49302, pStacker->_decoderDatasetPairs[0].second->starCount);
-    EXPECT_EQ(49273, pStacker->_decoderDatasetPairs[1].second->starCount);
-    EXPECT_EQ(44806, pStacker->_decoderDatasetPairs[2].second->starCount);*/
-    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStacked));
+    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
+
+END_TEST
+
+BEGIN_TEST(Stacker, TestThreePics)
+
+std::vector<std::shared_ptr<ImageDecoder>> decoders
+{
+    ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2")),
+    ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2")),
+    ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8946.CR2"))
+};
+
+auto pStacker = std::make_shared<Stacker>(decoders);
+pStacker->Registrate(60, 5, 25);
+auto pStacked = pStacker->Stack(true);
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStacked));
 
 END_TEST
 

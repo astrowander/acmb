@@ -10,6 +10,16 @@ struct RectT
     T width = 0;
     T height = 0;
 
+    T GetRight() const
+    {
+        return x + width;
+    }
+
+    T GetBottom() const
+    {
+        return y + height;
+    }
+
     void ExpandRight(T right)
     {
         if (width < static_cast<uint32_t>(right - x + 1))
@@ -56,6 +66,11 @@ struct RectT
     bool IsPointInside(PointT<T> p) const
     {
         return (p.x >= x) && (p.x <= x + width) && (p.y >= y) && (p.y <= y + height);
+    }
+
+    bool Overlaps(const RectT& other)
+    {
+        return  (x < other.GetRight() && GetRight() > other.x && y < other.GetBottom() && GetBottom() > other.y);
     }
 };
 

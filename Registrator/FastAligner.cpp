@@ -3,7 +3,7 @@
 
 using PointFPair = std::pair<PointF, PointF>;
 
-agg::trans_affine CalculateTransform(PointFPair& refPoints, PointFPair& targetPoints)
+agg::trans_affine CalculateTransform(const PointFPair& refPoints, const PointFPair& targetPoints)
 {
 	auto refAngle = atan2(refPoints.second.y - refPoints.first.y, refPoints.second.x - refPoints.first.x);
 	if (refAngle < 0)
@@ -33,16 +33,22 @@ FastAligner::FastAligner(const std::vector<Star>& refStars)
 
 }
 
-void FastAligner::Align(const std::vector<Star>& targetStars)
+void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 {
+	_eps = eps;
 	_targetStars = targetStars;
 	_matches.clear();
 
-	for (size_t i = 0; i < _refStars.size(); ++i)
+	constexpr uint32_t bruteForceSearchSize = 40;
+
+	auto res = BruteForceSearch(bruteForceSearchSize);
+
+	_matches = res.first;
+
+	for (size_t i = bruteForceSearchSize + 1; i < _refStars.size(); ++i)
 	{
-		agg::trans_affine transform;
-		std::unordered_map<size_t, size_t> temp;
-		if (TryRefStar(i, temp, transform))
+		std::unordered_map<size_t, size_t> temp(res.first);
+		if (TryRefStar(i, temp, res.second))
 			return;
 	}
 }
@@ -55,6 +61,77 @@ const std::unordered_map<size_t, size_t>& FastAligner::GetMatches()
 void FastAligner::SetEps(double eps)
 {
 	_eps = eps;
+}
+
+std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine>  FastAligner::BruteForceSearch(const uint32_t N)
+{
+	std::pair< std::unordered_map<size_t, size_t>, agg::trans_affine> res;
+
+	const auto refLim = std::min<size_t>(_refStars.size(), N);
+	const auto targetLim = std::min<size_t>(_targetStars.size(), N);
+
+	for (size_t i = 0; i < refLim - 1; ++i)
+	for (size_t j = i + 1; j < refLim; ++j)
+	{
+		PointFPair refPair{ _refStars[i].center, _refStars[j].center };
+
+		for (size_t k = 0; k < targetLim - 1; ++k)
+		for (size_t l = k + 1; l < targetLim; ++l)
+		{
+			PointFPair targetPair{ _targetStars[k].center, _targetStars[l].center };
+			auto penalty = std::fabs(refPair.first.Distance(refPair.second) - targetPair.first.Distance(targetPair.second));
+			if (penalty > _eps)
+				continue;
+
+			std::unordered_map<size_t, size_t> temp {{k, i}, {l, j}};			
+			auto transform = CalculateTransform(refPair, targetPair);
+			BruteForceCheckTransform(refLim, targetLim, temp, transform);
+			if (temp.size() > res.first.size())
+			{
+				res.first = temp;
+				res.second = transform;
+			}
+
+			temp = std::unordered_map<size_t, size_t>{ {k, j}, {l, i} };
+			transform = CalculateTransform(refPair, { _targetStars[l].center , _targetStars[k].center });
+			BruteForceCheckTransform(refLim, targetLim, temp, transform);
+			if (temp.size() > res.first.size())
+			{
+				res.first = temp;
+				res.second = transform;
+			}
+		}
+	}
+
+	return res;
+}
+
+void FastAligner::BruteForceCheckTransform(const uint32_t refLim, const uint32_t targetLim, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
+{
+	size_t refs[2] = { temp.begin()->second, std::next(temp.begin())->second };
+	size_t targets[2] = { temp.begin()->first, std::next(temp.begin())->first };
+
+	for (size_t i = 0; i < targetLim; ++i)
+	{
+		if (targets[0] == i || targets[1] == i)
+			continue;
+
+		auto transformedRefPoint = _targetStars[i].center;
+		transform.transform(&transformedRefPoint.x, &transformedRefPoint.y);
+
+		for (size_t j = 0; j < refLim; ++j)
+		{
+			if (refs[0] == j || refs[1] == j)
+				continue;
+
+			if (transformedRefPoint.Distance(_refStars[j].center) > _eps)
+				continue;
+
+			temp[i] = j;
+			break;
+		}
+
+	}
 }
 
 bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>& temp, const agg::trans_affine& transform)
@@ -71,7 +148,6 @@ bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 	}
 
 	const auto& refStar = _refStars[refIndex];
-	const auto eps = std::max(refStar.rect.width, refStar.rect.height) / 2.0;
 
 	for (size_t i = 0; i < _targetStars.size(); ++i)
 	{
@@ -100,7 +176,7 @@ bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 
 			auto penalty = std::fabs(refPair.first.Distance(refPair.second) - targetPair.first.Distance(targetPair.second));
 			
-			if (penalty < eps)
+			if (penalty < _eps)
 			{
 				auto newTransform = CalculateTransform(refPair, targetPair);
 				if (TryRefStar(refIndex + 1, temp, newTransform))
@@ -114,7 +190,7 @@ bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 			PointF targetPos = targetStar.center;
 			transform.transform(&targetPos.x, &targetPos.y);
 			auto penalty = targetPos.Distance(refStar.center);
-			if (penalty < eps)
+			if (penalty < _eps)
 			{
 				if (TryRefStar(refIndex + 1, temp, transform))
 					return true;
@@ -129,4 +205,6 @@ bool FastAligner::TryRefStar(size_t refIndex, std::unordered_map<size_t, size_t>
 
 	if (TryRefStar(refIndex + 1, temp, transform))
 		return true;
+
+	return false;
 }

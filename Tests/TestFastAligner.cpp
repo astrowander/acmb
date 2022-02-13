@@ -117,8 +117,26 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars);
 fastAligner.Align(targetStars);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(308, matches.size());
+EXPECT_EQ(300, matches.size());
 
+
+END_TEST
+
+BEGIN_TEST(FastAligner, TestThreshold60)
+
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
+auto pRegistrator = std::make_unique<Registrator>(60);
+auto refStars = pRegistrator->Registrate(pRefBitmap);
+pRefBitmap.reset();
+
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"));
+auto targetStars = pRegistrator->Registrate(pTargetBitmap);
+pTargetBitmap.reset();
+
+FastAligner fastAligner(refStars);
+fastAligner.Align(targetStars);
+const auto& matches = fastAligner.GetMatches();
+EXPECT_EQ(510, matches.size());
 
 END_TEST
 

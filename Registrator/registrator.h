@@ -7,8 +7,6 @@
 
 #include "star.h"
 
-#include "alignmentdataset.h"
-
 //class IBitmap;
 
 class Registrator

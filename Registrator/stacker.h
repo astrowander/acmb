@@ -24,14 +24,25 @@ struct StackedChannel
 
 class Stacker
 {
+    using TriangleTransformPair = std::pair<Triangle, agg::trans_affine>;
+    using GridCell = std::vector<TriangleTransformPair>;
+    using Grid = std::vector<GridCell>;
+
+    Grid _grid;
     std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::vector<Star>>> _decoderStarPairs;
     std::vector<StackedChannel> _stacked;
 
     uint32_t _width = 0;
     uint32_t _height = 0;
 
+    static const int gridSize = 100;
+    uint32_t _gridWidth;
+    uint32_t _gridHeight;
+
+    double _alignmentError = 5.0;
+
     template<PixelFormat pixelFormat>
-    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
+    void AddFirstBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         auto stackedChannel = &_stacked[0];
         auto pSourceChannel = pBitmap->GetScanline(0);
@@ -42,12 +53,11 @@ class Stacker
         }
     }
 
-    void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const std::vector<std::pair<Triangle, agg::trans_affine>>& trianglePairs)
+    void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const GridCell& trianglePairs)
     {
         if (lastPair.first.IsPointInside(p))
             return;
         
-        auto minSqDist = std::numeric_limits<double>::max();
         for (const auto& pair : trianglePairs)
         {
             if (pair.first.IsPointInside(p))
@@ -55,23 +65,16 @@ class Stacker
                 lastPair = pair;
                 return;
             }
-            else
-            {
-                double sqDist = pair.first.SquaredDistanceFromPoint(p);
-                if (sqDist < minSqDist)
-                {
-                    lastPair = pair;
-                    minSqDist = sqDist;
-                }
-            }
-        }        
+        }
+
+        lastPair.second = agg::trans_affine_null();
     }
 
     template<PixelFormat pixelFormat>
-    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const std::vector<std::pair<Triangle, agg::trans_affine>>& trianglePairs)
+    void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)] = {};
-        auto lastPair = trianglePairs[0];
+        TriangleTransformPair lastPair;
 
         for (uint32_t y = 0; y < _height; ++y)
         {
@@ -83,13 +86,17 @@ class Stacker
             for (uint32_t x = 0; x < _width; ++x)
             {
                 PointF p { static_cast<double>(x), static_cast<double>(y) };
+
+                size_t hGridIndex = x / gridSize;
+                size_t vGridIndex = y / gridSize;
                 
-                ChooseTriangle(p, lastPair, trianglePairs);
+                ChooseTriangle(p, lastPair, _grid[vGridIndex * _gridWidth + hGridIndex]);
+                
                 lastPair.second.transform(&p.x, &p.y);
 
                 for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
                 {
-                    if (p.x >= 0 && p.x <= _width - 1 && p.y >= 0 && p.y <= _height - 1)
+                    if (lastPair.second != agg::trans_affine_null() && p.x >= 0 && p.x <= _width - 1 && p.y >= 0 && p.y <= _height - 1)
                     {
                         auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
                         auto& mean = stackedChannels[ch]->mean;
