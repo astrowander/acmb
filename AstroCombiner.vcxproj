@@ -28,11 +28,13 @@
     <ClInclude Include="Codecs\PPM\ppmencoder.h" />
     <ClInclude Include="Codecs\Raw\RawDecoder.h" />
     <ClInclude Include="Core\bitmap.h" />
+    <ClInclude Include="Core\camerasettings.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
     <ClInclude Include="Geometry\delaunator.hpp" />
     <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />
+    <ClInclude Include="Geometry\startrektransform.h" />
     <ClInclude Include="Geometry\triangle.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
@@ -54,6 +56,7 @@
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp" />
     <ClCompile Include="Core\bitmap.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
+    <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />

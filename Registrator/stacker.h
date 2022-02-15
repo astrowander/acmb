@@ -22,6 +22,13 @@ struct StackedChannel
     uint16_t n = 1;
 };
 
+struct StackingDatum
+{
+    std::shared_ptr<ImageDecoder> pDecoder;
+    std::vector<Star> stars;
+    std::vector<Star> centralStars;
+};
+
 class Stacker
 {
     using TriangleTransformPair = std::pair<Triangle, agg::trans_affine>;
@@ -29,7 +36,7 @@ class Stacker
     using Grid = std::vector<GridCell>;
 
     Grid _grid;
-    std::vector<std::pair<std::shared_ptr<ImageDecoder>, std::vector<Star>>> _decoderStarPairs;
+    std::vector<StackingDatum> _stackingData;
     std::vector<StackedChannel> _stacked;
 
     uint32_t _width = 0;
@@ -39,7 +46,7 @@ class Stacker
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 
-    double _alignmentError = 5.0;
+    double _alignmentError = 15.0;
 
     template<PixelFormat pixelFormat>
     void AddFirstBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
@@ -71,6 +78,33 @@ class Stacker
     }
 
     template<PixelFormat pixelFormat>
+    void AddBitmapToStackWithoutAlignment(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
+    {
+        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+        auto stackedChannel = &_stacked[0];
+        auto pSourceChannel = pBitmap->GetScanline(0);
+
+        for (uint32_t i = 0; i < _height * _width * ChannelCount(pixelFormat); ++i)
+        {
+            auto& mean = stackedChannel->mean;
+            auto& dev = stackedChannel->dev;
+            auto& n = stackedChannel->n;
+            auto sigma = sqrt(dev);
+            const auto kappa = 3.0;
+            ChannelType sourceChannel = *pSourceChannel;
+
+            if (n <= 5 || fabs(mean - sourceChannel) < kappa * sigma)
+            {
+                dev = n * (dev + (sourceChannel - mean) * (sourceChannel - mean) / (n + 1)) / (n + 1);
+                mean = FitToBounds((n * mean + sourceChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                ++n;
+            }
+
+            ++stackedChannel;
+        }
+    }
+
+    template<PixelFormat pixelFormat>
     void AddBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         StackedChannel* stackedChannels[ChannelCount(pixelFormat)] = {};
@@ -90,13 +124,15 @@ class Stacker
                 size_t hGridIndex = x / gridSize;
                 size_t vGridIndex = y / gridSize;
                 
-                ChooseTriangle(p, lastPair, _grid[vGridIndex * _gridWidth + hGridIndex]);
-                
-                lastPair.second.transform(&p.x, &p.y);
+                if (!_grid.empty())
+                {
+                    ChooseTriangle(p, lastPair, _grid[vGridIndex * _gridWidth + hGridIndex]);
+                    lastPair.second.transform(&p.x, &p.y);
+                }
 
                 for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
                 {
-                    if (lastPair.second != agg::trans_affine_null() && p.x >= 0 && p.x <= _width - 1 && p.y >= 0 && p.y <= _height - 1)
+                    if ((_grid.empty() || lastPair.second != agg::trans_affine_null()) && p.x >= 0 && p.x <= _width - 1 && p.y >= 0 && p.y <= _height - 1)
                     {
                         auto interpolatedChannel = pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
                         auto& mean = stackedChannels[ch]->mean;

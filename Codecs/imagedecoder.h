@@ -6,11 +6,12 @@
 #include <iostream>
 #include <memory>
 #include "../Core/imageparams.h"
+#include "../Core/camerasettings.h"
 #include <sstream>
 
 class IBitmap;
 
-class ImageDecoder : public ImageParams
+class ImageDecoder : public ImageParams, public CameraSettings
 {
 protected:
     std::string _lastFileName;

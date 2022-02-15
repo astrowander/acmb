@@ -9,6 +9,19 @@ RawDecoder::RawDecoder(bool halfSize)
 
 }
 
+const SizeF sensorSizes[9] =
+{
+	{},
+	{25.1, 16.7}, //APS-C
+	{36.0, 24.0}, //FF
+	{43.8, 23.9}, //MF
+	{28.7, 19.0}, //APS-H
+	{13.2, 8.8}, //1 inch
+	{},
+	{},
+	{17.3, 13.0} // 4/3
+};
+
 void RawDecoder::Attach(const std::string& fileName)
 {
 	_lastFileName = fileName;
@@ -23,6 +36,11 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pLibRaw->raw2image_start();
 	_width = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iwidth : _pLibRaw->imgdata.sizes.iheight;
 	_height = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iheight : _pLibRaw->imgdata.sizes.iwidth;
+
+	_timestamp = _pLibRaw->imgdata.other.timestamp;
+	_sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
+	_focalLength = _pLibRaw->imgdata.other.focal_len;
+	_radiansPerPixel = 2 * atan(_sensorSizeMm.height / (2 * _focalLength)) / _height;
 
 	_pixelFormat = PixelFormat::RGB48;
 }
@@ -80,3 +98,4 @@ uint32_t RawDecoder::GetCurrentScanline() const
 {
 	throw std::runtime_error("not implemented");
 }
+

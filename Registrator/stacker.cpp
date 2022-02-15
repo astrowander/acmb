@@ -9,39 +9,53 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders)
 {
     for (auto pDecoder : decoders)
     {
-        _decoderStarPairs.push_back({ pDecoder, {} });
+        _stackingData.push_back({ pDecoder, {}, {} });
+    }
+
+    if (!decoders.empty())
+    {
+        auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+        // IBitmap::Save(pRefBitmap, "E:/test.ppm");
+        _width = pRefBitmap->GetWidth();
+        _height = pRefBitmap->GetHeight();
+        _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
+        _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);
     }
 }
 
 void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
     auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
-    for (auto& dsPair : _decoderStarPairs)
+    for (auto& dsPair : _stackingData)
     {
-        auto pBitmap = dsPair.first->ReadBitmap();
-        dsPair.second = pRegistrator->Registrate(pBitmap);
-        std::cout << dsPair.first->GetLastFileName() << " is registered" << std::endl;
-        std::cout << dsPair.second.size() << " stars are found" << std::endl;
+        auto pBitmap = dsPair.pDecoder->ReadBitmap();
+        pRegistrator->Registrate(pBitmap);
+        dsPair.stars = pRegistrator->GetStars();
+        dsPair.centralStars = pRegistrator->GetCentralStars();
+
+        std::cout << dsPair.pDecoder->GetLastFileName() << " is registered" << std::endl;
+        std::cout << dsPair.stars.size() << " stars are found" << std::endl;
+        std::cout << dsPair.centralStars.size() << "central stars are found" << std::endl;
     }   
 
-    std::sort(std::begin(_decoderStarPairs), std::end(_decoderStarPairs), [](const auto& a, const auto& b) { return a.second.size() > b.second.size(); });
+    std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
 std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 {
-    if (_decoderStarPairs.size() == 0)
+    if (_stackingData.size() == 0)
         return nullptr;
 
-    auto pRefBitmap = _decoderStarPairs[0].first->ReadBitmap();
-   // IBitmap::Save(pRefBitmap, "E:/test.ppm");
-;    _width = pRefBitmap->GetWidth();
-    _height = pRefBitmap->GetHeight();
+    auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
 
-    if (_decoderStarPairs.size() == 1)
+    if (_stackingData.size() == 1)
         return pRefBitmap;
 
-    const auto& refStars = _decoderStarPairs[0].second;
+    const auto& refStars = _stackingData[0].stars;
+    const auto& refCentralStars = _stackingData[0].centralStars;
+
     auto pAligner = doAlignment ? std::make_shared<FastAligner>(refStars) : nullptr;
+    auto pCentralAligner = doAlignment ? std::make_shared<FastAligner>(refCentralStars) : nullptr;
     
     _stacked.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
 
@@ -65,67 +79,109 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
     
 
-    for (uint32_t i = 1; i < _decoderStarPairs.size(); ++i)
+    for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        auto pTargetBitmap = _decoderStarPairs[i].first->ReadBitmap();
-        //IBitmap::Save(pTargetBitmap, "E:/test2.ppm");
-        std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
-        const auto& targetStars = _decoderStarPairs[i].second;
-
-        if (doAlignment)
-        {
-            pAligner->Align(_decoderStarPairs[i].second, _alignmentError);
-            std::cout << _decoderStarPairs[i].first->GetLastFileName() << " in process" << std::endl;
-            auto matches = pAligner->GetMatches();
-            std::cout << matches.size() << " matching stars" << std::endl;
-            std::vector<double> coords;
-            std::vector<size_t> targetStarIndices;
-            for (auto& match : matches)
-            {
-                coords.push_back(targetStars[match.first].center.x);
-                coords.push_back(targetStars[match.first].center.y);
-                targetStarIndices.push_back(match.first);
-            }
-
-            delaunator::Delaunator d(coords);
-
-            _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
-            _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);
-
-            _grid.clear();
-            _grid.resize(_gridWidth * _gridHeight);
-
-
-            for (std::size_t i = 0; i < d.triangles.size(); i += 3) 
-            {
-                Triangle refTriangle { refStars[matches.at(targetStarIndices[d.triangles[i]])].center, refStars[matches.at(targetStarIndices[d.triangles[i + 1]])].center , refStars[matches.at(targetStarIndices[d.triangles[i + 2]])].center };
-                Triangle targetTriangle { targetStars[targetStarIndices[d.triangles[i]]].center, targetStars[targetStarIndices[d.triangles[i + 1]]].center, targetStars[targetStarIndices[d.triangles[i + 2]]].center };
-
-                TriangleTransformPair pair = { refTriangle, agg::trans_affine(reinterpret_cast<double*>(refTriangle.vertices.data()), reinterpret_cast<double*>(targetTriangle.vertices.data())) };
-
-                for (size_t j = 0; j < _gridWidth * _gridHeight; ++j)
-                {
-                    RectF cell =
-                    {
-                        static_cast<double>((j % _gridWidth) * gridSize),
-                        static_cast<double>((j / _gridWidth) * gridSize),
-                        gridSize,
-                        gridSize
-                    };
-
-                    if (refTriangle.GetBoundingBox().Overlaps(cell))
-                    {
-                        _grid[j].push_back(pair);
-                    }
-                }
-            }
-
-        }
-
-        if (pRefBitmap->GetPixelFormat() != pRefBitmap->GetPixelFormat())
+        auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
+        if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
-        switch(pTargetBitmap->GetPixelFormat())
+        std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
+        const auto& targetStars = _stackingData[i].stars;
+        const auto& targetCentralStars = _stackingData[i].centralStars;
+
+        if (!doAlignment)
+        {
+            switch (pTargetBitmap->GetPixelFormat())
+            {
+            case PixelFormat::Gray8:
+                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap));
+                break;
+            case PixelFormat::Gray16:
+                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap));
+                break;
+            case PixelFormat::RGB24:
+                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap));
+                break;
+            case PixelFormat::RGB48:
+                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap));
+                break;
+            default:
+                throw std::runtime_error("pixel format should be known");
+            }
+
+            continue;
+        }
+
+        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
+        pCentralAligner->Align(_stackingData[i].centralStars, _alignmentError);
+        PointF centralPoint{ _width / 2.0, _height / 2.0 };
+        PointF pSrc;
+        PointF pDst;
+
+        auto minDist = std::numeric_limits<double>::max();
+        auto minPair = *std::begin(pCentralAligner->GetMatches());
+        for (const auto& pair : pCentralAligner->GetMatches())
+        {
+            auto dist = centralPoint.Distance(refCentralStars[pair.second].center);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                pSrc = refCentralStars[pair.second].center;
+                pDst = targetCentralStars[pair.first].center;
+            }
+        }
+
+        auto shift = pSrc.Distance(pDst);
+        /*pCentralAligner->GetTransform().transform(&centralPointTransformed.x, &centralPointTransformed.y);
+        auto dx = centralPointTransformed.x - centralPoint.x;
+        auto dy = centralPointTransformed.y - centralPoint.y;
+
+        auto shift = sqrt(dx * dx + dy * dy);*/
+
+        pAligner->Align(_stackingData[i].stars, pCentralAligner->GetTransform(), _alignmentError);
+
+        auto matches = pAligner->GetMatches();
+        std::cout << matches.size() << " matching stars" << std::endl;
+
+        std::vector<double> coords;
+        std::vector<size_t> targetStarIndices;
+        for (auto& match : matches)
+        {
+            coords.push_back(targetStars[match.first].center.x);
+            coords.push_back(targetStars[match.first].center.y);
+            targetStarIndices.push_back(match.first);
+        }
+
+        delaunator::Delaunator d(coords);  
+
+        _grid.clear();
+        _grid.resize(_gridWidth * _gridHeight);
+
+        for (std::size_t i = 0; i < d.triangles.size(); i += 3)
+        {
+            Triangle refTriangle{ refStars[matches.at(targetStarIndices[d.triangles[i]])].center, refStars[matches.at(targetStarIndices[d.triangles[i + 1]])].center , refStars[matches.at(targetStarIndices[d.triangles[i + 2]])].center };
+            Triangle targetTriangle{ targetStars[targetStarIndices[d.triangles[i]]].center, targetStars[targetStarIndices[d.triangles[i + 1]]].center, targetStars[targetStarIndices[d.triangles[i + 2]]].center };
+
+            TriangleTransformPair pair = { refTriangle, agg::trans_affine(reinterpret_cast<double*>(refTriangle.vertices.data()), reinterpret_cast<double*>(targetTriangle.vertices.data())) };
+
+            for (size_t j = 0; j < _gridWidth * _gridHeight; ++j)
+            {
+                RectF cell =
+                {
+                    static_cast<double>((j % _gridWidth) * gridSize),
+                    static_cast<double>((j / _gridWidth) * gridSize),
+                    gridSize,
+                    gridSize
+                };
+
+                if (refTriangle.GetBoundingBox().Overlaps(cell))
+                {
+                    _grid[j].push_back(pair);
+                }
+            }
+        }     
+
+        switch (pTargetBitmap->GetPixelFormat())
         {
         case PixelFormat::Gray8:
             AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap));
@@ -143,8 +199,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             throw std::runtime_error("pixel format should be known");
         }
 
-        std::cout << _decoderStarPairs[i].first->GetLastFileName() << " is stacked" << std::endl << std::endl;
+        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " is stacked" << std::endl << std::endl;
     }
+    
 
     switch(pRefBitmap->GetPixelFormat())
     {

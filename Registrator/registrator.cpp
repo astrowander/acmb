@@ -1,6 +1,20 @@
 #include "registrator.h"
 #include "./../Transforms/converter.h"
 
+void SortStars(std::vector<Star>& stars)
+{
+    if (!stars.empty())
+    {
+        std::sort(stars.begin(), stars.end(), [](auto& a, auto& b) {return a.luminance > b.luminance; });
+        auto maxLuminance = stars[0].luminance;
+
+        for (auto& star : stars)
+        {
+            star.luminance /= maxLuminance;
+        }
+    }
+}
+
 Registrator::Registrator(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 : _threshold(threshold)
 , _minStarSize(minStarSize)
@@ -9,8 +23,11 @@ Registrator::Registrator(double threshold, uint32_t minStarSize, uint32_t maxSta
 
 }
 
-std::vector<Star> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
+void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
+    _stars.clear();
+    _centralStars.clear();
+
     if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Gray)
     {
         _pBitmap = pBitmap;
@@ -25,23 +42,32 @@ std::vector<Star> Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
     
 
     Rect roi{ 0, 0, w, h };
+    Rect centralRoi{ 2 * w / 5, 2 * h / 5, w / 5, h / 5 };
     
-    std::vector<Star> res;
     if (BytesPerChannel(pBitmap->GetPixelFormat()) == 1)
-        res = Registrate<PixelFormat::Gray8>(roi);
-    else
-        res = Registrate<PixelFormat::Gray16>(roi);
-
-    if (!res.empty())
     {
-        std::sort(res.begin(), res.end(), [](auto& a, auto& b) {return a.luminance > b.luminance; });
-        auto maxLuminance = res[0].luminance;
-
-        for (auto& star : res)
-        {
-            star.luminance /= maxLuminance;
-        }
+        _stars = Registrate<PixelFormat::Gray8>(roi);
+    }
+    else
+    {
+        _stars = Registrate<PixelFormat::Gray16>(roi);
     }
 
-    return res;
+    SortStars(_stars);
+
+    for (const auto& star : _stars)
+    {
+        if (star.rect.Overlaps(centralRoi))
+            _centralStars.push_back(star);
+    }
+}
+
+std::vector<Star> Registrator::GetStars() const 
+{
+    return _stars;
+}
+
+std::vector<Star> Registrator::GetCentralStars() const 
+{
+    return _centralStars;
 }

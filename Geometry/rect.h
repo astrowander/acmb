@@ -3,6 +3,16 @@
 #include "point.h"
 
 template<typename T>
+struct SizeT
+{
+    T width;
+    T height;
+};
+
+using Size = SizeT<uint32_t>;
+using SizeF = SizeT<double>;
+
+template<typename T>
 struct RectT
 {
     T x = 0;
@@ -68,7 +78,7 @@ struct RectT
         return (p.x >= x) && (p.x <= x + width) && (p.y >= y) && (p.y <= y + height);
     }
 
-    bool Overlaps(const RectT& other)
+    bool Overlaps(const RectT& other) const
     {
         return  (x < other.GetRight() && GetRight() > other.x && y < other.GetBottom() && GetBottom() > other.y);
     }

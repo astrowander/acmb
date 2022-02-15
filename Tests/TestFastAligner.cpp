@@ -93,7 +93,7 @@ targetStars[4].center = { 20, 20 };
 targetStars[4].rect = { 20, 20, 1, 1 };
 
 FastAligner fastAligner(refStars);
-fastAligner.Align(targetStars);
+fastAligner.Align(targetStars, 1.0);
 const auto& matches = fastAligner.GetMatches();
 EXPECT_EQ(5, matches.size());
 EXPECT_EQ(5, matches.at(0));
@@ -107,11 +107,34 @@ BEGIN_TEST(FastAligner, RealPhotoTest)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>(70);
-auto refStars = pRegistrator->Registrate(pRefBitmap);
+pRegistrator->Registrate(pRefBitmap);
+auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
 auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"));
-auto targetStars = pRegistrator->Registrate(pTargetBitmap);
+pRegistrator->Registrate(pTargetBitmap);
+auto targetStars = pRegistrator->GetStars();
+pTargetBitmap.reset();
+
+FastAligner fastAligner(refStars);
+fastAligner.Align(targetStars, 1.0);
+const auto& matches = fastAligner.GetMatches();
+EXPECT_EQ(300, matches.size());
+
+
+END_TEST
+
+BEGIN_TEST(FastAligner, TestLargeIntervalPhotos)
+
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
+auto pRegistrator = std::make_unique<Registrator>(60);
+pRegistrator->Registrate(pRefBitmap);
+auto refStars = pRegistrator->GetStars();
+pRefBitmap.reset();
+
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"));
+pRegistrator->Registrate(pTargetBitmap);
+auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
 
 FastAligner fastAligner(refStars);
@@ -126,11 +149,13 @@ BEGIN_TEST(FastAligner, TestThreshold60)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>(60);
-auto refStars = pRegistrator->Registrate(pRefBitmap);
+pRegistrator->Registrate(pRefBitmap);
+auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
 auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"));
-auto targetStars = pRegistrator->Registrate(pTargetBitmap);
+pRegistrator->Registrate(pTargetBitmap);
+auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
 
 FastAligner fastAligner(refStars);

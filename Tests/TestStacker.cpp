@@ -39,11 +39,11 @@ BEGIN_TEST(Stacker, TestTwoPics)
     std::vector<std::shared_ptr<ImageDecoder>> decoders
     {
         ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2")),
-        ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"))        
+        ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"))        
     };
 
     auto pStacker = std::make_shared<Stacker>(decoders);
-    pStacker->Registrate(60, 5, 25);
+    pStacker->Registrate(50, 5, 25);    
     auto pStacked = pStacker->Stack(true);
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
 
