@@ -64,6 +64,7 @@ Thumbs.db
 
 # Binaries
 # --------
+*.dll
 *.exe
 
 x64/
