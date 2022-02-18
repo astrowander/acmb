@@ -68,6 +68,7 @@ Thumbs.db
 
 x64/
 Release/
+Libs/
 Debug/
 .vs/
 Libs/
