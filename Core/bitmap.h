@@ -7,7 +7,9 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include <limits>
 
+#undef max;
 
 class IBitmap : public ImageParams
 {
@@ -140,7 +142,8 @@ public:
             QuadraticInterpolation(x - x0, _data[((y0 + 2) * _width + x0) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 2) * channelCount + ch])
         };
 
-        return QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]);
+        const ChannelType maxChannel = std::numeric_limits<ChannelType>::max();
+        return FitToBounds<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, maxChannel);
     }
 };
 
