@@ -1,6 +1,8 @@
 #include "RawDecoder.h"
 #include "libraw/libraw.h"
 #include "../../Core/bitmap.h"
+#include <map>
+#include <string>
 
 RawDecoder::RawDecoder(bool halfSize)
 : _pLibRaw(new LibRaw())
@@ -9,10 +11,23 @@ RawDecoder::RawDecoder(bool halfSize)
 
 }
 
+const double cropFactors[9] =
+{
+	0.0,
+	1.6,
+	1.0,
+	28.7,
+	0.8,
+	2.73,
+	0,
+	0,
+	2.08
+};
+
 const SizeF sensorSizes[9] =
 {
 	{},
-	{25.1, 16.7}, //APS-C
+	{22.3, 14.9}, //APS-C
 	{36.0, 24.0}, //FF
 	{43.8, 23.9}, //MF
 	{28.7, 19.0}, //APS-H
@@ -20,6 +35,16 @@ const SizeF sensorSizes[9] =
 	{},
 	{},
 	{17.3, 13.0} // 4/3
+};
+
+const std::map<uint32_t, std::string> lensMakers =
+{
+	{180, "Sigma"}
+};
+
+const std::map<uint32_t, std::string> lensNames =
+{
+	{180, "Sigma 24mm f/1.4 DG HSM [A]"}
 };
 
 void RawDecoder::Attach(const std::string& fileName)
@@ -37,10 +62,20 @@ void RawDecoder::Attach(const std::string& fileName)
 	_width = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iwidth : _pLibRaw->imgdata.sizes.iheight;
 	_height = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iheight : _pLibRaw->imgdata.sizes.iwidth;
 
-	_timestamp = _pLibRaw->imgdata.other.timestamp;
-	_sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
-	_focalLength = _pLibRaw->imgdata.other.focal_len;
-	_radiansPerPixel = 2 * atan(_sensorSizeMm.height / (2 * _focalLength)) / _height;
+	_pCameraSettings->timestamp = _pLibRaw->imgdata.other.timestamp;
+	_pCameraSettings->sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
+	_pCameraSettings->cropFactor = cropFactors[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
+	_pCameraSettings->focalLength = _pLibRaw->imgdata.other.focal_len;
+	_pCameraSettings->radiansPerPixel = 2 * atan(_pCameraSettings->sensorSizeMm.height / (2 * _pCameraSettings->focalLength)) / _height;	
+	_pCameraSettings->aperture = _pLibRaw->imgdata.other.aperture;
+
+	_pCameraSettings->cameraMakerName = _pLibRaw->imgdata.idata.make;
+	_pCameraSettings->cameraModelName = _pCameraSettings->cameraMakerName;
+	_pCameraSettings->cameraModelName.push_back(' ');
+	_pCameraSettings->cameraModelName.append(_pLibRaw->imgdata.idata.model);
+
+	_pCameraSettings->lensMakerName = lensMakers.at(_pLibRaw->imgdata.lens.makernotes.LensID);
+	_pCameraSettings->lensModelName = lensNames.at(_pLibRaw->imgdata.lens.makernotes.LensID);
 
 	_pixelFormat = PixelFormat::RGB48;
 }

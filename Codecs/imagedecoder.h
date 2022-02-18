@@ -11,11 +11,12 @@
 
 class IBitmap;
 
-class ImageDecoder : public ImageParams, public CameraSettings
+class ImageDecoder : public ImageParams
 {
 protected:
     std::string _lastFileName;
     std::shared_ptr<std::istream> _pStream;
+    std::shared_ptr<CameraSettings> _pCameraSettings = std::make_shared<CameraSettings>();
     virtual std::unique_ptr<std::istringstream> ReadLine();
 
 public:
@@ -36,6 +37,11 @@ public:
     const std::string& GetLastFileName()
     {
         return _lastFileName;
+    }
+
+    std::shared_ptr<CameraSettings> GetCameraSettings()
+    {
+        return _pCameraSettings;
     }
 
 

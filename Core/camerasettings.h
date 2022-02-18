@@ -1,35 +1,19 @@
 #pragma once
 #include "./../Geometry/rect.h"
 
-class CameraSettings
+struct CameraSettings
 {
-protected:
-	SizeF _sensorSizeMm = {};
-	double _focalLength = 0.0;
-	double _radiansPerPixel = 0.0;
-	int64_t _timestamp;
+	std::string cameraMakerName;
+	std::string cameraModelName;
+	std::string lensMakerName;
+	std::string lensModelName;
 
-public:
+	SizeF sensorSizeMm = {};
+	double cropFactor = 1.0;
+	double focalLength = 0.0;
+	double radiansPerPixel = 0.0;
+	double aperture = 0.0;
+	double distance = 1000.0;
 
-	CameraSettings() = default;
-
-	SizeF GetSensorSizeMm()
-	{
-		return _sensorSizeMm;
-	}
-
-	double GetFocalLength()
-	{
-		return _focalLength;
-	}
-
-	int64_t GetTimestamp()
-	{
-		return _timestamp;
-	}
-
-	double GetRadiansPerPixel()
-	{
-		return _radiansPerPixel;
-	}
+	int64_t timestamp;
 };
