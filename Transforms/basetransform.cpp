@@ -11,3 +11,8 @@ IBitmapPtr BaseTransform::RunAndGetBitmap()
     Run();
     return _pDstBitmap;
 }
+
+void BaseTransform::SetSrcBitmap(IBitmapPtr pSrcBitmap)
+{
+    _pSrcBitmap = pSrcBitmap;
+}

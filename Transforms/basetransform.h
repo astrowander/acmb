@@ -13,6 +13,8 @@ public:
 
     virtual void Run() = 0;
     IBitmapPtr RunAndGetBitmap();
+
+    void SetSrcBitmap(IBitmapPtr pSrcBitmap);
 };
 
 #endif // BASETRANSFORM_H

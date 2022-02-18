@@ -2,10 +2,12 @@
 #include "../Codecs/imagedecoder.h"
 #include "FastAligner.h"
 #include "../Geometry/delaunator.hpp"
+#include "../Transforms/deaberratetransform.h"
 
-Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders)
+Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration)
 : _gridWidth(0)
 , _gridHeight(0)
+, _enableDeaberration(enableDeaberration)
 {
     for (auto pDecoder : decoders)
     {
@@ -14,10 +16,8 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders)
 
     if (!decoders.empty())
     {
-        auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
-        // IBitmap::Save(pRefBitmap, "E:/test.ppm");
-        _width = pRefBitmap->GetWidth();
-        _height = pRefBitmap->GetHeight();
+        _width = _stackingData[0].pDecoder->GetWidth();
+        _height = _stackingData[0].pDecoder->GetHeight();
         _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
         _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);
     }
@@ -29,6 +29,13 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
     for (auto& dsPair : _stackingData)
     {
         auto pBitmap = dsPair.pDecoder->ReadBitmap();
+        
+        if (_enableDeaberration)
+        {
+            auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pBitmap, dsPair.pDecoder->GetCameraSettings());
+            pBitmap = pDeaberrateTransform->RunAndGetBitmap();
+        }
+        
         pRegistrator->Registrate(pBitmap);
         dsPair.stars = pRegistrator->GetStars();
         dsPair.centralStars = pRegistrator->GetCentralStars();
@@ -47,6 +54,11 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         return nullptr;
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    if (_enableDeaberration)
+    {
+        auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+        pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
+    }
 
     if (_stackingData.size() == 1)
         return pRefBitmap;
@@ -84,6 +96,12 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
+
+        if (_enableDeaberration)
+        {
+            auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+            pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
+        }
 
         std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
         const auto& targetStars = _stackingData[i].stars;

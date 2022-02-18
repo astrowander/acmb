@@ -46,7 +46,9 @@ class Stacker
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 
-    double _alignmentError = 15.0;
+    double _alignmentError = 5.0;
+
+    bool _enableDeaberration;
 
     template<PixelFormat pixelFormat>
     void AddFirstBitmapToStack(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
@@ -190,7 +192,7 @@ class Stacker
 
 public:
 
-    Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders);
+    Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration = false);
 
     void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);
