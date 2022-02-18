@@ -1,14 +1,9 @@
 #ifndef STARTREKTRANFORM_H
 #define STARTREKTRANFORM_H
 #include "./../AGG/agg_trans_affine.h"
+#include "./point.h"
+#include "./../Tools/Newton2D.h"
 
-
-/*struct CameraSettings
-{
-	time_point<system_clock> shotTime;
-	SizeF sensorSizeMm;
-	double focalLength;	
-};*/
 struct SphericalPoint
 {
 	double rha;
@@ -18,18 +13,24 @@ struct SphericalPoint
 class StarTrekTransform
 {
 	agg::trans_affine _affineMatrix;
-	double _delta0 = 0.0;
-	double _timeSpan = 0.0;
+	double _decl0;
+	double _timeSpan;
+	double _sinDecl0;
+	double _cosDecl0;
 
-	StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan)
-	: _affineMatrix(affineMatrix)
-	, _delta0(delta0)
-	, _timeSpan(timeSpan)
-	{
+	const double siderealDay = 86164.0;
 
-	}
+	double CosC(Vector2 sp);
+	double XProjection(Vector2 sp);
+	double YProjection(Vector2 sp);
 
-	
+	PointF GetProjection(SphericalPoint sp);
+	SphericalPoint GetInverseProjection(PointF p/*, SphericalPoint firstApproach*/);
+
+public:
+
+	StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan);
+	PointF Transform(PointF p);
 };
 
 #endif
