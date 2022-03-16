@@ -1,7 +1,10 @@
+#define _USE_MATH_DEFINES
+#include <fstream>
 #include "stacker.h"
 #include "../Codecs/imagedecoder.h"
 #include "FastAligner.h"
 #include "../Geometry/delaunator.hpp"
+#include "../Geometry/startrektransform.h"
 #include "../Transforms/deaberratetransform.h"
 
 Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration)
@@ -23,9 +26,12 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enabl
     }
 }
 
-void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+void Stacker::Registrate(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
-    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
+    _hTileCount = hTileCount;
+    _vTileCount = vTileCount;
+
+    auto pRegistrator = std::make_unique<Registrator>(_hTileCount, _vTileCount, threshold, minStarSize, maxStarSize);
     for (auto& dsPair : _stackingData)
     {
         auto pBitmap = dsPair.pDecoder->ReadBitmap();
@@ -38,14 +44,17 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
         
         pRegistrator->Registrate(pBitmap);
         dsPair.stars = pRegistrator->GetStars();
-        dsPair.centralStars = pRegistrator->GetCentralStars();
+
+        for (const auto starVector : dsPair.stars)
+        {
+            dsPair.totalStarCount += starVector.size();
+        }
 
         std::cout << dsPair.pDecoder->GetLastFileName() << " is registered" << std::endl;
-        std::cout << dsPair.stars.size() << " stars are found" << std::endl;
-        std::cout << dsPair.centralStars.size() << "central stars are found" << std::endl;
+        std::cout << dsPair.totalStarCount << " stars are found" << std::endl;
     }   
 
-    std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
+    //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
 std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
@@ -60,14 +69,19 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
     }
 
+    //pRefBitmap->Save(pRefBitmap, "./ref.ppm");
+
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
     const auto& refStars = _stackingData[0].stars;
-    const auto& refCentralStars = _stackingData[0].centralStars;
 
-    auto pAligner = doAlignment ? std::make_shared<FastAligner>(refStars) : nullptr;
-    auto pCentralAligner = doAlignment ? std::make_shared<FastAligner>(refCentralStars) : nullptr;
+    std::vector<std::shared_ptr<FastAligner>> aligners;
+    if (doAlignment)
+    {
+        for (const auto& refStarVector : refStars)
+            aligners.push_back(std::make_shared<FastAligner>(refStarVector));
+    }
     
     _stacked.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
 
@@ -103,9 +117,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
         }
 
-        std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
+        //IBitmap::Save(pTargetBitmap, "./target.ppm");
+        //std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
         const auto& targetStars = _stackingData[i].stars;
-        const auto& targetCentralStars = _stackingData[i].centralStars;
 
         if (!doAlignment)
         {
@@ -131,9 +145,16 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         }
 
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
-        pCentralAligner->Align(_stackingData[i].centralStars, _alignmentError);
-        PointF centralPoint{ _width / 2.0, _height / 2.0 };
-        PointF pSrc;
+
+        MatchMap matches;
+        
+        for (uint32_t i = 0; i < refStars.size(); ++i)
+        {
+            aligners[i]->Align(targetStars[i]);
+            auto tileMatches = aligners[i]->GetMatches();
+            matches.insert(tileMatches.begin(), tileMatches.end());
+        }
+        /*PointF pSrc;
         PointF pDst;
 
         auto minDist = std::numeric_limits<double>::max();
@@ -150,24 +171,48 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         }
 
         auto shift = pSrc.Distance(pDst);
-        /*pCentralAligner->GetTransform().transform(&centralPointTransformed.x, &centralPointTransformed.y);
-        auto dx = centralPointTransformed.x - centralPoint.x;
-        auto dy = centralPointTransformed.y - centralPoint.y;
+        agg::trans_affine affineMatrix = agg::trans_affine_translation(-centralPoint.x, -centralPoint.y) * agg::trans_affine_rotation(-atan2(pDst.y - pSrc.y, pDst.x - pSrc.x)) * agg::trans_affine_scaling(_stackingData[0].pDecoder->GetCameraSettings()->radiansPerPixel);
+        double timeSpan = _stackingData[i].pDecoder->GetCameraSettings()->timestamp - _stackingData[0].pDecoder->GetCameraSettings()->timestamp;*/
 
-        auto shift = sqrt(dx * dx + dy * dy);*/
+        /*double yMin = std::numeric_limits<double>::max();
+        double yMax = std::numeric_limits<double>::min();
 
-        pAligner->Align(_stackingData[i].stars, pCentralAligner->GetTransform(), _alignmentError);
+        double topXShift = 0;
+        double topYShift = 0;
+        double bottomXShift = 0;
+        double bottomYShift = 0;
 
-        auto matches = pAligner->GetMatches();
+        for (const auto& pair : pCentralAligner->GetMatches())
+        {
+            affineMatrix.transform(&refCentralStars[pair.second].center.x, &refCentralStars[pair.second].center.y);
+            affineMatrix.transform(&targetCentralStars[pair.first].center.x, &targetCentralStars[pair.first].center.y);
+
+            if (std::fabs(refCentralStars[pair.second].center.x ) < 0.01 && refCentralStars[pair.second].center.y > yMax)
+            {
+                yMax = refCentralStars[pair.second].center.y;
+                topXShift = targetCentralStars[pair.first].center.x - refCentralStars[pair.second].center.x;
+                topYShift = targetCentralStars[pair.first].center.y - refCentralStars[pair.second].center.y;
+            }
+
+            if (std::fabs(refCentralStars[pair.second].center.x) < 0.01 && refCentralStars[pair.second].center.y < yMin)
+            {
+                yMin = refCentralStars[pair.second].center.y;
+                bottomXShift = targetCentralStars[pair.first].center.x - refCentralStars[pair.second].center.x;
+                bottomYShift = targetCentralStars[pair.first].center.y - refCentralStars[pair.second].center.y;
+            }
+        }*/
+
+        /*auto maxShift = (2 * M_PI * timeSpan / 86164.0) / _stackingData[0].pDecoder->GetCameraSettings()->radiansPerPixel;
+        auto _decl0 = acos(shift / maxShift);
+        auto _decl0deg = _decl0 * 180 / M_PI;*/
+
         std::cout << matches.size() << " matching stars" << std::endl;
 
         std::vector<double> coords;
-        std::vector<size_t> targetStarIndices;
         for (auto& match : matches)
         {
-            coords.push_back(targetStars[match.first].center.x);
-            coords.push_back(targetStars[match.first].center.y);
-            targetStarIndices.push_back(match.first);
+            coords.push_back(match.first.x);
+            coords.push_back(match.first.y);
         }
 
         delaunator::Delaunator d(coords);  
@@ -177,9 +222,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
         for (std::size_t i = 0; i < d.triangles.size(); i += 3)
         {
-            Triangle refTriangle{ refStars[matches.at(targetStarIndices[d.triangles[i]])].center, refStars[matches.at(targetStarIndices[d.triangles[i + 1]])].center , refStars[matches.at(targetStarIndices[d.triangles[i + 2]])].center };
-            Triangle targetTriangle{ targetStars[targetStarIndices[d.triangles[i]]].center, targetStars[targetStarIndices[d.triangles[i + 1]]].center, targetStars[targetStarIndices[d.triangles[i + 2]]].center };
-
+            Triangle targetTriangle{  PointF {d.coords[2 * d.triangles[i]], d.coords[2 * d.triangles[i] + 1]}, PointF {d.coords[2 * d.triangles[i + 1]], d.coords[2 * d.triangles[i + 1] + 1]}, PointF {d.coords[2 * d.triangles[i + 2]], d.coords[2 * d.triangles[i + 2] + 1]}  };
+            Triangle refTriangle{ matches[targetTriangle.vertices[0]], matches[targetTriangle.vertices[1]], matches[targetTriangle.vertices[2]] };
+            
             TriangleTransformPair pair = { refTriangle, agg::trans_affine(reinterpret_cast<double*>(refTriangle.vertices.data()), reinterpret_cast<double*>(targetTriangle.vertices.data())) };
 
             for (size_t j = 0; j < _gridWidth * _gridHeight; ++j)
@@ -197,7 +242,23 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
                     _grid[j].push_back(pair);
                 }
             }
-        }     
+        }
+
+        /*std::vector<std::pair<PointF, Vector2>> offsetField;
+
+        std::ofstream output("./Scripts/offsetField.csv");
+
+        for (std::size_t i = 0; i < trianglePairs.size(); i++)
+        {
+            auto refCenter = trianglePairs[i].first.GetCenter();
+            auto transformedRefCenter = refCenter;
+            auto targetCenter = trianglePairs[i].second.GetCenter();
+            baseTransform.transform(&transformedRefCenter.x, &transformedRefCenter.y);
+            offsetField.push_back({ PointF {refCenter.x - centralPoint.x, refCenter.y - centralPoint.y}, Vector2 {targetCenter.x - transformedRefCenter.x, targetCenter.y - transformedRefCenter.y} });
+            output << offsetField.back().first.x << "; " << offsetField.back().first.y << "; " << offsetField.back().second[0] << "; " << offsetField.back().second[1] << std::endl;
+        }
+
+        output.close();*/
 
         switch (pTargetBitmap->GetPixelFormat())
         {

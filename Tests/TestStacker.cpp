@@ -42,10 +42,25 @@ BEGIN_TEST(Stacker, TestTwoPics)
         ImageDecoder::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"))        
     };
 
-    auto pStacker = std::make_shared<Stacker>(decoders);
-    pStacker->Registrate(50, 5, 25);    
+    auto pStacker = std::make_shared<Stacker>(decoders, false);
+    pStacker->Registrate(9, 6, 25, 5, 25);
     auto pStacked = pStacker->Stack(true);
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
+
+END_TEST
+
+BEGIN_TEST(Stacker, TestEquatorialRegion)
+
+std::vector<std::shared_ptr<ImageDecoder>> decoders
+{
+    ImageDecoder::Create(GetPathToTestFile("RAW/Equator/IMG_9423.CR2")),
+    ImageDecoder::Create(GetPathToTestFile("RAW/Equator/IMG_9442.CR2"))
+};
+
+auto pStacker = std::make_shared<Stacker>(decoders, false);
+pStacker->Registrate(9, 6, 25, 5, 25);
+auto pStacked = pStacker->Stack(true);
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestEquatorialRegion.ppm"), pStacked));
 
 END_TEST
 
@@ -59,7 +74,7 @@ std::vector<std::shared_ptr<ImageDecoder>> decoders
 };
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-pStacker->Registrate(60, 5, 25);
+pStacker->Registrate(9, 6, 25, 5, 25);
 auto pStacked = pStacker->Stack(true);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStacked));
 
@@ -70,12 +85,15 @@ BEGIN_TEST(Stacker, TestMilkyWay)
 std::vector<std::shared_ptr<ImageDecoder>> decoders;
 for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/MilkyWayCR2/")))
 {
+    if (path.path().extension() != ".CR2")
+        continue;
+
     decoders.push_back(std::make_shared<RawDecoder>(false));
     decoders.back()->Attach(path.path().generic_string());
 }
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-pStacker->Registrate(15, 5, 25);
+pStacker->Registrate(9, 6, 25, 5, 25);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->Stack(true)));
 
 END_TEST

@@ -1,6 +1,8 @@
 #define _USE_MATH_DEFINES
 #include "startrektransform.h"
 
+//for compatibility with agg::trans_affine
+
 
 
 StarTrekTransform::StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan)
@@ -39,8 +41,8 @@ SphericalPoint StarTrekTransform::GetInverseProjection(PointF p/*, SphericalPoin
 	(
 		FuncVector2
 		{
-			[this](auto x) {return this->XProjection(x); },
-			[this](auto x) {return this->YProjection(x); }
+			[this, p](auto x) {return this->XProjection(x) - p.x; },
+			[this, p](auto x) {return this->YProjection(x) - p.y; }
 		},
 		{
 			0,
@@ -59,4 +61,12 @@ PointF StarTrekTransform::Transform(PointF p)
 	p = GetProjection(sp);
 	_affineMatrix.inverse_transform(&p.x, &p.y);
 	return p;
+}
+
+void StarTrekTransform::transform(double* x, double* y)
+{
+	PointF p { *x, *y };
+	p = Transform(p);
+	*x = p.x;
+	*y = p.y;
 }

@@ -1,5 +1,5 @@
 #ifndef NEWTON2D_H
-#define NEWTON2D
+#define NEWTON2D_H
 
 #include "math.h"
 #include <functional>

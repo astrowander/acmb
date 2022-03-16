@@ -25,8 +25,8 @@ struct StackedChannel
 struct StackingDatum
 {
     std::shared_ptr<ImageDecoder> pDecoder;
-    std::vector<Star> stars;
-    std::vector<Star> centralStars;
+    std::vector<std::vector<Star>> stars;
+    uint32_t totalStarCount;
 };
 
 class Stacker
@@ -38,6 +38,8 @@ class Stacker
     Grid _grid;
     std::vector<StackingDatum> _stackingData;
     std::vector<StackedChannel> _stacked;
+    uint32_t _hTileCount = 0;
+    uint32_t _vTileCount = 0;
 
     uint32_t _width = 0;
     uint32_t _height = 0;
@@ -46,7 +48,7 @@ class Stacker
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 
-    double _alignmentError = 5.0;
+    double _alignmentError = 2.0;
 
     bool _enableDeaberration;
 
@@ -194,7 +196,7 @@ public:
 
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration = false);
 
-    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    void Registrate(uint32_t hTileCount = 1, uint32_t vTileCount = 1, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);
 
     TEST_ACCESS(Stacker);

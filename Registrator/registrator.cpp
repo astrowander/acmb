@@ -15,8 +15,10 @@ void SortStars(std::vector<Star>& stars)
     }
 }
 
-Registrator::Registrator(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
-: _threshold(threshold)
+Registrator::Registrator(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+: _hTileCount(hTileCount)
+, _vTileCount(vTileCount)
+, _threshold(threshold)
 , _minStarSize(minStarSize)
 , _maxStarSize(maxStarSize)
 {
@@ -26,7 +28,7 @@ Registrator::Registrator(double threshold, uint32_t minStarSize, uint32_t maxSta
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
     _stars.clear();
-    _centralStars.clear();
+    _stars.reserve(_hTileCount * _vTileCount);
 
     if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Gray)
     {
@@ -37,37 +39,28 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
         _pBitmap = Convert(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
     }
     
-    const auto w = pBitmap->GetWidth();
-    const auto h = pBitmap->GetHeight();
-    
+    const auto w = pBitmap->GetWidth() / _hTileCount;
+    const auto h = pBitmap->GetHeight() / _vTileCount;
 
-    Rect roi{ 0, 0, w, h };
-    Rect centralRoi{ 2 * w / 5, 2 * h / 5, w / 5, h / 5 };
-    
-    if (BytesPerChannel(pBitmap->GetPixelFormat()) == 1)
+    for (uint32_t y = 0; y < _vTileCount; ++y)
+    for (uint32_t x = 0; x < _hTileCount; ++x)
     {
-        _stars = Registrate<PixelFormat::Gray8>(roi);
-    }
-    else
-    {
-        _stars = Registrate<PixelFormat::Gray16>(roi);
-    }
+        Rect roi{ x * w, y * h, (x < _hTileCount - 1) ? w : pBitmap->GetWidth() - x * w, (y < _vTileCount - 1) ? h : pBitmap->GetHeight() - y * h };
 
-    SortStars(_stars);
+        if (BytesPerChannel(pBitmap->GetPixelFormat()) == 1)
+        {
+            _stars.push_back(Registrate<PixelFormat::Gray8>(roi));
+        }
+        else
+        {
+            _stars.push_back(Registrate<PixelFormat::Gray16>(roi));
+        }
 
-    for (const auto& star : _stars)
-    {
-        if (star.rect.Overlaps(centralRoi))
-            _centralStars.push_back(star);
+        SortStars(_stars.back());
     }
 }
 
-std::vector<Star> Registrator::GetStars() const 
+const std::vector<std::vector<Star>>& Registrator::GetStars() const
 {
     return _stars;
-}
-
-std::vector<Star> Registrator::GetCentralStars() const 
-{
-    return _centralStars;
 }

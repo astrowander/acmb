@@ -13,6 +13,8 @@ struct Triangle
 	bool IsPointInside(PointF p) const;
 
 	double SquaredDistanceFromPoint(PointF p) const;
+
+	PointF GetCenter() const;
 };
 #endif // !TRIANGLE_H
 

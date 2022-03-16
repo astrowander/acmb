@@ -16,15 +16,17 @@ class Registrator
     uint32_t _minStarSize;
     uint32_t _maxStarSize;
 
-    std::vector<Star> _stars;
-    std::vector<Star> _centralStars;
+    std::vector<std::vector<Star>> _stars;
+
+    uint32_t _hTileCount;
+    uint32_t _vTileCount;
 
 public:
-    Registrator(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    Registrator(uint32_t hTileCount, uint32_t vTileCount, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
 
     void Registrate(std::shared_ptr<IBitmap> pBitmap);
-    std::vector<Star> GetStars() const;
-    std::vector<Star> GetCentralStars() const;
+    const std::vector<std::vector<Star>>& GetStars() const;
+    
 
 private:
     template <PixelFormat pixelFormat>

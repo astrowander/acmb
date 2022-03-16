@@ -1,5 +1,6 @@
-#ifndef STARTREKTRANFORM_H
-#define STARTREKTRANFORM_H
+#ifndef STARTREKTRANSFORM_H
+#define STARTREKTRANSFORM_H
+
 #include "./../AGG/agg_trans_affine.h"
 #include "./point.h"
 #include "./../Tools/Newton2D.h"
@@ -31,6 +32,8 @@ public:
 
 	StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan);
 	PointF Transform(PointF p);
+	//for compatibility with agg::trans_affine
+	void transform(double* x, double* y);
 };
 
 #endif

@@ -22,7 +22,7 @@ Vector2 Newton2D::Solve(Vector2 x)
 
 	int iterations = 0;
 
-	while ((iterations++ < _maxIterations) && (dx[0] > _eps || dx[1] > _eps))
+	while ((iterations++ < _maxIterations) && (fabs(dx[0]) > _eps || fabs(dx[1]) > _eps))
 	{
 		v[0] = _f[0](x);
 		v[1] = _f[1](x);
