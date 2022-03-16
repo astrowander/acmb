@@ -74,6 +74,7 @@
     <ClCompile Include="Tests\TestRawDecoder.cpp" />
     <ClCompile Include="Tests\TestRegistrator.cpp" />
     <ClCompile Include="Tests\TestStacker.cpp" />
+    <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
     <ClCompile Include="Tests\testtools.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />

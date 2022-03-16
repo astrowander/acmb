@@ -69,8 +69,6 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
     }
 
-    //pRefBitmap->Save(pRefBitmap, "./ref.ppm");
-
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
@@ -101,9 +99,7 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         break;
     default:
         throw std::runtime_error("pixel format should be known");
-    }
-
-    
+    }    
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
@@ -117,8 +113,6 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
         }
 
-        //IBitmap::Save(pTargetBitmap, "./target.ppm");
-        //std::vector<std::pair<Triangle, agg::trans_affine>> trianglePairs;
         const auto& targetStars = _stackingData[i].stars;
 
         if (!doAlignment)
@@ -154,57 +148,6 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             auto tileMatches = aligners[i]->GetMatches();
             matches.insert(tileMatches.begin(), tileMatches.end());
         }
-        /*PointF pSrc;
-        PointF pDst;
-
-        auto minDist = std::numeric_limits<double>::max();
-        auto minPair = *std::begin(pCentralAligner->GetMatches());
-        for (const auto& pair : pCentralAligner->GetMatches())
-        {
-            auto dist = centralPoint.Distance(refCentralStars[pair.second].center);
-            if (dist < minDist)
-            {
-                minDist = dist;
-                pSrc = refCentralStars[pair.second].center;
-                pDst = targetCentralStars[pair.first].center;
-            }
-        }
-
-        auto shift = pSrc.Distance(pDst);
-        agg::trans_affine affineMatrix = agg::trans_affine_translation(-centralPoint.x, -centralPoint.y) * agg::trans_affine_rotation(-atan2(pDst.y - pSrc.y, pDst.x - pSrc.x)) * agg::trans_affine_scaling(_stackingData[0].pDecoder->GetCameraSettings()->radiansPerPixel);
-        double timeSpan = _stackingData[i].pDecoder->GetCameraSettings()->timestamp - _stackingData[0].pDecoder->GetCameraSettings()->timestamp;*/
-
-        /*double yMin = std::numeric_limits<double>::max();
-        double yMax = std::numeric_limits<double>::min();
-
-        double topXShift = 0;
-        double topYShift = 0;
-        double bottomXShift = 0;
-        double bottomYShift = 0;
-
-        for (const auto& pair : pCentralAligner->GetMatches())
-        {
-            affineMatrix.transform(&refCentralStars[pair.second].center.x, &refCentralStars[pair.second].center.y);
-            affineMatrix.transform(&targetCentralStars[pair.first].center.x, &targetCentralStars[pair.first].center.y);
-
-            if (std::fabs(refCentralStars[pair.second].center.x ) < 0.01 && refCentralStars[pair.second].center.y > yMax)
-            {
-                yMax = refCentralStars[pair.second].center.y;
-                topXShift = targetCentralStars[pair.first].center.x - refCentralStars[pair.second].center.x;
-                topYShift = targetCentralStars[pair.first].center.y - refCentralStars[pair.second].center.y;
-            }
-
-            if (std::fabs(refCentralStars[pair.second].center.x) < 0.01 && refCentralStars[pair.second].center.y < yMin)
-            {
-                yMin = refCentralStars[pair.second].center.y;
-                bottomXShift = targetCentralStars[pair.first].center.x - refCentralStars[pair.second].center.x;
-                bottomYShift = targetCentralStars[pair.first].center.y - refCentralStars[pair.second].center.y;
-            }
-        }*/
-
-        /*auto maxShift = (2 * M_PI * timeSpan / 86164.0) / _stackingData[0].pDecoder->GetCameraSettings()->radiansPerPixel;
-        auto _decl0 = acos(shift / maxShift);
-        auto _decl0deg = _decl0 * 180 / M_PI;*/
 
         std::cout << matches.size() << " matching stars" << std::endl;
 
@@ -243,22 +186,6 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
                 }
             }
         }
-
-        /*std::vector<std::pair<PointF, Vector2>> offsetField;
-
-        std::ofstream output("./Scripts/offsetField.csv");
-
-        for (std::size_t i = 0; i < trianglePairs.size(); i++)
-        {
-            auto refCenter = trianglePairs[i].first.GetCenter();
-            auto transformedRefCenter = refCenter;
-            auto targetCenter = trianglePairs[i].second.GetCenter();
-            baseTransform.transform(&transformedRefCenter.x, &transformedRefCenter.y);
-            offsetField.push_back({ PointF {refCenter.x - centralPoint.x, refCenter.y - centralPoint.y}, Vector2 {targetCenter.x - transformedRefCenter.x, targetCenter.y - transformedRefCenter.y} });
-            output << offsetField.back().first.x << "; " << offsetField.back().first.y << "; " << offsetField.back().second[0] << "; " << offsetField.back().second[1] << std::endl;
-        }
-
-        output.close();*/
 
         switch (pTargetBitmap->GetPixelFormat())
         {

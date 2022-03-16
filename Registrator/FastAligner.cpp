@@ -53,20 +53,6 @@ void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 	}
 }
 
-/*void FastAligner::Align(const std::vector<Star>& targetStars, const agg::trans_affine& transform, double eps)
-{
-	_eps = eps;
-	_targetStars = targetStars;
-	_matches.clear();
-
-	for (size_t i = 0; i < _refStars.size(); ++i)
-	{
-		MatchMap temp;
-		if (TryRefStar(i, temp, transform, false))
-			return;
-	}
-}*/
-
 MatchMap FastAligner::GetMatches()
 {
 	MatchMap res;
