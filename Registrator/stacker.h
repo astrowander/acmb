@@ -68,6 +68,9 @@ class Stacker
     {
         if (lastPair.first.IsPointInside(p))
             return;
+
+        double minDist = std::numeric_limits<double>::max();
+        TriangleTransformPair nearest;
         
         for (const auto& pair : trianglePairs)
         {
@@ -76,9 +79,16 @@ class Stacker
                 lastPair = pair;
                 return;
             }
+
+            double dist = p.Distance(pair.first.GetCenter());
+            if (dist < minDist)
+            {
+                nearest = pair;
+                minDist = dist;
+            }
         }
 
-        lastPair.second = agg::trans_affine_null();
+        lastPair = nearest;
     }
 
     template<PixelFormat pixelFormat>

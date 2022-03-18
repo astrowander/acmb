@@ -41,4 +41,20 @@ EXPECT_NEAR(0.46, stars[1].luminance, 0.01);
 EXPECT_EQ((Rect{648, 129, 11, 11}), stars[1].rect);
 END_TEST
 
+BEGIN_TEST(Registrator, TestMultipleTiles)
+std::cout << "start" << std::endl;
+auto pRegistrator = std::make_unique<Registrator>(8, 6, 25);
+pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2")));
+auto stars = pRegistrator->GetStars();
+EXPECT_EQ(48, stars.size());
+
+uint32_t sum = 0;
+for (auto& tileStars : stars)
+{
+	sum += tileStars.size();
+}
+std::cout << sum << " stars are found" << std::endl;
+std::cout << "done" << std::endl;
+END_TEST
+
 END_SUITE

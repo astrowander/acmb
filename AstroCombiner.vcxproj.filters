@@ -102,6 +102,9 @@
     <ClInclude Include="Tools\Newton2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Core\IParallel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">

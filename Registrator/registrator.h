@@ -3,13 +3,15 @@
 #include "../Tests/testtools.h"
 #include "../Transforms/converter.h"
 #include "../Codecs/imagedecoder.h"
+#include "../Core/IParallel.h"
+
 #include <algorithm>
 
 #include "star.h"
 
 //class IBitmap;
 
-class Registrator
+class Registrator : public IParallel
 {
     std::shared_ptr<IBitmap> _pBitmap;
     double _threshold;
@@ -29,6 +31,9 @@ public:
     
 
 private:
+
+    virtual void Job(uint32_t i) override;
+
     template <PixelFormat pixelFormat>
     std::vector<Star> Registrate(Rect roi)
     {
