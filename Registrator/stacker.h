@@ -67,6 +67,7 @@ public:
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration = false);
 
     void Registrate(uint32_t hTileCount = 1, uint32_t vTileCount = 1, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    std::shared_ptr<IBitmap>  RegistrateAndStack(uint32_t hTileCount = 1, uint32_t vTileCount = 1, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);   
 
     TEST_ACCESS(Stacker);
