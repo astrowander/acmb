@@ -29,7 +29,7 @@ Registrator::Registrator(uint32_t hTileCount, uint32_t vTileCount, double thresh
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
     _stars.clear();
-    _stars.reserve(_hTileCount * _vTileCount);
+    _stars.resize(_hTileCount * _vTileCount);
 
     if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Gray)
     {
@@ -37,8 +37,9 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
     }
     else
     {
-        _pBitmap = Convert(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
-    }
+        auto pConverter = BaseConverter::Create(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
+        _pBitmap = pConverter->RunAndGetBitmap();
+    }    
 
     DoParallelJobs();
 }
@@ -50,37 +51,28 @@ const std::vector<std::vector<Star>>& Registrator::GetStars() const
 
 void Registrator::Job(uint32_t i)
 {
-    const auto tileCount = _hTileCount * _vTileCount;
-    const auto div = tileCount / _threadCount;
-    const auto mod = tileCount % _threadCount;
-
-    const auto rangeStart = i * div + std::min(i, mod);
-    const auto rangeSize = div + ((i < mod) ? 1 : 0);
-
     const auto w = _pBitmap->GetWidth() / _hTileCount;
     const auto h = _pBitmap->GetHeight() / _vTileCount;
 
-    for (size_t n = rangeStart; n < rangeStart + rangeSize; ++n)
+    const auto y = i / _hTileCount;
+    const auto x = i % _hTileCount;
+
+    Rect roi{ x * w, y * h, (x < _hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w, (y < _vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h };
+
+    std::vector<Star> tileStars;
+    if (BytesPerChannel(_pBitmap->GetPixelFormat()) == 1)
     {
-        const auto y = n / _hTileCount;
-        const auto x = n % _hTileCount;
-
-        Rect roi{ x * w, y * h, (x < _hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w, (y < _vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h };
-
-        std::vector<Star> tileStars;
-        if (BytesPerChannel(_pBitmap->GetPixelFormat()) == 1)
-        {
-            tileStars = Registrate<PixelFormat::Gray8>(roi);
-        }
-        else
-        {
-            tileStars = Registrate<PixelFormat::Gray16>(roi);
-        }
-
-        SortStars(tileStars);
-
-        _mutex.lock();
-        _stars.push_back(tileStars);
-        _mutex.unlock();
+        tileStars = Registrate<PixelFormat::Gray8>(roi);
     }
+    else
+    {
+        tileStars = Registrate<PixelFormat::Gray16>(roi);
+    }
+
+    SortStars(tileStars);
+
+    _mutex.lock();
+    _stars[i] = tileStars;
+    _mutex.unlock();
+    
 }

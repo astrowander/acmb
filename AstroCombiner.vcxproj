@@ -37,7 +37,11 @@
     <ClInclude Include="Geometry\rect.h" />
     <ClInclude Include="Geometry\startrektransform.h" />
     <ClInclude Include="Geometry\triangle.h" />
+    <ClInclude Include="Registrator\AddingBitmapHelper.h" />
+    <ClInclude Include="Registrator\AddingBitmapWithAlignmentHelper.h" />
+    <ClInclude Include="Registrator\AlignmentHelper.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
+    <ClInclude Include="Registrator\GeneratingResultHelper.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />

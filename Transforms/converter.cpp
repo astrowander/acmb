@@ -36,3 +36,27 @@ std::shared_ptr<IBitmap> Convert(std::shared_ptr<IBitmap> pSrcBitmap, PixelForma
 
     throw std::runtime_error("unsupported pixel format");
 }
+
+BaseConverter::BaseConverter(IBitmapPtr pSrcBitmap)
+: BaseTransform(pSrcBitmap)
+, IParallel(pSrcBitmap->GetHeight())
+{
+
+}
+
+std::shared_ptr<BaseConverter> BaseConverter::Create(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat)
+{
+    if (!pSrcBitmap)
+        throw std::invalid_argument("pSrcBitmap is null");
+
+    if (pSrcBitmap->GetPixelFormat() == PixelFormat::RGB24 && dstPixelFormat == PixelFormat::Gray8)
+    {
+        return std::make_shared<Converter<PixelFormat::RGB24, PixelFormat::Gray8>>(pSrcBitmap);
+    }
+    else if (pSrcBitmap->GetPixelFormat() == PixelFormat::RGB48 && dstPixelFormat == PixelFormat::Gray16)
+    {
+        return std::make_shared<Converter<PixelFormat::RGB48, PixelFormat::Gray16>>(pSrcBitmap);
+    }
+
+    throw std::runtime_error("unsupported pixel format");
+}

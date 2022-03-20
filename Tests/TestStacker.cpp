@@ -43,7 +43,7 @@ BEGIN_TEST(Stacker, TestTwoPics)
     };
 
     auto pStacker = std::make_shared<Stacker>(decoders, false);
-    pStacker->Registrate(9, 6, 25, 5, 25);
+    pStacker->Registrate(8, 6, 25, 5, 25);
     auto pStacked = pStacker->Stack(true);
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
 
@@ -93,7 +93,7 @@ for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("R
 }
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-pStacker->Registrate(9, 6, 25, 5, 25);
+pStacker->Registrate(8, 6, 25, 5, 25);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->Stack(true)));
 
 END_TEST

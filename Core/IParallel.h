@@ -9,12 +9,14 @@ class IParallel
 {
 protected:
 	const uint32_t _threadCount;
-	
+	const uint32_t _jobCount;
+
 	std::vector<std::thread> _threads;
 	std::mutex _mutex;
 
 	IParallel(uint32_t jobCount)
 	: _threadCount(std::min(jobCount, std::thread::hardware_concurrency()))
+	, _jobCount(jobCount)
 	{
 
 	}
@@ -23,10 +25,15 @@ protected:
 
 	void DoParallelJobs()
 	{		
+		const auto div = _jobCount / _threadCount;
+		const auto mod = _jobCount % _threadCount;
+
 		for (uint32_t i = 0; i < _threadCount; ++i)
 		{
-			_threads.emplace_back(&IParallel::Job, this, i);
-		}
+			const auto rangeStart = i * div + std::min(i, mod);
+			const auto rangeSize = div + ((i < mod) ? 1 : 0);
+			_threads.emplace_back([this, rangeSize, rangeStart]() { for (size_t n = rangeStart; n < rangeStart + rangeSize; ++n) { this->Job(n); }});
+		}		
 
 		for (uint32_t i = 0; i < _threadCount; ++i)
 		{

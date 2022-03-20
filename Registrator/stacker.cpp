@@ -1,8 +1,11 @@
 #define _USE_MATH_DEFINES
 #include <fstream>
 #include "stacker.h"
+#include "AddingBitmapHelper.h"
+#include "AddingBitmapWithAlignmentHelper.h"
+#include "AlignmentHelper.h"
+#include "GeneratingResultHelper.h"
 #include "../Codecs/imagedecoder.h"
-#include "FastAligner.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Geometry/startrektransform.h"
 #include "../Transforms/deaberratetransform.h"
@@ -61,8 +64,11 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 {
     if (_stackingData.size() == 0)
         return nullptr;
-
+    
+    std::cout << _stackingData[0].pDecoder->GetLastFileName() << " in process" << std::endl;
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    std::cout << _stackingData[0].pDecoder->GetLastFileName() << " bitmap is read" << std::endl;
+
     if (_enableDeaberration)
     {
         auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
@@ -74,11 +80,12 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
     const auto& refStars = _stackingData[0].stars;
 
-    std::vector<std::shared_ptr<FastAligner>> aligners;
     if (doAlignment)
     {
+        _aligners.clear();
+
         for (const auto& refStarVector : refStars)
-            aligners.push_back(std::make_shared<FastAligner>(refStarVector));
+            _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
     }
     
     _stacked.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
@@ -86,24 +93,30 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     switch(pRefBitmap->GetPixelFormat())
     {
     case PixelFormat::Gray8:
-        AddFirstBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pRefBitmap));
+        AddingBitmapHelper<PixelFormat::Gray8>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pRefBitmap));
         break;
     case PixelFormat::Gray16:
-        AddFirstBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pRefBitmap));
+        AddingBitmapHelper<PixelFormat::Gray16>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pRefBitmap));
         break;
     case PixelFormat::RGB24:
-        AddFirstBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pRefBitmap));
+        AddingBitmapHelper<PixelFormat::RGB24>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pRefBitmap));
         break;
     case PixelFormat::RGB48:
-        AddFirstBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pRefBitmap));
+        AddingBitmapHelper<PixelFormat::RGB48>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pRefBitmap));
         break;
     default:
         throw std::runtime_error("pixel format should be known");
     }    
 
+    std::cout << _stackingData[0].pDecoder->GetLastFileName() << " bitmap is stacked" << std::endl;
+
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
+        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
+
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
+
+        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " bitmap is read" << std::endl;
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
@@ -120,16 +133,16 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             switch (pTargetBitmap->GetPixelFormat())
             {
             case PixelFormat::Gray8:
-                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap));
+                AddingBitmapHelper<PixelFormat::Gray8>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pRefBitmap));
                 break;
             case PixelFormat::Gray16:
-                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap));
+                AddingBitmapHelper<PixelFormat::Gray16>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pRefBitmap));
                 break;
             case PixelFormat::RGB24:
-                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap));
+                AddingBitmapHelper<PixelFormat::RGB24>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pRefBitmap));
                 break;
             case PixelFormat::RGB48:
-                AddBitmapToStackWithoutAlignment(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap));
+                AddingBitmapHelper<PixelFormat::RGB48>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pRefBitmap));
                 break;
             default:
                 throw std::runtime_error("pixel format should be known");
@@ -138,26 +151,19 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             continue;
         }
 
-        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
-
-        MatchMap matches;
         
-        for (uint32_t i = 0; i < refStars.size(); ++i)
-        {
-            aligners[i]->Align(targetStars[i]);
-            auto tileMatches = aligners[i]->GetMatches();
-            matches.insert(tileMatches.begin(), tileMatches.end());
-        }
+        _matches.clear();
+        AlignmentHelper::Align(*this, i);
 
-        std::cout << matches.size() << " matching stars" << std::endl;
+        std::cout << _matches.size() << " matching stars" << std::endl;
 
         std::vector<double> coords;
-        for (auto& match : matches)
+        for (auto& match : _matches)
         {
             coords.push_back(match.first.x);
             coords.push_back(match.first.y);
         }
-
+        
         delaunator::Delaunator d(coords);  
 
         _grid.clear();
@@ -166,7 +172,7 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         for (std::size_t i = 0; i < d.triangles.size(); i += 3)
         {
             Triangle targetTriangle{  PointF {d.coords[2 * d.triangles[i]], d.coords[2 * d.triangles[i] + 1]}, PointF {d.coords[2 * d.triangles[i + 1]], d.coords[2 * d.triangles[i + 1] + 1]}, PointF {d.coords[2 * d.triangles[i + 2]], d.coords[2 * d.triangles[i + 2] + 1]}  };
-            Triangle refTriangle{ matches[targetTriangle.vertices[0]], matches[targetTriangle.vertices[1]], matches[targetTriangle.vertices[2]] };
+            Triangle refTriangle{ _matches[targetTriangle.vertices[0]], _matches[targetTriangle.vertices[1]], _matches[targetTriangle.vertices[2]] };
             
             TriangleTransformPair pair = { refTriangle, agg::trans_affine(reinterpret_cast<double*>(refTriangle.vertices.data()), reinterpret_cast<double*>(targetTriangle.vertices.data())) };
 
@@ -187,19 +193,20 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             }
         }
 
+        std::cout << _stackingData[i].pDecoder->GetLastFileName() << " grid is calculated" << std::endl;
         switch (pTargetBitmap->GetPixelFormat())
         {
         case PixelFormat::Gray8:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap));
+            AddingBitmapWithAlignmentHelper<PixelFormat::Gray8>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pTargetBitmap));
             break;
         case PixelFormat::Gray16:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap));
+            AddingBitmapWithAlignmentHelper<PixelFormat::Gray16>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pTargetBitmap));
             break;
         case PixelFormat::RGB24:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap));
+            AddingBitmapWithAlignmentHelper<PixelFormat::RGB24>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pTargetBitmap));
             break;
         case PixelFormat::RGB48:
-            AddBitmapToStack(std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap));
+            AddingBitmapWithAlignmentHelper<PixelFormat::RGB48>::AddBitmap(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pTargetBitmap));
             break;
         default:
             throw std::runtime_error("pixel format should be known");
@@ -212,16 +219,43 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     switch(pRefBitmap->GetPixelFormat())
     {
     case PixelFormat::Gray8:
-        return GetStackedBitmap<PixelFormat::Gray8>();
+        return GeneratingResultHelper<PixelFormat::Gray8>::GenerateResult(*this);
     case PixelFormat::Gray16:
-        return GetStackedBitmap<PixelFormat::Gray16>();
+        return GeneratingResultHelper<PixelFormat::Gray16>::GenerateResult(*this);
     case PixelFormat::RGB24:
-        return GetStackedBitmap<PixelFormat::RGB24>();
+        return GeneratingResultHelper<PixelFormat::RGB24>::GenerateResult(*this);
     case PixelFormat::RGB48:
-        return GetStackedBitmap<PixelFormat::RGB48>();
+        return GeneratingResultHelper<PixelFormat::RGB48>::GenerateResult(*this);
     default:
         throw std::runtime_error("pixel format should be known");
     }
 
     return nullptr;
+}
+
+void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const Stacker::GridCell& trianglePairs)
+{
+    if (lastPair.first.IsPointInside(p))
+        return;
+
+    double minDist = std::numeric_limits<double>::max();
+    TriangleTransformPair nearest;
+
+    for (const auto& pair : trianglePairs)
+    {
+        if (pair.first.IsPointInside(p))
+        {
+            lastPair = pair;
+            return;
+        }
+
+        double dist = p.Distance(pair.first.GetCenter());
+        if (dist < minDist)
+        {
+            nearest = pair;
+            minDist = dist;
+        }
+    }
+
+    lastPair = nearest;
 }

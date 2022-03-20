@@ -1,5 +1,5 @@
 #ifndef FASTALIGNER_H
-#define FASTLIGNER_H
+#define FASTALIGNER_H
 
 #include <vector>
 #include <unordered_map>
