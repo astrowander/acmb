@@ -33,7 +33,7 @@ FastAligner::FastAligner(const std::vector<Star>& refStars)
 
 }
 
-constexpr uint32_t bruteForceSearchSize = 40;
+constexpr uint32_t bruteForceSearchSize = 30;
 
 void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 {
