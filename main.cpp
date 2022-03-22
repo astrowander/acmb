@@ -69,6 +69,7 @@ int main()
     RUN_TEST(Stacker, TestFastStacking);
     RUN_TEST(Stacker, TestThreePics);
     RUN_TEST(Stacker, TestMilkyWay);
+    RUN_TEST(Stacker, TestStackingWithoutAlignment);
 
     return 0;
 }
