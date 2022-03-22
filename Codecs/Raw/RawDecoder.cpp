@@ -74,8 +74,11 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pCameraSettings->cameraModelName.push_back(' ');
 	_pCameraSettings->cameraModelName.append(_pLibRaw->imgdata.idata.model);
 
-	_pCameraSettings->lensMakerName = lensMakers.at(_pLibRaw->imgdata.lens.makernotes.LensID);
-	_pCameraSettings->lensModelName = lensNames.at(_pLibRaw->imgdata.lens.makernotes.LensID);
+	if (lensMakers.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensMakers))
+		_pCameraSettings->lensMakerName = lensMakers.at(_pLibRaw->imgdata.lens.makernotes.LensID);
+
+	if (lensNames.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensNames))
+		_pCameraSettings->lensModelName = lensNames.at(_pLibRaw->imgdata.lens.makernotes.LensID);
 
 	_pixelFormat = PixelFormat::RGB48;
 }

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <iostream>
 
 enum class PixelFormat : uint32_t
 {
@@ -17,6 +18,8 @@ enum class PixelFormat : uint32_t
     Gray16 = 0x020201,
    // Agray32 = 0x020202
 };
+
+std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat);
 
 enum class ColorSpace : uint32_t
 {

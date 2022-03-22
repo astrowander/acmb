@@ -1,4 +1,5 @@
 #define _USE_MATH_DEFINES
+#define ENABLE_DIAGNOSTIC_MESSAGES
 #include <fstream>
 #include "stacker.h"
 #include "AddingBitmapHelper.h"
@@ -65,9 +66,15 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     if (_stackingData.size() == 0)
         return nullptr;
     
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
     std::cout << _stackingData[0].pDecoder->GetLastFileName() << " in process" << std::endl;
+#endif
+
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
     std::cout << _stackingData[0].pDecoder->GetLastFileName() << " bitmap is read" << std::endl;
+#endif
 
     if (_enableDeaberration)
     {
@@ -107,16 +114,18 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     default:
         throw std::runtime_error("pixel format should be known");
     }    
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
     std::cout << _stackingData[0].pDecoder->GetLastFileName() << " bitmap is stacked" << std::endl;
-
+#endif
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
-
+#endif
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " bitmap is read" << std::endl;
+#endif
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
@@ -154,9 +163,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         
         _matches.clear();
         AlignmentHelper::Align(*this, i);
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _matches.size() << " matching stars" << std::endl;
-
+#endif
         std::vector<double> coords;
         for (auto& match : _matches)
         {
@@ -192,8 +201,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
                 }
             }
         }
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " grid is calculated" << std::endl;
+#endif
         switch (pTargetBitmap->GetPixelFormat())
         {
         case PixelFormat::Gray8:
@@ -211,8 +221,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         default:
             throw std::runtime_error("pixel format should be known");
         }
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " is stacked" << std::endl << std::endl;
+#endif
     }
     
 
@@ -282,17 +293,18 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
     default:
         throw std::runtime_error("pixel format should be known");
     }
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
     std::cout << _stackingData[0].pDecoder->GetLastFileName() << " bitmap is stacked" << std::endl;
-
+#endif
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " in process" << std::endl;
-
+#endif
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " bitmap is read" << std::endl;
-
+#endif
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
@@ -308,9 +320,9 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
 
         _matches.clear();
         AlignmentHelper::Align(*this, i);
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _matches.size() << " matching stars" << std::endl;
-
+#endif
         std::vector<double> coords;
         for (auto& match : _matches)
         {
@@ -346,8 +358,9 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
                 }
             }
         }
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " grid is calculated" << std::endl;
+#endif
         switch (pTargetBitmap->GetPixelFormat())
         {
         case PixelFormat::Gray8:
@@ -365,8 +378,9 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
         default:
             throw std::runtime_error("pixel format should be known");
         }
-
+#ifdef ENABLE_DIAGNOSTIC_MESSAGES
         std::cout << _stackingData[i].pDecoder->GetLastFileName() << " is stacked" << std::endl << std::endl;
+#endif
     }
 
 

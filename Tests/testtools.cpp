@@ -1,4 +1,4 @@
-#define GENERATE_PATTERNS
+//#define GENERATE_PATTERNS
 #include "testtools.h"
 #include "../Core/bitmap.h"
 #include <cstring>

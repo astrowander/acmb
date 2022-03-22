@@ -82,7 +82,16 @@ struct RectT
     {
         return  (x < other.GetRight() && GetRight() > other.x && y < other.GetBottom() && GetBottom() > other.y);
     }
+
+    template <typename U>
+    friend std::ostream& operator <<(std::ostream& out, const RectT<U>& rect);    
 };
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const RectT<T>& rect)
+{
+    return out << rect.x << " " << rect.y << " " << rect.width << " " << rect.height;
+}
 
 template<typename T>
 bool RectT<T>::operator==(const RectT<T>& rhs)

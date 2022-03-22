@@ -6,7 +6,7 @@ BEGIN_SUITE(BinningTransform)
 
 BEGIN_TEST(BinningTransform, TestHugePicture)
 
-EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/Huge_2x2.ppm"), IBinningTransform<2, 2>::Create(IBitmap::Create(GetPathToTestFile("PPM/IMG_4314.ppm")))->RunAndGetBitmap()));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/Huge_2x2.ppm"), IBinningTransform<2, 2>::Create(IBitmap::Create(GetPathToTestFile("PPM/IMG_8970.ppm")))->RunAndGetBitmap()));
 
 END_TEST
 

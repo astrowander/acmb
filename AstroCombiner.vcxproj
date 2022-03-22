@@ -62,6 +62,7 @@
     <ClCompile Include="Codecs\PPM\ppmencoder.cpp" />
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp" />
     <ClCompile Include="Core\bitmap.cpp" />
+    <ClCompile Include="Core\enums.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
     <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />

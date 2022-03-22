@@ -24,15 +24,22 @@ public:
    return isTrue;                                                          \
 }
 
-#define EXPECT_EQ(arg1, arg2) isTrue &= (arg1 == arg2);
+#define EXPECT_EQ(arg1, arg2) isTrue &= (arg1 == arg2); \
+                              if (arg1 != arg2) \
+                                std::cout << "Expected " << arg1 << ", but was " << arg2 << std::endl;
+
 #define EXPECT_TRUE(arg) isTrue &= arg;
 #define EXPECT_FALSE(arg) isTrue &= !arg;
-#define EXPECT_NEAR(arg1, arg2, eps) isTrue &= (arg1 > arg2 - eps) && (arg1 < arg2 + eps);
+#define EXPECT_NEAR(arg1, arg2, eps) isTrue &= (arg1 > arg2 - eps) && (arg1 < arg2 + eps); \
+                                        if ((arg1 < arg2 - eps) || (arg1 > arg2 + eps)) \
+                                std::cout << "Expected " << arg1 << " +/- " << eps << ", but was " << arg2 << std::endl;
 
 #define RUN_TEST(TestSuite, TestName)                                      \
 {                                                                          \
    auto startTime = std::chrono::system_clock::now();\
    bool ret = true;\
+    std::cout << std::left << std::setfill('-')                             \
+   << std::setw(50) << #TestSuite " --> " #TestName " started" << std::endl; \
    try                                                                     \
    {                                                                        \
     ret = Test##TestSuite::test__##TestSuite##__##TestName();          \
