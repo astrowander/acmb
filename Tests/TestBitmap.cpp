@@ -62,4 +62,20 @@ BEGIN_TEST(Bitmap, TestInterpolation)
     EXPECT_NEAR(189.263, pBitmap->GetInterpolatedChannel(2.85, 2.96, 1), 0.01);
 END_TEST
 
+BEGIN_TEST(Bitmap, TestZeroSize)
+    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(0, 0, ARGB32Color::Red); };
+    ASSERT_THROWS(f, std::invalid_argument);
+END_TEST
+
+BEGIN_TEST(Bitmap, TooLarge)
+    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(-1, -1, ARGB32Color::Red); };
+    ASSERT_THROWS(f, std::invalid_argument);
+END_TEST
+
+BEGIN_TEST(Bitmap, Test1x1Bitmap)
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(1, 1, ARGB32Color::Red);
+EXPECT_EQ(0xFF, pBitmap->GetChannel(0, 0, 0));
+EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 1));
+EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 2));
+END_TEST
 END_SUITE

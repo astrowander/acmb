@@ -9,7 +9,7 @@
 #include <stdexcept>
 #include <limits>
 
-#undef max;
+#undef max
 
 class IBitmap : public ImageParams
 {
@@ -66,6 +66,12 @@ class Bitmap : public IBitmap
 public:
     Bitmap(uint32_t width, uint32_t height, ColorType fillColor = 0)
     {
+        if (width == 0 || height == 0)
+            throw std::invalid_argument("size should not be zero");
+
+        if (width > 0xFFFF || height > 0xFFFF)
+            throw std::invalid_argument("size  is too large");
+
         _width = width;
         _height = height;
         _pixelFormat = pixelFormat;

@@ -24,6 +24,7 @@ protected:
 
 public:
     static std::shared_ptr<BaseConverter> Create(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
+    static IBitmapPtr Convert(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
 };
 
 template <PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
@@ -62,28 +63,5 @@ public:
         }        
     }
 };
-
-
-
-template<PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
-auto ConvertBitmap(std::shared_ptr<Bitmap<srcPixelFormat>> pSrcBitmap)
-{
-    auto pDstBitmap = std::make_shared<Bitmap<dstPixelFormat>>(pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight());
-    for (uint32_t i = 0; i < pDstBitmap->GetHeight(); ++i)
-    {
-        auto pSrcScanline = pSrcBitmap->GetScanline(i);
-        auto pDstScanline = pDstBitmap->GetScanline(i);
-
-        for (uint32_t j = 0; j < pDstBitmap->GetWidth(); ++j)
-        {
-            ConvertPixel<srcPixelFormat, dstPixelFormat>(pSrcScanline, pDstScanline);
-            pSrcScanline += ChannelCount(srcPixelFormat);
-            pDstScanline += ChannelCount(dstPixelFormat);
-        }
-    }
-    return pDstBitmap;
-}
-
-std::shared_ptr<IBitmap> Convert(std::shared_ptr<IBitmap> pSrcBitmap, PixelFormat pDstPixelFormat);
 
 #endif // CONVERTER_H

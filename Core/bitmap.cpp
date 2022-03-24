@@ -6,7 +6,6 @@
 
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName)
 {
-
     auto pDecoder = ImageDecoder::Create(fileName);
     pDecoder->Attach(fileName);
     return pDecoder->ReadBitmap();

@@ -1,16 +1,8 @@
 #ifndef RECT_H
 #define RECT_H
 #include "point.h"
+#include "size.h"
 
-template<typename T>
-struct SizeT
-{
-    T width;
-    T height;
-};
-
-using Size = SizeT<uint32_t>;
-using SizeF = SizeT<double>;
 
 template<typename T>
 struct RectT

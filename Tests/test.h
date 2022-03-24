@@ -33,6 +33,8 @@ public:
 #define EXPECT_NEAR(arg1, arg2, eps) isTrue &= (arg1 > arg2 - eps) && (arg1 < arg2 + eps); \
                                         if ((arg1 < arg2 - eps) || (arg1 > arg2 + eps)) \
                                 std::cout << "Expected " << arg1 << " +/- " << eps << ", but was " << arg2 << std::endl;
+#define ASSERT_NO_THROW(f) try { f(); } catch(...) { isTrue = false;}
+#define ASSERT_THROWS(f, ExceptionType) try {f();} catch(ExceptionType& e) {isTrue &= true;}
 
 #define RUN_TEST(TestSuite, TestName)                                      \
 {                                                                          \

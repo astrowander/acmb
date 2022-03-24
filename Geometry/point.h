@@ -1,8 +1,9 @@
 #ifndef POINT_H
 #define POINT_H
 #include <cstdint>
+#include <iostream>
 #include <math.h>
-#include <unordered_map>
+
 
 template<typename T>
 struct PointT
@@ -24,7 +25,16 @@ struct PointT
 	{
 		return x == rhs.x && y == rhs.y;
 	}
+
+	template <typename U>
+	friend std::ostream& operator <<(std::ostream& out, const PointT<U>& point);
 };
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const PointT<T>& point)
+{
+	return out << point.x << " " << point.y;
+}
 
 template <typename T>
 struct PointTHasher

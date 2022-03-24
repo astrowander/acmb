@@ -1,56 +1,56 @@
-#ifndef BINNINGTRANSFORM_H
-#define BINNINGTRANSFORM_H
+#pragma once
 #include "basetransform.h"
 #include <array>
 #include <algorithm>
 #include <stdexcept>
+#include "../Geometry/size.h"
+#include "../Core/IParallel.h"
 
-template<uint32_t hBinSize, uint32_t vBinSize>
 class IBinningTransform : public BaseTransform
 {
+protected:
+    Size _bin;
 public:
-    IBinningTransform(std::shared_ptr<IBitmap> pSrcBitmap)
-    : BaseTransform(pSrcBitmap)
-    {
-    }
+    IBinningTransform(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
 
-    static std::shared_ptr<IBinningTransform<hBinSize, vBinSize>> Create(std::shared_ptr<IBitmap> pSrcBitmap);
+    static std::shared_ptr<IBinningTransform> Create(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
 };
 
-template<PixelFormat pixelFormat, uint32_t hBinSize, uint32_t vBinSize>
-class BinningTransform : public IBinningTransform<hBinSize, vBinSize>
+template<PixelFormat pixelFormat>
+class BinningTransform : public IBinningTransform, public IParallel
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
-    std::array<ChannelType, hBinSize* vBinSize> _buf = {};
+    std::vector<ChannelType> _buf;
 
 public:
-    BinningTransform(std::shared_ptr<IBitmap> pSrcBitmap)
-    : IBinningTransform<hBinSize, vBinSize>(pSrcBitmap)
+    BinningTransform(std::shared_ptr<IBitmap> pSrcBitmap, Size bin)
+    : IBinningTransform(pSrcBitmap, bin)
+    , IParallel(pSrcBitmap->GetHeight() / bin.height)
     {
+        _buf.resize(bin.width * bin.height * PixelFormatTraits<pixelFormat>::channelCount);
+    }
+
+    void Job(uint32_t i)
+    {
+        auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
+        auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pDstBitmap);
+        auto pSrcPixel = pSrcBitmap->GetScanline(i * _bin.height);
+        auto pDstPixel = pDstBitmap->GetScanline(i);
+
+        for (uint32_t j = 0; j < pDstBitmap->GetWidth(); ++j)
+        {
+            ProcessPixel(pSrcPixel, pDstPixel);
+            pSrcPixel += channelCount * _bin.width;
+            pDstPixel += channelCount;
+        }
     }
 
     void Run() override
     {
-        auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(this->_pSrcBitmap);
-        auto w = pSrcBitmap->GetWidth() / hBinSize;
-        auto h = pSrcBitmap->GetHeight() / vBinSize;
-        this->_pDstBitmap.reset(new Bitmap<pixelFormat>(w , h));
-        auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(this->_pDstBitmap);
-
-        for (uint32_t i = 0; i < h; ++i)
-        {
-            auto pSrcPixel = pSrcBitmap->GetScanline(i * vBinSize);
-            auto pDstPixel = pDstBitmap->GetScanline(i);
-
-            for (uint32_t j = 0; j < w; ++j)
-            {
-                ProcessPixel(pSrcPixel, pDstPixel);
-                pSrcPixel += channelCount * hBinSize;
-                pDstPixel += channelCount;
-            }
-        }
+        this->_pDstBitmap.reset(new Bitmap<pixelFormat>(_pSrcBitmap->GetWidth() / _bin.width, _pSrcBitmap->GetHeight() / _bin.height));
+        DoParallelJobs();
     }
 
 private:
@@ -58,41 +58,16 @@ private:
     {
         for (uint32_t ch = 0; ch < channelCount; ++ch)
         {
-            for (uint32_t i = 0; i < vBinSize; ++i)
-            for (uint32_t j = 0; j < hBinSize; ++j)
+            double sum = 0.0;
+            for (uint32_t i = 0; i < _bin.height; ++i)
+            for (uint32_t j = 0; j < _bin.width; ++j)
             {
-                _buf[i * hBinSize + j] = pSrcPixel[(this->_pSrcBitmap->GetWidth() * i + j) * channelCount + ch];
+                sum += pSrcPixel[(this->_pSrcBitmap->GetWidth() * i + j) * channelCount + ch];
             }
-
-            auto median = _buf.begin() + _buf.size() / 2;
-            std::nth_element(_buf.begin(), median, _buf.end());
-            pDstPixel[ch] = *median;
+            sum /= _bin.width * _bin.height;
+            pDstPixel[ch] = static_cast<ChannelType>(FitToBounds<double>(sum, 0, std::numeric_limits<ChannelType>::max()));
         }
     }
 
 };
 
-template<uint32_t hBinSize, uint32_t vBinSize>
-std::shared_ptr<IBinningTransform<hBinSize, vBinSize>> IBinningTransform<hBinSize, vBinSize>::Create(std::shared_ptr<IBitmap> pSrcBitmap)
-{
-    if (!pSrcBitmap)
-        throw std::invalid_argument("pSrcBitmap is null");
-
-    switch (pSrcBitmap->GetPixelFormat())
-    {
-        case PixelFormat::Gray8:
-            return std::make_shared<BinningTransform<PixelFormat::Gray8, hBinSize, vBinSize>>(pSrcBitmap);
-        case PixelFormat::Gray16:
-            return std::make_shared<BinningTransform<PixelFormat::Gray16, hBinSize, vBinSize>>(pSrcBitmap);
-        case PixelFormat::RGB24:
-            return std::make_shared<BinningTransform<PixelFormat::RGB24, hBinSize, vBinSize>>(pSrcBitmap);
-        case PixelFormat::RGB48:
-            return std::make_shared<BinningTransform<PixelFormat::RGB48, hBinSize, vBinSize>>(pSrcBitmap);
-        default:
-            throw std::runtime_error("Pixel format must be known");
-    }
-}
-
-
-
-#endif // BINNINGTRANSFORM_H
