@@ -117,6 +117,12 @@
     <ClInclude Include="Registrator\GeneratingResultHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Geometry\size.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transforms\ChannelEqualizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -213,6 +219,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\enums.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\binningtransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\ChannelEqualizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\TestChannelEqualizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
