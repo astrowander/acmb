@@ -23,11 +23,14 @@ Registrator::Registrator(uint32_t hTileCount, uint32_t vTileCount, double thresh
 , _minStarSize(minStarSize)
 , _maxStarSize(maxStarSize)
 {
-
+    
 }
 
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
+    if (pBitmap->GetWidth() < _hTileCount || pBitmap->GetHeight() < _vTileCount)
+        throw std::invalid_argument("too small bitmap");
+
     _stars.clear();
     _stars.resize(_hTileCount * _vTileCount);
 

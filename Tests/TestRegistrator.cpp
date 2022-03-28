@@ -54,4 +54,27 @@ for (auto& tileStars : stars)
 EXPECT_EQ(9146, sum);
 END_TEST
 
+BEGIN_TEST(Registrator, Test1x1Bitmap)
+auto pRegistrator = std::make_unique<Registrator>(1, 1, 25);
+pRegistrator->Registrate(IBitmap::Create(1, 1, PixelFormat::RGB24));
+EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
+END_TEST
+
+BEGIN_TEST(Registrator, Test1x1BitmapMultipleTiles)
+auto f = []()
+{
+	auto pRegistrator = std::make_unique<Registrator>(2, 2, 25);
+	pRegistrator->Registrate(IBitmap::Create(1, 1, PixelFormat::RGB24));
+};
+
+ASSERT_THROWS(f, std::invalid_argument);
+
+END_TEST
+
+BEGIN_TEST(Registrator, TestBlackBitmap)
+	auto pRegistrator = std::make_unique<Registrator>(2, 2, 25);
+	pRegistrator->Registrate(IBitmap::Create(100, 100, PixelFormat::RGB24));
+	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
+END_TEST
+
 END_SUITE

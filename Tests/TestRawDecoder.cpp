@@ -36,4 +36,25 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_20211020_190808.ppm
 
 END_TEST
 
+BEGIN_TEST(RawDecoder, TestEmptyFile)
+
+auto f = []()
+{
+	auto pDecoder = std::make_unique<RawDecoder>(true);
+	pDecoder->Attach(GetPathToTestFile("RAW/empty.CR2"));
+};
+
+ASSERT_THROWS(f, std::runtime_error);
+END_TEST
+
+BEGIN_TEST(RawDecoder, TestCorruptedFile)
+
+auto f = []()
+{
+	auto pDecoder = std::make_unique<RawDecoder>(true);
+	pDecoder->Attach(GetPathToTestFile("RAW/corrupted.CR2"));
+};
+
+ASSERT_THROWS(f, std::runtime_error);
+END_TEST
 END_SUITE

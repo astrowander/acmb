@@ -101,4 +101,24 @@ BEGIN_TEST (PpmDecoder, ReadStripes)
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("PpmDecoder/ReadStripes/stripe2.ppm"), pDecoder->ReadStripe(0)));
 END_TEST
 
+BEGIN_TEST(PpmDecoder, TestEmptyFile)
+    auto f = []()
+    {
+        auto pDecoder = std::make_unique<PpmDecoder>();
+        pDecoder->Attach(GetPathToTestFile("PPM/empty.ppm"));
+    };
+    ASSERT_THROWS(f, std::runtime_error);
+END_TEST
+
+BEGIN_TEST(PpmDecoder, TestCorrupted)
+
+    auto f = []()
+    {
+        auto pDecoder = std::make_unique<PpmDecoder>();
+        pDecoder->Attach(GetPathToTestFile("PPM/corrupted.ppm"));
+    };
+    ASSERT_THROWS(f, std::runtime_error);
+
+END_TEST
+
 END_SUITE

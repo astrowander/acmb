@@ -26,6 +26,11 @@ struct PointT
 		return x == rhs.x && y == rhs.y;
 	}
 
+	bool operator!=(const PointT& rhs) const
+	{
+		return !(*this == rhs);
+	}
+
 	template <typename U>
 	friend std::ostream& operator <<(std::ostream& out, const PointT<U>& point);
 };

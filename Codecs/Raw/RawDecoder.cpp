@@ -51,7 +51,9 @@ void RawDecoder::Attach(const std::string& fileName)
 {
 	_lastFileName = fileName;
 
-	_pLibRaw->open_file(fileName.data());
+	if (_pLibRaw->open_file(fileName.data()))
+		throw std::runtime_error("unable to read the file");
+
     _pLibRaw->imgdata.params.output_bps = 16;
     _pLibRaw->imgdata.params.no_interpolation = 0;
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
