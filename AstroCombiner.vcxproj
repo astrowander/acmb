@@ -55,6 +55,7 @@
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
+    <ClInclude Include="Transforms\HistogramBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
@@ -77,6 +78,7 @@
     <ClCompile Include="Tests\TestChannelEqualizer.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
     <ClCompile Include="Tests\TestFastAligner.cpp" />
+    <ClCompile Include="Tests\TestHistogramBuilder.cpp" />
     <ClCompile Include="Tests\TestNewton2D.cpp" />
     <ClCompile Include="Tests\TestPpmDecoder.cpp" />
     <ClCompile Include="Tests\TestPpmEncoder.cpp" />
@@ -92,6 +94,7 @@
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
+    <ClCompile Include="Transforms\HistogramBuilder.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
