@@ -105,6 +105,7 @@ struct PixelFormatTraits
     static constexpr auto bitsPerChannel = BitsPerChannel(pixelFormat);
     static constexpr auto bytesPerPixel = BytesPerPixel(pixelFormat);
     static constexpr auto bitsPerPixel = BitsPerPixel(pixelFormat);
+    static constexpr auto channelMax = std::numeric_limits<ChannelType>::max();
     PixelFormatTraits() = delete;
 };
 
