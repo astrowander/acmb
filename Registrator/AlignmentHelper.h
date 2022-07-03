@@ -26,7 +26,7 @@ class AlignmentHelper : public IParallel
 	}
 
 public:
-	static void Align(Stacker& stacker, size_t alignerIndex)
+	static void Run(Stacker& stacker, size_t alignerIndex)
 	{
 		AlignmentHelper helper(stacker, alignerIndex);
 		/*for (uint32_t i = 0; i < helper._jobCount; ++i)

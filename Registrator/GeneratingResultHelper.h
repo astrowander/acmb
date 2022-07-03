@@ -40,11 +40,11 @@ class GeneratingResultHelper : public IParallel
     }
 
 public:
-    static std::shared_ptr<Bitmap<pixelFormat>> GenerateResult(Stacker& stacker)
+    static void Run(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         GeneratingResultHelper helper(stacker);
         helper.DoParallelJobs();
-        return helper._pBitmap;
+        pBitmap->SetData(helper._pBitmap->GetData());
     }
 };
 

@@ -118,6 +118,11 @@ public:
         return _data;
     }
 
+    void SetData(const std::vector<ChannelType>& data)
+    {
+        _data = data;
+    }
+
     float GetInterpolatedChannel(float x, float y, uint32_t ch) override
     {
         if (x < 0 || x > _width - 1)

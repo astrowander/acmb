@@ -46,7 +46,7 @@ class AddingBitmapHelper : public IParallel
 
 public:
 
-    static void AddBitmap(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
+    static void Run(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         AddingBitmapHelper helper(stacker, pBitmap);
         helper.DoParallelJobs();
