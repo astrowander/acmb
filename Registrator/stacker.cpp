@@ -10,7 +10,7 @@
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/deaberratetransform.h"
 
-void OutputMessage(const std::string& message)
+void Log(const std::string& message)
 {
 #ifdef ENABLE_DIAGNOSTIC_MESSAGES
     std::cout << message << std::endl;
@@ -60,8 +60,8 @@ void Stacker::Registrate(uint32_t hTileCount, uint32_t vTileCount, double thresh
             dsPair.totalStarCount += starVector.size();
         }
 
-        OutputMessage(dsPair.pDecoder->GetLastFileName() + " is registered");
-        OutputMessage(dsPair.totalStarCount + " stars are found");
+        Log(dsPair.pDecoder->GetLastFileName() + " is registered");
+        Log(dsPair.totalStarCount + " stars are found");
     }   
 
     //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
@@ -72,11 +72,11 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     if (_stackingData.size() == 0)
         return nullptr;
     
-    OutputMessage(_stackingData[0].pDecoder->GetLastFileName() + " in process");
+    Log(_stackingData[0].pDecoder->GetLastFileName() + " in process");
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
 
-    OutputMessage(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is read");
+    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is read");
 
     if (_enableDeaberration)
     {
@@ -101,13 +101,13 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 
-    OutputMessage(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
+    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " in process");
+        Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-        OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
@@ -139,7 +139,7 @@ void Stacker::StackWithAlignment(IBitmapPtr pRefBitmap, IBitmapPtr pTargetBitmap
 {
     _matches.clear();
     AlignmentHelper::Run(*this, i);
-    OutputMessage(_matches.size() + " matching stars");
+    Log(_matches.size() + " matching stars");
 
     std::vector<double> coords;
     for (auto& match : _matches)
@@ -178,11 +178,11 @@ void Stacker::StackWithAlignment(IBitmapPtr pRefBitmap, IBitmapPtr pTargetBitmap
         }
     }
 
-    OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " grid is calculated");
+    Log(_stackingData[i].pDecoder->GetLastFileName() + " grid is calculated");
 
     CALL_HELPER(AddingBitmapWithAlignmentHelper, pTargetBitmap);
 
-    OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " is stacked");
+    Log(_stackingData[i].pDecoder->GetLastFileName() + " is stacked");
 }
 
 std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
@@ -219,13 +219,13 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 
-    OutputMessage(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
+    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " in process");
+        Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-        OutputMessage(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
