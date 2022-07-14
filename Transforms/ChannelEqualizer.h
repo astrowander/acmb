@@ -45,7 +45,7 @@ public:
 
 			for (uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x)
 			{
-				pDstScanline[0] = static_cast<ChannelType>(FitToBounds<double>(pSrcScanline[0] * _multipliers[ch], 0, PixelFormatTraits<pixelFormat>::channelMax));
+				pDstScanline[0] = static_cast<ChannelType>(std::clamp<double>(pSrcScanline[0] * _multipliers[ch], 0, PixelFormatTraits<pixelFormat>::channelMax));
 				pSrcScanline += channelCount;
 				pDstScanline += channelCount;
 			}

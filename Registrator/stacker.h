@@ -14,13 +14,6 @@
 
 class ImageDecoder;
 
-struct StackedChannel
-{
-    float mean = 0;
-    float dev = 0;
-    uint16_t n = 0;
-};
-
 struct StackingDatum
 {
     std::shared_ptr<ImageDecoder> pDecoder;
@@ -42,7 +35,6 @@ class Stacker
     Grid _grid;
     std::vector<StackingDatum> _stackingData;
 
-    //std::vector<StackedChannel> _stacked;
     std::vector<float> _means;
     std::vector<float> _devs;
     std::vector<uint16_t> _counts;

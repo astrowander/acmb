@@ -65,7 +65,7 @@ private:
                 sum += pSrcPixel[(this->_pSrcBitmap->GetWidth() * i + j) * channelCount + ch];
             }
             sum /= _bin.width * _bin.height;
-            pDstPixel[ch] = static_cast<ChannelType>(FitToBounds<double>(sum, 0, std::numeric_limits<ChannelType>::max()));
+            pDstPixel[ch] = static_cast<ChannelType>(std::clamp<double>(sum, 0, std::numeric_limits<ChannelType>::max()));
         }
     }
 

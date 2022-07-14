@@ -23,10 +23,6 @@ class AddingBitmapWithAlignmentHelper : public IParallel
     {
         Stacker::TriangleTransformPair lastPair;
        
-        float* pMean = &_stacker._means[i * _stacker._width * channelCount];
-        float* pDev = &_stacker._devs[i * _stacker._width * channelCount];
-        uint16_t* pCount = &_stacker._counts[i * _stacker._width * channelCount];
-
         for (uint32_t x = 0; x < _stacker._width; ++x)
         {
             PointF p{ static_cast<double>(x), static_cast<double>(i) };
@@ -45,10 +41,11 @@ class AddingBitmapWithAlignmentHelper : public IParallel
             {
                 for (uint32_t ch = 0; ch < channelCount; ++ch)
                 {
-                    auto interpolatedChannel = _pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
-                    auto& mean = *pMean;
-                    auto& dev = *pDev;
-                    auto& n = *pCount;
+                    const auto interpolatedChannel = _pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
+                    const size_t index = i * _stacker._width * channelCount + x * channelCount + ch;
+                    auto& mean = _stacker._means[index];
+                    auto& dev = _stacker._devs[index];
+                    auto& n = _stacker._counts[index];
 
                     auto sigma = sqrt(dev);
                     const auto kappa = 3.0;
@@ -57,20 +54,10 @@ class AddingBitmapWithAlignmentHelper : public IParallel
                     {
                         dev = n * (dev + (interpolatedChannel - mean) * (interpolatedChannel - mean) / (n + 1)) / (n + 1);
 
-                        mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                        mean = std::clamp((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
                         ++n;
                     }
-
-                    ++pMean;
-                    ++pDev;
-                    ++pCount;
                 }
-            }
-            else
-            {
-                pMean += channelCount;
-                pDev += channelCount;
-                pCount += channelCount;
             }
         }
     }
