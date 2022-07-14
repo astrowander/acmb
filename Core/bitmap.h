@@ -8,6 +8,7 @@
 #include <memory>
 #include <stdexcept>
 #include <limits>
+#include <algorithm>
 
 #undef max
 
@@ -154,7 +155,7 @@ public:
         };
 
         const ChannelType maxChannel = std::numeric_limits<ChannelType>::max();
-        return FitToBounds<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, maxChannel);
+        return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, maxChannel);
     }
 };
 

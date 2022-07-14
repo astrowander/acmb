@@ -6,6 +6,8 @@
 template<PixelFormat pixelFormat>
 class AddingBitmapHelper : public IParallel
 {
+    static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
+
 	Stacker& _stacker;
 	std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
 
@@ -20,27 +22,24 @@ class AddingBitmapHelper : public IParallel
 	void Job(uint32_t i) override
 	{
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-        auto pMean = &_stacker._means[i * _stacker._width * ChannelCount(pixelFormat)];
-        auto pDev = &_stacker._devs[i * _stacker._width * ChannelCount(pixelFormat)];
-        auto pCount = &_stacker._counts[i * _stacker._width * ChannelCount(pixelFormat)];
-        auto pSourceChannel = &_pBitmap->GetScanline(i)[0];
 
-        for (uint32_t j = 0; j < _stacker._width * ChannelCount(pixelFormat); ++j)
+        for (uint32_t j = 0; j < _stacker._width * channelCount; ++j)
         {
-            auto sigma = sqrt(*pDev);
-            const auto kappa = 3.0;
+            const auto index = i * _stacker._width * channelCount + j;
+            auto& mean = _stacker._means[index];
+            auto& dev = _stacker._devs[index];
+            auto& n = _stacker._counts[index];
+            auto& channel = _pBitmap->GetScanline(0)[index];
 
-            if (*pCount <= 5 || fabs(*pMean - *pSourceChannel) < kappa * sigma)
+            const auto sigma = sqrt(dev);
+            const auto kappa = 3.0;                    
+
+            if (n <= 5 || fabs(mean - channel) < kappa * sigma)
             {
-                *pDev = *pCount * (*pDev + (*pSourceChannel - *pMean) * (*pSourceChannel - *pMean) / (*pCount + 1)) / (*pCount + 1);
-                *pMean = FitToBounds((*pCount * *pMean + *pSourceChannel) / (*pCount + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
-                ++(*pCount);
+                dev = n * (dev + (channel - mean) * (channel - mean) / (n + 1)) / (n + 1);
+                mean = std::clamp((n * mean + channel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                ++n;
             }
-
-            ++pSourceChannel;
-            ++pMean;
-            ++pDev;
-            ++pCount;
         }
 	}
 
