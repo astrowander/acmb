@@ -41,7 +41,12 @@ class Stacker
 
     Grid _grid;
     std::vector<StackingDatum> _stackingData;
-    std::vector<StackedChannel> _stacked;
+
+    //std::vector<StackedChannel> _stacked;
+    std::vector<float> _means;
+    std::vector<float> _devs;
+    std::vector<uint16_t> _counts;
+
     uint32_t _hTileCount = 0;
     uint32_t _vTileCount = 0;
 

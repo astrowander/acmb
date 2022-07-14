@@ -20,27 +20,27 @@ class AddingBitmapHelper : public IParallel
 	void Job(uint32_t i) override
 	{
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-        auto stackedChannel = &_stacker._stacked[i * _stacker._width * ChannelCount(pixelFormat)];
-        auto pSourceChannel = _pBitmap->GetScanline(i);
+        auto pMean = &_stacker._means[i * _stacker._width * ChannelCount(pixelFormat)];
+        auto pDev = &_stacker._devs[i * _stacker._width * ChannelCount(pixelFormat)];
+        auto pCount = &_stacker._counts[i * _stacker._width * ChannelCount(pixelFormat)];
+        auto pSourceChannel = &_pBitmap->GetScanline(i)[0];
 
         for (uint32_t j = 0; j < _stacker._width * ChannelCount(pixelFormat); ++j)
         {
-            auto& mean = stackedChannel->mean;
-            auto& dev = stackedChannel->dev;
-            auto& n = stackedChannel->n;
-            auto sigma = sqrt(dev);
+            auto sigma = sqrt(*pDev);
             const auto kappa = 3.0;
-            ChannelType sourceChannel = *pSourceChannel;
 
-            if (n <= 5 || fabs(mean - sourceChannel) < kappa * sigma)
+            if (*pCount <= 5 || fabs(*pMean - *pSourceChannel) < kappa * sigma)
             {
-                dev = n * (dev + (sourceChannel - mean) * (sourceChannel - mean) / (n + 1)) / (n + 1);
-                mean = FitToBounds((n * mean + sourceChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
-                ++n;
+                *pDev = *pCount * (*pDev + (*pSourceChannel - *pMean) * (*pSourceChannel - *pMean) / (*pCount + 1)) / (*pCount + 1);
+                *pMean = FitToBounds((*pCount * *pMean + *pSourceChannel) / (*pCount + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                ++(*pCount);
             }
 
-            ++stackedChannel;
             ++pSourceChannel;
+            ++pMean;
+            ++pDev;
+            ++pCount;
         }
 	}
 

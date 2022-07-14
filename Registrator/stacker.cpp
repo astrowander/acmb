@@ -97,7 +97,9 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
             _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
     }
     
-    _stacked.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+    _means.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+    _devs.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+    _counts.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 
@@ -215,7 +217,9 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
      for (const auto& refStarVector : refStars)
          _aligners.push_back(std::make_shared<FastAligner>(refStarVector));    
 
-    _stacked.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+     _means.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+     _devs.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
+     _counts.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 

@@ -21,21 +21,15 @@ class GeneratingResultHelper : public IParallel
     {
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
-        ChannelType* channels[ChannelCount(pixelFormat)] = {};
-        StackedChannel* stackedChannels[ChannelCount(pixelFormat)] = {};
-
-        for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
-        {
-            channels[ch] = &_pBitmap->GetScanline(i)[ch];
-            stackedChannels[ch] = &_stacker._stacked[i * _stacker._width * ChannelCount(pixelFormat) + ch];
-        }
+        ChannelType* pChannel = &_pBitmap->GetScanline(i)[0];
+        float* pMean = &_stacker._means[i * _stacker._width * ChannelCount(pixelFormat)];
 
         for (uint32_t x = 0; x < _stacker._width; ++x)        
         for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
         {
-            *channels[ch] = FastRound<ChannelType>(stackedChannels[ch]->mean);
-            channels[ch] += ChannelCount(pixelFormat);
-            stackedChannels[ch] += ChannelCount(pixelFormat);
+            *pChannel = FastRound<ChannelType>(*pMean);
+            ++pMean;
+            ++pChannel;
         }            
     }
 

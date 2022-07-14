@@ -6,6 +6,8 @@
 template<PixelFormat pixelFormat>
 class AddingBitmapWithAlignmentHelper : public IParallel
 {
+    static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
+
     Stacker& _stacker;
     std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
 
@@ -19,14 +21,11 @@ class AddingBitmapWithAlignmentHelper : public IParallel
 
     void Job(uint32_t i) override
     {
-        StackedChannel* stackedChannels[ChannelCount(pixelFormat)] = {};
         Stacker::TriangleTransformPair lastPair;
-
        
-        for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
-        {
-            stackedChannels[ch] = &_stacker._stacked[i * _stacker._width * ChannelCount(pixelFormat) + ch];
-        }
+        float* pMean = &_stacker._means[i * _stacker._width * channelCount];
+        float* pDev = &_stacker._devs[i * _stacker._width * channelCount];
+        uint16_t* pCount = &_stacker._counts[i * _stacker._width * channelCount];
 
         for (uint32_t x = 0; x < _stacker._width; ++x)
         {
@@ -41,14 +40,16 @@ class AddingBitmapWithAlignmentHelper : public IParallel
                 lastPair.second.transform(&p.x, &p.y);
             }
 
-            for (uint32_t ch = 0; ch < ChannelCount(pixelFormat); ++ch)
+          
+            if ((_stacker._grid.empty() || lastPair.second != agg::trans_affine_null()) && p.x >= 0 && p.x <= _stacker._width - 1 && p.y >= 0 && p.y <= _stacker._height - 1)
             {
-                if ((_stacker._grid.empty() || lastPair.second != agg::trans_affine_null()) && p.x >= 0 && p.x <= _stacker._width - 1 && p.y >= 0 && p.y <= _stacker._height - 1)
+                for (uint32_t ch = 0; ch < channelCount; ++ch)
                 {
                     auto interpolatedChannel = _pBitmap->GetInterpolatedChannel(static_cast<float>(p.x), static_cast<float>(p.y), ch);
-                    auto& mean = stackedChannels[ch]->mean;
-                    auto& dev = stackedChannels[ch]->dev;
-                    auto& n = stackedChannels[ch]->n;
+                    auto& mean = *pMean;
+                    auto& dev = *pDev;
+                    auto& n = *pCount;
+
                     auto sigma = sqrt(dev);
                     const auto kappa = 3.0;
 
@@ -59,12 +60,19 @@ class AddingBitmapWithAlignmentHelper : public IParallel
                         mean = FitToBounds((n * mean + interpolatedChannel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
                         ++n;
                     }
-                }
 
-                stackedChannels[ch] += ChannelCount(pixelFormat);
+                    ++pMean;
+                    ++pDev;
+                    ++pCount;
+                }
+            }
+            else
+            {
+                pMean += channelCount;
+                pDev += channelCount;
+                pCount += channelCount;
             }
         }
-        
     }
 
 public:
