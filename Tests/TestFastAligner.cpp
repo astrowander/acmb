@@ -173,4 +173,4 @@ END_TEST
 
 
 
-END_SUITE
+END_SUITE (FastAligner)

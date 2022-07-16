@@ -57,4 +57,4 @@ auto f = []()
 
 ASSERT_THROWS(f, std::runtime_error);
 END_TEST
-END_SUITE
+END_SUITE (RawDecoder)

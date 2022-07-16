@@ -13,4 +13,4 @@ std::cout << "red: " << pHistogramBuilder->GetChannelStatistics(0).min << " " <<
 std::cout << "green: " << pHistogramBuilder->GetChannelStatistics(1).min << " " << pHistogramBuilder->GetChannelStatistics(1).peak << " " << pHistogramBuilder->GetChannelStatistics(1).max << std::endl;
 std::cout << "blue: " << pHistogramBuilder->GetChannelStatistics(2).min << " " << pHistogramBuilder->GetChannelStatistics(2).peak << " " << pHistogramBuilder->GetChannelStatistics(2).max << std::endl;
 END_TEST
-END_SUITE
+END_SUITE (HistogramBuilder)

@@ -111,4 +111,4 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pS
 
 END_TEST
 
-END_SUITE
+END_SUITE (Stacker)

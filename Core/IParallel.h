@@ -32,7 +32,7 @@ protected:
 		{
 			const auto rangeStart = i * div + std::min(i, mod);
 			const auto rangeSize = div + ((i < mod) ? 1 : 0);
-			_threads.emplace_back([this, rangeSize, rangeStart]() { for (size_t n = rangeStart; n < rangeStart + rangeSize; ++n) { this->Job(n); }});
+			_threads.emplace_back([this, rangeSize, rangeStart]() { for (auto n = rangeStart; n < rangeStart + rangeSize; ++n) { this->Job(n); }});
 		}		
 
 		for (uint32_t i = 0; i < _threadCount; ++i)

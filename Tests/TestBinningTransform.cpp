@@ -56,4 +56,4 @@ BEGIN_TEST(BinningTransform, TestZeroSize)
 	ASSERT_THROWS(f, std::invalid_argument);
 END_TEST
 
-END_SUITE
+END_SUITE( BinningTransform )

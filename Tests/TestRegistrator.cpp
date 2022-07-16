@@ -77,4 +77,4 @@ BEGIN_TEST(Registrator, TestBlackBitmap)
 	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
 END_TEST
 
-END_SUITE
+END_SUITE (Registrator)

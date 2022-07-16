@@ -49,4 +49,4 @@ EXPECT_NEAR(0.81, res[1], 0.01);
 
 END_TEST
 
-END_SUITE
+END_SUITE (Newton2D)

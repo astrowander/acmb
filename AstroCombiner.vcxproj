@@ -47,6 +47,7 @@
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
     <ClInclude Include="Tests\test.h" />
+    <ClInclude Include="Tests\TestRunner.h" />
     <ClInclude Include="Tests\testtools.h" />
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
@@ -73,6 +74,7 @@
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
+    <ClCompile Include="Tests\test.cpp" />
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
     <ClCompile Include="Tests\TestChannelEqualizer.cpp" />
@@ -84,6 +86,7 @@
     <ClCompile Include="Tests\TestPpmEncoder.cpp" />
     <ClCompile Include="Tests\TestRawDecoder.cpp" />
     <ClCompile Include="Tests\TestRegistrator.cpp" />
+    <ClCompile Include="Tests\TestRunner.cpp" />
     <ClCompile Include="Tests\TestStacker.cpp" />
     <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
     <ClCompile Include="Tests\testtools.cpp" />

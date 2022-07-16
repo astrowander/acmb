@@ -78,4 +78,4 @@ EXPECT_EQ(0xFF, pBitmap->GetChannel(0, 0, 0));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 1));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 2));
 END_TEST
-END_SUITE
+END_SUITE (Bitmap)

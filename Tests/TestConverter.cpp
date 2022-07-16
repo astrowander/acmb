@@ -16,4 +16,4 @@ BEGIN_TEST(Converter, TestAstrophoto)
     EXPECT_TRUE((BitmapsAreEqual(GetPathToPattern("Converter/IMG_4030.ppm"), BaseConverter::Convert(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")), PixelFormat::Gray16))));
 END_TEST
 
-END_SUITE
+END_SUITE (Converter)

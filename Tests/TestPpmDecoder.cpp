@@ -121,4 +121,4 @@ BEGIN_TEST(PpmDecoder, TestCorrupted)
 
 END_TEST
 
-END_SUITE
+END_SUITE (PpmDecoder)

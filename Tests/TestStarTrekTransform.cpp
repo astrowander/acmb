@@ -51,4 +51,4 @@ dst = pStarTrekTransform->Transform(src);
 output << dx << ";" << dy << ";" << dst.x - src.x<< ";" << (dst.y - src.y) << std::endl;*/
 END_TEST
 
-END_SUITE
+END_SUITE (StarTrekTransform)

@@ -12,4 +12,4 @@ auto pChannelEqualizer = BaseChannelEqualizer::Create(pSrcBitmap, { 0.905, 1, 1.
 auto pDstBitmap = pChannelEqualizer->RunAndGetBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("ChannelEqualizer/TestRGB48.ppm"), pDstBitmap));
 END_TEST
-END_SUITE
+ END_SUITE (ChannelEqualizer)
