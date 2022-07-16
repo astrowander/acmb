@@ -74,7 +74,6 @@
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
-    <ClCompile Include="Tests\test.cpp" />
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
     <ClCompile Include="Tests\TestChannelEqualizer.cpp" />

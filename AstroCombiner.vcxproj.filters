@@ -242,9 +242,6 @@
     <ClCompile Include="Transforms\HistogramBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Tests\TestRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
