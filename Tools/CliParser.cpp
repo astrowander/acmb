@@ -43,7 +43,7 @@ CliParser::CliParser( int argc, char** argv )
     }
 }
 
-int CliParser::Parse( bool testMode )
+std::pair<int, std::string> CliParser::Parse( bool testMode )
 {
     auto it = _kv.find( "-runtests" );
     if ( !testMode && it != std::end( _kv ) )
@@ -52,7 +52,7 @@ int CliParser::Parse( bool testMode )
         if ( it == std::end( _kv ) )
         {
             TestRunner::GetInstance().RunAllTests();
-            return 0;
+            return {};
         }
 
         std::string suite = it->second;
@@ -62,11 +62,11 @@ int CliParser::Parse( bool testMode )
         if ( it == std::end( _kv ) )
         {
             TestRunner::GetInstance().RunAllTestsInSuite( suite );
-            return 0;
+            return {};
         }
 
         TestRunner::GetInstance().RunTest( suite, it->second );
-        return 0;
+        return {};
     }
 
     it = _kv.find( "-stack" );
@@ -77,9 +77,8 @@ int CliParser::Parse( bool testMode )
         std::string outputPath;
         it = _kv.find( "-output" );
         if ( it == std::end( _kv ) )
-        {
-            std::cout << "Output file is not specified" << std::endl;
-            return 1;
+        {            
+            return { 1, "Output file is not specified" };
         }
 
         outputPath = it->second;
@@ -90,7 +89,7 @@ int CliParser::Parse( bool testMode )
         {
             if ( !std::filesystem::is_directory( it->second ) )
             {
-                std::cout << "No such directory" << std::endl;
+                return { 1, "No such directory" };
             }
 
             for ( const auto& entry : std::filesystem::directory_iterator( it->second ) )
@@ -141,21 +140,21 @@ int CliParser::Parse( bool testMode )
 
         if ( _decoders.empty() )
         {
-            std::cout << "Nothing to stack" << std::endl;
-            return 1;
+            return { 1, "Nothing to stack" };
         }
 
         if ( testMode )
-            return 0;
+            return {};
 
         Stacker stacker( _decoders );
         auto pRes = stacker.RegistrateAndStack( 9, 6 );
         IBitmap::Save( pRes, outputPath );
     }
-    return 0;
+
+    return { 1, "Nothing to do" };
 }
 
-int CliParser::Parse( int argc, char** argv )
+std::pair<int, std::string> CliParser::Parse( int argc, char** argv )
 {
     CliParser parser(argc, argv);
     return parser.Parse();

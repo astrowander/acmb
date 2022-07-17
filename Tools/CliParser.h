@@ -12,10 +12,10 @@ class CliParser
     std::vector<std::shared_ptr<ImageDecoder>> _decoders;
 
     CliParser( int argc, char** argv );
-    int Parse( bool testMode = false );
+    std::pair<int, std::string> Parse( bool testMode = false );
 
 public:
 
-    static int Parse( int argc, char** argv );
+    static std::pair<int, std::string> Parse( int argc, char** argv );
     TEST_ACCESS( CliParser );
 };
