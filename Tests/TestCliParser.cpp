@@ -98,4 +98,14 @@ EXPECT_EQ( 17, parser._decoders.size() );
 
 END_TEST
 
+BEGIN_TEST( CliParser, ManySemicolons)
+
+std::vector<const char*> data = { "-stack", ";;;;;;;;;;", "-output", "test.txt" };
+CliParser parser( data.size(), const_cast< char** >( &data[0] ) );
+auto res = parser.Parse( true );
+EXPECT_EQ( 1, res.first );
+EXPECT_EQ( "Nothing to stack", res.second );
+
+END_TEST
+
 END_SUITE( CliParser )

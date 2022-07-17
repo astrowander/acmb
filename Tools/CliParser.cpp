@@ -61,7 +61,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
 
         if ( it == std::end( _kv ) )
         {
-            TestRunner::GetInstance().RunAllTestsInSuite( suite );
+            TestRunner::GetInstance().RunSuite( suite );
             return {};
         }
 

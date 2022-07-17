@@ -9,7 +9,7 @@ bool TestRunner::RunAllTests()
     return isTrue;
 }
 
-bool TestRunner::RunAllTestsInSuite( const std::string& suiteName )
+bool TestRunner::RunSuite( const std::string& suiteName )
 {
     auto it = _suites.find( suiteName );
     if ( it == std::end( _suites ) )

@@ -19,7 +19,7 @@ private:
 public:
     static bool RunAllTests();
 
-    static bool RunAllTestsInSuite( const std::string& suiteName );
+    static bool RunSuite( const std::string& suiteName );
 
     static bool RunTest( const std::string& suiteName, const std::string& testName );
 
