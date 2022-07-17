@@ -46,7 +46,8 @@ END_TEST
 
 BEGIN_TEST( CliParser, StackOneFile )
 
-std::vector<const char*> data = { "-stack", GetPathToTestFile( "RAW/IMG_8899.CR2" ).data(), "-output", "test.txt"};
+std::string path = GetPathToTestFile( "RAW/IMG_8899.CR2" );
+std::vector<const char*> data = { "-stack", path.data(), "-output", "test.txt"};
 CliParser parser( data.size(), ( &data[0] ) );
 auto res = parser.Parse( true );
 EXPECT_EQ( 0, res.first );
