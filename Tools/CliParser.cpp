@@ -147,8 +147,9 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             return {};
 
         Stacker stacker( _decoders );
-        auto pRes = stacker.RegistrateAndStack( 9, 6 );
+        auto pRes = stacker.RegistrateAndStack();
         IBitmap::Save( pRes, outputPath );
+        return {};
     }
 
     return { 1, "Nothing to do" };
