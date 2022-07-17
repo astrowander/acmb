@@ -15,7 +15,7 @@ std::string IntToString( int num, int minDigitCount )
     return res;
 }
 
-CliParser::CliParser( int argc, char** argv )
+CliParser::CliParser( int argc, const char** argv )
 {
     if ( argc < 1 )
         throw std::invalid_argument( "argc" );
@@ -155,7 +155,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
     return { 1, "Nothing to do" };
 }
 
-std::pair<int, std::string> CliParser::Parse( int argc, char** argv )
+std::pair<int, std::string> CliParser::Parse( int argc, const char** argv )
 {
     CliParser parser(argc, argv);
     return parser.Parse();

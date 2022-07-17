@@ -11,11 +11,11 @@ class CliParser
     std::unordered_map<std::string, std::string> _kv;
     std::vector<std::shared_ptr<ImageDecoder>> _decoders;
 
-    CliParser( int argc, char** argv );
+    CliParser( int argc, const char** argv );
     std::pair<int, std::string> Parse( bool testMode = false );
 
 public:
 
-    static std::pair<int, std::string> Parse( int argc, char** argv );
+    static std::pair<int, std::string> Parse( int argc, const char** argv );
     TEST_ACCESS( CliParser );
 };
