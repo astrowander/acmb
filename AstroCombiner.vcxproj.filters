@@ -129,6 +129,9 @@
     <ClInclude Include="Tests\TestRunner.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Tools\CliParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -243,6 +246,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools\CliParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\TestCliParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

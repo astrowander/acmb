@@ -49,6 +49,7 @@
     <ClInclude Include="Tests\test.h" />
     <ClInclude Include="Tests\TestRunner.h" />
     <ClInclude Include="Tests\testtools.h" />
+    <ClInclude Include="Tools\CliParser.h" />
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
     <ClInclude Include="Transforms\basetransform.h" />
@@ -77,6 +78,7 @@
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
     <ClCompile Include="Tests\TestChannelEqualizer.cpp" />
+    <ClCompile Include="Tests\TestCliParser.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
     <ClCompile Include="Tests\TestFastAligner.cpp" />
     <ClCompile Include="Tests\TestHistogramBuilder.cpp" />
@@ -89,6 +91,7 @@
     <ClCompile Include="Tests\TestStacker.cpp" />
     <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
     <ClCompile Include="Tests\testtools.cpp" />
+    <ClCompile Include="Tools\CliParser.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />
     <ClCompile Include="Transforms\basetransform.cpp" />
