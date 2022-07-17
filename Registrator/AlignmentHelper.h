@@ -9,10 +9,11 @@ class AlignmentHelper : public IParallel
 	size_t _alignerIndex;
 
 	AlignmentHelper(Stacker& stacker, size_t alignerIndex)
-	: IParallel(stacker._hTileCount* stacker._vTileCount)
-	, _stacker(stacker)
+	: _stacker(stacker)
 	, _alignerIndex(alignerIndex)
 	{
+		auto [hTileCount, vTileCount] = GetTileCounts( _stacker._width, _stacker._height );
+		SetJobCount( hTileCount * vTileCount );
 	}
 
 	void Job(uint32_t i) override

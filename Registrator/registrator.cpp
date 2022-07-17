@@ -15,24 +15,21 @@ void SortStars(std::vector<Star>& stars)
     }
 }
 
-Registrator::Registrator(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
-: IParallel(hTileCount * vTileCount)
-, _hTileCount(hTileCount)
-, _vTileCount(vTileCount)
-, _threshold(threshold)
-, _minStarSize(minStarSize)
-, _maxStarSize(maxStarSize)
+Registrator::Registrator( double threshold, uint32_t _minStarSize, uint32_t _maxStarSize )
+:_threshold( threshold )
+, _minStarSize( _minStarSize )
+, _maxStarSize( _maxStarSize )
 {
-    
+
 }
 
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
-    if (pBitmap->GetWidth() < _hTileCount || pBitmap->GetHeight() < _vTileCount)
-        throw std::invalid_argument("too small bitmap");
+    auto [hTileCount, vTileCount] = GetTileCounts( pBitmap->GetWidth(), pBitmap->GetHeight() );
+    SetJobCount( hTileCount * vTileCount );
 
     _stars.clear();
-    _stars.resize(_hTileCount * _vTileCount);
+    _stars.resize(hTileCount * vTileCount);
 
     if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Gray)
     {
@@ -54,13 +51,15 @@ const std::vector<std::vector<Star>>& Registrator::GetStars() const
 
 void Registrator::Job(uint32_t i)
 {
-    const auto w = _pBitmap->GetWidth() / _hTileCount;
-    const auto h = _pBitmap->GetHeight() / _vTileCount;
+    const auto w = tileSize;
+    const auto h = tileSize;
 
-    const auto y = i / _hTileCount;
-    const auto x = i % _hTileCount;
+    auto [hTileCount, vTileCount] = GetTileCounts( _pBitmap->GetWidth(), _pBitmap->GetHeight() );
 
-    Rect roi{ x * w, y * h, (x < _hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w, (y < _vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h };
+    const auto y = i / hTileCount;
+    const auto x = i % hTileCount;
+
+    Rect roi{ x * w, y * h, (x < hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w, (y < vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h };
 
     std::vector<Star> tileStars;
     if (BytesPerChannel(_pBitmap->GetPixelFormat()) == 1)
@@ -76,6 +75,5 @@ void Registrator::Job(uint32_t i)
 
     _mutex.lock();
     _stars[i] = tileStars;
-    _mutex.unlock();
-    
+    _mutex.unlock();    
 }

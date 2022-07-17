@@ -13,23 +13,24 @@
 
 class Registrator : public IParallel
 {
+public:
+    static constexpr uint32_t tileSize = 600;
+
+private:
     std::shared_ptr<IBitmap> _pBitmap;
-    double _threshold;
-    uint32_t _minStarSize;
-    uint32_t _maxStarSize;
+    double _threshold = 40;
+    uint32_t _minStarSize = 5;
+    uint32_t _maxStarSize = 25;
 
     std::vector<std::vector<Star>> _stars;
 
-    uint32_t _hTileCount;
-    uint32_t _vTileCount;
-
 public:
-    Registrator(uint32_t hTileCount, uint32_t vTileCount, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
-
+    Registrator() = default;
+    Registrator( double threshold, uint32_t _minStarSize = 5, uint32_t _maxStarSize = 25);
     void Registrate(std::shared_ptr<IBitmap> pBitmap);
     const std::vector<std::vector<Star>>& GetStars() const;
     
-
+    
 private:
 
     virtual void Job(uint32_t i) override;

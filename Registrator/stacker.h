@@ -39,9 +39,6 @@ class Stacker
     std::vector<float> _devs;
     std::vector<uint16_t> _counts;
 
-    uint32_t _hTileCount = 0;
-    uint32_t _vTileCount = 0;
-
     uint32_t _width = 0;
     uint32_t _height = 0;
 
@@ -64,8 +61,8 @@ public:
 
     Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration = false);
 
-    void Registrate(uint32_t hTileCount = 1, uint32_t vTileCount = 1, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
-    std::shared_ptr<IBitmap>  RegistrateAndStack(uint32_t hTileCount = 1, uint32_t vTileCount = 1, double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
+    std::shared_ptr<IBitmap>  RegistrateAndStack(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);   
 
     TEST_ACCESS(Stacker);

@@ -6,20 +6,6 @@
 
 BEGIN_SUITE(Stacker)
 
-BEGIN_TEST(Stacker, BasicTest)
-
-    std::vector<std::shared_ptr<ImageDecoder>> decoders
-    {
-      ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4296.ppm")),
-      ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4314.ppm")),
-      ImageDecoder::Create(GetPathToTestFile("PPM/IMG_4322.ppm"))
-    };
-
-    auto pStacker = std::make_shared<Stacker>(decoders);
-    EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/BasicTest.ppm"), pStacker->Stack(true)));
-
-END_TEST
-
 BEGIN_TEST(Stacker, TestStackingWithoutAlignment)
 
     std::vector<std::shared_ptr<ImageDecoder>> decoders;
@@ -43,7 +29,7 @@ BEGIN_TEST(Stacker, TestTwoPics)
     };
 
     auto pStacker = std::make_shared<Stacker>(decoders, false);
-    pStacker->Registrate(8, 6, 25, 5, 25);
+    pStacker->Registrate(25, 5, 25);
     auto pStacked = pStacker->Stack(true);
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
 
@@ -58,7 +44,7 @@ std::vector<std::shared_ptr<ImageDecoder>> decoders
 };
 
 auto pStacker = std::make_shared<Stacker>(decoders, false);
-pStacker->Registrate(9, 6, 25, 5, 25);
+pStacker->Registrate(25, 5, 25);
 auto pStacked = pStacker->Stack(true);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestEquatorialRegion.ppm"), pStacked));
 
@@ -74,7 +60,7 @@ std::vector<std::shared_ptr<ImageDecoder>> decoders
 };
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-pStacker->Registrate(9, 6, 25, 5, 25);
+pStacker->Registrate(25, 5, 25);
 auto pStacked = pStacker->Stack(true);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStacked));
 
@@ -93,7 +79,7 @@ for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("R
 }
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->RegistrateAndStack(8, 6, 25, 5, 25)));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->RegistrateAndStack(25, 5, 25)));
 
 END_TEST
 
@@ -107,7 +93,7 @@ std::vector<std::shared_ptr<ImageDecoder>> decoders
 };
 
 auto pStacker = std::make_shared<Stacker>(decoders);
-EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pStacker->RegistrateAndStack(9, 6, 25, 5, 25)));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pStacker->RegistrateAndStack(25, 5, 25)));
 
 END_TEST
 

@@ -36,12 +36,9 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enabl
     }
 }
 
-void Stacker::Registrate(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
-    _hTileCount = hTileCount;
-    _vTileCount = vTileCount;
-
-    auto pRegistrator = std::make_unique<Registrator>(_hTileCount, _vTileCount, threshold, minStarSize, maxStarSize);
+    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
     for (auto& dsPair : _stackingData)
     {
         auto pBitmap = dsPair.pDecoder->ReadBitmap();
@@ -187,13 +184,10 @@ void Stacker::StackWithAlignment(IBitmapPtr pRefBitmap, IBitmapPtr pTargetBitmap
     Log(_stackingData[i].pDecoder->GetLastFileName() + " is stacked");
 }
 
-std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint32_t vTileCount, double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
     if (_stackingData.size() == 0)
         return nullptr;   
-
-    _hTileCount = hTileCount;
-    _vTileCount = vTileCount;
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
 
@@ -206,7 +200,7 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(uint32_t hTileCount, uint3
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
-    auto pRegistrator = std::make_unique<Registrator>(_hTileCount, _vTileCount, threshold, minStarSize, maxStarSize);
+    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
 
     pRegistrator->Registrate(pRefBitmap);
     _stackingData[0].stars = pRegistrator->GetStars();
