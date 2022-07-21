@@ -48,7 +48,7 @@ class Bitmap : public IBitmap
         ChannelType channels[channelCount];
         for (uint32_t i = 0; i < channelCount; ++i)
         {
-            auto channel = static_cast<ChannelType>(fillColor >> (BitsPerChannel(pixelFormat) * i));
+            auto channel = static_cast<ChannelType>(fillColor >> (BitsPerChannel(pixelFormat) * i) & PixelFormatTraits<pixelFormat>::channelMax);
             channels[channelCount - i - 1] = channel;
         }
 

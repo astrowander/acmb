@@ -78,4 +78,29 @@ EXPECT_EQ(0xFF, pBitmap->GetChannel(0, 0, 0));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 1));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 2));
 END_TEST
+
+BEGIN_TEST( Bitmap, CreateWithColor )
+
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Azure );
+EXPECT_EQ( 0x00, pBitmap->GetChannel( 0, 0, 0 ) );
+EXPECT_EQ( 0x7F, pBitmap->GetChannel( 0, 0, 1 ) );
+EXPECT_EQ( 0xFF, pBitmap->GetChannel( 0, 0, 2 ) );
+END_TEST
+
+BEGIN_TEST( Bitmap, CreateWithMakeRGB )
+
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>( 1, 1, MakeRGB24( 55, 143, 198 ) );
+EXPECT_EQ( 55, pBitmap->GetChannel( 0, 0, 0 ) );
+EXPECT_EQ( 143, pBitmap->GetChannel( 0, 0, 1 ) );
+EXPECT_EQ( 198, pBitmap->GetChannel( 0, 0, 2 ) );
+END_TEST
+
+BEGIN_TEST( Bitmap, CreateWithMakeRGB48 )
+
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB48>>( 1, 1, MakeRGB48( 34569, 16252, 1324 ) );
+EXPECT_EQ( 34569, pBitmap->GetChannel( 0, 0, 0 ) );
+EXPECT_EQ( 16252, pBitmap->GetChannel( 0, 0, 1 ) );
+EXPECT_EQ( 1324, pBitmap->GetChannel( 0, 0, 2 ) );
+END_TEST
+
 END_SUITE (Bitmap)

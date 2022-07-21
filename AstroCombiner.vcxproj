@@ -54,6 +54,7 @@
     <ClInclude Include="Tools\Newton2D.h" />
     <ClInclude Include="Transforms\basetransform.h" />
     <ClInclude Include="Transforms\binningtransform.h" />
+    <ClInclude Include="Transforms\BitmapSubtractor.h" />
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
@@ -77,6 +78,7 @@
     <ClCompile Include="Registrator\stacker.cpp" />
     <ClCompile Include="Tests\TestBinningTransform.cpp" />
     <ClCompile Include="Tests\TestBitmap.cpp" />
+    <ClCompile Include="Tests\TestBitmapSubtractor.cpp" />
     <ClCompile Include="Tests\TestChannelEqualizer.cpp" />
     <ClCompile Include="Tests\TestCliParser.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
@@ -96,6 +98,7 @@
     <ClCompile Include="Tools\Newton2D.cpp" />
     <ClCompile Include="Transforms\basetransform.cpp" />
     <ClCompile Include="Transforms\binningtransform.cpp" />
+    <ClCompile Include="Transforms\BitmapSubtractor.cpp" />
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
@@ -225,6 +228,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

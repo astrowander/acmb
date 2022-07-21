@@ -65,6 +65,7 @@ enum class ARGB32Color : uint32_t
     Blue        = 0xFF0000FF,
     White       = 0xFFFFFFFF,
     Gray        = 0xFF7F7F7F,
+    Azure       = 0xFF007FFF,
     Transparent = 0x00000000
 };
 
@@ -76,8 +77,19 @@ enum class ARGB64Color : uint64_t
     Blue        = 0xFFFF'0000'0000'FFFF,
     White       = 0xFFFF'FFFF'FFFF'FFFF,
     Gray        = 0xFFFF'7FFF'7FFF'7FFF,
+    Azure       = 0xFFFF'0000'7FFF,FFFF,
     Transparent = 0x0000'0000'0000'0000
 };
+
+constexpr uint32_t MakeRGB24( uint8_t r, uint8_t g, uint8_t b )
+{
+    return uint32_t{ b } + ( uint32_t{ g } << 8 ) + ( uint32_t{ r } << 16 );
+}
+
+constexpr uint64_t MakeRGB48( uint16_t r, uint16_t g, uint16_t b )
+{
+    return uint64_t{ b } + ( uint64_t{ g } << 16 ) + ( uint64_t{ r } << 32 );
+}
 
 enum class Channel : uint32_t
 {

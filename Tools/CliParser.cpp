@@ -72,7 +72,15 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
     it = _kv.find( "-stack" );
     if ( it != std::end( _kv ) )
     {
-        auto paths = it->second;
+        std::string paths;
+        it = _kv.find( "-input" );
+        if ( it == std::end( _kv ) )
+        {
+            return { 1, "Input files are not specified" };
+        }
+        paths = it->second;
+
+        it = _kv.find( "-output" );
 
         std::string outputPath;
         it = _kv.find( "-output" );
@@ -147,7 +155,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             return {};
 
         Stacker stacker( _decoders );
-        auto pRes = stacker.RegistrateAndStack();
+        auto pRes = (_kv.find("-noalign") == std::end(_kv)) ? stacker.RegistrateAndStack() : stacker.Stack(false);
         IBitmap::Save( pRes, outputPath );
         return {};
     }
