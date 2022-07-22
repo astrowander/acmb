@@ -69,18 +69,18 @@ END_TEST
 BEGIN_TEST( CliParser, StackWrongDirectory )
 
 std::string dirName = GetPathToTestFile( "RAW/MilkyWayCR4/" );
-std::vector<const char*> data = { "-stack", "-input", "-dir", dirName.data(), "-output", "test.txt" };
+std::vector<const char*> data = { "-stack", "-input", dirName.data(), "-output", "test.txt" };
 CliParser parser( data.size(), ( &data[0] ) );
 auto res = parser.Parse( true );
 EXPECT_EQ( 1, res.first );
-EXPECT_EQ( "No such directory", res.second );
+EXPECT_EQ( "Nothing to stack", res.second );
 
 END_TEST
 
 BEGIN_TEST( CliParser, StackDirectory )
 
 std::string dirName = GetPathToTestFile( "RAW/MilkyWayCR2/" );
-std::vector<const char*> data = { "-stack", "-input", "-dir", dirName.data(), "-output", "test.txt"};
+std::vector<const char*> data = { "-stack", "-input", dirName.data(), "-output", "test.txt"};
 CliParser parser( data.size(), ( &data[0] ) );
 auto res = parser.Parse( true );
 EXPECT_EQ( 0, res.first );

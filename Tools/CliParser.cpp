@@ -89,57 +89,52 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             return { 1, "Output file is not specified" };
         }
 
-        outputPath = it->second;
-        
+        outputPath = it->second;     
+        size_t start = 0;
 
-        it = _kv.find( "-dir" );
-        if ( it != std::end( _kv ) )
+        while ( start < paths.size() )
         {
-            if ( !std::filesystem::is_directory( it->second ) )
-            {
-                return { 1, "No such directory" };
-            }
-            _decoders = ImageDecoder::GetDecodersFromDir( it->second );
-        }
-        else
-        {
-            size_t start = 0;
+            auto end = paths.find_first_of( ';', start );
+            std::string fileName = paths.substr( start, end - start );
+            size_t tildePos = fileName.find_first_of( '~' );
 
-            while ( start < paths.size() )
+            if ( std::filesystem::exists( fileName ) )
             {
-                auto end = paths.find_first_of( ';', start );
-                std::string fileName = paths.substr( start, end - start );
-                size_t tildePos = fileName.find_first_of( '~' );
-
-                if ( std::filesystem::exists( fileName ) )
+                if ( std::filesystem::is_directory( fileName ) )
+                {
+                    auto decoders = ImageDecoder::GetDecodersFromDir( fileName );
+                    _decoders.insert( _decoders.end(), decoders.begin(), decoders.end() );
+                }
+                else
                 {
                     _decoders.push_back( ImageDecoder::Create( fileName ) );
                 }
-                else if ( tildePos != std::string::npos )
+            }
+            else if ( tildePos != std::string::npos )
+            {
+                size_t pointPos = fileName.find_first_of( '.', tildePos );
+                auto varDigitCount = pointPos - tildePos - 1;
+                if ( varDigitCount != 0 )
                 {
-                    size_t pointPos = fileName.find_first_of( '.', tildePos );
-                    auto varDigitCount = pointPos - tildePos - 1;
-                    if ( varDigitCount != 0 )
+
+                    int minNum = std::stoi( fileName.substr( tildePos - varDigitCount, varDigitCount ) );
+                    int maxNum = std::stoi( fileName.substr( tildePos + 1, varDigitCount ) );
+
+                    for ( int j = minNum; j <= maxNum; ++j )
                     {
-
-                        int minNum = std::stoi( fileName.substr( tildePos - varDigitCount, varDigitCount ) );
-                        int maxNum = std::stoi( fileName.substr( tildePos + 1, varDigitCount ) );
-
-                        for ( int j = minNum; j <= maxNum; ++j )
-                        {
-                            auto tempName = fileName.substr( 0, tildePos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
-                            if ( std::filesystem::exists( tempName ) )
-                                _decoders.push_back( ImageDecoder::Create( tempName ) );
-                        }
+                        auto tempName = fileName.substr( 0, tildePos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
+                        if ( std::filesystem::exists( tempName ) )
+                            _decoders.push_back( ImageDecoder::Create( tempName ) );
                     }
                 }
-
-                if ( end == std::string::npos )
-                    break;
-
-                start = end + 1;
             }
+
+            if ( end == std::string::npos )
+                break;
+
+            start = end + 1;
         }
+ 
 
         if ( _decoders.empty() )
         {
