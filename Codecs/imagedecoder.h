@@ -45,6 +45,7 @@ public:
     }
 
     static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromDir( std::string path );
+    static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromMask( std::string mask );
 };
 
 #endif // IMAGEDECODER_H

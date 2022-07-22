@@ -109,4 +109,17 @@ EXPECT_EQ( "Nothing to stack", res.second );
 
 END_TEST
 
+BEGIN_TEST ( CliParser, StackWithDarks)
+std::string lights = GetPathToTestFile( "RAW/StackWithDarks/Lights/" );
+std::string darks = GetPathToTestFile( "RAW/StackWithDarks/Darks/" );
+std::vector<const char*> data = { "-stack", "-input", lights.data(), "-darks", darks.data(), "-output", "test.txt"};
+
+CliParser parser( data.size(), ( &data[0] ) );
+auto res = parser.Parse( true );
+EXPECT_EQ( 0, res.first );
+EXPECT_EQ( 10, parser._decoders.size() );
+EXPECT_EQ( 10, parser._darks.size() );
+
+END_TEST
+
 END_SUITE( CliParser )

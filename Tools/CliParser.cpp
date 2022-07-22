@@ -4,17 +4,6 @@
 #include "./../Registrator/stacker.h"
 #include <filesystem>
 
-std::string IntToString( int num, int minDigitCount )
-{
-    auto res = std::to_string( num );
-    if ( res.size() < minDigitCount )
-    {
-        res.insert( 0, std::string( minDigitCount - res.size(), '0' ) );
-    }
-
-    return res;
-}
-
 CliParser::CliParser( int argc, const char** argv )
 {
     if ( argc < 1 )
@@ -23,7 +12,7 @@ CliParser::CliParser( int argc, const char** argv )
     if ( !argv )
         throw std::invalid_argument( "argv" );
 
-    for ( int i = 0; i < argc; )
+    for ( size_t i = 0; i < argc; )
     {
         if ( argv[i][0] != '-' )
         {
@@ -89,52 +78,17 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             return { 1, "Output file is not specified" };
         }
 
-        outputPath = it->second;     
-        size_t start = 0;
+        outputPath = it->second; 
 
-        while ( start < paths.size() )
+        _darks.clear();
+        it = _kv.find( "-darks" );
+        if ( it != std::end( _kv ) )
         {
-            auto end = paths.find_first_of( ';', start );
-            std::string fileName = paths.substr( start, end - start );
-            size_t tildePos = fileName.find_first_of( '~' );
-
-            if ( std::filesystem::exists( fileName ) )
-            {
-                if ( std::filesystem::is_directory( fileName ) )
-                {
-                    auto decoders = ImageDecoder::GetDecodersFromDir( fileName );
-                    _decoders.insert( _decoders.end(), decoders.begin(), decoders.end() );
-                }
-                else
-                {
-                    _decoders.push_back( ImageDecoder::Create( fileName ) );
-                }
-            }
-            else if ( tildePos != std::string::npos )
-            {
-                size_t pointPos = fileName.find_first_of( '.', tildePos );
-                auto varDigitCount = pointPos - tildePos - 1;
-                if ( varDigitCount != 0 )
-                {
-
-                    int minNum = std::stoi( fileName.substr( tildePos - varDigitCount, varDigitCount ) );
-                    int maxNum = std::stoi( fileName.substr( tildePos + 1, varDigitCount ) );
-
-                    for ( int j = minNum; j <= maxNum; ++j )
-                    {
-                        auto tempName = fileName.substr( 0, tildePos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
-                        if ( std::filesystem::exists( tempName ) )
-                            _decoders.push_back( ImageDecoder::Create( tempName ) );
-                    }
-                }
-            }
-
-            if ( end == std::string::npos )
-                break;
-
-            start = end + 1;
+            _darks = ImageDecoder::GetDecodersFromMask( it->second );
         }
- 
+
+        _decoders.clear();
+        _decoders = ImageDecoder::GetDecodersFromMask( paths ); 
 
         if ( _decoders.empty() )
         {
@@ -145,6 +99,11 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             return {};
 
         Stacker stacker( _decoders );
+        if ( !_darks.empty() )
+        {
+            Stacker darkStacker( _darks );
+            stacker.SetDarkFrame( darkStacker.Stack( false ) );
+        }
         auto pRes = (_kv.find("-noalign") == std::end(_kv)) ? stacker.RegistrateAndStack() : stacker.Stack(false);
         IBitmap::Save( pRes, outputPath );
         return {};

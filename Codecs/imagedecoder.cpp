@@ -7,6 +7,17 @@
 #include "RAW/rawdecoder.h"
 #include <filesystem>
 
+std::string IntToString( size_t num, size_t minDigitCount )
+{
+    auto res = std::to_string( num );
+    if ( res.size() < minDigitCount )
+    {
+        res.insert( 0, std::string( minDigitCount - res.size(), '0' ) );
+    }
+
+    return res;
+}
+
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
     if (!pStream)
@@ -70,6 +81,57 @@ std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std
     {         
         if ( !std::filesystem::is_directory( entry ) )
             res.push_back( ImageDecoder::Create( entry.path().u8string() ) );
+    }
+
+    return res;
+}
+
+std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromMask( std::string mask )
+{
+    size_t start = 0;
+    std::vector<std::shared_ptr<ImageDecoder>>  res;
+
+    while ( start < mask.size() )
+    {
+        auto end = mask.find_first_of( ';', start );
+        std::string fileName = mask.substr( start, end - start );
+        size_t tildePos = fileName.find_first_of( '~' );
+
+        if ( std::filesystem::exists( fileName ) )
+        {
+            if ( std::filesystem::is_directory( fileName ) )
+            {
+                auto decoders = ImageDecoder::GetDecodersFromDir( fileName );
+                res.insert( res.end(), decoders.begin(), decoders.end() );
+            }
+            else
+            {
+                res.push_back( ImageDecoder::Create( fileName ) );
+            }
+        }
+        else if ( tildePos != std::string::npos )
+        {
+            size_t pointPos = fileName.find_first_of( '.', tildePos );
+            auto varDigitCount = pointPos - tildePos - 1;
+            if ( varDigitCount != 0 )
+            {
+
+                int minNum = std::stoi( fileName.substr( tildePos - varDigitCount, varDigitCount ) );
+                int maxNum = std::stoi( fileName.substr( tildePos + 1, varDigitCount ) );
+
+                for ( int j = minNum; j <= maxNum; ++j )
+                {
+                    auto tempName = fileName.substr( 0, tildePos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
+                    if ( std::filesystem::exists( tempName ) )
+                        res.push_back( Create( tempName ) );
+                }
+            }
+        }
+
+        if ( end == std::string::npos )
+            break;
+
+        start = end + 1;
     }
 
     return res;
