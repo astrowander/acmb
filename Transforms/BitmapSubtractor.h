@@ -10,6 +10,7 @@ protected:
 public:
     BaseBitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
     static std::shared_ptr<BaseBitmapSubtractor> Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+    static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
 };
 
 template <PixelFormat pixelFormat>
@@ -28,21 +29,25 @@ public:
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
         auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmapToSubtract );
-        auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
+        //auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
         auto pSrcScanline = pSrcBitmap->GetScanline( i );
         auto pScanlineToSubtract = pBitmapToSubtract->GetScanline( i );
-        auto pDstScanline = pDstBitmap->GetScanline( i );
+        //auto pDstScanline = pDstBitmap->GetScanline( i );
 
-        for ( uint32_t j = 0; j < pDstBitmap->GetWidth() * PixelFormatTraits<pixelFormat>::channelCount; ++j )
+        const size_t N = pSrcBitmap->GetWidth() * PixelFormatTraits<pixelFormat>::channelCount;
+
+        for ( uint32_t j = 0; j < N ; ++j )
         {
-            pDstScanline[j] = std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] );            
+            pSrcScanline[j] = std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] );            
         }
     }
 
     void Run() override
     {
-        this->_pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
         DoParallelJobs();
-    }   
+        this->_pDstBitmap = this->_pSrcBitmap;
+    }
+
+    
 };
 

@@ -53,6 +53,8 @@ class Stacker
     std::vector<std::shared_ptr<FastAligner>> _aligners;
     MatchMap _matches;
 
+    IBitmapPtr _pDarkFrame;
+
 
     void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const GridCell& trianglePairs);
     void StackWithAlignment(IBitmapPtr pRefBitmap, IBitmapPtr pTargetBitmap, uint32_t i);    
@@ -65,6 +67,7 @@ public:
     std::shared_ptr<IBitmap>  RegistrateAndStack(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
     std::shared_ptr<IBitmap> Stack(bool doAlignment);   
 
+    void SetDarkFrame( IBitmapPtr pDarkFrame );
     TEST_ACCESS(Stacker);
 
 };

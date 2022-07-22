@@ -99,12 +99,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
             {
                 return { 1, "No such directory" };
             }
-
-            for ( const auto& entry : std::filesystem::directory_iterator( it->second ) )
-            {
-                if ( !std::filesystem::is_directory( entry ) )
-                    _decoders.push_back( ImageDecoder::Create( entry.path().u8string() ) );
-            }
+            _decoders = ImageDecoder::GetDecodersFromDir( it->second );
         }
         else
         {

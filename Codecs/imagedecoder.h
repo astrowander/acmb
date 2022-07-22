@@ -2,7 +2,7 @@
 #define IMAGEDECODER_H
 
 #include <string>
-#include <istream>
+#include <vector>
 #include <iostream>
 #include <memory>
 #include "../Core/imageparams.h"
@@ -44,7 +44,7 @@ public:
         return _pCameraSettings;
     }
 
-
+    static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromDir( std::string path );
 };
 
 #endif // IMAGEDECODER_H

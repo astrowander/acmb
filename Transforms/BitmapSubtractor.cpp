@@ -30,3 +30,9 @@ std::shared_ptr<BaseBitmapSubtractor> BaseBitmapSubtractor::Create( IBitmapPtr p
             throw std::runtime_error( "pixel format must be known" );
     }
 }
+
+IBitmapPtr BaseBitmapSubtractor::Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
+{
+    auto pSubtractor = Create( pSrcBitmap, pBitmapToSubtract );
+    return pSubtractor->RunAndGetBitmap();
+}

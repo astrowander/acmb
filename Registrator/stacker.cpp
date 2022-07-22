@@ -9,6 +9,7 @@
 #include "../Codecs/imagedecoder.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/deaberratetransform.h"
+#include "../Transforms/BitmapSubtractor.h"
 
 void Log(const std::string& message)
 {
@@ -36,13 +37,20 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enabl
     }
 }
 
+void Stacker::SetDarkFrame( IBitmapPtr pDarkFrame )
+{
+    _pDarkFrame = pDarkFrame;
+}
+
 void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
 {
     auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
     for (auto& dsPair : _stackingData)
     {
         auto pBitmap = dsPair.pDecoder->ReadBitmap();
-        
+        if ( _pDarkFrame )
+            BaseBitmapSubtractor::Subtract( pBitmap, _pDarkFrame );
+
         if (_enableDeaberration)
         {
             auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pBitmap, dsPair.pDecoder->GetCameraSettings());
@@ -72,6 +80,8 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     Log(_stackingData[0].pDecoder->GetLastFileName() + " in process");
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    if ( _pDarkFrame )
+        BaseBitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
 
     Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is read");
 
@@ -107,6 +117,8 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
         Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        if ( _pDarkFrame )
+            BaseBitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
@@ -190,6 +202,8 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
         return nullptr;   
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    if ( _pDarkFrame )
+        BaseBitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
 
     if (_enableDeaberration)
     {
@@ -224,6 +238,8 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
         Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
         Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        if ( _pDarkFrame )
+            BaseBitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");

@@ -68,17 +68,7 @@ END_TEST
 
 BEGIN_TEST(Stacker, TestMilkyWay)
 
-std::vector<std::shared_ptr<ImageDecoder>> decoders;
-for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/MilkyWayCR2/")))
-{
-    if (path.path().extension() != ".CR2")
-        continue;
-
-    decoders.push_back(std::make_shared<RawDecoder>(false));
-    decoders.back()->Attach(path.path().generic_string());
-}
-
-auto pStacker = std::make_shared<Stacker>(decoders);
+auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "RAW/MilkyWayCR2/" ) ) );
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->RegistrateAndStack(25, 5, 25)));
 
 END_TEST
@@ -94,6 +84,18 @@ std::vector<std::shared_ptr<ImageDecoder>> decoders
 
 auto pStacker = std::make_shared<Stacker>(decoders);
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pStacker->RegistrateAndStack(25, 5, 25)));
+
+END_TEST
+
+BEGIN_TEST( Stacker, StackWithDarks )
+
+    auto pDarkStacker = std::make_shared<Stacker>( ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) ) );
+    auto pDarkFrame = pDarkStacker->Stack( false );
+    pDarkStacker.reset();
+
+    auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) ) );
+    pStacker->SetDarkFrame( pDarkFrame );
+    EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/StackWithDarks.ppm" ), pStacker->RegistrateAndStack( 25, 5, 25 ) ) );
 
 END_TEST
 

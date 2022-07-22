@@ -5,6 +5,7 @@
 
 #include "PPM/ppmdecoder.h"
 #include "RAW/rawdecoder.h"
+#include <filesystem>
 
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
@@ -57,6 +58,21 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
 
     pDecoder->Attach(fileName);
     return pDecoder;
+}
+
+std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std::string path )
+{
+    if ( !std::filesystem::is_directory( path ) )
+        return {};
+
+    std::vector<std::shared_ptr<ImageDecoder>>  res;
+    for ( const auto& entry : std::filesystem::directory_iterator( path) )
+    {         
+        if ( !std::filesystem::is_directory( entry ) )
+            res.push_back( ImageDecoder::Create( entry.path().u8string() ) );
+    }
+
+    return res;
 }
 
 std::unique_ptr<std::istringstream> ImageDecoder::ReadLine()
