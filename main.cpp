@@ -2,9 +2,9 @@
 
 int main(int argc, const char** argv)
 {
-    auto res = CliParser::Parse(argc, argv);
-    if ( !res.second.empty() )
-        std::cout << res.second << std::endl;
+    auto [res, errMsg] = CliParser::Parse(argc, argv);
+    if ( !errMsg.empty() )
+        std::cout << errMsg << std::endl;
 
-    return res.first;
+    return res;
 }

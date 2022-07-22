@@ -32,7 +32,7 @@ CliParser::CliParser( int argc, const char** argv )
     }
 }
 
-std::pair<int, std::string> CliParser::Parse( bool testMode )
+std::tuple<int, std::string> CliParser::Parse( bool testMode )
 {
     auto it = _kv.find( "-runtests" );
     if ( !testMode && it != std::end( _kv ) )
@@ -40,7 +40,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
         it = _kv.find( "-suite" );
         if ( it == std::end( _kv ) )
         {
-            TestRunner::GetInstance().RunAllTests();
+            TestRunner::RunAllTests();
             return {};
         }
 
@@ -50,11 +50,11 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
 
         if ( it == std::end( _kv ) )
         {
-            TestRunner::GetInstance().RunSuite( suite );
+            TestRunner::RunSuite( suite );
             return {};
         }
 
-        TestRunner::GetInstance().RunTest( suite, it->second );
+        TestRunner::RunTest( suite, it->second );
         return {};
     }
 
@@ -112,7 +112,7 @@ std::pair<int, std::string> CliParser::Parse( bool testMode )
     return { 1, "Nothing to do" };
 }
 
-std::pair<int, std::string> CliParser::Parse( int argc, const char** argv )
+std::tuple<int, std::string> CliParser::Parse( int argc, const char** argv )
 {
     CliParser parser(argc, argv);
     return parser.Parse();

@@ -21,7 +21,7 @@ public:
 class Test##TestSuite : public Suite \
 {\
 inline static auto _tests = std::unordered_map<std::string, std::function<bool( void )>>();\
-inline static bool handle = TestRunner::GetInstance().AddSuite(#TestSuite, std::make_shared<Test##TestSuite>());\
+inline static bool handle = TestRunner::AddSuite(#TestSuite, std::make_shared<Test##TestSuite>());\
 public:\
 Test##TestSuite()\
 {\

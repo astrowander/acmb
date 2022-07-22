@@ -13,10 +13,10 @@ class CliParser
     std::vector<std::shared_ptr<ImageDecoder>> _darks;
 
     CliParser( int argc, const char** argv );
-    std::pair<int, std::string> Parse( bool testMode = false );
+    std::tuple<int, std::string> Parse( bool testMode = false );
 
 public:
 
-    static std::pair<int, std::string> Parse( int argc, const char** argv );
+    static std::tuple<int, std::string> Parse( int argc, const char** argv );
     TEST_ACCESS( CliParser );
 };

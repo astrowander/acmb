@@ -42,9 +42,3 @@ const bool TestRunner::AddSuite( const std::string& suiteName, std::shared_ptr<S
     _suites.insert( { suiteName, pSuite } );
     return true;
 }
-
-TestRunner& TestRunner::GetInstance()
-{
-    static TestRunner instance;
-    return instance;
-}
