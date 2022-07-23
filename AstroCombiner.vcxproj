@@ -58,6 +58,7 @@
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
+    <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +103,7 @@
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
+    <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -227,7 +229,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>

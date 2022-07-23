@@ -80,7 +80,7 @@ std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std
     for ( const auto& entry : std::filesystem::directory_iterator( path) )
     {         
         if ( !std::filesystem::is_directory( entry ) )
-            res.push_back( ImageDecoder::Create( entry.path().u8string() ) );
+            res.push_back( ImageDecoder::Create( reinterpret_cast<char*>(entry.path().u8string().data() )) );
     }
 
     return res;
