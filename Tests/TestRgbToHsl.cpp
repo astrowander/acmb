@@ -80,4 +80,17 @@ EXPECT_EQ( convertedRgb[2], convertedRgb[2] );
 
 END_TEST
 
+BEGIN_TEST ( RgbToHsl, TestDesaturation )
+
+std::array<uint8_t, 3> rgb = { 129, 0, 188 };
+auto hsl = RgbToHsl( rgb );
+hsl[1] *= 0.5f;
+hsl[2] *= 0.5f;
+rgb = HslToRgb<uint8_t>( hsl );
+
+EXPECT_EQ( rgb[0], 56 );
+EXPECT_EQ( rgb[1], 24 );
+EXPECT_EQ( rgb[2], 71 );
+END_TEST
+
 END_SUITE( RgbToHsl )
