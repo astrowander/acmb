@@ -1,5 +1,5 @@
 #include "RawDecoder.h"
-#include "libraw/libraw.h"
+
 #include "../../Core/bitmap.h"
 #include <map>
 #include <string>

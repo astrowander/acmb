@@ -210,7 +210,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

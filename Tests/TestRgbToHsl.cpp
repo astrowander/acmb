@@ -55,12 +55,14 @@ const std::vector< std::array<double, 3> > hslColors =
 
 for ( size_t i = 0; i < rgbColors.size(); ++i )
 {
-    auto actualHsl = RgbToHsl( rgbColors[i] );
+    auto actualHsl = RgbToHsl( std::span(rgbColors[i]) );
     EXPECT_NEAR( hslColors[i][0], actualHsl[0], 1.0 );
     EXPECT_NEAR( hslColors[i][1], actualHsl[1], 0.01 );
     EXPECT_NEAR( hslColors[i][2], actualHsl[2], 0.01 );
 
-    auto convertedRgb = HslToRgb<uint8_t>( actualHsl );
+    std::array<uint8_t, 3> convertedRgb;
+    std::span<uint8_t, 3> span( convertedRgb );
+    HslToRgb<uint8_t>( actualHsl, span);
 
     EXPECT_EQ( rgbColors[i][0], convertedRgb[0] );
     EXPECT_EQ( rgbColors[i][1], convertedRgb[1] );
@@ -72,21 +74,25 @@ END_TEST
 BEGIN_TEST( RgbToHsl, TestRgb48 )
 
 std::array<uint16_t, 3> rgb = { 13107, 39321, 52428 };
-auto hsl = RgbToHsl( rgb );
-auto convertedRgb = HslToRgb<uint16_t>( hsl );
-EXPECT_EQ( convertedRgb[0], convertedRgb[0] );
-EXPECT_EQ( convertedRgb[1], convertedRgb[1] );
-EXPECT_EQ( convertedRgb[2], convertedRgb[2] );
+auto hsl = RgbToHsl( std::span( rgb ) );
+std::array<uint16_t, 3> convertedRgb;
+std::span<uint16_t, 3> span( convertedRgb );
+HslToRgb<uint16_t>( hsl, span );
+
+EXPECT_EQ( rgb[0], convertedRgb[0]);
+EXPECT_EQ( rgb[1], convertedRgb[1] );
+EXPECT_EQ( rgb[2], convertedRgb[2] );
 
 END_TEST
 
 BEGIN_TEST ( RgbToHsl, TestDesaturation )
 
 std::array<uint8_t, 3> rgb = { 129, 0, 188 };
-auto hsl = RgbToHsl( rgb );
+std::span<uint8_t, 3> span( rgb );
+auto hsl = RgbToHsl( span );
 hsl[1] *= 0.5f;
 hsl[2] *= 0.5f;
-rgb = HslToRgb<uint8_t>( hsl );
+HslToRgb<uint8_t>( hsl, span );
 
 EXPECT_EQ( rgb[0], 56 );
 EXPECT_EQ( rgb[1], 24 );

@@ -3,8 +3,8 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
-
-class LibRaw;
+#include "libraw/libraw.h"
+//class LibRaw;
 
 class RawDecoder : public ImageDecoder
 {

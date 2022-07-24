@@ -5,6 +5,7 @@
 #include <array>
 #include <cmath>
 #include <limits>
+#include <span>
 
 #undef max
 #undef min
@@ -25,7 +26,7 @@ constexpr std::tuple<uint32_t, uint32_t> GetTileCounts( uint32_t width, uint32_t
 }
 
 template <typename ChannelType>
-std::array<float, 3> RgbToHsl( const std::array<ChannelType, 3> rgb )
+std::array<float, 3> RgbToHsl( const std::span<ChannelType, 3>& rgb )
 {
     constexpr float channelMax = std::numeric_limits<ChannelType>::max();
     const float r = rgb[0] / channelMax;
@@ -60,7 +61,7 @@ std::array<float, 3> RgbToHsl( const std::array<ChannelType, 3> rgb )
 }
 
 template <typename ChannelType>
-std::array<ChannelType, 3> HslToRgb( const std::array<float, 3>& hsl )
+void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb )
 {
     const auto f = [&hsl] ( int n )
     {
@@ -71,8 +72,9 @@ std::array<ChannelType, 3> HslToRgb( const std::array<float, 3>& hsl )
     };
 
     constexpr float channelMax = std::numeric_limits<ChannelType>::max();
-
-    return { ChannelType( std::clamp( f( 0 ) * channelMax, 0.0f, channelMax ) + 0.5f ),  ChannelType( std::clamp( f( 8 ) * channelMax, 0.0f, channelMax ) + 0.5f ), ChannelType( std::clamp( f( 4 ) * channelMax, 0.0f, channelMax ) + 0.5f ) };
+    rgb[0] = ChannelType( std::clamp( f( 0 ) * channelMax, 0.0f, channelMax ) + 0.5f );
+    rgb[1] = ChannelType( std::clamp( f( 8 ) * channelMax, 0.0f, channelMax ) + 0.5f );
+    rgb[2] = ChannelType( std::clamp( f( 4 ) * channelMax, 0.0f, channelMax ) + 0.5f );
 }
 
 #endif
