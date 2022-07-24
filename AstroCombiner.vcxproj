@@ -84,6 +84,7 @@
     <ClCompile Include="Tests\TestCliParser.cpp" />
     <ClCompile Include="Tests\TestConverter.cpp" />
     <ClCompile Include="Tests\TestFastAligner.cpp" />
+    <ClCompile Include="Tests\TestHaloRemoval.cpp" />
     <ClCompile Include="Tests\TestHistogramBuilder.cpp" />
     <ClCompile Include="Tests\TestNewton2D.cpp" />
     <ClCompile Include="Tests\TestPpmDecoder.cpp" />

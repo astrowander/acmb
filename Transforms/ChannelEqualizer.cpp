@@ -1,4 +1,5 @@
 #include "ChannelEqualizer.h"
+#include "HistogramBuilder.h"
 
 BaseChannelEqualizer::BaseChannelEqualizer(IBitmapPtr pSrcBitmap)
 : BaseTransform(pSrcBitmap)
@@ -23,4 +24,14 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 	default:
 		throw std::runtime_error("pixel format should be known");
 	}
+}
+
+IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
+{
+	auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
+	pHistBuilder->BuildHistogram();
+	double rCoef = double(pHistBuilder->GetChannelStatistics( 1 ).peak) / double(pHistBuilder->GetChannelStatistics( 0 ).peak);
+	double bCoef = double( pHistBuilder->GetChannelStatistics( 1 ).peak) / double( pHistBuilder->GetChannelStatistics( 2 ).peak);
+	auto pEqualizer = Create( pSrcBitmap, { rCoef, 1.0, bCoef } );
+	return pEqualizer->RunAndGetBitmap();
 }

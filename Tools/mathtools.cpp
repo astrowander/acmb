@@ -8,3 +8,8 @@ float QuadraticInterpolation(float t, float t0, float t1, float t2)
     auto res = a * t * t + b * t + t0;
     return res;
 }
+
+float normalDist( float x, float xmax, float ymax, float sigma )
+{
+    return ymax * exp( -0.5f * ( xmax - x ) * ( xmax - x ) / sigma / sigma );
+}

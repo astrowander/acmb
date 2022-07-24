@@ -10,6 +10,7 @@ protected:
 
 public:
 	static std::shared_ptr<BaseChannelEqualizer> Create(IBitmapPtr pSrcBitmap, const std::vector<double>& multipliers);
+	static IBitmapPtr AutoEqualize( IBitmapPtr pSrcBitmap );
 };
 
 template<PixelFormat pixelFormat>

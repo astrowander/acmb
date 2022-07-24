@@ -272,5 +272,8 @@
     <ClCompile Include="Tests\TestRgbToHsl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\TestHaloRemoval.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

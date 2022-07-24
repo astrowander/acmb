@@ -41,13 +41,14 @@ class HistogramBuilder : public BaseHistorgamBuilder
 
 	void Job(uint32_t i) override
 	{
+		std::scoped_lock lock( _mutex );
 		for (uint32_t ch = 0; ch < channelCount; ++ch)
 		{
 			auto pBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
 			auto pChannel = pBitmap->GetScanline(i) + ch;
+
 			for (uint32_t x = 0; x < pBitmap->GetWidth(); ++x)
 			{
-				_mutex.lock();
 				ChannelType val = *pChannel;
 				++_histograms[ch][val];
 				if (val < _statistics[ch].min)
@@ -58,12 +59,12 @@ class HistogramBuilder : public BaseHistorgamBuilder
 				{
 					_statistics[ch].max = val;
 				}
-				if (_histograms[ch][val] > _histograms[ch][_statistics[ch].peak])
+				if   ( _histograms[ch][val] >  _histograms[ch][_statistics[ch].peak] ||
+					 ( _histograms[ch][val] == _histograms[ch][_statistics[ch].peak] && val > _statistics[ch].peak ) )
 				{
 					_statistics[ch].peak = val;
 				}
 				pChannel += channelCount;
-				_mutex.unlock();
 			}
 		}
 	}

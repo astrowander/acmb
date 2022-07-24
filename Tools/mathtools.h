@@ -77,4 +77,6 @@ void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb 
     rgb[2] = ChannelType( std::clamp( f( 4 ) * channelMax, 0.0f, channelMax ) + 0.5f );
 }
 
+float normalDist( float x, float xmax, float ymax, float sigma );
+
 #endif
