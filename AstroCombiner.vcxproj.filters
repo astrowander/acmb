@@ -135,6 +135,9 @@
     <ClInclude Include="Transforms\BitmapSubtractor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms\HaloRemovalTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -261,6 +264,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestBitmapSubtractor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\HaloRemovalTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\TestRgbToHsl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

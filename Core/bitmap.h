@@ -1,16 +1,16 @@
 #ifndef BITMAP_H
 #define BITMAP_H
 #include "enums.h"
-#include "imageparams.h"
-#include "../Tools/mathtools.h"
+
 
 #include <vector>
 #include <memory>
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
-
-#undef max
+#include "imageparams.h"
+#include "../Tools/mathtools.h"
+//#undef max
 
 class IBitmap : public ImageParams
 {

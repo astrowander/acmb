@@ -90,6 +90,7 @@
     <ClCompile Include="Tests\TestPpmEncoder.cpp" />
     <ClCompile Include="Tests\TestRawDecoder.cpp" />
     <ClCompile Include="Tests\TestRegistrator.cpp" />
+    <ClCompile Include="Tests\TestRgbToHsl.cpp" />
     <ClCompile Include="Tests\TestRunner.cpp" />
     <ClCompile Include="Tests\TestStacker.cpp" />
     <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
