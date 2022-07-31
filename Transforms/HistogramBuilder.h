@@ -8,6 +8,7 @@ struct HistogramStatistics
 	uint32_t min = std::numeric_limits<uint32_t>::max();
 	uint32_t peak = 0;
 	uint32_t max = 0;
+	uint32_t decils[10] = {};
 };
 
 class BaseHistorgamBuilder : public IParallel
@@ -80,6 +81,26 @@ public:
 			_histograms[ch].resize(channelMax + 1);
 
 		DoParallelJobs();
+
+		const uint32_t decilPixCount = _pBitmap->GetWidth() * _pBitmap->GetHeight() / 10;
+		for ( uint32_t ch = 0; ch < channelCount; ++ch )
+		{
+			uint32_t sum = 0;
+			uint32_t curDecil = 1;
+			for ( uint32_t i = 0; i < channelMax + 1; ++i )
+			{
+				sum += _histograms[ch][i];
+				while ( sum > decilPixCount )
+				{
+					_statistics[ch].decils[curDecil] = i;
+					++curDecil;					
+					sum -= decilPixCount;
+				}
+
+				if ( curDecil == 10 )
+					break;
+			}
+		}
 	}
 
 	const ChannelHistogram& GetChannelHistogram(uint32_t ch) const override

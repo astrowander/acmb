@@ -8,29 +8,38 @@ class BaseHaloRemovalTransform : public BaseTransform
 {
 protected:
     float _intensity;
-    float _peakHue = 270;
-    float _sigma = 15;
+    float _peakHue;
+    float _sigma;
+    float _bgL;
 
-public:
-    BaseHaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensity );
-    static std::shared_ptr<BaseHaloRemovalTransform> Create( IBitmapPtr pSrcBitmap, float intensity );
-    static IBitmapPtr RemoveHalo( IBitmapPtr pSrcBitmap, float intensity );
+    BaseHaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma );
+
+public:    
+    static std::shared_ptr<BaseHaloRemovalTransform> Create( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.0f );
+    static IBitmapPtr RemoveHalo( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.f );
 };
 
 template <PixelFormat pixelFormat>
 class HaloRemovalTransform : public BaseHaloRemovalTransform, public IParallel
 {
-    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;   
 
 public:
-    HaloRemovalTransform( std::shared_ptr <Bitmap<pixelFormat>> pSrcBitmap, float intensity)
-    : BaseHaloRemovalTransform(pSrcBitmap, intensity)
-    , IParallel(pSrcBitmap->GetHeight())
-    { }
+    
+    HaloRemovalTransform( std::shared_ptr <Bitmap<pixelFormat>> pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
+    : BaseHaloRemovalTransform( pSrcBitmap, intensity, bgL, peakHue, sigma )
+    , IParallel( pSrcBitmap->GetHeight() )
+    {
+    }
 
     void Job( uint32_t i ) override
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+
+        const float a = ( 4 * _intensity ) / ( 4 * _bgL - ( 1 + _bgL ) * ( 1 + _bgL ) );
+        const float b = -a * (1 + _bgL );
+        const float c = a * _bgL;
+
         for ( size_t j = 0; j < pSrcBitmap->GetWidth(); ++j )
         {
             auto rgb = std::span<ChannelType, 3>( pSrcBitmap->GetScanline( i ) + j * 3, 3 );
@@ -53,8 +62,18 @@ public:
 
             if ( hue > lbound && hue < ubound  )
             {
-                hsl[1] *= hsl[1] * normalDist(hue, _peakHue, 1 - _intensity, _sigma);
-                hsl[2] *= std::min(1.0f, 1 + normalDist( hue, _peakHue, 0.1, 5 ));
+               
+                //hsl[2] *= ( 1 - _intensity * normalDist( hue, _peakHue, 1, _sigma ) );
+                
+                if ( hsl[2] > _bgL )
+                {
+                    //auto coef = ( hsl[2] - bgL ) / ( 1 - bgL ) * 0.5f;
+                   
+                    auto coef = a * hsl[2] * hsl[2] + b * hsl[2] + c;
+                    //auto coef = normalDist( hsl[2], ( 1 + bgL ) / 2, _intensity, ( 1 - bgL ) / 6 );
+                    hsl[2] = std::max(_bgL, hsl[2] * (1 - _intensity * hsl[1] *coef * normalDist(hue, _peakHue, 1, _sigma)));
+                }
+                hsl[1] *= ( 1 - _intensity * normalDist( hue, _peakHue, 1, _sigma ) );
                 HslToRgb( hsl, rgb );
             }
         }

@@ -2,6 +2,8 @@
 
 #include "./../Tests/TestRunner.h"
 #include "./../Registrator/stacker.h"
+#include "./../Transforms/ChannelEqualizer.h"
+#include "./../Transforms/HaloRemovalTransform.h"
 #include <filesystem>
 
 CliParser::CliParser( int argc, const char** argv )
@@ -105,6 +107,23 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             stacker.SetDarkFrame( darkStacker.Stack( false ) );
         }
         auto pRes = (_kv.find("-noalign") == std::end(_kv)) ? stacker.RegistrateAndStack() : stacker.Stack(false);
+
+        it = _kv.find( "-autowb" );
+        if ( it != std::end( _kv ) )
+        {
+            pRes = BaseChannelEqualizer::AutoEqualize( pRes );
+        }
+
+        it = _kv.find( "-removehalo" );
+        if ( it != std::end( _kv ) )
+        {
+            float intensity = 1.0f;
+            if ( !it->second.empty() )
+            {
+                intensity = std::stof( it->second ) / 100.0f;
+            }
+            pRes = BaseHaloRemovalTransform::RemoveHalo( pRes, intensity );
+        }
         IBitmap::Save( pRes, outputPath );
         return {};
     }

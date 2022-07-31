@@ -30,8 +30,8 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 {
 	auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
 	pHistBuilder->BuildHistogram();
-	double rCoef = double(pHistBuilder->GetChannelStatistics( 1 ).peak) / double(pHistBuilder->GetChannelStatistics( 0 ).peak);
-	double bCoef = double( pHistBuilder->GetChannelStatistics( 1 ).peak) / double( pHistBuilder->GetChannelStatistics( 2 ).peak);
+	double rCoef = double(pHistBuilder->GetChannelStatistics( 1 ).decils[5]) / double(pHistBuilder->GetChannelStatistics(0).decils[5] );
+	double bCoef = double( pHistBuilder->GetChannelStatistics( 1 ).decils[5] ) / double( pHistBuilder->GetChannelStatistics( 2 ).decils[5] );
 	auto pEqualizer = Create( pSrcBitmap, { rCoef, 1.0, bCoef } );
 	return pEqualizer->RunAndGetBitmap();
 }
