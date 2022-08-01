@@ -1,9 +1,10 @@
 #include "HaloRemovalTransform.h"
+#include "HistogramBuilder.h"
 
 BaseHaloRemovalTransform::BaseHaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
 : BaseTransform(pSrcBitmap)
 , _intensity (std::clamp( intensity, 0.0f, 1.0f ))
-, _bgL(std::clamp(bgL, 0.0f, 0.1f))
+, _bgL(std::clamp(bgL, 0.0f, 1.0f))
 , _peakHue(std::clamp(peakHue, 0.0f, 360.0f))
 , _sigma(std::clamp(sigma, 0.0f, 60.0f))
 {
@@ -26,6 +27,22 @@ std::shared_ptr<BaseHaloRemovalTransform> BaseHaloRemovalTransform::Create( IBit
 
 IBitmapPtr BaseHaloRemovalTransform::RemoveHalo( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
 {
-    auto pRemoval = Create( pSrcBitmap, intensity );
+    auto pRemoval = Create( pSrcBitmap, intensity, bgL, peakHue, sigma );
     return pRemoval->RunAndGetBitmap();
+}
+
+IBitmapPtr BaseHaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap )
+{
+    auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
+    pHistBuilder->BuildHistogram();
+    std::array<uint16_t, 3> medianRgb =
+    {
+        uint16_t( pHistBuilder->GetChannelStatistics( 0 ).decils[5] ),
+        uint16_t( pHistBuilder->GetChannelStatistics( 1 ).decils[5] ),
+        uint16_t( pHistBuilder->GetChannelStatistics( 2 ).decils[5] )
+    };
+    auto medianHsl = RgbToHsl<uint16_t>( std::span( medianRgb ) );
+    auto pRes = BaseHaloRemovalTransform::RemoveHalo( pSrcBitmap, 0.7f, medianHsl[2] * 2, 250, 10 );
+    pRes = BaseHaloRemovalTransform::RemoveHalo( pRes, 0.7f, medianHsl[2] * 2, 270, 20 );
+    return BaseHaloRemovalTransform::RemoveHalo( pRes, 0.85f, medianHsl[2] * 2, 300, 10 );
 }

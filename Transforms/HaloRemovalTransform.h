@@ -17,6 +17,7 @@ protected:
 public:    
     static std::shared_ptr<BaseHaloRemovalTransform> Create( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.0f );
     static IBitmapPtr RemoveHalo( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.f );
+    static IBitmapPtr AutoRemove( IBitmapPtr pSrcBitmap );
 };
 
 template <PixelFormat pixelFormat>
@@ -64,15 +65,20 @@ public:
             {
                
                 //hsl[2] *= ( 1 - _intensity * normalDist( hue, _peakHue, 1, _sigma ) );
-                
+                auto coef = a * hsl[2] * hsl[2] + b * hsl[2] + c;
                 if ( hsl[2] > _bgL )
                 {
                     //auto coef = ( hsl[2] - bgL ) / ( 1 - bgL ) * 0.5f;
                    
-                    auto coef = a * hsl[2] * hsl[2] + b * hsl[2] + c;
+                    
                     //auto coef = normalDist( hsl[2], ( 1 + bgL ) / 2, _intensity, ( 1 - bgL ) / 6 );
                     hsl[2] = std::max(_bgL, hsl[2] * (1 - _intensity * hsl[1] *coef * normalDist(hue, _peakHue, 1, _sigma)));
                 }
+                /*else
+                {
+                    hsl[2] = std::min( _bgL, hsl[2] * ( 1 + _intensity * hsl[1] * coef * normalDist( hue, _peakHue, 1, _sigma ) ) );
+                }*/
+
                 hsl[1] *= ( 1 - _intensity * normalDist( hue, _peakHue, 1, _sigma ) );
                 HslToRgb( hsl, rgb );
             }
