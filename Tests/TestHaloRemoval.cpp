@@ -30,7 +30,7 @@ BEGIN_TEST( HaloRemoval, TestHugeImage )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/hugehalo.ppm" ) );
 pSrcBitmap = BaseChannelEqualizer::AutoEqualize( pSrcBitmap );
-pSrcBitmap = BaseHaloRemovalTransform::AutoRemove( pSrcBitmap );
+pSrcBitmap = BaseHaloRemovalTransform::AutoRemove( pSrcBitmap, 0.7f );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "HaloRemoval/TestHugeImage.ppm" ), pSrcBitmap ) );
 
 END_TEST

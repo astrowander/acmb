@@ -31,7 +31,7 @@ IBitmapPtr BaseHaloRemovalTransform::RemoveHalo( IBitmapPtr pSrcBitmap, float in
     return pRemoval->RunAndGetBitmap();
 }
 
-IBitmapPtr BaseHaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap )
+IBitmapPtr BaseHaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap, float intensity )
 {
     auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
     pHistBuilder->BuildHistogram();
@@ -42,7 +42,7 @@ IBitmapPtr BaseHaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap )
         uint16_t( pHistBuilder->GetChannelStatistics( 2 ).decils[5] )
     };
     auto medianHsl = RgbToHsl<uint16_t>( std::span( medianRgb ) );
-    auto pRes = BaseHaloRemovalTransform::RemoveHalo( pSrcBitmap, 0.7f, medianHsl[2] * 2, 250, 10 );
-    pRes = BaseHaloRemovalTransform::RemoveHalo( pRes, 0.7f, medianHsl[2] * 2, 270, 20 );
-    return BaseHaloRemovalTransform::RemoveHalo( pRes, 0.85f, medianHsl[2] * 2, 300, 10 );
+    auto pRes = BaseHaloRemovalTransform::RemoveHalo( pSrcBitmap, intensity, medianHsl[2] * 2, 250, 10 );
+    pRes = BaseHaloRemovalTransform::RemoveHalo( pRes, intensity, medianHsl[2] * 2, 270, 20 );
+    return BaseHaloRemovalTransform::RemoveHalo( pRes, intensity * 1.2f, medianHsl[2] * 2, 300, 10 );
 }

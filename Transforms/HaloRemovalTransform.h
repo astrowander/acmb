@@ -17,7 +17,7 @@ protected:
 public:    
     static std::shared_ptr<BaseHaloRemovalTransform> Create( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.0f );
     static IBitmapPtr RemoveHalo( IBitmapPtr pSrcBitmap, float intensity, float bgL = 0.3f, float peakHue = 285.0f, float sigma = 40.f );
-    static IBitmapPtr AutoRemove( IBitmapPtr pSrcBitmap );
+    static IBitmapPtr AutoRemove( IBitmapPtr pSrcBitmap, float intensity );
 };
 
 template <PixelFormat pixelFormat>

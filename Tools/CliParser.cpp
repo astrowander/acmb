@@ -122,7 +122,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 intensity = std::stof( it->second ) / 100.0f;
             }
-            pRes = BaseHaloRemovalTransform::RemoveHalo( pRes, intensity );
+            pRes = BaseHaloRemovalTransform::AutoRemove( pRes, intensity );
         }
         IBitmap::Save( pRes, outputPath );
         return {};
