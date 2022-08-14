@@ -11,6 +11,7 @@
 #undef min
 
 float QuadraticInterpolation(float t, float t0, float t1, float t2);
+float ArbitraryQuadraticInterpolation( float x, float x0, float y0, float x1, float y1, float x2, float y2 );
 
 template<typename T>
 constexpr T FastRound(double x)

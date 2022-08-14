@@ -1,6 +1,7 @@
 #pragma once
 #include "../Core/bitmap.h"
 #include "../Core/IParallel.h"
+#include "../Geometry/rect.h"
 #include <array>
 
 struct HistogramStatistics
@@ -8,7 +9,9 @@ struct HistogramStatistics
 	uint32_t min = std::numeric_limits<uint32_t>::max();
 	uint32_t peak = 0;
 	uint32_t max = 0;
-	uint32_t decils[10] = {};
+	uint32_t centils[100] = {};
+	float mean;
+	float dev;
 };
 
 class BaseHistorgamBuilder : public IParallel
@@ -18,10 +21,11 @@ public:
 
 protected:
 	IBitmapPtr _pBitmap;
-	BaseHistorgamBuilder(IBitmapPtr pBitmap);
+	Rect _roi;
+	BaseHistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi);
 
 public:
-	static std::shared_ptr<BaseHistorgamBuilder> Create(IBitmapPtr pBitmap);
+	static std::shared_ptr<BaseHistorgamBuilder> Create(IBitmapPtr pBitmap, const Rect& roi = {});
 
 	virtual void BuildHistogram() = 0;
 	virtual const ChannelHistogram& GetChannelHistogram(uint32_t ch) const = 0;
@@ -46,9 +50,9 @@ class HistogramBuilder : public BaseHistorgamBuilder
 		for (uint32_t ch = 0; ch < channelCount; ++ch)
 		{
 			auto pBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
-			auto pChannel = pBitmap->GetScanline(i) + ch;
+			auto pChannel = pBitmap->GetScanline(_roi.y + i) + _roi.x * channelCount + ch;
 
-			for (uint32_t x = 0; x < pBitmap->GetWidth(); ++x)
+			for (uint32_t x = 0; x < _roi.width; ++x)
 			{
 				ChannelType val = *pChannel;
 				++_histograms[ch][val];
@@ -71,8 +75,8 @@ class HistogramBuilder : public BaseHistorgamBuilder
 	}
 
 public:
-	HistogramBuilder(IBitmapPtr pBitmap)
-	: BaseHistorgamBuilder(pBitmap)
+	HistogramBuilder(IBitmapPtr pBitmap, const Rect& roi)
+	: BaseHistorgamBuilder(pBitmap, roi)
 	{}
 
 	void BuildHistogram() override
@@ -82,24 +86,33 @@ public:
 
 		DoParallelJobs();
 
-		const uint32_t decilPixCount = _pBitmap->GetWidth() * _pBitmap->GetHeight() / 10;
+		const uint32_t pixCount = _roi.width * _roi.height;
+		const uint32_t centilPixCount = pixCount / 100;
 		for ( uint32_t ch = 0; ch < channelCount; ++ch )
 		{
+			uint32_t count = 0;
 			uint32_t sum = 0;
-			uint32_t curDecil = 1;
+			uint32_t curCentil = 1;
 			for ( uint32_t i = 0; i < channelMax + 1; ++i )
 			{
-				sum += _histograms[ch][i];
-				while ( sum > decilPixCount )
+				count += _histograms[ch][i];
+				sum += i * _histograms[ch][i];
+				while ( count > centilPixCount )
 				{
-					_statistics[ch].decils[curDecil] = i;
-					++curDecil;					
-					sum -= decilPixCount;
+					_statistics[ch].centils[curCentil] = i;
+					++curCentil;
+					count -= centilPixCount;
 				}
-
-				if ( curDecil == 10 )
-					break;
 			}
+
+			_statistics[ch].mean = float(sum) / float(pixCount);
+			for (uint32_t i = 0; i < channelMax + 1; ++i)
+			{
+				_statistics[ch].dev += _histograms[ch][i] * (i - _statistics[ch].mean) * (i - _statistics[ch].mean);
+			}
+
+			_statistics[ch].dev /= float(pixCount);
+			_statistics[ch].dev = sqrt(_statistics[ch].dev);
 		}
 	}
 

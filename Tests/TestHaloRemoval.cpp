@@ -14,9 +14,9 @@ auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
 pHistBuilder->BuildHistogram();
 std::array<uint16_t, 3> medianRgb = 
 { 
-    uint16_t(pHistBuilder->GetChannelStatistics( 0 ).decils[5]), 
-    uint16_t(pHistBuilder->GetChannelStatistics( 1 ).decils[5]), 
-    uint16_t(pHistBuilder->GetChannelStatistics( 2 ).decils[5]) 
+    uint16_t(pHistBuilder->GetChannelStatistics( 0 ).centils[50]), 
+    uint16_t(pHistBuilder->GetChannelStatistics( 1 ).centils[50]), 
+    uint16_t(pHistBuilder->GetChannelStatistics( 2 ).centils[50])
 };
 auto medianHsl = RgbToHsl<uint16_t>( std::span( medianRgb ) );
 pSrcBitmap = BaseHaloRemovalTransform::RemoveHalo( pSrcBitmap, 1.0f, medianHsl[2] * 2, 250, 10);

@@ -2,6 +2,7 @@
 #include "basetransform.h"
 #include "../Core/IParallel.h"
 #include <array>
+#include <functional>
 
 class BaseChannelEqualizer : public BaseTransform, public IParallel
 {
@@ -9,7 +10,7 @@ protected:
 	BaseChannelEqualizer(IBitmapPtr pSrcBitmap);
 
 public:
-	static std::shared_ptr<BaseChannelEqualizer> Create(IBitmapPtr pSrcBitmap, const std::vector<double>& multipliers);
+	static std::shared_ptr<BaseChannelEqualizer> Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms );
 	static IBitmapPtr AutoEqualize( IBitmapPtr pSrcBitmap );
 };
 
@@ -19,12 +20,12 @@ class ChannelEqualizer : public BaseChannelEqualizer
 	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 	static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
-	std::array<double, channelCount> _multipliers;
+	std::array<std::function<ChannelType( ChannelType )>, channelCount> _channelTransforms;
 
 public:
-	ChannelEqualizer(IBitmapPtr pSrcBitmap, const std::array<double, channelCount>& multipliers)
+	ChannelEqualizer(IBitmapPtr pSrcBitmap, const std::array< std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
 	: BaseChannelEqualizer(pSrcBitmap)
-	, _multipliers(multipliers)
+	, _channelTransforms(channelTransforms)
 	{
 	}
 
@@ -46,7 +47,7 @@ public:
 
 			for (uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x)
 			{
-				pDstScanline[0] = static_cast<ChannelType>(std::clamp<double>(pSrcScanline[0] * _multipliers[ch], 0, PixelFormatTraits<pixelFormat>::channelMax));
+				pDstScanline[0] = _channelTransforms[ch](pSrcScanline[0]);
 				pSrcScanline += channelCount;
 				pDstScanline += channelCount;
 			}
