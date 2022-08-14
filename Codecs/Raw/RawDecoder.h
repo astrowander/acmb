@@ -14,7 +14,6 @@ class RawDecoder : public ImageDecoder
 public:
 	RawDecoder(bool halfSize = false);
 
-public:
     void Attach(const std::string& fileName) override;
     void Attach(std::shared_ptr<std::istream> pStream) override;
     void Detach() override;
@@ -23,6 +22,13 @@ public:
     std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;
 
     uint32_t GetCurrentScanline() const override;
+
+    static std::unordered_set <std::string> GetExtensions()
+    {
+        return { ".cr2", ".dng" };
+    }
+
+    ADD_EXTENSIONS
 };
 
 #endif

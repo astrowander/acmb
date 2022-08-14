@@ -106,7 +106,14 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             Stacker darkStacker( _darks );
             stacker.SetDarkFrame( darkStacker.Stack( false ) );
         }
-        auto pRes = (_kv.find("-noalign") == std::end(_kv)) ? stacker.RegistrateAndStack() : stacker.Stack(false);
+        double threshold = 40;
+        it = _kv.find( "-threshold" );
+        if ( it != std::end(_kv) )
+        {
+            threshold = std::stod( it->second );
+        }
+
+        auto pRes = (_kv.find("-noalign") == std::end(_kv)) ? stacker.RegistrateAndStack( threshold ) : stacker.Stack(false);
 
         it = _kv.find( "-autowb" );
         if ( it != std::end( _kv ) )

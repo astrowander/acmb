@@ -8,6 +8,7 @@
 #include "../Core/imageparams.h"
 #include "../Core/camerasettings.h"
 #include <sstream>
+#include <unordered_set>
 
 class IBitmap;
 
@@ -18,6 +19,8 @@ protected:
     std::shared_ptr<std::istream> _pStream;
     std::shared_ptr<CameraSettings> _pCameraSettings = std::make_shared<CameraSettings>();
     virtual std::unique_ptr<std::istringstream> ReadLine();
+
+    inline static std::unordered_set<std::string> _allExtensions;
 
 public:
 
@@ -46,6 +49,19 @@ public:
 
     static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromDir( std::string path );
     static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromMask( std::string mask );
+
+    static const std::unordered_set<std::string>& GetAllExtensions()
+    {
+        return _allExtensions;
+    }
+
+protected:
+    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions )
+    {
+        _allExtensions.insert( std::begin(extensions), std::end(extensions) );
+        return true;
+    }
 };
 
+#define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());
 #endif // IMAGEDECODER_H

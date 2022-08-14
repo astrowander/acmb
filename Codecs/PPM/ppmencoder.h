@@ -12,11 +12,17 @@ public:
 
     void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) override;
 
+    static std::unordered_set<std::string> GetExtensions()
+    {
+        return { ".ppm", ".pgm" };
+    }
 private:
     template<uint32_t bytes>
     void WriteBinary(std::shared_ptr<IBitmap> pBitmap);
 
     void WriteText(std::shared_ptr<IBitmap> pBitmap);
+
+    ADD_EXTENSIONS
 };
 
 #endif // PPMENCODER_H

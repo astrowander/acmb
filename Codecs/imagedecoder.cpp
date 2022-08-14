@@ -1,11 +1,13 @@
 #include "imagedecoder.h"
-#include <fstream>
-#include <filesystem>
-#include <set>
 
 #include "PPM/ppmdecoder.h"
 #include "RAW/rawdecoder.h"
+
+#include <fstream>
 #include <filesystem>
+#include <set>
+#include <algorithm>
+
 
 std::string IntToString( size_t num, size_t minDigitCount )
 {
@@ -48,18 +50,18 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
-const std::set<std::string> rawExtensions = { ".cr2", ".CR2", ".dng" };
-
 std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
 {
     auto path = std::filesystem::path(fileName);
-    auto extension = path.extension();
+    auto extension = path.extension().string();
+
+    std::transform( extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return std::tolower(c); });
     std::shared_ptr<ImageDecoder> pDecoder;
-    if (extension == ".pgm" || extension == ".ppm")
+    if ( PpmDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset(new PpmDecoder());
     }
-    else if (rawExtensions.find(extension.generic_string()) != std::end(rawExtensions))
+    else if ( RawDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset(new RawDecoder());
     }
@@ -79,8 +81,13 @@ std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std
     std::vector<std::shared_ptr<ImageDecoder>>  res;
     for ( const auto& entry : std::filesystem::directory_iterator( path) )
     {         
-        if ( !std::filesystem::is_directory( entry ) )
-            res.push_back( ImageDecoder::Create( reinterpret_cast<char*>(entry.path().u8string().data() )) );
+        if ( std::filesystem::is_directory( entry ) )
+            continue;
+        
+        auto extension = entry.path().extension().string();
+        std::transform( extension.begin(), extension.end(), extension.begin(), [] ( unsigned char c ) { return std::tolower( c ); } );
+        if ( GetAllExtensions().contains(extension) )
+            res.push_back( ImageDecoder::Create( entry.path().string() ) );        
     }
 
     return res;
