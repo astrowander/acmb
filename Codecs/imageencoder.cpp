@@ -28,9 +28,9 @@ void ImageEncoder::Detach()
 std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
 {
     auto path = std::filesystem::path(fileName);
-    auto extension = path.extension();
+    auto extension = path.extension().string();
     std::shared_ptr<ImageEncoder> pEncoder;
-    if (extension == ".pgm" || extension == ".ppm")
+    if (PpmEncoder::GetExtensions().contains(extension))
     {
         pEncoder.reset(new PpmEncoder(PpmMode::Binary));
     }
