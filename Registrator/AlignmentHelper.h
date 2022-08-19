@@ -3,7 +3,7 @@
 #include "../Core/IParallel.h"
 #include "./stacker.h"
 
-class AlignmentHelper : public IParallel
+class AlignmentHelper final: public IParallel
 {
 	Stacker& _stacker;
 	size_t _alignerIndex;

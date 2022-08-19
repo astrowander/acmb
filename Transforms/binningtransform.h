@@ -17,7 +17,7 @@ public:
 };
 
 template<PixelFormat pixelFormat>
-class BinningTransform : public IBinningTransform, public IParallel
+class BinningTransform final: public IBinningTransform, public IParallel
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
@@ -32,7 +32,7 @@ public:
         _buf.resize(bin.width * bin.height * PixelFormatTraits<pixelFormat>::channelCount);
     }
 
-    void Job(uint32_t i)
+    void Job(uint32_t i) override
     {
         auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
         auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pDstBitmap);

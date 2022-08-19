@@ -6,12 +6,12 @@
 #include "../Core/IParallel.h"
 
 #include <algorithm>
-
+#include <cstring>
 #include "star.h"
 
 //class IBitmap;
 
-class Registrator : public IParallel
+class Registrator final: public IParallel
 {
 public:
     static constexpr uint32_t tileSize = 600;
@@ -19,8 +19,8 @@ public:
 private:
     std::shared_ptr<IBitmap> _pBitmap;
     double _threshold = 40;
-    uint32_t _minStarSize = 5;
-    uint32_t _maxStarSize = 25;
+    int _minStarSize = 5;
+    int _maxStarSize = 25;
 
     std::vector<std::vector<Star>> _stars;
 
@@ -47,9 +47,9 @@ private:
         auto h = pGrayBitmap->GetHeight();
 
         auto data = std::vector<ChannelType>(roi.width * roi.height * ChannelCount(pixelFormat));
-        for (uint32_t i = 0; i < roi.height; ++i)
+        for (int i = 0; i < roi.height; ++i)
         {
-            std::memcpy(&data[i * roi.width], pGrayBitmap->GetScanline(i + roi.y) + roi.x, roi.width * BytesPerPixel(pixelFormat));
+            memcpy(&data[i * roi.width], pGrayBitmap->GetScanline(i + roi.y) + roi.x, roi.width * BytesPerPixel(pixelFormat));
         }
 
         auto median = data.begin() + data.size() / 2;
@@ -60,13 +60,13 @@ private:
         auto pData = pGrayBitmap->GetScanline(0);
         
 
-        for (uint32_t i = roi.y; i < roi.y + roi.height; ++i)
+        for (int i = roi.y; i < roi.y + roi.height; ++i)
         {
-            for (uint32_t j = roi.x; j < roi.x + roi.width; ++j)
+            for (int j = roi.x; j < roi.x + roi.width; ++j)
             {
                 if (pData[i * w + j] > threshold)
                 {
-                    Star star {Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, 0, 0, 0};
+                    Star star {Rect {static_cast<int32_t>(j), static_cast<int32_t>(i), 1, 1}, {0, 0}, 0};
                     InspectStar(star, threshold, pData, j, i, w, h, roi);
                     if (star.rect.width >= _minStarSize && star.rect.width <= _maxStarSize && star.rect.height >= _minStarSize && star.rect.height <= _maxStarSize)
                     {
@@ -84,7 +84,7 @@ private:
     }
 
     template <typename ChannelType>
-    void InspectStar(Star& star, ChannelType threshold, ChannelType* pData, uint32_t x, uint32_t y, uint32_t w, uint32_t h, Rect roi)
+    void InspectStar(Star& star, ChannelType threshold, ChannelType* pData, int x, int y, int w, int h, Rect roi)
     {
         ++star.pixelCount;        
         auto pixelLuminance = pData[y * w + x] - threshold;

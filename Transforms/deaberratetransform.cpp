@@ -5,8 +5,8 @@
 
 DeaberrateTransform::DeaberrateTransform(IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings)
 : BaseTransform(pSrcBitmap)
-, _pDatabase(new lfDatabase())
 , _pCameraSettings(pCameraSettings)
+, _pDatabase(new lfDatabase())
 {
 	if (_pDatabase->Load())
 		throw std::runtime_error("unable to load the lens database");

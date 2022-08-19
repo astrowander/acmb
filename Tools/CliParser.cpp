@@ -14,7 +14,7 @@ CliParser::CliParser( int argc, const char** argv )
     if ( !argv )
         throw std::invalid_argument( "argv" );
 
-    for ( size_t i = 0; i < argc; )
+    for ( int i = 0; i < argc; )
     {
         if ( argv[i][0] != '-' )
         {

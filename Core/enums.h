@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <iostream>
+#include <limits>
 
 enum class PixelFormat : uint32_t
 {

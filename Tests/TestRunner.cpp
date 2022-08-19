@@ -31,7 +31,7 @@ bool TestRunner::RunTest( const std::string& suiteName, const std::string& testN
     return it->second->RunTest( testName );
 }
 
-const bool TestRunner::AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite )
+bool TestRunner::AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite )
 {
     if ( _suites.find(suiteName) != std::end( _suites ) )
     {

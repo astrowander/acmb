@@ -21,6 +21,8 @@ protected:
 
     }
 
+    ~IParallel() = default;
+
     virtual void Job( uint32_t index ) = 0;
 
     void DoParallelJobs()

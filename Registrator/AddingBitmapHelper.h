@@ -4,7 +4,7 @@
 #include "./stacker.h"
 
 template<PixelFormat pixelFormat>
-class AddingBitmapHelper : public IParallel
+class AddingBitmapHelper final: public IParallel
 {
     static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
 
@@ -37,7 +37,7 @@ class AddingBitmapHelper : public IParallel
             if (n <= 5 || fabs(mean - channel) < kappa * sigma)
             {
                 dev = n * (dev + (channel - mean) * (channel - mean) / (n + 1)) / (n + 1);
-                mean = std::clamp((n * mean + channel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max()));
+                mean = std::clamp((n * mean + channel) / (n + 1), 0.0f, static_cast<float>(std::numeric_limits<ChannelType>::max()));
                 ++n;
             }
         }

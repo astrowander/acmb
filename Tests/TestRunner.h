@@ -23,6 +23,6 @@ public:
 
     static bool RunTest( const std::string& suiteName, const std::string& testName );
 
-    static const bool AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite );
+    static bool AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite );
 };
 

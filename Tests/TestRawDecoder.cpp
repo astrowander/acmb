@@ -1,7 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "./../Codecs/Raw/RawDecoder.h"
-#include "./../Codecs/PPM/PpmEncoder.h"
+#include "./../Codecs/PPM/ppmencoder.h"
 
 BEGIN_SUITE(RawDecoder)
 

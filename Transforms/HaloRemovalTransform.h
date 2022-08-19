@@ -21,7 +21,7 @@ public:
 };
 
 template <PixelFormat pixelFormat>
-class HaloRemovalTransform : public BaseHaloRemovalTransform, public IParallel
+class HaloRemovalTransform final: public BaseHaloRemovalTransform, public IParallel
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;   
 
@@ -85,7 +85,7 @@ public:
         }
     }
 
-    void Run()
+    void Run() override
     {
         DoParallelJobs();
         _pDstBitmap = _pSrcBitmap;

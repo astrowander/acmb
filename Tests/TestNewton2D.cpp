@@ -1,5 +1,5 @@
 #include "test.h"
-#include "testtools.h"
+//#include "testtools.h"
 #include "./../Tools/Newton2D.h"
 
 BEGIN_SUITE(Newton2D)
@@ -36,7 +36,7 @@ auto res = Newton2D::Solve
 			[](auto x) {return 6 * x[0]; },
 			[](auto x) {return 4 * x[1]; },		
 			[](auto x) {return 4 * x[0]; },
-			[](auto x) {return -1; }		
+            [](auto) {return -1; }
 	},
 	{
 		1.0,

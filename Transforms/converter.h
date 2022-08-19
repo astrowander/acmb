@@ -28,7 +28,7 @@ public:
 };
 
 template <PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
-class Converter : public BaseConverter
+class Converter final: public BaseConverter
 {
 public:
     Converter(IBitmapPtr pSrcBitmap)

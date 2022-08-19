@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "../Codecs/RAW/rawdecoder.h"
+#include "../Codecs/Raw/RawDecoder.h"
 #include "../Registrator/stacker.h"
 #include <filesystem>
 

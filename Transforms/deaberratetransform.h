@@ -7,7 +7,7 @@
 
 struct CameraSettings;
 
-class DeaberrateTransform : public BaseTransform
+class DeaberrateTransform final: public BaseTransform
 {
 	std::shared_ptr<CameraSettings> _pCameraSettings;
 
@@ -17,9 +17,7 @@ class DeaberrateTransform : public BaseTransform
 	template<PixelFormat pixelFormat>
 	void CorrectDistortion()
 	{
-		using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-
-		auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
+    auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
 		auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pDstBitmap);
 
 		int lwidth = _pSrcBitmap->GetWidth() * 2 * 3;

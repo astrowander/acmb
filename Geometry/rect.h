@@ -24,7 +24,7 @@ struct RectT
 
     void ExpandRight(T right)
     {
-        if (width < static_cast<uint32_t>(right - x + 1))
+        if (width < right - x + 1)
             width = right - x + 1;
     }
 
@@ -39,7 +39,7 @@ struct RectT
 
     void ExpandDown(T bottom)
     {
-        if (bottom > y + static_cast<int32_t>(height) - 1)
+        if (bottom > y + height - 1)
         {
             height = bottom - y + 1;
         }
@@ -51,8 +51,8 @@ struct RectT
         y += ty;
     }
 
-    inline bool operator==(const RectT& rhs);
-    inline bool operator!=(const RectT& rhs);
+    inline bool operator==(const RectT& rhs) const;
+    inline bool operator!=(const RectT& rhs) const;
     
 
     PointT<T> GetOrigin() const 
@@ -86,13 +86,13 @@ std::ostream& operator<<(std::ostream& out, const RectT<T>& rect)
 }
 
 template<typename T>
-bool RectT<T>::operator==(const RectT<T>& rhs)
+bool RectT<T>::operator==(const RectT<T>& rhs) const
 {
-    return (x == rhs.x) && (y == rhs.y) && (width = rhs.width) && (height == rhs.height);
+    return (x == rhs.x) && (y == rhs.y) && (width == rhs.width) && (height == rhs.height);
 }
 
 template<typename T>
-bool RectT<T>::operator!=(const RectT<T>& rhs)
+bool RectT<T>::operator!=(const RectT<T>& rhs) const
 {
     return !(*this == rhs);
 }

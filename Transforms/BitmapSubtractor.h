@@ -14,7 +14,7 @@ public:
 };
 
 template <PixelFormat pixelFormat>
-class BitmapSubtractor: public BaseBitmapSubtractor, public IParallel
+class BitmapSubtractor final: public BaseBitmapSubtractor, public IParallel
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 

@@ -1,7 +1,7 @@
 #include "imagedecoder.h"
 
 #include "PPM/ppmdecoder.h"
-#include "RAW/rawdecoder.h"
+#include "Raw/RawDecoder.h"
 
 #include <fstream>
 #include <filesystem>

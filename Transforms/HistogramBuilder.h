@@ -35,7 +35,7 @@ public:
 
 
 template <PixelFormat pixelFormat>
-class HistogramBuilder : public BaseHistorgamBuilder
+class HistogramBuilder final: public BaseHistorgamBuilder
 {
 	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 	static const auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
@@ -52,7 +52,7 @@ class HistogramBuilder : public BaseHistorgamBuilder
 			auto pBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
 			auto pChannel = pBitmap->GetScanline(_roi.y + i) + _roi.x * channelCount + ch;
 
-			for (uint32_t x = 0; x < _roi.width; ++x)
+            for (int x = 0; x < _roi.width; ++x)
 			{
 				ChannelType val = *pChannel;
 				++_histograms[ch][val];
@@ -121,7 +121,7 @@ public:
 		return _histograms[ch];
 	}
 
-	const HistogramStatistics& GetChannelStatistics(uint32_t ch) const
+    const HistogramStatistics& GetChannelStatistics(uint32_t ch) const override
 	{
 		return _statistics[ch];
 	}

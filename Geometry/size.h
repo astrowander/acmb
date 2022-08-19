@@ -20,7 +20,7 @@ struct SizeT
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const SizeT<T>& size)
 {
-	out << size.width << " " << size.height;
+    return out << size.width << " " << size.height;
 }
 
 using Size = SizeT<uint32_t>;

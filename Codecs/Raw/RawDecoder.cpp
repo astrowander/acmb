@@ -86,7 +86,7 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pixelFormat = PixelFormat::RGB48;
 }
 
-void RawDecoder::Attach(std::shared_ptr<std::istream> pStream)
+void RawDecoder::Attach(std::shared_ptr<std::istream>)
 {
 	throw std::runtime_error("not implemented");		
 }
@@ -123,14 +123,14 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 		Detach();
 		throw std::runtime_error("raw processing error");
 	}
-	std::memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
+    memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
 
 	_pLibRaw->dcraw_clear_mem(image);
 	Reattach();
 	return pRes;
 }
 
-std::shared_ptr<IBitmap> RawDecoder::ReadStripe(uint32_t index)
+std::shared_ptr<IBitmap> RawDecoder::ReadStripe(uint32_t)
 {
 	throw std::runtime_error("not implemented");
 }

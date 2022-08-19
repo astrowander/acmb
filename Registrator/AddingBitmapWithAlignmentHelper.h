@@ -4,7 +4,7 @@
 #include "./stacker.h"
 
 template<PixelFormat pixelFormat>
-class AddingBitmapWithAlignmentHelper : public IParallel
+class AddingBitmapWithAlignmentHelper final: public IParallel
 {
     static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
 

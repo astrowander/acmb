@@ -11,11 +11,11 @@
 #include "../Transforms/deaberratetransform.h"
 #include "../Transforms/BitmapSubtractor.h"
 
+static constexpr bool enableLogging = false;
 void Log(const std::string& message)
 {
-#ifdef ENABLE_DIAGNOSTIC_MESSAGES
+if (enableLogging)
     std::cout << message << std::endl;
-#endif
 }
 
 Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration)
@@ -23,7 +23,7 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enabl
 , _gridHeight(0)
 , _enableDeaberration(enableDeaberration)
 {
-    for (auto pDecoder : decoders)
+    for (auto& pDecoder : decoders)
     {
         _stackingData.push_back({ pDecoder, {}, {} });
     }
@@ -60,13 +60,13 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
         pRegistrator->Registrate(pBitmap);
         dsPair.stars = pRegistrator->GetStars();
 
-        for (const auto starVector : dsPair.stars)
+        for (const auto& starVector : dsPair.stars)
         {
             dsPair.totalStarCount += starVector.size();
         }
 
         Log(dsPair.pDecoder->GetLastFileName() + " is registered");
-        Log(dsPair.totalStarCount + " stars are found");
+        Log(std::to_string(dsPair.totalStarCount) + " stars are found");
     }   
 
     //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
@@ -136,7 +136,7 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         }
 
         
-        StackWithAlignment(pRefBitmap, pTargetBitmap, i);
+        StackWithAlignment(pTargetBitmap, i);
     }
     
     auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());
@@ -146,11 +146,11 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
     return pRes;
 }
 
-void Stacker::StackWithAlignment(IBitmapPtr pRefBitmap, IBitmapPtr pTargetBitmap, uint32_t i)
+void Stacker::StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i)
 {
     _matches.clear();
     AlignmentHelper::Run(*this, i);
-    Log(_matches.size() + " matching stars");
+    Log(std::to_string(_matches.size()) + " matching stars");
 
     std::vector<double> coords;
     for (auto& match : _matches)
@@ -253,7 +253,7 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
         pRegistrator->Registrate(pTargetBitmap);
         _stackingData[i].stars = pRegistrator->GetStars();
 
-        StackWithAlignment(pRefBitmap, pTargetBitmap, i);
+        StackWithAlignment(pTargetBitmap, i);
     }
 
     auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());

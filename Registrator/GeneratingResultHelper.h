@@ -29,10 +29,10 @@ void ConvertToUint(ChannelType* mO, float* mI, int numRows, int numCols, int num
     auto scalingFactor = _mm_set1_ps(scalingFctr);
 
     //#pragma omp parallel for private(jj, ptrInputImage, ptrOutputImage, floatPx1, floatPx2, floatPx3, floatPx4, uint16Px1, uint16Px2, uint16Px3, uint16Px4, uint8Px1, uint8Px2)
-    for (size_t ii = 0; ii < numRows; ii++) {
+    for (int ii = 0; ii < numRows; ii++) {
         auto ptrInputImage = &mI[ii * numColsPad];
         auto ptrOutputImageSse = (__m128i*)(&mO[ii * numColsPad]);
-        for (size_t jj = 0; jj < numColsQuadPack; jj += SSE_STRIDE_QUAD) {
+        for (int jj = 0; jj < numColsQuadPack; jj += SSE_STRIDE_QUAD) {
             // SSE Pack is 4 Floats (4 * 32 Byte) -> 16 UINT8 (16 * 1 Byte)
             // Hence loading 16 Floats which will be converted into 16 UINT8
 
@@ -68,7 +68,7 @@ void ConvertToUint(ChannelType* mO, float* mI, int numRows, int numCols, int num
 
         auto ptrOutputImage = (int*)(&mO[(ii * numColsPad) + numColsQuadPack]);
 
-        for (size_t jj = numColsQuadPack; jj < numCols; jj += SSE_STRIDE) {
+        for (int jj = numColsQuadPack; jj < numCols; jj += SSE_STRIDE) {
 
             auto floatPx1 = _mm_loadu_ps(ptrInputImage);
 
@@ -99,7 +99,7 @@ void ConvertToUint(ChannelType* mO, float* mI, int numRows, int numCols, int num
 
 
 template<PixelFormat pixelFormat>
-class GeneratingResultHelper : public IParallel
+class GeneratingResultHelper final: public IParallel
 {
     Stacker& _stacker;
     std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;

@@ -4,9 +4,9 @@
 BaseHaloRemovalTransform::BaseHaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
 : BaseTransform(pSrcBitmap)
 , _intensity (std::clamp( intensity, 0.0f, 1.0f ))
-, _bgL(std::clamp(bgL, 0.0f, 1.0f))
 , _peakHue(std::clamp(peakHue, 0.0f, 360.0f))
 , _sigma(std::clamp(sigma, 0.0f, 60.0f))
+, _bgL(std::clamp(bgL, 0.0f, 1.0f))
 {
     if ( GetColorSpace( pSrcBitmap->GetPixelFormat() ) != ColorSpace::RGB )
         throw std::invalid_argument( "unsupported pixel format" );

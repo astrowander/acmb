@@ -59,7 +59,7 @@ void Registrator::Job(uint32_t i)
     const auto y = i / hTileCount;
     const auto x = i % hTileCount;
 
-    Rect roi{ x * w, y * h, (x < hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w, (y < vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h };
+    Rect roi{ int(x * w), int(y * h), int((x < hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w), int((y < vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h) };
 
     std::vector<Star> tileStars;
     if (BytesPerChannel(_pBitmap->GetPixelFormat()) == 1)
