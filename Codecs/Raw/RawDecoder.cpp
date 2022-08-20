@@ -62,9 +62,8 @@ void RawDecoder::Attach(const std::string& fileName)
     _pLibRaw->imgdata.params.half_size = _halfSize;
 
 	_pLibRaw->raw2image_start();
-	_width = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iwidth : _pLibRaw->imgdata.sizes.iheight;
-	_height = _pLibRaw->imgdata.sizes.flip < 5 ? _pLibRaw->imgdata.sizes.iheight : _pLibRaw->imgdata.sizes.iwidth;
-
+	_width = _pLibRaw->imgdata.sizes.iwidth;
+	_height = _pLibRaw->imgdata.sizes.iheight;
 	_pCameraSettings->timestamp = _pLibRaw->imgdata.other.timestamp;
 	_pCameraSettings->sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
 	_pCameraSettings->cropFactor = cropFactors[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
@@ -116,6 +115,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 		throw std::runtime_error("raw processing error");
 	}
 
+	_pLibRaw->imgdata.sizes.flip = 0;
 	libraw_processed_image_t* image = _pLibRaw->dcraw_make_mem_image(&ret);
 	if (ret != LIBRAW_SUCCESS)
 	{

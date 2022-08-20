@@ -77,6 +77,8 @@ void FastAligner::SetEps(double eps)
 std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const size_t N)
 {
 	std::pair< IndexMap, agg::trans_affine> res;
+	if ( _refStars.size() == 0 || _targetStars.size() == 0 )
+		return res;
 
 	const auto refLim = std::min<size_t>(_refStars.size(), N);
 	const auto targetLim = std::min<size_t>(_targetStars.size(), N);
