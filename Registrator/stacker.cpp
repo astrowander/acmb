@@ -1,5 +1,4 @@
 #define _USE_MATH_DEFINES
-//#define ENABLE_DIAGNOSTIC_MESSAGES
 
 #include "stacker.h"
 #include "AddingBitmapHelper.h"

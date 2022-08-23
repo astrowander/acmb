@@ -6,7 +6,7 @@
 
 BEGIN_SUITE(Stacker)
 
-BEGIN_TEST(Stacker, TestStackingWithoutAlignment)
+BEGIN_TEST(TestStackingWithoutAlignment)
 
     std::vector<std::shared_ptr<ImageDecoder>> decoders;
     for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/TestStackingWithoutAlignment/")))
@@ -20,7 +20,7 @@ BEGIN_TEST(Stacker, TestStackingWithoutAlignment)
 
 END_TEST
 
-BEGIN_TEST(Stacker, TestTwoPics)
+BEGIN_TEST(TestTwoPics)
 
     std::vector<std::shared_ptr<ImageDecoder>> decoders
     {
@@ -35,7 +35,7 @@ BEGIN_TEST(Stacker, TestTwoPics)
 
 END_TEST
 
-BEGIN_TEST(Stacker, TestEquatorialRegion)
+BEGIN_TEST(TestEquatorialRegion)
 
 std::vector<std::shared_ptr<ImageDecoder>> decoders
 {
@@ -50,7 +50,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestEquatorialRegion.ppm")
 
 END_TEST
 
-BEGIN_TEST(Stacker, TestThreePics)
+BEGIN_TEST(TestThreePics)
 
 std::vector<std::shared_ptr<ImageDecoder>> decoders
 {
@@ -66,14 +66,14 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStac
 
 END_TEST
 
-BEGIN_TEST(Stacker, TestMilkyWay)
+BEGIN_TEST(TestMilkyWay)
 
 auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "RAW/MilkyWayCR2/" ) ) );
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->RegistrateAndStack(25, 5, 25)));
 
 END_TEST
 
-BEGIN_TEST(Stacker, TestFastStacking)
+BEGIN_TEST(TestFastStacking)
 
 std::vector<std::shared_ptr<ImageDecoder>> decoders
 {
@@ -87,7 +87,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pS
 
 END_TEST
 
-BEGIN_TEST( Stacker, StackWithDarks )
+BEGIN_TEST( StackWithDarks )
 
     auto pDarkStacker = std::make_shared<Stacker>( ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) ) );
     auto pDarkFrame = pDarkStacker->Stack( false );

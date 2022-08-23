@@ -28,28 +28,28 @@ static bool TestPixelFormat()
 
 BEGIN_SUITE( PpmEncoder )
 
-BEGIN_TEST(PpmEncoder, TestGray8)
+BEGIN_TEST(TestGray8)
 
    EXPECT_TRUE((TestPixelFormat<PixelFormat::Gray8,PpmMode::Binary>()));
    EXPECT_TRUE((TestPixelFormat<PixelFormat::Gray8,PpmMode::Text>()));
 
 END_TEST
 
-BEGIN_TEST(PpmEncoder, TestGray16)
+BEGIN_TEST(TestGray16)
 
     EXPECT_TRUE((TestPixelFormat<PixelFormat::Gray16, PpmMode::Binary>()));
     EXPECT_TRUE((TestPixelFormat<PixelFormat::Gray16, PpmMode::Text>()));
 
 END_TEST
 
-BEGIN_TEST(PpmEncoder, TestRgb24)
+BEGIN_TEST(TestRgb24)
 
     EXPECT_TRUE((TestPixelFormat<PixelFormat::RGB24, PpmMode::Binary>()));
     EXPECT_TRUE((TestPixelFormat<PixelFormat::RGB24, PpmMode::Text>()));
 
 END_TEST
 
-BEGIN_TEST(PpmEncoder, TestRgb48)
+BEGIN_TEST(TestRgb48)
 
     EXPECT_TRUE((TestPixelFormat<PixelFormat::RGB48, PpmMode::Binary>()));
     EXPECT_TRUE((TestPixelFormat<PixelFormat::RGB48, PpmMode::Text>()));

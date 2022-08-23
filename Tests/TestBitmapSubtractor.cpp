@@ -4,14 +4,14 @@
 
 BEGIN_SUITE(BitmapSubtractor)
 
-BEGIN_TEST(BitmapSubtractor, TestWrongArgs)
+BEGIN_TEST(TestWrongArgs)
 
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Black );
 auto f = [pSrcBitmap]{ BaseBitmapSubtractor::Create( pSrcBitmap, nullptr ); };  
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
-BEGIN_TEST(BitmapSubtractor, SubtractFromBlack)
+BEGIN_TEST(SubtractFromBlack)
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Black );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Azure );
 
@@ -23,7 +23,7 @@ EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 2 ) );
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, SubtractFromGray )
+BEGIN_TEST( SubtractFromGray )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Gray );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Azure );
 
@@ -35,7 +35,7 @@ EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 2 ) );
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, SubtractFromWhite )
+BEGIN_TEST( SubtractFromWhite )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::White );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Azure );
 
@@ -47,7 +47,7 @@ EXPECT_EQ( 128, pResult->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 2 ) );
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, TestGray8 )
+BEGIN_TEST( TestGray8 )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::Gray8>>( 1, 1, 146 );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::Gray8>>( 1, 1, 23 );
 
@@ -58,7 +58,7 @@ EXPECT_EQ( 123, pResult->GetChannel( 0, 0, 0 ) );
 
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, TestGray16 )
+BEGIN_TEST( TestGray16 )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::Gray16>>( 1, 1, 34569 );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::Gray16>>( 1, 1, 9876 );
 
@@ -69,7 +69,7 @@ EXPECT_EQ( 24693, pResult->GetChannel( 0, 0, 0 ) );
 
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, TestRGB24 )
+BEGIN_TEST( TestRGB24 )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, MakeRGB24(55, 143, 198 ) );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, MakeRGB24( 12, 43, 134 ) );
 
@@ -82,7 +82,7 @@ EXPECT_EQ( 64, pResult->GetChannel( 0, 0, 2 ) );
 
 END_TEST
 
-BEGIN_TEST( BitmapSubtractor, TestRGB48 )
+BEGIN_TEST( TestRGB48 )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB48>>( 1, 1, MakeRGB48( 34569, 16252, 1324 ) );
 auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB48>>( 1, 1, MakeRGB48( 2342, 6543, 2678 ) );
 
@@ -96,7 +96,7 @@ EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 2 ) );
 END_TEST
 
 
-BEGIN_TEST( BitmapSubtractor, SubtractDarkFrame )
+BEGIN_TEST( SubtractDarkFrame )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "DarkFrame/IMG_0990.ppm" ));
 auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark.ppm" ) );

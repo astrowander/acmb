@@ -5,7 +5,7 @@
 
 BEGIN_SUITE(RawDecoder)
 
-BEGIN_TEST(RawDecoder, TestAttach)
+BEGIN_TEST(TestAttach)
 
 auto pDecoder = std::make_unique<RawDecoder>();
 pDecoder->Attach(GetPathToTestFile("RAW/IMG_8899.CR2"));
@@ -15,7 +15,7 @@ EXPECT_EQ(3670, pDecoder->GetHeight());
 
 END_TEST
 
-BEGIN_TEST(RawDecoder, TestReadBitmap)
+BEGIN_TEST(TestReadBitmap)
 
 auto pDecoder = std::make_unique<RawDecoder>(true);
 pDecoder->Attach(GetPathToTestFile("RAW/IMG_8899.CR2"));
@@ -24,7 +24,7 @@ auto pBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8899.ppm"), pBitmap));
 END_TEST
 
-BEGIN_TEST(RawDecoder, TestDNG)
+BEGIN_TEST(TestDNG)
 
 auto pDecoder = std::make_unique<RawDecoder>(true);
 pDecoder->Attach(GetPathToTestFile("RAW/IMG_20211020_190808.dng"));
@@ -36,7 +36,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_20211020_190808.ppm
 
 END_TEST
 
-BEGIN_TEST(RawDecoder, TestEmptyFile)
+BEGIN_TEST(TestEmptyFile)
 
 auto f = []()
 {
@@ -47,7 +47,7 @@ auto f = []()
 ASSERT_THROWS(f, std::runtime_error);
 END_TEST
 
-BEGIN_TEST(RawDecoder, TestCorruptedFile)
+BEGIN_TEST(TestCorruptedFile)
 
 auto f = []()
 {

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <functional>
 #include <unordered_map>
+#include <vector>
 #include "TestRunner.h"
 
 class Suite
@@ -13,8 +14,9 @@ protected:
     
 public:
     virtual ~Suite() = default;
-    virtual bool RunAll() = 0;
+    virtual std::vector<std::string> RunAll() = 0;
     virtual bool RunTest(std::string testName) = 0;
+    virtual size_t GetTestCount() const = 0;
 };
 
 #define BEGIN_SUITE( TestSuite ) \
@@ -25,16 +27,20 @@ inline static bool handle = TestRunner::AddSuite(#TestSuite, std::make_shared<Te
 public:\
 Test##TestSuite()\
 {\
+const std::string suiteName(#TestSuite);\
 std::string testName;
 
 #define END_SUITE( TestSuite ) \
 }\
-virtual bool RunAll() override\
+virtual std::vector<std::string> RunAll() override\
 {\
-bool isTrue(true);\
+std::vector<std::string> res;\
 for (auto&test:_tests)\
-isTrue&=test.second();\
-return isTrue;}\
+{\
+if (!test.second())\
+res.push_back(test.first);\
+}\
+return res;}\
 virtual bool RunTest(std::string testName) override\
 {\
     auto it = _tests.find(testName);\
@@ -45,19 +51,24 @@ virtual bool RunTest(std::string testName) override\
     }\
     return it->second();\
 }\
+virtual size_t GetTestCount() const override\
+{\
+return _tests.size();\
+}\
 };
 
 #define TEST_ACCESS(TestSuite) \
     friend class Test##TestSuite;
 
-#define BEGIN_TEST(TestSuite, TestName)                                    \
+#define BEGIN_TEST(TestName)                                    \
 testName = std::string(#TestName); \
-   _tests[#TestName] =  [testName]                          \
+   _tests[#TestName] =  [testName, suiteName]                          \
 {                                                                          \
       bool isTrue{true}; \
 auto startTime = std::chrono::system_clock::now();\
+const std::string testStr = suiteName + std::string(" --> ") + testName + std::string(" started");\
     std::cout << std::left << std::setfill('-')                             \
-   << std::setw(50) << #TestSuite " --> " #TestName " started" << std::endl; \
+   << std::setw(50) << testStr << std::endl; \
    try                                                                     \
    {                                                                        \
 

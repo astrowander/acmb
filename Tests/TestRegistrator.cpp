@@ -4,7 +4,7 @@
 
 BEGIN_SUITE(Registrator)
 
-BEGIN_TEST(Registrator, BasicTest)
+BEGIN_TEST(BasicTest)
 
 auto pRegistrator = std::make_unique<Registrator>(10);
 
@@ -18,7 +18,7 @@ EXPECT_EQ((Rect{327, 229, 12, 20}), stars[0].rect);
 
 END_TEST
 
-BEGIN_TEST(Registrator, RegistrateHugePhoto)
+BEGIN_TEST(RegistrateHugePhoto)
 auto pRegistrator = std::make_unique<Registrator>(50);
 pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/IMG_8970.ppm")));
 auto stars = pRegistrator->GetStars()[0];
@@ -29,7 +29,7 @@ EXPECT_NEAR(0.32, stars[2].luminance, 0.01);
 EXPECT_EQ((Rect{254, 586, 6, 14}), stars[2].rect);
 END_TEST
 
-BEGIN_TEST(Registrator, TestVertical)
+BEGIN_TEST(TestVertical)
 auto pRegistrator = std::make_unique<Registrator>(40);
 pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("PPM/vertical.ppm")));
 auto stars = pRegistrator->GetStars()[0];
@@ -40,7 +40,7 @@ EXPECT_NEAR(0.83, stars[1].luminance, 0.01);
 EXPECT_EQ((Rect{518, 115, 9, 17}), stars[1].rect);
 END_TEST
 
-BEGIN_TEST(Registrator, TestMultipleTiles)
+BEGIN_TEST(TestMultipleTiles)
 auto pRegistrator = std::make_unique<Registrator>(25);
 pRegistrator->Registrate(IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2")));
 auto stars = pRegistrator->GetStars();
@@ -54,13 +54,13 @@ for (auto& tileStars : stars)
 EXPECT_EQ(16564, sum);
 END_TEST
 
-BEGIN_TEST(Registrator, Test1x1Bitmap)
+BEGIN_TEST(Test1x1Bitmap)
 auto pRegistrator = std::make_unique<Registrator>(25);
 pRegistrator->Registrate(IBitmap::Create(1, 1, PixelFormat::RGB24));
 EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
 END_TEST
 
-BEGIN_TEST(Registrator, Test1x1BitmapMultipleTiles)
+BEGIN_TEST(Test1x1BitmapMultipleTiles)
 auto f = []()
 {
 	auto pRegistrator = std::make_unique<Registrator>(25);
@@ -71,7 +71,7 @@ ASSERT_THROWS(f, std::invalid_argument);
 
 END_TEST
 
-BEGIN_TEST(Registrator, TestBlackBitmap)
+BEGIN_TEST(TestBlackBitmap)
 	auto pRegistrator = std::make_unique<Registrator>(25);
 	pRegistrator->Registrate(IBitmap::Create(100, 100, PixelFormat::RGB24));
 	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());

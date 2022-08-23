@@ -6,7 +6,7 @@
 
 BEGIN_SUITE( HaloRemoval )
 
-BEGIN_TEST( HaloRemoval, BasicTest )
+BEGIN_TEST( BasicTest )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/halo.ppm" ) );
 pSrcBitmap = BaseChannelEqualizer::AutoEqualize( pSrcBitmap );

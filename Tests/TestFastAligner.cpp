@@ -5,7 +5,7 @@
 
 BEGIN_SUITE(FastAligner)
 
-BEGIN_TEST(FastAligner, BasicTest)
+BEGIN_TEST(BasicTest)
 
 PointF refPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
 PointF targetPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
@@ -58,7 +58,7 @@ EXPECT_EQ(refPoints[3], matches.at(targetPoints[2]));
 EXPECT_EQ(refPoints[4], matches.at(targetPoints[1]));
 END_TEST
 
-BEGIN_TEST(FastAligner, InverseMatching)
+BEGIN_TEST(InverseMatching)
 
 PointF targetPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
 PointF refPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
@@ -109,7 +109,7 @@ EXPECT_EQ(refPoints[2], matches.at(targetPoints[3]));
 EXPECT_EQ(refPoints[1], matches.at(targetPoints[4]));
 END_TEST
 
-BEGIN_TEST(FastAligner, RealPhotoTest)
+BEGIN_TEST(RealPhotoTest)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>(70);
@@ -130,7 +130,7 @@ EXPECT_EQ(67, matches.size());
 
 END_TEST
 
-BEGIN_TEST(FastAligner, TestLargeIntervalPhotos)
+BEGIN_TEST(TestLargeIntervalPhotos)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>(40);
@@ -151,7 +151,7 @@ EXPECT_EQ(51, matches.size());
 
 END_TEST
 
-BEGIN_TEST(FastAligner, TestThreshold60)
+BEGIN_TEST(TestThreshold60)
 
 auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
 auto pRegistrator = std::make_unique<Registrator>(60);
@@ -170,7 +170,5 @@ const auto& matches = fastAligner.GetMatches();
 EXPECT_EQ(139, matches.size());
 
 END_TEST
-
-
 
 END_SUITE (FastAligner)

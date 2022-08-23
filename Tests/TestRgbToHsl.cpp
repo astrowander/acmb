@@ -5,7 +5,7 @@
 
 BEGIN_SUITE( RgbToHsl )
 
-BEGIN_TEST( RgbToHsl, DoubleConversion )
+BEGIN_TEST( DoubleConversion )
 
 const std::vector< std::array<uint8_t, 3>> rgbColors = 
 {
@@ -71,7 +71,7 @@ for ( size_t i = 0; i < rgbColors.size(); ++i )
 
 END_TEST
 
-BEGIN_TEST( RgbToHsl, TestRgb48 )
+BEGIN_TEST( TestRgb48 )
 
 std::array<uint16_t, 3> rgb = { 13107, 39321, 52428 };
 auto hsl = RgbToHsl( std::span( rgb ) );
@@ -85,7 +85,7 @@ EXPECT_EQ( rgb[2], convertedRgb[2] );
 
 END_TEST
 
-BEGIN_TEST ( RgbToHsl, TestDesaturation )
+BEGIN_TEST ( TestDesaturation )
 
 std::array<uint8_t, 3> rgb = { 129, 0, 188 };
 std::span span( rgb );

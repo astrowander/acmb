@@ -4,7 +4,7 @@
 
 BEGIN_SUITE(HistogramBuilder)
 
-BEGIN_TEST(HistogramBuilder, TestRGB48)
+BEGIN_TEST(TestRGB48)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/halo.ppm"));
 auto pHistogramBuilder = BaseHistorgamBuilder::Create(pSrcBitmap);

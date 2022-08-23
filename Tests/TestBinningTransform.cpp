@@ -4,13 +4,13 @@
 
 BEGIN_SUITE(BinningTransform)
 
-BEGIN_TEST(BinningTransform, TestHugePicture)
+BEGIN_TEST(TestHugePicture)
 
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/Huge_2x2.ppm"), IBinningTransform::Create(IBitmap::Create(GetPathToTestFile("PPM/IMG_8970.ppm")), { 2, 2 })->RunAndGetBitmap()));
 
 END_TEST
 
-BEGIN_TEST(BinningTransform, TestRGB24)
+BEGIN_TEST(TestRGB24)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/rgb24.ppm"));
 auto pTransform = IBinningTransform::Create(pSrcBitmap, {2, 2});
@@ -19,7 +19,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/RGB24_2x2.ppm"), 
 
 END_TEST
 
-BEGIN_TEST(BinningTransform, Test3x3)
+BEGIN_TEST(Test3x3)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/rgb24.ppm"));
 auto pTransform = IBinningTransform::Create(pSrcBitmap, {3, 3});
@@ -28,7 +28,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/RGB24_3x3.ppm"), 
 
 END_TEST
 
-BEGIN_TEST(BinningTransform, Test3x2)
+BEGIN_TEST(Test3x2)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/rgb24.ppm"));
 auto pTransform = IBinningTransform::Create(pSrcBitmap, { 3, 2 });
@@ -37,7 +37,7 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("BinningTransform/RGB24_3x2.ppm"), 
 
 END_TEST
 
-BEGIN_TEST(BinningTransform, Test1x1Bitmap)
+BEGIN_TEST(Test1x1Bitmap)
 
 auto f = []()
 {
@@ -50,7 +50,7 @@ ASSERT_THROWS(f, std::invalid_argument);
 
 END_TEST
 
-BEGIN_TEST(BinningTransform, TestZeroSize)
+BEGIN_TEST(TestZeroSize)
 
 	auto f = []() {IBinningTransform::Create(IBitmap::Create(100, 100, PixelFormat::Gray8), { 3, 3 }); };
 	ASSERT_THROWS(f, std::invalid_argument);

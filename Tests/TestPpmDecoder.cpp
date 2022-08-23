@@ -6,7 +6,7 @@
 
 BEGIN_SUITE( PpmDecoder )
 
-BEGIN_TEST(PpmDecoder, TestGray8)
+BEGIN_TEST( TestGray8)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/gray8.pgm"));
     EXPECT_EQ(PixelFormat::Gray8, pDecoder->GetPixelFormat());
@@ -14,7 +14,7 @@ BEGIN_TEST(PpmDecoder, TestGray8)
     EXPECT_EQ(500, pDecoder->GetHeight());
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestGray16)
+BEGIN_TEST( TestGray16)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/gray16.pgm"));
     EXPECT_EQ(PixelFormat::Gray16, pDecoder->GetPixelFormat());
@@ -22,7 +22,7 @@ BEGIN_TEST(PpmDecoder, TestGray16)
     EXPECT_EQ(500, pDecoder->GetHeight());
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestRgb24)
+BEGIN_TEST( TestRgb24)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
     EXPECT_EQ(PixelFormat::RGB24, pDecoder->GetPixelFormat());
@@ -30,7 +30,7 @@ BEGIN_TEST(PpmDecoder, TestRgb24)
     EXPECT_EQ(426, pDecoder->GetHeight());
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestRgb48)
+BEGIN_TEST( TestRgb48)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/rgb48.ppm"));
     EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
@@ -38,7 +38,7 @@ BEGIN_TEST(PpmDecoder, TestRgb48)
     EXPECT_EQ(500, pDecoder->GetHeight());
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestPlain)
+BEGIN_TEST( TestPlain)
     auto pDecoder = std::make_unique<PpmDecoder>();
 
     std::string fileNames[2] = { GetPathToTestFile("PPM/plain.ppm"), GetPathToTestFile("PPM/binary.ppm") };
@@ -67,7 +67,7 @@ BEGIN_TEST(PpmDecoder, TestPlain)
     }
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestByteOrdering)
+BEGIN_TEST( TestByteOrdering)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/IMG_4030.ppm"));
     auto pBitmap = pDecoder->ReadBitmap();
@@ -82,7 +82,7 @@ BEGIN_TEST(PpmDecoder, TestByteOrdering)
 
 END_TEST
 
-BEGIN_TEST (PpmDecoder, ReadTwice)
+BEGIN_TEST ( ReadTwice)
 
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
@@ -92,7 +92,7 @@ BEGIN_TEST (PpmDecoder, ReadTwice)
 
 END_TEST
 
-BEGIN_TEST (PpmDecoder, ReadStripes)
+BEGIN_TEST ( ReadStripes)
     auto pDecoder = std::make_unique<PpmDecoder>();
     pDecoder->Attach(GetPathToTestFile("PPM/rgb24.ppm"));
 
@@ -101,7 +101,7 @@ BEGIN_TEST (PpmDecoder, ReadStripes)
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("PpmDecoder/ReadStripes/stripe2.ppm"), pDecoder->ReadStripe(0)));
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestEmptyFile)
+BEGIN_TEST( TestEmptyFile)
     auto f = []()
     {
         auto pDecoder = std::make_unique<PpmDecoder>();
@@ -110,7 +110,7 @@ BEGIN_TEST(PpmDecoder, TestEmptyFile)
     ASSERT_THROWS(f, std::runtime_error);
 END_TEST
 
-BEGIN_TEST(PpmDecoder, TestCorrupted)
+BEGIN_TEST( TestCorrupted)
 
     auto f = []()
     {

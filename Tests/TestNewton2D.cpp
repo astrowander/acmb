@@ -4,7 +4,7 @@
 
 BEGIN_SUITE(Newton2D)
 
-BEGIN_TEST(Newton2D, TestNumericalJacobian)
+BEGIN_TEST( TestNumericalJacobian )
 
 auto res = Newton2D::Solve
 (
@@ -23,7 +23,7 @@ EXPECT_NEAR(0.81, res[1], 0.01);
 
 END_TEST
 
-BEGIN_TEST(Newton2D, TestAnaliticalJacobian)
+BEGIN_TEST( TestAnaliticalJacobian )
 
 auto res = Newton2D::Solve
 (
