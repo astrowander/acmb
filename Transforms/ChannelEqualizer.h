@@ -1,10 +1,9 @@
 #pragma once
 #include "basetransform.h"
-#include "../Core/IParallel.h"
 #include <array>
 #include <functional>
 
-class BaseChannelEqualizer : public BaseTransform, public IParallel
+class BaseChannelEqualizer : public BaseTransform
 {
 protected:
 	BaseChannelEqualizer(IBitmapPtr pSrcBitmap);
@@ -33,26 +32,27 @@ public:
 	void Run() override
 	{
 		_pDstBitmap = std::make_shared<Bitmap<pixelFormat>>(_pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight());
-		DoParallelJobs();
-	}
+		auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
-	void Job(uint32_t i) override
-	{
-		auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
-		auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pDstBitmap);
-
-		for (uint32_t ch = 0; ch < channelCount; ++ch)
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
 		{
-			auto pSrcScanline = pSrcBitmap->GetScanline(i) + ch;
-			auto pDstScanline = pDstBitmap->GetScanline(i) + ch;
-
-			for (uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x)
+			for ( int i = range.begin(); i < range.end(); ++i )
 			{
-				pDstScanline[0] = _channelTransforms[ch](pSrcScanline[0]);
-				pSrcScanline += channelCount;
-				pDstScanline += channelCount;
+				for ( uint32_t ch = 0; ch < channelCount; ++ch )
+				{
+					auto pSrcScanline = pSrcBitmap->GetScanline( i ) + ch;
+					auto pDstScanline = pDstBitmap->GetScanline( i ) + ch;
+
+					for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+					{
+						pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
+						pSrcScanline += channelCount;
+						pDstScanline += channelCount;
+					}
+				}
 			}
-		}
+		} );
 	}
 };
 

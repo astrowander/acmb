@@ -5,7 +5,6 @@
 
 BaseChannelEqualizer::BaseChannelEqualizer(IBitmapPtr pSrcBitmap)
 : BaseTransform(pSrcBitmap)
-, IParallel(pSrcBitmap->GetHeight())
 {}
 
 std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms )

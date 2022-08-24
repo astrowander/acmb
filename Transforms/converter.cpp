@@ -22,7 +22,6 @@ void ConvertPixel<PixelFormat::RGB48, PixelFormat::Gray16>(uint16_t* pSrcPixel, 
 
 BaseConverter::BaseConverter(IBitmapPtr pSrcBitmap)
 : BaseTransform(pSrcBitmap)
-, IParallel(pSrcBitmap->GetHeight())
 {
 
 }

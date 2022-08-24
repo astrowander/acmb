@@ -1,10 +1,6 @@
 #pragma once
 #include "basetransform.h"
-#include <array>
-#include <algorithm>
-#include <stdexcept>
 #include "../Geometry/size.h"
-#include "../Core/IParallel.h"
 
 class IBinningTransform : public BaseTransform
 {
@@ -17,7 +13,7 @@ public:
 };
 
 template<PixelFormat pixelFormat>
-class BinningTransform final: public IBinningTransform, public IParallel
+class BinningTransform final: public IBinningTransform
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
@@ -27,30 +23,32 @@ class BinningTransform final: public IBinningTransform, public IParallel
 public:
     BinningTransform(std::shared_ptr<IBitmap> pSrcBitmap, Size bin)
     : IBinningTransform(pSrcBitmap, bin)
-    , IParallel(pSrcBitmap->GetHeight() / bin.height)
     {
-        _buf.resize(bin.width * bin.height * PixelFormatTraits<pixelFormat>::channelCount);
+        _buf.resize(bin.width * bin.height * channelCount);
     }
-
-    void Job(uint32_t i) override
-    {
-        auto pSrcBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pSrcBitmap);
-        auto pDstBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pDstBitmap);
-        auto pSrcPixel = pSrcBitmap->GetScanline(i * _bin.height);
-        auto pDstPixel = pDstBitmap->GetScanline(i);
-
-        for (uint32_t j = 0; j < pDstBitmap->GetWidth(); ++j)
-        {
-            ProcessPixel(pSrcPixel, pDstPixel);
-            pSrcPixel += channelCount * _bin.width;
-            pDstPixel += channelCount;
-        }
-    }
+    
 
     void Run() override
     {
         this->_pDstBitmap.reset(new Bitmap<pixelFormat>(_pSrcBitmap->GetWidth() / _bin.width, _pSrcBitmap->GetHeight() / _bin.height));
-        DoParallelJobs();
+        auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+        auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
+
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() / _bin.height ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {                
+                auto pSrcPixel = pSrcBitmap->GetScanline( i * _bin.height );
+                auto pDstPixel = pDstBitmap->GetScanline( i );
+
+                for ( uint32_t j = 0; j < pDstBitmap->GetWidth(); ++j )
+                {
+                    ProcessPixel( pSrcPixel, pDstPixel );
+                    pSrcPixel += channelCount * _bin.width;
+                    pDstPixel += channelCount;
+                }
+            }
+        } );
     }
 
 private:
