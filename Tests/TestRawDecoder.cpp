@@ -8,7 +8,7 @@ BEGIN_SUITE(RawDecoder)
 BEGIN_TEST(TestAttach)
 
 auto pDecoder = std::make_unique<RawDecoder>();
-pDecoder->Attach(GetPathToTestFile("RAW/IMG_8899.CR2"));
+pDecoder->Attach(GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ));
 EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
 EXPECT_EQ(5496, pDecoder->GetWidth());
 EXPECT_EQ(3670, pDecoder->GetHeight());
@@ -17,11 +17,18 @@ END_TEST
 
 BEGIN_TEST(TestReadBitmap)
 
-auto pDecoder = std::make_unique<RawDecoder>(true);
-pDecoder->Attach(GetPathToTestFile("RAW/IMG_8899.CR2"));
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach(GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ));
 auto pBitmap = pDecoder->ReadBitmap();
 
-EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8899.ppm"), pBitmap));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944.ppm"), pBitmap));
+END_TEST
+
+BEGIN_TEST( JustRead )
+
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
+auto pBitmap = pDecoder->ReadBitmap();
 END_TEST
 
 BEGIN_TEST(TestDNG)
