@@ -18,7 +18,7 @@ struct StackingDatum
 {
     std::shared_ptr<ImageDecoder> pDecoder;
     std::vector<std::vector<Star>> stars;
-    uint32_t totalStarCount;
+    uint64_t totalStarCount;
 };
 
 class Stacker

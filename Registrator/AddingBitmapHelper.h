@@ -1,10 +1,9 @@
 #ifndef ADDINGBITMAPHELPER_H
 #define ADDINGBITMAPHELPER_H
-#include "../Core/IParallel.h"
 #include "./stacker.h"
 
 template<PixelFormat pixelFormat>
-class AddingBitmapHelper final: public IParallel
+class AddingBitmapHelper
 {
     static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
 
@@ -12,14 +11,13 @@ class AddingBitmapHelper final: public IParallel
 	std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
 
 	AddingBitmapHelper(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
-	: IParallel(pBitmap->GetHeight())
-    , _stacker(stacker)
+	: _stacker(stacker)
 	, _pBitmap(pBitmap)
 	{
 
 	}
 
-	void Job(uint32_t i) override
+	void Job(uint32_t i)
 	{
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
@@ -48,7 +46,13 @@ public:
     static void Run(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         AddingBitmapHelper helper(stacker, pBitmap);
-        helper.DoParallelJobs();
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
     }
 };
 

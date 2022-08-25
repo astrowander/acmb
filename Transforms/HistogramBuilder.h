@@ -1,8 +1,9 @@
 #pragma once
 #include "../Core/bitmap.h"
-#include "../Core/IParallel.h"
 #include "../Geometry/rect.h"
 #include <array>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 struct HistogramStatistics
 {
@@ -14,7 +15,7 @@ struct HistogramStatistics
 	float dev;
 };
 
-class BaseHistorgamBuilder : public IParallel
+class BaseHistorgamBuilder
 {
 public:
 	using ChannelHistogram = std::vector<uint32_t>;
@@ -44,35 +45,7 @@ class HistogramBuilder final: public BaseHistorgamBuilder
 	std::array<ChannelHistogram, channelCount> _histograms;
 	std::array<HistogramStatistics, channelCount> _statistics;
 
-	void Job(uint32_t i) override
-	{
-		std::scoped_lock lock( _mutex );
-		for (uint32_t ch = 0; ch < channelCount; ++ch)
-		{
-			auto pBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
-			auto pChannel = pBitmap->GetScanline(_roi.y + i) + _roi.x * channelCount + ch;
-
-            for (int x = 0; x < _roi.width; ++x)
-			{
-				ChannelType val = *pChannel;
-				++_histograms[ch][val];
-				if (val < _statistics[ch].min)
-				{
-					_statistics[ch].min = val;
-				}
-				if (val > _statistics[ch].max)
-				{
-					_statistics[ch].max = val;
-				}
-				if   ( _histograms[ch][val] >  _histograms[ch][_statistics[ch].peak] ||
-					 ( _histograms[ch][val] == _histograms[ch][_statistics[ch].peak] && val > _statistics[ch].peak ) )
-				{
-					_statistics[ch].peak = val;
-				}
-				pChannel += channelCount;
-			}
-		}
-	}
+	std::mutex _mutex;
 
 public:
 	HistogramBuilder(IBitmapPtr pBitmap, const Rect& roi)
@@ -84,7 +57,38 @@ public:
 		for (uint32_t ch = 0; ch < channelCount; ++ch)
 			_histograms[ch].resize(channelMax + 1);
 
-		DoParallelJobs();
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pBitmap->GetHeight() ), [this] ( const oneapi::tbb::blocked_range<int>& range )
+		{
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				std::scoped_lock lock( _mutex );
+				for ( uint32_t ch = 0; ch < channelCount; ++ch )
+				{
+					auto pBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmap );
+					auto pChannel = pBitmap->GetScanline( _roi.y + i ) + _roi.x * channelCount + ch;
+
+					for ( int x = 0; x < _roi.width; ++x )
+					{
+						ChannelType val = *pChannel;
+						++_histograms[ch][val];
+						if ( val < _statistics[ch].min )
+						{
+							_statistics[ch].min = val;
+						}
+						if ( val > _statistics[ch].max )
+						{
+							_statistics[ch].max = val;
+						}
+						if ( _histograms[ch][val] > _histograms[ch][_statistics[ch].peak] ||
+							 ( _histograms[ch][val] == _histograms[ch][_statistics[ch].peak] && val > _statistics[ch].peak ) )
+						{
+							_statistics[ch].peak = val;
+						}
+						pChannel += channelCount;
+					}
+				}
+			}
+		} );
 
 		const uint32_t pixCount = _roi.width * _roi.height;
 		const uint32_t centilPixCount = pixCount / 100;

@@ -1,6 +1,5 @@
 #pragma once
 #include "basetransform.h"
-#include "./../Core/IParallel.h"
 
 class BaseBitmapSubtractor : public BaseTransform
 {
