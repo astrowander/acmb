@@ -1,10 +1,9 @@
 #ifndef ADDINGBITMAPWITHALIGNMENTHELPER_H
 #define ADDINGBITMAPWITHALIGNMENTHELPER_H
-#include "../Core/IParallel.h"
 #include "./stacker.h"
 
 template<PixelFormat pixelFormat>
-class AddingBitmapWithAlignmentHelper final: public IParallel
+class AddingBitmapWithAlignmentHelper
 {
     static constexpr uint32_t channelCount = ChannelCount(pixelFormat);
 
@@ -12,14 +11,13 @@ class AddingBitmapWithAlignmentHelper final: public IParallel
     std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
 
     AddingBitmapWithAlignmentHelper(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
-        : IParallel(pBitmap->GetHeight())
-        , _stacker(stacker)
-        , _pBitmap(pBitmap)
+    : _stacker(stacker)
+    , _pBitmap(pBitmap)
     {
 
     }
 
-    void Job(uint32_t i) override
+    void Job(uint32_t i)
     {
         Stacker::TriangleTransformPair lastPair;
        
@@ -67,7 +65,13 @@ public:
     static void Run(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         AddingBitmapWithAlignmentHelper helper(stacker, pBitmap);
-        helper.DoParallelJobs();
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
     }
 };
 

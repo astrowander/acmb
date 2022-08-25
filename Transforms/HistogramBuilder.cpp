@@ -1,8 +1,7 @@
 #include "HistogramBuilder.h"
 
 BaseHistorgamBuilder::BaseHistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi)
-: IParallel(roi.height ? roi.height : pBitmap->GetHeight())
-, _pBitmap(pBitmap)
+: _pBitmap(pBitmap)
 , _roi((roi.width&& roi.height) ? roi : Rect {0, 0, int(pBitmap->GetWidth()), int(pBitmap->GetHeight()) })
 {
 	

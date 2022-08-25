@@ -1,22 +1,21 @@
 #ifndef ALIGNMENTHELPER_H
 #define ALIGNMENTHELPER_H
-#include "../Core/IParallel.h"
 #include "./stacker.h"
 
-class AlignmentHelper final: public IParallel
+class AlignmentHelper
 {
 	Stacker& _stacker;
 	size_t _alignerIndex;
+	std::mutex _mutex;
 
 	AlignmentHelper(Stacker& stacker, size_t alignerIndex)
 	: _stacker(stacker)
 	, _alignerIndex(alignerIndex)
 	{
-		auto [hTileCount, vTileCount] = GetTileCounts( _stacker._width, _stacker._height );
-		SetJobCount( hTileCount * vTileCount );
+		
 	}
 
-	void Job(uint32_t i) override
+	void Job(uint32_t i)
 	{
 		_stacker._aligners[i]->Align(_stacker._stackingData[_alignerIndex].stars[i]);
 		auto tileMatches = _stacker._aligners[i]->GetMatches();
@@ -30,12 +29,14 @@ public:
 	static void Run(Stacker& stacker, size_t alignerIndex)
 	{
 		AlignmentHelper helper(stacker, alignerIndex);
-		/*for (uint32_t i = 0; i < helper._jobCount; ++i)
+		auto [hTileCount, vTileCount] = GetTileCounts( stacker._width, stacker._height );
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, hTileCount * vTileCount ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
 		{
-			helper.Job(i);
-		}*/
-
-		helper.DoParallelJobs();
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				helper.Job( i );
+			}
+		} );
 	}
 };
 

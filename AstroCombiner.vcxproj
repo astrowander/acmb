@@ -31,7 +31,6 @@
     <ClInclude Include="Core\camerasettings.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
-    <ClInclude Include="Core\IParallel.h" />
     <ClInclude Include="Geometry\delaunator.hpp" />
     <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />
@@ -214,12 +213,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release</AdditionalLibraryDirectories>
       <AdditionalDependencies>lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>4194304</StackReserveSize>
     </Link>
@@ -232,7 +231,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -241,7 +240,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release</AdditionalLibraryDirectories>
       <AdditionalDependencies>lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

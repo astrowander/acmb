@@ -26,8 +26,7 @@ Registrator::Registrator( double threshold, uint32_t _minStarSize, uint32_t _max
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
     auto [hTileCount, vTileCount] = GetTileCounts( pBitmap->GetWidth(), pBitmap->GetHeight() );
-    SetJobCount( hTileCount * vTileCount );
-
+    
     _stars.clear();
     _stars.resize(hTileCount * vTileCount);
 
@@ -41,39 +40,38 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
         _pBitmap = pConverter->RunAndGetBitmap();
     }    
 
-    DoParallelJobs();
+    oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, hTileCount * vTileCount ), [this] ( const oneapi::tbb::blocked_range<int>& range )
+    {
+        const auto w = tileSize;
+        const auto h = tileSize;
+
+        auto [hTileCount, vTileCount] = GetTileCounts( _pBitmap->GetWidth(), _pBitmap->GetHeight() );
+
+        for ( int i = range.begin(); i < range.end(); ++i )
+        {
+            const auto y = i / hTileCount;
+            const auto x = i % hTileCount;
+
+            Rect roi{ int( x * w ), int( y * h ), int( ( x < hTileCount - 1 ) ? w : _pBitmap->GetWidth() - x * w ), int( ( y < vTileCount - 1 ) ? h : _pBitmap->GetHeight() - y * h ) };
+
+            std::vector<Star> tileStars;
+            if ( BytesPerChannel( _pBitmap->GetPixelFormat() ) == 1 )
+            {
+                tileStars = Registrate<PixelFormat::Gray8>( roi );
+            }
+            else
+            {
+                tileStars = Registrate<PixelFormat::Gray16>( roi );
+            }
+
+            SortStars( tileStars );
+
+            _stars[i] = tileStars;
+        }
+    } );
 }
 
 const std::vector<std::vector<Star>>& Registrator::GetStars() const
 {
     return _stars;
-}
-
-void Registrator::Job(uint32_t i)
-{
-    const auto w = tileSize;
-    const auto h = tileSize;
-
-    auto [hTileCount, vTileCount] = GetTileCounts( _pBitmap->GetWidth(), _pBitmap->GetHeight() );
-
-    const auto y = i / hTileCount;
-    const auto x = i % hTileCount;
-
-    Rect roi{ int(x * w), int(y * h), int((x < hTileCount - 1) ? w : _pBitmap->GetWidth() - x * w), int((y < vTileCount - 1) ? h : _pBitmap->GetHeight() - y * h) };
-
-    std::vector<Star> tileStars;
-    if (BytesPerChannel(_pBitmap->GetPixelFormat()) == 1)
-    {
-        tileStars = Registrate<PixelFormat::Gray8>(roi);
-    }
-    else
-    {
-        tileStars = Registrate<PixelFormat::Gray16>(roi);
-    }
-
-    SortStars(tileStars);
-
-    _mutex.lock();
-    _stars[i] = tileStars;
-    _mutex.unlock();    
 }

@@ -1,6 +1,8 @@
 #ifndef BASETRANSFORM_H
 #define BASETRANSFORM_H
 #include "../Core/bitmap.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 class BaseTransform
 {

@@ -102,9 +102,6 @@
     <ClInclude Include="Tools\Newton2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Core\IParallel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Registrator\AddingBitmapHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>

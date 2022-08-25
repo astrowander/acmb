@@ -3,7 +3,6 @@
 #include "../Tests/testtools.h"
 #include "../Transforms/converter.h"
 #include "../Codecs/imagedecoder.h"
-#include "../Core/IParallel.h"
 
 #include <algorithm>
 #include <cstring>
@@ -11,7 +10,7 @@
 
 //class IBitmap;
 
-class Registrator final: public IParallel
+class Registrator
 {
 public:
     static constexpr uint32_t tileSize = 600;
@@ -32,8 +31,6 @@ public:
     
     
 private:
-
-    virtual void Job(uint32_t i) override;
 
     template <PixelFormat pixelFormat>
     std::vector<Star> Registrate(Rect roi)

@@ -1,6 +1,5 @@
 #ifndef GENERATINGRESULTHELPER_H
 #define GENERATINGRESULTHELPER_H
-#include "../Core/IParallel.h"
 #include "./stacker.h"
 
 #include <xmmintrin.h>
@@ -99,24 +98,21 @@ void ConvertToUint(ChannelType* mO, float* mI, int numRows, int numCols, int num
 
 
 template<PixelFormat pixelFormat>
-class GeneratingResultHelper final: public IParallel
+class GeneratingResultHelper
 {
     Stacker& _stacker;
     std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
 
     GeneratingResultHelper(Stacker& stacker)
-    : IParallel(stacker._height)
-    , _stacker(stacker)
+    : _stacker(stacker)
     , _pBitmap(std::make_shared<Bitmap<pixelFormat>>(stacker._width, stacker._height))
     {
 
     }
 
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-    
-    
 
-    void Job(uint32_t i) override
+    void Job(uint32_t i)
     {
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
@@ -130,14 +126,19 @@ class GeneratingResultHelper final: public IParallel
             ++pMean;
             ++pChannel;
         }
-        //ConvertToUint(pChannel, pMean, 1, _stacker._width * ChannelCount(pixelFormat), _stacker._width * ChannelCount(pixelFormat), 1);
     }
 
 public:
     static void Run(Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
     {
         GeneratingResultHelper helper(stacker);
-        helper.DoParallelJobs();
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
         pBitmap->SetData(helper._pBitmap->GetData());
     }
 };
