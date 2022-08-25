@@ -51,7 +51,22 @@ void RawDecoder::Attach(const std::string& fileName)
 {
 	_lastFileName = fileName;
 
-	if (_pLibRaw->open_file(fileName.data()))
+	std::ifstream file( fileName, std::ios::binary );
+	file.unsetf( std::ios::skipws );
+	std::streampos fileSize;
+
+	file.seekg( 0, std::ios::end );
+	fileSize = file.tellg();
+	file.seekg( 0, std::ios::beg );
+	std::vector<uint8_t> vec;
+	vec.reserve( fileSize );
+
+	// read the data:
+	vec.insert( vec.begin(),
+				std::istream_iterator<uint8_t>( file ),
+				std::istream_iterator<uint8_t>() );
+
+	if ( !_pLibRaw->open_buffer(vec.data(), vec.size() ) )	
 		throw std::runtime_error("unable to read the file");
 
     _pLibRaw->imgdata.params.output_bps = 16;
@@ -85,9 +100,9 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pixelFormat = PixelFormat::RGB48;
 }
 
-void RawDecoder::Attach(std::shared_ptr<std::istream>)
+void RawDecoder::Attach(std::shared_ptr<std::istream> pStream)
 {
-	throw std::runtime_error("not implemented");		
+	throw std::runtime_error( "not implemented" );
 }
 
 void RawDecoder::Detach()
