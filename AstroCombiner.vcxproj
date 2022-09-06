@@ -27,6 +27,7 @@
     <ClInclude Include="Codecs\PPM\ppmdecoder.h" />
     <ClInclude Include="Codecs\PPM\ppmencoder.h" />
     <ClInclude Include="Codecs\Raw\RawDecoder.h" />
+    <ClInclude Include="Codecs\Tiff\TiffDecoder.h" />
     <ClInclude Include="Core\bitmap.h" />
     <ClInclude Include="Core\camerasettings.h" />
     <ClInclude Include="Core\enums.h" />
@@ -67,6 +68,7 @@
     <ClCompile Include="Codecs\PPM\ppmdecoder.cpp" />
     <ClCompile Include="Codecs\PPM\ppmencoder.cpp" />
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp" />
+    <ClCompile Include="Codecs\Tiff\TiffDecoder.cpp" />
     <ClCompile Include="Core\bitmap.cpp" />
     <ClCompile Include="Core\enums.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
@@ -96,6 +98,7 @@
     <ClCompile Include="Tests\TestRunner.cpp" />
     <ClCompile Include="Tests\TestStacker.cpp" />
     <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
+    <ClCompile Include="Tests\TestTiffDecoder.cpp" />
     <ClCompile Include="Tests\testtools.cpp" />
     <ClCompile Include="Tools\CliParser.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
@@ -213,13 +216,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug; ./Libs/TinyTIFF/build/src/Debug;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TinyTIFFShared_Debug.lib;TinyTIFF_Debug.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>4194304</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
@@ -231,7 +234,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -240,8 +243,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TinyTIFFShared_Release.lib;TinyTIFF_Release.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

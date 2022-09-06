@@ -135,6 +135,9 @@
     <ClInclude Include="Transforms\HaloRemovalTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Codecs\Tiff\TiffDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -276,6 +279,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tests\TestImageEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\Tiff\TiffDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tests\TestTiffDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

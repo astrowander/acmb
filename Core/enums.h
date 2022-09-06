@@ -122,6 +122,8 @@ struct PixelFormatTraits
     PixelFormatTraits() = delete;
 };
 
+PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerPixel );
+
 #define CALL_HELPER(Helper, pBitmap) \
     switch (pBitmap->GetPixelFormat()) \
     { \
