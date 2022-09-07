@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "PPM/ppmencoder.h"
+#include "TIFF/tiffencoder.h"
 
 void ImageEncoder::Attach(std::shared_ptr<std::ostream> pStream)
 {
@@ -33,6 +34,10 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
     if (PpmEncoder::GetExtensions().contains(extension))
     {
         pEncoder.reset(new PpmEncoder(PpmMode::Binary));
+    }
+    else if ( TiffEncoder::GetExtensions().contains( extension ) )
+    {
+        pEncoder.reset( new TiffEncoder() );
     }
 
     if (!pEncoder)

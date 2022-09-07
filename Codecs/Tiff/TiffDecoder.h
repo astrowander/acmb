@@ -6,16 +6,18 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
-struct TinyTIFFReaderFile;
 class TiffDecoder : public ImageDecoder
 {
     TinyTIFFReaderFile* _pReader;
 
     template <PixelFormat pixelFormat>
-    void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const std::vector<uint8_t>& data )
+    void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const uint8_t* data )
     {
         constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
-        auto pData = pBitmap->GetScanline( 0 );
+        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+
+        auto pInData = reinterpret_cast< const ChannelType* >( data );
+        auto pOutData = pBitmap->GetScanline( 0 );
 
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
         {
@@ -25,7 +27,7 @@ class TiffDecoder : public ImageDecoder
                 {
                     for ( uint16_t ch = 0; ch < channelCount; ++ch )
                     {
-                        pData[( i * _width + j ) * channelCount + ch] = data[ch * _width * _height + i * _width + j];
+                        pOutData[( i * _width + j ) * channelCount + ch] = pInData[ch * _width * _height + i * _width + j];
                     }
                 }
             }

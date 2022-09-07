@@ -2,6 +2,7 @@
 
 #include "PPM/ppmdecoder.h"
 #include "Raw/RawDecoder.h"
+#include "Tiff/TiffDecoder.h"
 
 #include <fstream>
 #include <filesystem>
@@ -64,6 +65,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
     else if ( RawDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset(new RawDecoder());
+    }
+    else if ( TiffDecoder::GetExtensions().contains( extension ) )
+    {
+        pDecoder.reset( new TiffDecoder() );
     }
 
     if (!pDecoder)

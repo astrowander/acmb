@@ -29,7 +29,7 @@ IBitmapPtr TiffDecoder::ReadBitmap()
     IBitmapPtr pBitmap = IBitmap::Create( _width, _height, _pixelFormat );
     uint8_t* pData = nullptr;
     std::vector<uint8_t> data;
-    if ( ColorSpace( _pixelFormat ) == ColorSpace::Gray )
+    if ( GetColorSpace( _pixelFormat ) == ColorSpace::Gray )
     {
         pData = (uint8_t*)pBitmap->GetPlanarScanline( 0 );
     }
@@ -48,10 +48,10 @@ IBitmapPtr TiffDecoder::ReadBitmap()
     switch ( _pixelFormat )
     {
         case PixelFormat::RGB24:
-            JoinChannels<PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( pBitmap ), data );
+            JoinChannels<PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( pBitmap ), data.data() );
             break;
         case PixelFormat::RGB48:
-            JoinChannels<PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( pBitmap ), data );
+            JoinChannels<PixelFormat::RGB48>( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >( pBitmap ), data.data() );
             break;
         default:
             break;
