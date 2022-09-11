@@ -4,6 +4,12 @@
 #include "../Codecs/imagedecoder.h"
 #include "../Codecs/imageencoder.h"
 
+std::string GetDirectory( const std::string& fileName )
+{
+    size_t pos = fileName.find_last_of( "\\/" );
+    return ( std::string::npos == pos ) ? "" : fileName.substr( 0, pos );
+}
+
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName)
 {
     auto pDecoder = ImageDecoder::Create(fileName);
@@ -33,6 +39,10 @@ void IBitmap::Save(std::shared_ptr<IBitmap> pBitmap, const std::string &fileName
 {
     if (!pBitmap)
         throw std::invalid_argument("pBitmap is null");
+
+    auto dir = GetDirectory( fileName );
+    if ( !std::filesystem::exists( dir ) )
+        std::filesystem::create_directory( dir );
 
     auto pEncoder = ImageEncoder::Create(fileName);
     pEncoder->Attach(fileName);

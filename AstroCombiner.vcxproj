@@ -24,6 +24,8 @@
     <ClInclude Include="AGG\agg_trans_affine.h" />
     <ClInclude Include="Codecs\imagedecoder.h" />
     <ClInclude Include="Codecs\imageencoder.h" />
+    <ClInclude Include="Codecs\JPEG\JpegEncoder.h" />
+    <ClInclude Include="Codecs\JPEG\toojpeg\toojpeg.h" />
     <ClInclude Include="Codecs\PPM\ppmdecoder.h" />
     <ClInclude Include="Codecs\PPM\ppmencoder.h" />
     <ClInclude Include="Codecs\Raw\RawDecoder.h" />
@@ -66,6 +68,8 @@
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
     <ClCompile Include="Codecs\imagedecoder.cpp" />
     <ClCompile Include="Codecs\imageencoder.cpp" />
+    <ClCompile Include="Codecs\JPEG\JpegEncoder.cpp" />
+    <ClCompile Include="Codecs\JPEG\toojpeg\toojpeg.cpp" />
     <ClCompile Include="Codecs\PPM\ppmdecoder.cpp" />
     <ClCompile Include="Codecs\PPM\ppmencoder.cpp" />
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp" />
@@ -91,6 +95,7 @@
     <ClCompile Include="Tests\TestHistogramBuilder.cpp" />
     <ClCompile Include="Tests\TestImageDecoder.cpp" />
     <ClCompile Include="Tests\TestImageEncoder.cpp" />
+    <ClCompile Include="Tests\TestJpegEncoder.cpp" />
     <ClCompile Include="Tests\TestNewton2D.cpp" />
     <ClCompile Include="Tests\TestPpmDecoder.cpp" />
     <ClCompile Include="Tests\TestPpmEncoder.cpp" />

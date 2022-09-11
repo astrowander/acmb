@@ -57,4 +57,16 @@ EXPECT_TRUE( TestPixelFormat( "RGB48" ) );
 
 END_TEST
 
+BEGIN_TEST( TestNullBitmap )
+auto f = [] ()
+{
+    IBitmapPtr pBitmap = nullptr;
+    TiffEncoder tiffEncoder;
+    tiffEncoder.Attach( GetPathToPattern( "TiffEncoder/TestNullBitmap.tiff" ) );
+    tiffEncoder.WriteBitmap( nullptr );
+};
+
+ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
+
 END_SUITE( TiffEncoder )

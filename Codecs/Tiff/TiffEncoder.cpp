@@ -19,6 +19,9 @@ void TiffEncoder::Detach()
 
 void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
 {
+    if ( !pBitmap )
+        throw std::invalid_argument( "pBitmap is null" );
+
     _pTiff = TinyTIFFWriter_open( _fileName.c_str(), BitsPerChannel( pBitmap->GetPixelFormat() ), TinyTIFFWriter_UInt, ChannelCount( pBitmap->GetPixelFormat() ), pBitmap->GetWidth(), pBitmap->GetHeight(), TinyTIFFWriter_AutodetectSampleInterpetation );
     if ( !_pTiff )
         throw std::runtime_error( "file writing error" );
