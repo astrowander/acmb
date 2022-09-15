@@ -1,6 +1,5 @@
 #include "CliParser.h"
 
-#include "./../Tests/TestRunner.h"
 #include "./../Registrator/stacker.h"
 #include "./../Transforms/ChannelEqualizer.h"
 #include "./../Transforms/HaloRemovalTransform.h"
@@ -36,31 +35,7 @@ CliParser::CliParser( int argc, const char** argv )
 
 std::tuple<int, std::string> CliParser::Parse( bool testMode )
 {
-    auto it = _kv.find( "-runtests" );
-    if ( !testMode && it != std::end( _kv ) )
-    {
-        it = _kv.find( "-suite" );
-        if ( it == std::end( _kv ) )
-        {
-            TestRunner::RunAllTests();
-            return {};
-        }
-
-        std::string suite = it->second;
-
-        it = _kv.find( "-test" );
-
-        if ( it == std::end( _kv ) )
-        {
-            TestRunner::RunSuite( suite );
-            return {};
-        }
-
-        TestRunner::RunTest( suite, it->second );
-        return {};
-    }
-
-    it = _kv.find( "-stack" );
+    auto it = _kv.find( "-stack" );
     if ( it != std::end( _kv ) )
     {
         std::string paths;

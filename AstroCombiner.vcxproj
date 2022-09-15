@@ -41,17 +41,10 @@
     <ClInclude Include="Geometry\size.h" />
     <ClInclude Include="Geometry\startrektransform.h" />
     <ClInclude Include="Geometry\triangle.h" />
-    <ClInclude Include="Registrator\AddingBitmapHelper.h" />
-    <ClInclude Include="Registrator\AddingBitmapWithAlignmentHelper.h" />
-    <ClInclude Include="Registrator\AlignmentHelper.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
-    <ClInclude Include="Registrator\GeneratingResultHelper.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
-    <ClInclude Include="Tests\test.h" />
-    <ClInclude Include="Tests\TestRunner.h" />
-    <ClInclude Include="Tests\testtools.h" />
     <ClInclude Include="Tools\CliParser.h" />
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
@@ -80,34 +73,9 @@
     <ClCompile Include="Core\imageparams.cpp" />
     <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
-    <ClCompile Include="Tests\TestBinningTransform.cpp" />
-    <ClCompile Include="Tests\TestBitmap.cpp" />
-    <ClCompile Include="Tests\TestBitmapSubtractor.cpp" />
-    <ClCompile Include="Tests\TestChannelEqualizer.cpp" />
-    <ClCompile Include="Tests\TestCliParser.cpp" />
-    <ClCompile Include="Tests\TestConverter.cpp" />
-    <ClCompile Include="Tests\TestFastAligner.cpp" />
-    <ClCompile Include="Tests\TestHaloRemoval.cpp" />
-    <ClCompile Include="Tests\TestHistogramBuilder.cpp" />
-    <ClCompile Include="Tests\TestImageDecoder.cpp" />
-    <ClCompile Include="Tests\TestImageEncoder.cpp" />
-    <ClCompile Include="Tests\TestJpegEncoder.cpp" />
-    <ClCompile Include="Tests\TestNewton2D.cpp" />
-    <ClCompile Include="Tests\TestPpmDecoder.cpp" />
-    <ClCompile Include="Tests\TestPpmEncoder.cpp" />
-    <ClCompile Include="Tests\TestRawDecoder.cpp" />
-    <ClCompile Include="Tests\TestRegistrator.cpp" />
-    <ClCompile Include="Tests\TestRgbToHsl.cpp" />
-    <ClCompile Include="Tests\TestRunner.cpp" />
-    <ClCompile Include="Tests\TestStacker.cpp" />
-    <ClCompile Include="Tests\TestStarTrekTransform.cpp" />
-    <ClCompile Include="Tests\TestTiffDecoder.cpp" />
-    <ClCompile Include="Tests\TestTiffEncoder.cpp" />
-    <ClCompile Include="Tests\testtools.cpp" />
     <ClCompile Include="Tools\CliParser.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />
@@ -126,6 +94,7 @@
     <ProjectGuid>{0cd2fb18-3636-4742-baba-810dcb9cdd49}</ProjectGuid>
     <RootNamespace>AstroCombiner</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>acmb-lib</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -142,13 +111,13 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -225,6 +194,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -233,6 +203,11 @@
       <AdditionalDependencies>TinyTIFFShared_Debug.lib;TinyTIFF_Debug.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>4194304</StackReserveSize>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/buildfiles/debug-x86_64;./Libs/lensfun/build/libs/lensfun/Debug; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/; ./Libs/TinyTIFF/build/src/Debug;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Debug.lib;lensfun.lib;libraw.lib;</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -245,6 +220,7 @@
       <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -254,6 +230,11 @@
       <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
       <AdditionalDependencies>TinyTIFFShared_Release.lib;TinyTIFF_Release.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Release.lib;lensfun.lib;libraw_static.lib;libraw.lib;</AdditionalDependencies>
+      <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,6 @@
 #include "BitmapSubtractor.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 BaseBitmapSubtractor::BaseBitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
 : BaseTransform( pSrcBitmap )
@@ -35,4 +37,34 @@ IBitmapPtr BaseBitmapSubtractor::Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBi
 {
     auto pSubtractor = Create( pSrcBitmap, pBitmapToSubtract );
     return pSubtractor->RunAndGetBitmap();
+}
+
+template<PixelFormat pixelFormat>
+BitmapSubtractor<pixelFormat>::BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
+: BaseBitmapSubtractor( pSrcBitmap, pBitmapToSubtract )
+{
+}
+
+template<PixelFormat pixelFormat>
+void BitmapSubtractor<pixelFormat>::Run()
+{
+    auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+    auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmapToSubtract );
+
+    oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [pSrcBitmap, pBitmapToSubtract] ( const oneapi::tbb::blocked_range<int>& range )
+    {
+        for ( int i = range.begin(); i < range.end(); ++i )
+        {
+            auto pSrcScanline = pSrcBitmap->GetScanline( i );
+            auto pScanlineToSubtract = pBitmapToSubtract->GetScanline( i );
+
+            const size_t N = pSrcBitmap->GetWidth() * PixelFormatTraits<pixelFormat>::channelCount;
+
+            for ( uint32_t j = 0; j < N; ++j )
+            {
+                pSrcScanline[j] = std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] );
+            }
+        }
+    } );
+    this->_pDstBitmap = this->_pSrcBitmap;
 }

@@ -3,17 +3,17 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
-#include "libraw/libraw.h"
-//class LibRaw;
+
+class LibRaw;
 
 class RawDecoder : public ImageDecoder
 {
-	std::unique_ptr<LibRaw> _pLibRaw;
+	LibRaw* _pLibRaw;
     bool _halfSize;
 
 public:
 	RawDecoder(bool halfSize = false);
-
+    ~RawDecoder();
     void Attach(const std::string& fileName) override;
     void Attach(std::shared_ptr<std::istream> pStream) override;
     void Detach() override;

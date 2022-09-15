@@ -2,37 +2,14 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/bitmap.h"
-#include "tinytiffreader.hxx"
-#include <tbb/blocked_range.h>
-#include <tbb/parallel_for.h>
+
+struct TinyTIFFReaderFile;
 
 class TiffDecoder : public ImageDecoder
 {
     TinyTIFFReaderFile* _pReader;
 
-    template <PixelFormat pixelFormat>
-    void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const uint8_t* data )
-    {
-        constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
-        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-
-        auto pInData = reinterpret_cast< const ChannelType* >( data );
-        auto pOutData = pBitmap->GetScanline( 0 );
-
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
-        {
-            for ( int i = range.begin(); i < range.end(); ++i )
-            {
-                for ( uint32_t j = 0; j < _width; ++j )
-                {
-                    for ( uint16_t ch = 0; ch < channelCount; ++ch )
-                    {
-                        pOutData[( i * _width + j ) * channelCount + ch] = pInData[ch * _width * _height + i * _width + j];
-                    }
-                }
-            }
-        } );
-    }
+   
 
 public:
     TiffDecoder() = default;

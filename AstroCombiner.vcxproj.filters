@@ -57,12 +57,6 @@
     <ClInclude Include="Registrator\star.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tests\test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tests\testtools.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Tools\mathtools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -102,18 +96,6 @@
     <ClInclude Include="Tools\Newton2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Registrator\AddingBitmapHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Registrator\AlignmentHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Registrator\AddingBitmapWithAlignmentHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Registrator\GeneratingResultHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Geometry\size.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -121,12 +103,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Transforms\HistogramBuilder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tests\TestRunner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tools\CliParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Transforms\BitmapSubtractor.h">
@@ -145,6 +121,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Codecs\JPEG\toojpeg\toojpeg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools\CliParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -176,30 +155,6 @@
     <ClCompile Include="Registrator\stacker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestBinningTransform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestBitmap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestConverter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestPpmDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestPpmEncoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestRegistrator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestStacker.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\testtools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Tools\mathtools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -209,19 +164,10 @@
     <ClCompile Include="Transforms\converter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Codecs\Raw\RawDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestRawDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Registrator\FastAligner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestFastAligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Geometry\triangle.cpp">
@@ -236,12 +182,6 @@
     <ClCompile Include="Tools\Newton2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestNewton2D.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestStarTrekTransform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Core\enums.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -251,55 +191,19 @@
     <ClCompile Include="Transforms\ChannelEqualizer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestChannelEqualizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestHistogramBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Transforms\HistogramBuilder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestRunner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tools\CliParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestCliParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\BitmapSubtractor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestBitmapSubtractor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Transforms\HaloRemovalTransform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestRgbToHsl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestHaloRemoval.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestImageDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestImageEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\Tiff\TiffDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestTiffDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Codecs\Tiff\TiffEncoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\TestTiffEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\JPEG\JpegEncoder.cpp">
@@ -308,7 +212,7 @@
     <ClCompile Include="Codecs\JPEG\toojpeg\toojpeg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tests\TestJpegEncoder.cpp">
+    <ClCompile Include="Tools\CliParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

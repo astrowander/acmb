@@ -29,8 +29,8 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
 const std::string testFilesPath {"./../AstroCombine/Tests/TestFiles/" };
 const std::string patternsPath {"./../AstroCombine/Tests/Patterns/" };
 #else
-const std::string testFilesPath {"./Tests/TestFiles/" };
-const std::string patternsPath {"./Tests/Patterns/" };
+const std::string testFilesPath {"./TestFiles/" };
+const std::string patternsPath {"./Patterns/" };
 #endif
 
 std::string GetPathToPattern(const std::string &fileName)

@@ -3,12 +3,18 @@
 #include "../../Core/bitmap.h"
 #include <map>
 #include <string>
+#include "libraw/libraw.h"
 
 RawDecoder::RawDecoder(bool halfSize)
 : _pLibRaw(new LibRaw())
 , _halfSize(halfSize)
 {
 
+}
+
+RawDecoder::~RawDecoder()
+{
+	delete _pLibRaw;
 }
 
 const double cropFactors[9] =

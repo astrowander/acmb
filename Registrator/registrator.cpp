@@ -1,5 +1,7 @@
 #include "registrator.h"
 #include "./../Transforms/converter.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 void SortStars(std::vector<Star>& stars)
 {

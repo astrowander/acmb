@@ -7,7 +7,7 @@ bool TestRunner::RunAllTests()
     std::vector<std::pair<std::string, std::string>> allFailedTests;
     size_t testCount = 0;
 
-    for ( auto& it : _suites )
+    for ( auto& it : GetInstance()._suites )
     {
         auto failedTests = it.second->RunAll();
         testCount += it.second->GetTestCount();
@@ -45,8 +45,8 @@ bool TestRunner::RunSuite( const std::string& suiteName )
 {
     auto startTime = std::chrono::steady_clock::now();
 
-    auto it = _suites.find( suiteName );
-    if ( it == std::end( _suites ) )
+    auto it = GetInstance()._suites.find( suiteName );
+    if ( it == std::end( GetInstance()._suites ) )
     {
         std::cout << "Suite not found" << std::endl;
         return false;
@@ -79,8 +79,8 @@ bool TestRunner::RunSuite( const std::string& suiteName )
 
 bool TestRunner::RunTest( const std::string& suiteName, const std::string& testName )
 {
-    auto it = _suites.find( suiteName );
-    if ( it == std::end( _suites ) )
+    auto it = GetInstance()._suites.find( suiteName );
+    if ( it == std::end( GetInstance()._suites ) )
     {
         std::cout << "Suite not found" << std::endl;
         return false;
@@ -90,12 +90,12 @@ bool TestRunner::RunTest( const std::string& suiteName, const std::string& testN
 
 bool TestRunner::AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite )
 {
-    if ( _suites.find(suiteName) != std::end( _suites ) )
+    if ( GetInstance()._suites.find(suiteName) != std::end( GetInstance()._suites ) )
     {
         std::cout << "Suite " << suiteName << " already exists" << std::endl;
         return false;
     }
 
-    _suites.insert( { suiteName, pSuite } );
+    GetInstance()._suites.insert( { suiteName, pSuite } );
     return true;
 }

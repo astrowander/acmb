@@ -1,16 +1,226 @@
 #define _USE_MATH_DEFINES
 
 #include "stacker.h"
-#include "AddingBitmapHelper.h"
-#include "AddingBitmapWithAlignmentHelper.h"
-#include "AlignmentHelper.h"
-#include "GeneratingResultHelper.h"
 #include "../Codecs/imagedecoder.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/deaberratetransform.h"
 #include "../Transforms/BitmapSubtractor.h"
 
-static constexpr bool enableLogging = false;
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
+template<PixelFormat pixelFormat>
+class AddingBitmapHelper
+{
+    static constexpr uint32_t channelCount = ChannelCount( pixelFormat );
+
+    Stacker& _stacker;
+    std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
+
+    AddingBitmapHelper( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+        : _stacker( stacker )
+        , _pBitmap( pBitmap )
+    {
+
+    }
+
+    void Job( uint32_t i )
+    {
+        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+
+        for ( uint32_t j = 0; j < _stacker._width * channelCount; ++j )
+        {
+            const auto index = i * _stacker._width * channelCount + j;
+            auto& mean = _stacker._means[index];
+            auto& dev = _stacker._devs[index];
+            auto& n = _stacker._counts[index];
+            auto& channel = _pBitmap->GetScanline( 0 )[index];
+
+            const auto sigma = sqrt( dev );
+            const auto kappa = 3.0;
+
+            if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
+            {
+                dev = n * ( dev + ( channel - mean ) * ( channel - mean ) / ( n + 1 ) ) / ( n + 1 );
+                mean = std::clamp( ( n * mean + channel ) / ( n + 1 ), 0.0f, static_cast< float >( std::numeric_limits<ChannelType>::max() ) );
+                ++n;
+            }
+        }
+    }
+
+public:
+
+    static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+    {
+        AddingBitmapHelper helper( stacker, pBitmap );
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
+    }
+};
+
+template<PixelFormat pixelFormat>
+class AddingBitmapWithAlignmentHelper
+{
+    static constexpr uint32_t channelCount = ChannelCount( pixelFormat );
+
+    Stacker& _stacker;
+    std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
+
+    AddingBitmapWithAlignmentHelper( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+        : _stacker( stacker )
+        , _pBitmap( pBitmap )
+    {
+
+    }
+
+    void Job( uint32_t i )
+    {
+        Stacker::TriangleTransformPair lastPair;
+
+        for ( uint32_t x = 0; x < _stacker._width; ++x )
+        {
+            PointF p{ static_cast< double >( x ), static_cast< double >( i ) };
+
+            size_t hGridIndex = x / _stacker.gridSize;
+            size_t vGridIndex = i / _stacker.gridSize;
+
+            if ( !_stacker._grid.empty() )
+            {
+                _stacker.ChooseTriangle( p, lastPair, _stacker._grid[vGridIndex * _stacker._gridWidth + hGridIndex] );
+                lastPair.second.transform( &p.x, &p.y );
+            }
+
+
+            if ( ( _stacker._grid.empty() || lastPair.second != agg::trans_affine_null() ) && p.x >= 0 && p.x <= _stacker._width - 1 && p.y >= 0 && p.y <= _stacker._height - 1 )
+            {
+                for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                {
+                    const auto interpolatedChannel = _pBitmap->GetInterpolatedChannel( static_cast< float >( p.x ), static_cast< float >( p.y ), ch );
+                    const size_t index = i * _stacker._width * channelCount + x * channelCount + ch;
+                    auto& mean = _stacker._means[index];
+                    auto& dev = _stacker._devs[index];
+                    auto& n = _stacker._counts[index];
+
+                    auto sigma = sqrt( dev );
+                    const auto kappa = 3.0;
+
+                    if ( n <= 5 || fabs( mean - interpolatedChannel ) < kappa * sigma )
+                    {
+                        dev = n * ( dev + ( interpolatedChannel - mean ) * ( interpolatedChannel - mean ) / ( n + 1 ) ) / ( n + 1 );
+
+                        mean = std::clamp( ( n * mean + interpolatedChannel ) / ( n + 1 ), 0.0f, static_cast< float >( std::numeric_limits<typename PixelFormatTraits<pixelFormat>::ChannelType>::max() ) );
+                        ++n;
+                    }
+                }
+            }
+        }
+    }
+
+public:
+
+    static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+    {
+        AddingBitmapWithAlignmentHelper helper( stacker, pBitmap );
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
+    }
+};
+
+class AlignmentHelper
+{
+    Stacker& _stacker;
+    size_t _alignerIndex;
+    std::mutex _mutex;
+
+    AlignmentHelper( Stacker& stacker, size_t alignerIndex )
+        : _stacker( stacker )
+        , _alignerIndex( alignerIndex )
+    {
+
+    }
+
+    void Job( uint32_t i )
+    {
+        _stacker._aligners[i]->Align( _stacker._stackingData[_alignerIndex].stars[i] );
+        auto tileMatches = _stacker._aligners[i]->GetMatches();
+
+        _mutex.lock();
+        _stacker._matches.insert( tileMatches.begin(), tileMatches.end() );
+        _mutex.unlock();
+    }
+
+public:
+    static void Run( Stacker& stacker, size_t alignerIndex )
+    {
+        AlignmentHelper helper( stacker, alignerIndex );
+        auto [hTileCount, vTileCount] = GetTileCounts( stacker._width, stacker._height );
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, hTileCount * vTileCount ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
+    }
+};
+
+template<PixelFormat pixelFormat>
+class GeneratingResultHelper
+{
+    Stacker& _stacker;
+    std::shared_ptr<Bitmap<pixelFormat>> _pBitmap;
+
+    GeneratingResultHelper( Stacker& stacker )
+        : _stacker( stacker )
+        , _pBitmap( std::make_shared<Bitmap<pixelFormat>>( stacker._width, stacker._height ) )
+    {
+
+    }
+
+    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+
+    void Job( uint32_t i )
+    {
+        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+
+        ChannelType* pChannel = &_pBitmap->GetScanline( i )[0];
+        float* pMean = &_stacker._means[i * _stacker._width * ChannelCount( pixelFormat )];
+
+        for ( uint32_t x = 0; x < _stacker._width; ++x )
+            for ( uint32_t ch = 0; ch < ChannelCount( pixelFormat ); ++ch )
+            {
+                *pChannel = FastRound<ChannelType>( *pMean );
+                ++pMean;
+                ++pChannel;
+            }
+    }
+
+public:
+    static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+    {
+        GeneratingResultHelper helper( stacker );
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int i = range.begin(); i < range.end(); ++i )
+            {
+                helper.Job( i );
+            }
+        } );
+        pBitmap->SetData( helper._pBitmap->GetData() );
+    }
+};
+
+static constexpr bool enableLogging = true;
 void Log(const std::string& message)
 {
 if (enableLogging)

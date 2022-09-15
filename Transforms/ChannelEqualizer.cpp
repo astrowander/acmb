@@ -2,6 +2,8 @@
 #include "HistogramBuilder.h"
 #include "../Tools/mathtools.h"
 #include <algorithm>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 BaseChannelEqualizer::BaseChannelEqualizer(IBitmapPtr pSrcBitmap)
 : BaseTransform(pSrcBitmap)
@@ -154,4 +156,38 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 	}
 	
 	return pEqualizer->RunAndGetBitmap();
+}
+
+template<PixelFormat pixelFormat>
+inline ChannelEqualizer<pixelFormat>::ChannelEqualizer( IBitmapPtr pSrcBitmap, const std::array<std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
+: BaseChannelEqualizer( pSrcBitmap )
+, _channelTransforms( channelTransforms )
+{
+}
+
+template<PixelFormat pixelFormat>
+void ChannelEqualizer<pixelFormat>::Run()
+{
+	_pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
+	auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+	auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
+
+	oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
+	{
+		for ( int i = range.begin(); i < range.end(); ++i )
+		{
+			for ( uint32_t ch = 0; ch < channelCount; ++ch )
+			{
+				auto pSrcScanline = pSrcBitmap->GetScanline( i ) + ch;
+				auto pDstScanline = pDstBitmap->GetScanline( i ) + ch;
+
+				for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+				{
+					pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
+					pSrcScanline += channelCount;
+					pDstScanline += channelCount;
+				}
+			}
+		}
+	} );
 }
