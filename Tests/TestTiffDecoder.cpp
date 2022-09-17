@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "../Codecs/TIFF/TiffDecoder.h"
+#include "../Codecs/Tiff/TiffDecoder.h"
 #include "../Core/bitmap.h"
 
 BEGIN_SUITE( TiffDecoder )

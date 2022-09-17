@@ -73,3 +73,14 @@ Libs/
 Debug/
 .vs/
 Libs/
+build*
+
+*.pgm
+*.ppm
+*.jpg
+*.jpeg
+*.TIF
+*.tif
+*.tiff
+*.CR2
+*.dng

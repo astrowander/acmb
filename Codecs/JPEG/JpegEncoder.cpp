@@ -2,11 +2,6 @@
 #include "toojpeg/toojpeg.h"
 #include "../../Core/bitmap.h"
 
-void WriteByte( uint8_t byte )
-{
-
-}
-
 JpegEncoder::JpegEncoder( uint8_t quality, bool downsample )
 : _quality( quality )
 , _downsample( downsample )

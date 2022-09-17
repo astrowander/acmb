@@ -67,7 +67,7 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
     _pLibRaw->imgdata.params.half_size = _halfSize;
 	_pLibRaw->imgdata.params.user_qual = 0;
-	_pLibRaw->imgdata.params.use_rawspeed = 1;
+    //_pLibRaw->imgdata.params.use_rawspeed = 1;
 
 	_pLibRaw->raw2image_start();
 	_width = _pLibRaw->imgdata.sizes.iwidth;

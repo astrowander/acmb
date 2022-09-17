@@ -15,7 +15,7 @@
 // TooJpeg::writeJpeg(myOutput, mypixels, 1024, 768);
 #pragma once
 #include <functional>
-
+#include <cstdint>
 namespace TooJpeg
 {
 // write one byte (to disk, memory, ...)

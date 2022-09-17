@@ -1,8 +1,9 @@
-//#define GENERATE_PATTERNS
+#define GENERATE_PATTERNS
 #include "testtools.h"
 #include "../Core/bitmap.h"
 #include <cstring>
-
+#include <cstdlib>
+#include <filesystem>
 bool BitmapsAreEqual(std::shared_ptr<IBitmap> lhs, std::shared_ptr<IBitmap> rhs)
 {
     if
@@ -19,19 +20,27 @@ bool BitmapsAreEqual(std::shared_ptr<IBitmap> lhs, std::shared_ptr<IBitmap> rhs)
 bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
 {
 #ifdef GENERATE_PATTERNS
+    const auto dir = fileName.substr(0, fileName.find_last_of("/\\"));
+    if ( !std::filesystem::exists(dir) && !std::filesystem::create_directory( dir ))
+        throw std::runtime_error(std::string("unable to create directory") + dir);
+
     IBitmap::Save(rhs, fileName);
     return true;
 #endif
     return BitmapsAreEqual(IBitmap::Create(fileName), rhs);
 }
 
-#ifdef __linux
-const std::string testFilesPath {"./../AstroCombine/Tests/TestFiles/" };
-const std::string patternsPath {"./../AstroCombine/Tests/Patterns/" };
-#else
-const std::string testFilesPath {"./TestFiles/" };
-const std::string patternsPath {"./Patterns/" };
-#endif
+std::string GetEnv(const std::string& name)
+{
+    const char* val = std::getenv( name.c_str() );
+    if ( !val )
+        throw std::runtime_error(std::string("Environment variable ") + name + std::string(" does not exist"));
+
+    return val;
+}
+
+const std::string testFilesPath = GetEnv("ACMB_TESTS") + "/TestFiles/";
+const std::string patternsPath = GetEnv("ACMB_TESTS") + "/Patterns/";
 
 std::string GetPathToPattern(const std::string &fileName)
 {

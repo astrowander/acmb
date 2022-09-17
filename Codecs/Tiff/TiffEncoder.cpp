@@ -2,7 +2,7 @@
 #include "tinytiffwriter.h"
 #include "../../Core/bitmap.h"
 
-void TiffEncoder::Attach( std::shared_ptr<std::ostream> pStream )
+void TiffEncoder::Attach( std::shared_ptr<std::ostream> )
 {
     throw std::runtime_error( "not implemented" );
 }

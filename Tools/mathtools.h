@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <span>
+#include <cstdint>
 
 #undef max
 #undef min

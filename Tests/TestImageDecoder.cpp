@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "./../Codecs/ImageDecoder.h"
+#include "./../Codecs/imagedecoder.h"
 
 BEGIN_SUITE( ImageDecoder )
 

@@ -2,7 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include "PPM/ppmencoder.h"
-#include "TIFF/tiffencoder.h"
+#include "Tiff/TiffEncoder.h"
 
 void ImageEncoder::Attach(std::shared_ptr<std::ostream> pStream)
 {

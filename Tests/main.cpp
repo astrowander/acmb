@@ -1,6 +1,6 @@
-#include "test.h"
+#include "TestRunner.h"
 
 int main()
 {
-    return TestRunner::RunAllTests();
+    return TestRunner::RunSuite( "BitmapSubtractor" );
 }
