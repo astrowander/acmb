@@ -11,6 +11,7 @@ protected:
 
 public:
     BaseTransform(IBitmapPtr pSrcBitmap);
+    virtual ~BaseTransform() = default;
 
     virtual void Run() = 0;
     IBitmapPtr RunAndGetBitmap();

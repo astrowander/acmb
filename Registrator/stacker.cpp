@@ -226,7 +226,7 @@ public:
     }
 };
 
-static constexpr bool enableLogging = true;
+static constexpr bool enableLogging = false;
 void Log(const std::string& message)
 {
 if (enableLogging)

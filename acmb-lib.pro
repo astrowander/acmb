@@ -59,6 +59,7 @@ HEADERS += \
     Core/camerasettings.h \
     Core/enums.h \
     Core/imageparams.h \
+    Core/macros.h \
     Geometry/delaunator.hpp \
     Geometry/point.h \
     Geometry/rect.h \
