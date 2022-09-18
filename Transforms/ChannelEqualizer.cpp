@@ -5,11 +5,56 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
-BaseChannelEqualizer::BaseChannelEqualizer(IBitmapPtr pSrcBitmap)
-: BaseTransform(pSrcBitmap)
-{}
+ACMB_NAMESPACE_BEGIN
 
-std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms )
+template<PixelFormat pixelFormat>
+class ChannelEqualizer_ final : public ChannelEqualizer
+{
+	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+	static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+
+	std::array<std::function<ChannelType( ChannelType )>, channelCount> _channelTransforms;
+
+public:
+	ChannelEqualizer_( IBitmapPtr pSrcBitmap, const std::array< std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
+		: ChannelEqualizer( pSrcBitmap )
+		, _channelTransforms( channelTransforms )
+	{
+	}
+	virtual void Run() override
+	{
+		_pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
+		auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
+
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
+		{
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				for ( uint32_t ch = 0; ch < channelCount; ++ch )
+				{
+					auto pSrcScanline = pSrcBitmap->GetScanline( i ) + ch;
+					auto pDstScanline = pDstBitmap->GetScanline( i ) + ch;
+
+					for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+					{
+						pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
+						pSrcScanline += channelCount;
+						pDstScanline += channelCount;
+					}
+				}
+			}
+		} );
+	}
+};
+
+ChannelEqualizer::ChannelEqualizer(IBitmapPtr pSrcBitmap)
+: BaseTransform(pSrcBitmap)
+{
+
+}
+
+std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms )
 {
 	if ( channelTransforms.size() != ChannelCount(pSrcBitmap->GetPixelFormat()))
 		throw std::invalid_argument("Multiplier count must be equal to channel count");
@@ -17,7 +62,7 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 	switch (pSrcBitmap->GetPixelFormat())
 	{
 	case PixelFormat::Gray8:
-		return std::make_shared<ChannelEqualizer<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
+		return std::make_shared<ChannelEqualizer_<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
 		{ 
 			[channelTransforms]( uint8_t arg )
 			{
@@ -25,7 +70,7 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 			}
 		} );
 	case PixelFormat::Gray16:
-		return std::make_shared<ChannelEqualizer<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
+		return std::make_shared<ChannelEqualizer_<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
 		{
 			[channelTransforms]( uint16_t arg )
 			{
@@ -33,7 +78,7 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 			}
 		} );
 	case PixelFormat::RGB24:
-		return std::make_shared<ChannelEqualizer<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
+		return std::make_shared<ChannelEqualizer_<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
 		{
 			[channelTransforms]( uint8_t arg )
 			{
@@ -50,7 +95,7 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 
 		} );
 	case PixelFormat::RGB48:
-		return std::make_shared<ChannelEqualizer<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
+		return std::make_shared<ChannelEqualizer_<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
 		{
 			[channelTransforms]( uint16_t arg )
 			{
@@ -71,15 +116,15 @@ std::shared_ptr<BaseChannelEqualizer> BaseChannelEqualizer::Create(IBitmapPtr pS
 	}
 }
 
-IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
+IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 {
-	auto pHistBuilder = BaseHistorgamBuilder::Create( pSrcBitmap );
+	auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );
 	pHistBuilder->BuildHistogram();
-	std::unique_ptr<BaseChannelEqualizer> pEqualizer;
+	std::unique_ptr<ChannelEqualizer> pEqualizer;
 	switch ( pSrcBitmap->GetPixelFormat() )
 	{
 		case PixelFormat::Gray8:		
-			pEqualizer = std::make_unique<ChannelEqualizer<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
+			pEqualizer = std::make_unique<ChannelEqualizer_<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
 			{
 				[pHistBuilder]( uint8_t arg )
 				{
@@ -92,7 +137,7 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 			} );
 			break;
 		case PixelFormat::Gray16:
-			pEqualizer = std::make_unique<ChannelEqualizer<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
+			pEqualizer = std::make_unique<ChannelEqualizer_<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
 			{
 				[pHistBuilder]( uint16_t arg )
 				{
@@ -105,7 +150,7 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 			} );
 			break;
 		case PixelFormat::RGB24:
-			pEqualizer = std::make_unique<ChannelEqualizer<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
+			pEqualizer = std::make_unique<ChannelEqualizer_<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
 			{
 				[pHistBuilder]( uint8_t arg )
 				{
@@ -134,7 +179,7 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 			} );
 			break;
 		case PixelFormat::RGB48:
-			pEqualizer = std::make_unique<ChannelEqualizer<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
+			pEqualizer = std::make_unique<ChannelEqualizer_<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
 			{
 				[pHistBuilder]( uint16_t arg )
 				{
@@ -158,36 +203,4 @@ IBitmapPtr BaseChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 	return pEqualizer->RunAndGetBitmap();
 }
 
-template<PixelFormat pixelFormat>
-inline ChannelEqualizer<pixelFormat>::ChannelEqualizer( IBitmapPtr pSrcBitmap, const std::array<std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
-: BaseChannelEqualizer( pSrcBitmap )
-, _channelTransforms( channelTransforms )
-{
-}
-
-template<PixelFormat pixelFormat>
-void ChannelEqualizer<pixelFormat>::Run()
-{
-	_pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
-	auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
-	auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
-
-	oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
-	{
-		for ( int i = range.begin(); i < range.end(); ++i )
-		{
-			for ( uint32_t ch = 0; ch < channelCount; ++ch )
-			{
-				auto pSrcScanline = pSrcBitmap->GetScanline( i ) + ch;
-				auto pDstScanline = pDstBitmap->GetScanline( i ) + ch;
-
-				for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
-				{
-					pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
-					pSrcScanline += channelCount;
-					pDstScanline += channelCount;
-				}
-			}
-		}
-	} );
-}
+ACMB_NAMESPACE_END

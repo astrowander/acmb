@@ -1,6 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Core/bitmap.h"
+ACMB_TESTS_NAMESPACE_BEGIN
 
 BEGIN_SUITE(Bitmap)
 
@@ -104,3 +105,5 @@ EXPECT_EQ( 1324, pBitmap->GetChannel( 0, 0, 2 ) );
 END_TEST
 
 END_SUITE (Bitmap)
+
+ACMB_TESTS_NAMESPACE_END

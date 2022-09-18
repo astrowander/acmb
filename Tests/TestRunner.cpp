@@ -1,6 +1,6 @@
 #include "TestRunner.h"
 #include "test.h"
-
+ACMB_TESTS_NAMESPACE_BEGIN
 bool TestRunner::RunAllTests()
 {
     auto startTime = std::chrono::steady_clock::now();
@@ -99,3 +99,5 @@ bool TestRunner::AddSuite( const std::string& suiteName, std::shared_ptr<Suite> 
     GetInstance()._suites.insert( { suiteName, pSuite } );
     return true;
 }
+
+ACMB_TESTS_NAMESPACE_END

@@ -1,27 +1,19 @@
-#ifndef CONVERTER_H
-#define CONVERTER_H
+#pragma once
 #include "../Core/bitmap.h"
 #include <stdexcept>
 #include "basetransform.h"
+ACMB_NAMESPACE_BEGIN
 
-class BaseConverter : public BaseTransform
+class Converter : public BaseTransform
 {
 protected:
-    BaseConverter(IBitmapPtr pSrcBitmap);
+    Converter(IBitmapPtr pSrcBitmap);
 
 public:
-    static std::shared_ptr<BaseConverter> Create(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
+    static std::shared_ptr<Converter> Create(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
     static IBitmapPtr Convert(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
 };
 
-template <PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
-class Converter final: public BaseConverter
-{
-public:
-    Converter( IBitmapPtr pSrcBitmap );
-    void Run() override;
-};
-
-#endif // CONVERTER_H
+ACMB_NAMESPACE_END
 
 

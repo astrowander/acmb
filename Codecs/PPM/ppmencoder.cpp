@@ -1,6 +1,8 @@
 #include "ppmencoder.h"
 #include "../../Core/bitmap.h"
 
+ACMB_NAMESPACE_BEGIN
+
 PpmEncoder::PpmEncoder(PpmMode ppmMode)
 : _ppmMode(ppmMode)
 {
@@ -74,4 +76,4 @@ void PpmEncoder::WriteText(std::shared_ptr<IBitmap> pBitmap)
     }
 }
 
-
+ACMB_NAMESPACE_END

@@ -2,5 +2,5 @@
 
 int main()
 {
-    return TestRunner::RunSuite( "BitmapSubtractor" );
+    return acmb::tests::TestRunner::RunAllTests();
 }

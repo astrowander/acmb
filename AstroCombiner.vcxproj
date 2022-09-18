@@ -35,6 +35,7 @@
     <ClInclude Include="Core\camerasettings.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
+    <ClInclude Include="Core\macros.h" />
     <ClInclude Include="Geometry\delaunator.hpp" />
     <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />

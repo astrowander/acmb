@@ -4,6 +4,8 @@
 #include "../Core/bitmap.h"
 #include <cstring>
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE( PpmDecoder )
 
 BEGIN_TEST( TestGray8)
@@ -122,3 +124,5 @@ BEGIN_TEST( TestCorrupted)
 END_TEST
 
 END_SUITE (PpmDecoder)
+
+ACMB_TESTS_NAMESPACE_END

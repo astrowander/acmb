@@ -1,5 +1,5 @@
 #include "enums.h"
-
+ACMB_NAMESPACE_BEGIN
 std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat)
 {
     switch (pixelFormat)
@@ -31,3 +31,5 @@ PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerP
             return PixelFormat::Unknown;
     }
 }
+
+ACMB_NAMESPACE_END

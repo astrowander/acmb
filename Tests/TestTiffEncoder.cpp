@@ -7,6 +7,7 @@
 #include <filesystem>
 #include "stdio.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
 
 static bool TestPixelFormat(const std::string& pixelFormat)
 {
@@ -70,3 +71,5 @@ ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 END_SUITE( TiffEncoder )
+
+ACMB_TESTS_NAMESPACE_END

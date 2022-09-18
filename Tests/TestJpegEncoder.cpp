@@ -6,6 +6,8 @@
 #include <filesystem>
 #include "stdio.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE ( JpegEncoder )
 
 BEGIN_TEST (TestRGB24)
@@ -53,3 +55,5 @@ BEGIN_TEST( TestNullBitmap )
 END_TEST
 
 END_SUITE( JpegEncoder )
+
+ACMB_TESTS_NAMESPACE_END

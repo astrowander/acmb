@@ -2,6 +2,8 @@
 #include "tinytiffwriter.h"
 #include "../../Core/bitmap.h"
 
+ACMB_NAMESPACE_BEGIN
+
 void TiffEncoder::Attach( std::shared_ptr<std::ostream> )
 {
     throw std::runtime_error( "not implemented" );
@@ -32,3 +34,4 @@ void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     TinyTIFFWriter_close( _pTiff );
 }
 
+ACMB_NAMESPACE_END

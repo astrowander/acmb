@@ -1,8 +1,9 @@
-#ifndef TRIANGLE_H
-#define TRIANGLE_H
+#pragma once
 
 #include "rect.h"
 #include <array>
+
+ACMB_NAMESPACE_BEGIN
 
 struct Triangle
 {
@@ -16,5 +17,5 @@ struct Triangle
 
 	PointF GetCenter() const;
 };
-#endif // !TRIANGLE_H
 
+ACMB_NAMESPACE_END

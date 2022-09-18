@@ -3,6 +3,8 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
+ACMB_NAMESPACE_BEGIN
+
 void SortStars(std::vector<Star>& stars)
 {
     if (!stars.empty())
@@ -38,7 +40,7 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
     }
     else
     {
-        auto pConverter = BaseConverter::Create(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
+        auto pConverter = Converter::Create(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
         _pBitmap = pConverter->RunAndGetBitmap();
     }    
 
@@ -77,3 +79,5 @@ const std::vector<std::vector<Star>>& Registrator::GetStars() const
 {
     return _stars;
 }
+
+ACMB_NAMESPACE_END

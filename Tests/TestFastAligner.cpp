@@ -3,6 +3,8 @@
 #include "../Registrator/FastAligner.h"
 #include "../Registrator/registrator.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE(FastAligner)
 
 BEGIN_TEST(BasicTest)
@@ -172,3 +174,5 @@ EXPECT_EQ(116, matches.size());
 END_TEST
 
 END_SUITE (FastAligner)
+
+ACMB_TESTS_NAMESPACE_END

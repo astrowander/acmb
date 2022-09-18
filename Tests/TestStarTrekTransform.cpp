@@ -4,9 +4,11 @@
 #include "../Core/camerasettings.h"
 #include <fstream>
 
-BEGIN_SUITE(StarTrekTransform)
+ACMB_TESTS_NAMESPACE_BEGIN
 
-/*BEGIN_TEST(CalculateOffsetField)
+/*BEGIN_SUITE(StarTrekTransform)
+
+BEGIN_TEST(CalculateOffsetField)
 
 const PointF centralPoint { 2736.0, 1824.0 };
 const double radiansPerPixel = 2 * atan(12.0 / 24.0) / (2 * centralPoint.y);
@@ -35,6 +37,8 @@ for (double decl0 = 0; decl0 < 80.0; decl0 += 5.0)
 			output << dx << ";" << dy << ";" << dst.x - src.x - baseTranslate[0] << ";" << dst.y - src.y - baseTranslate[1] << std::endl;
 		}
 }
-END_TEST*/
+END_TEST
 
-END_SUITE (StarTrekTransform)
+END_SUITE (StarTrekTransform)*/
+
+ACMB_TESTS_NAMESPACE_END

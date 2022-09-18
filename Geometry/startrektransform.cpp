@@ -1,9 +1,7 @@
 #define _USE_MATH_DEFINES
 #include "startrektransform.h"
 
-//for compatibility with agg::trans_affine
-
-
+ACMB_NAMESPACE_BEGIN
 
 StarTrekTransform::StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan)
 : _affineMatrix(affineMatrix)
@@ -70,3 +68,5 @@ void StarTrekTransform::transform(double* x, double* y)
 	*x = p.x;
 	*y = p.y;
 }
+
+ACMB_NAMESPACE_END

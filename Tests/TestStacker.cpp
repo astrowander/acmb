@@ -4,6 +4,8 @@
 #include "../Registrator/stacker.h"
 #include <filesystem>
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE(Stacker)
 
 BEGIN_TEST(TestStackingWithoutAlignment)
@@ -100,3 +102,5 @@ BEGIN_TEST( StackWithDarks )
 END_TEST
 
 END_SUITE (Stacker)
+
+ACMB_TESTS_NAMESPACE_END

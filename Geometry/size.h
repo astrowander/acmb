@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <iostream>
+ACMB_NAMESPACE_BEGIN
 
 template <typename T>
 struct SizeT
@@ -25,3 +26,5 @@ std::ostream& operator<<(std::ostream& out, const SizeT<T>& size)
 
 using Size = SizeT<uint32_t>;
 using SizeF = SizeT<double>;
+
+ACMB_NAMESPACE_END

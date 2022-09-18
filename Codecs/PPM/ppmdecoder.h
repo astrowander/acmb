@@ -1,8 +1,9 @@
-#ifndef PPMDECODER_H
-#define PPMDECODER_H
+#pragma once
 
 #include "../../Codecs/imagedecoder.h"
 #include "../../Core/enums.h"
+
+ACMB_NAMESPACE_BEGIN
 
 class PpmDecoder : public ImageDecoder
 {
@@ -39,4 +40,4 @@ private:
     ADD_EXTENSIONS
 };
 
-#endif // PPMDECODER_H
+ACMB_NAMESPACE_END

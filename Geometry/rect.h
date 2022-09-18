@@ -1,8 +1,7 @@
-#ifndef RECT_H
-#define RECT_H
+#pragma once
 #include "point.h"
 #include "size.h"
-
+ACMB_NAMESPACE_BEGIN
 
 template<typename T>
 struct RectT
@@ -100,4 +99,4 @@ bool RectT<T>::operator!=(const RectT<T>& rhs) const
 using Rect = RectT<int32_t>;
 using RectF = RectT<double>;
 
-#endif // RECT_H
+ACMB_NAMESPACE_END

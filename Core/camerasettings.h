@@ -1,6 +1,8 @@
 #pragma once
 #include "./../Geometry/rect.h"
 
+ACMB_NAMESPACE_BEGIN
+
 struct CameraSettings
 {
 	std::string cameraMakerName;
@@ -17,3 +19,5 @@ struct CameraSettings
 
 	int64_t timestamp;
 };
+
+ACMB_NAMESPACE_END

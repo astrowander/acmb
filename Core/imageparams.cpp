@@ -1,4 +1,5 @@
 #include "imageparams.h"
+ACMB_NAMESPACE_BEGIN
 
 ImageParams::ImageParams(uint32_t width, uint32_t height, PixelFormat pixelFormat)
 : _width(width)
@@ -22,3 +23,5 @@ PixelFormat ImageParams::GetPixelFormat() const
 {
     return _pixelFormat;
 }
+
+ACMB_NAMESPACE_END

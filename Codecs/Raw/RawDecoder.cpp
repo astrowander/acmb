@@ -5,6 +5,8 @@
 #include <string>
 #include "libraw/libraw.h"
 
+ACMB_NAMESPACE_BEGIN
+
 RawDecoder::RawDecoder(bool halfSize)
 : _pLibRaw(new LibRaw())
 , _halfSize(halfSize)
@@ -148,3 +150,4 @@ uint32_t RawDecoder::GetCurrentScanline() const
 	throw std::runtime_error("not implemented");
 }
 
+ACMB_NAMESPACE_END

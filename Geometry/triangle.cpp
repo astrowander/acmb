@@ -1,4 +1,5 @@
 #include "triangle.h"
+ACMB_NAMESPACE_BEGIN
 
 float Sign(PointF p1, PointF p2, PointF p3)
 {
@@ -44,3 +45,5 @@ PointF Triangle::GetCenter() const
 {
 	return  { (vertices[0].x + vertices[1].x + vertices[2].x) / 3.0, (vertices[0].y + vertices[1].y + vertices[2].y) / 3.0 };
 }
+
+ACMB_NAMESPACE_END

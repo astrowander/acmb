@@ -1,6 +1,8 @@
 #pragma once
 #include "../../Codecs/imageencoder.h"
 
+ACMB_NAMESPACE_BEGIN
+
 class JpegEncoder : public ImageEncoder
 {
     uint8_t _quality = 90;
@@ -24,3 +26,5 @@ public:
 
     ADD_EXTENSIONS
 };
+
+ACMB_NAMESPACE_END

@@ -1,8 +1,16 @@
 #pragma once
+
+#include "../Core/macros.h"
+#include "../Tests/test.h"
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include "../Tests/test.h"
+
+ACMB_TESTS_NAMESPACE_BEGIN
+class TestCliParser;
+ACMB_TESTS_NAMESPACE_END
+
+ACMB_NAMESPACE_BEGIN
 
 class ImageDecoder;
 
@@ -20,3 +28,5 @@ public:
     static std::tuple<int, std::string> Parse( int argc, const char** argv );
     TEST_ACCESS( CliParser );
 };
+
+ACMB_NAMESPACE_END

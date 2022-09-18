@@ -3,6 +3,9 @@
 #include "../../Core/enums.h"
 #include "../../Codecs/imageencoder.h"
 struct TinyTIFFWriterFile;
+
+ACMB_NAMESPACE_BEGIN
+
 class TiffEncoder : public ImageEncoder
 {
     std::string _fileName;
@@ -26,3 +29,5 @@ public:
 
     ADD_EXTENSIONS
 };
+
+ACMB_NAMESPACE_END

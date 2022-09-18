@@ -1,6 +1,8 @@
 #include "ppmdecoder.h"
 #include "../../Core/bitmap.h"
 
+ACMB_NAMESPACE_BEGIN
+
 void PpmDecoder::Attach(const std::string &fileName)
 {
     ImageDecoder::Attach(fileName);
@@ -158,8 +160,6 @@ std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
     }
 }
 
-
-
 std::unique_ptr<std::istringstream> PpmDecoder::ReadLine()
 {
     auto res = ImageDecoder::ReadLine();
@@ -168,3 +168,5 @@ std::unique_ptr<std::istringstream> PpmDecoder::ReadLine()
 
     return res;
 }
+
+ACMB_NAMESPACE_END

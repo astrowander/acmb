@@ -2,6 +2,8 @@
 #include "toojpeg/toojpeg.h"
 #include "../../Core/bitmap.h"
 
+ACMB_NAMESPACE_BEGIN
+
 JpegEncoder::JpegEncoder( uint8_t quality, bool downsample )
 : _quality( quality )
 , _downsample( downsample )
@@ -45,3 +47,5 @@ void JpegEncoder::SetDownsample( bool val )
 {
     _downsample = val;
 }
+
+ACMB_NAMESPACE_END

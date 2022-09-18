@@ -3,6 +3,8 @@
 #include "../Codecs/Tiff/TiffDecoder.h"
 #include "../Core/bitmap.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE( TiffDecoder )
 
 BEGIN_TEST( TestGray8 )
@@ -79,3 +81,5 @@ EXPECT_TRUE( BitmapsAreEqual( pFirstBitmap, pSecondBitmap ) );
 END_TEST
 
 END_SUITE( TiffDecoder )
+
+ACMB_TESTS_NAMESPACE_END

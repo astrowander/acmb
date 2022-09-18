@@ -4,6 +4,8 @@
 #include "PPM/ppmencoder.h"
 #include "Tiff/TiffEncoder.h"
 
+ACMB_NAMESPACE_BEGIN
+
 void ImageEncoder::Attach(std::shared_ptr<std::ostream> pStream)
 {
     if (!pStream)
@@ -45,3 +47,5 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
 
     return pEncoder;
 }
+
+ACMB_NAMESPACE_END

@@ -126,6 +126,9 @@
     <ClInclude Include="Tools\CliParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Core\macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">

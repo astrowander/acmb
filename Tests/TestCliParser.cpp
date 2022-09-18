@@ -2,6 +2,8 @@
 #include "testtools.h"
 #include "../Tools/CliParser.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE( CliParser )
 
 BEGIN_TEST( InvalidArgc )
@@ -123,3 +125,5 @@ EXPECT_EQ( 10, parser._darks.size() );
 END_TEST
 
 END_SUITE( CliParser )
+
+ACMB_TESTS_NAMESPACE_END

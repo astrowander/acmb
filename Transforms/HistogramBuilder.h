@@ -1,8 +1,8 @@
 #pragma once
 #include "../Core/bitmap.h"
 #include "../Geometry/rect.h"
-#include <array>
-#include <mutex>
+
+ACMB_NAMESPACE_BEGIN
 
 struct HistogramStatistics
 {
@@ -14,7 +14,7 @@ struct HistogramStatistics
 	float dev;
 };
 
-class BaseHistorgamBuilder
+class HistorgamBuilder
 {
 public:
 	using ChannelHistogram = std::vector<uint32_t>;
@@ -22,37 +22,14 @@ public:
 protected:
 	IBitmapPtr _pBitmap;
 	Rect _roi;
-	BaseHistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi);
+	HistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi);
 
 public:
-	static std::shared_ptr<BaseHistorgamBuilder> Create(IBitmapPtr pBitmap, const Rect& roi = {});
+	static std::shared_ptr<HistorgamBuilder> Create(IBitmapPtr pBitmap, const Rect& roi = {});
 
 	virtual void BuildHistogram() = 0;
 	virtual const ChannelHistogram& GetChannelHistogram(uint32_t ch) const = 0;
 	virtual const HistogramStatistics& GetChannelStatistics(uint32_t ch) const = 0;
 };
 
-
-
-template <PixelFormat pixelFormat>
-class HistogramBuilder final: public BaseHistorgamBuilder
-{
-	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-	static const auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
-	static const uint32_t channelMax = PixelFormatTraits<pixelFormat>::channelMax;	
-
-	std::array<ChannelHistogram, channelCount> _histograms;
-	std::array<HistogramStatistics, channelCount> _statistics;
-
-	std::mutex _mutex;
-
-public:
-	HistogramBuilder( IBitmapPtr pBitmap, const Rect& roi );
-
-	void BuildHistogram() override;
-
-	const ChannelHistogram& GetChannelHistogram( uint32_t ch ) const override;
-
-	const HistogramStatistics& GetChannelStatistics( uint32_t ch ) const override;
-
-};
+ACMB_NAMESPACE_END

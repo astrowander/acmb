@@ -1,7 +1,8 @@
-#ifndef IMAGEPARAMS_H
-#define IMAGEPARAMS_H
+#pragma once
 
 #include "enums.h"
+
+ACMB_NAMESPACE_BEGIN
 
 class ImageParams
 {
@@ -17,4 +18,4 @@ public:
     PixelFormat GetPixelFormat() const;
 };
 
-#endif // IMAGEPARAMS_H
+ACMB_NAMESPACE_END

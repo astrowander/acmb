@@ -1,5 +1,5 @@
 #include "basetransform.h"
-
+ACMB_NAMESPACE_BEGIN
 
 BaseTransform::BaseTransform(IBitmapPtr pSrcBitmap)
 :_pSrcBitmap(pSrcBitmap)
@@ -18,3 +18,5 @@ void BaseTransform::SetSrcBitmap(IBitmapPtr pSrcBitmap)
 {
     _pSrcBitmap = pSrcBitmap;
 }
+
+ACMB_NAMESPACE_END

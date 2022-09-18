@@ -4,6 +4,8 @@
 #include "../Codecs/PPM/ppmencoder.h"
 #include "../Core/bitmap.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 template<PixelFormat pixelFormat, PpmMode mode>
 static bool TestPixelFormat()
 {
@@ -69,3 +71,5 @@ ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 END_SUITE (PpmEncoder)
+
+ACMB_TESTS_NAMESPACE_END

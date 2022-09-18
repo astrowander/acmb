@@ -1,14 +1,17 @@
-#ifndef IMAGEDECODER_H
-#define IMAGEDECODER_H
+#pragma once
+
+#include "../Core/macros.h"
+#include "../Core/imageparams.h"
+#include "../Core/camerasettings.h"
 
 #include <string>
 #include <vector>
 #include <iostream>
 #include <memory>
-#include "../Core/imageparams.h"
-#include "../Core/camerasettings.h"
 #include <sstream>
 #include <unordered_set>
+
+ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
 
@@ -64,4 +67,5 @@ protected:
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());
-#endif // IMAGEDECODER_H
+
+ACMB_NAMESPACE_END

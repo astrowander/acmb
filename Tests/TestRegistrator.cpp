@@ -2,6 +2,8 @@
 #include "testtools.h"
 #include "../Registrator/registrator.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE(Registrator)
 
 BEGIN_TEST(BasicTest)
@@ -78,3 +80,5 @@ BEGIN_TEST(TestBlackBitmap)
 END_TEST
 
 END_SUITE (Registrator)
+
+ACMB_TESTS_NAMESPACE_END

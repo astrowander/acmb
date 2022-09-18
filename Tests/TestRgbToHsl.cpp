@@ -3,6 +3,8 @@
 #include "./../Tools/mathtools.h"
 #include <array>
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE( RgbToHsl )
 
 BEGIN_TEST( DoubleConversion )
@@ -100,3 +102,5 @@ EXPECT_EQ( rgb[2], 71 );
 END_TEST
 
 END_SUITE( RgbToHsl )
+
+ACMB_TESTS_NAMESPACE_END

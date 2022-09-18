@@ -1,6 +1,8 @@
 #define _USE_MATH_DEFINES
 #include "FastAligner.h"
 
+ACMB_NAMESPACE_BEGIN
+
 using PointFPair = std::pair<PointF, PointF>;
 
 agg::trans_affine CalculateTransform(const PointFPair& refPoints, const PointFPair& targetPoints)
@@ -146,3 +148,5 @@ void FastAligner::BruteForceCheckTransform(const size_t refLim, const size_t tar
 
 	}
 }
+
+ACMB_NAMESPACE_END

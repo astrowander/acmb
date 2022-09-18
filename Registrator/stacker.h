@@ -1,16 +1,18 @@
-#ifndef STACKER_H
-#define STACKER_H
-#include <memory>
-#include <vector>
-#include <string>
+#pragma once
 
+#include "FastAligner.h"
 #include "../Core/bitmap.h"
 #include "../Geometry/triangle.h"
 #include "../AGG/agg_trans_affine.h"
 #include "../Tests/test.h"
-#include "registrator.h"
+
 #include <array>
-#include "FastAligner.h"
+
+ACMB_TESTS_NAMESPACE_BEGIN
+class TestStacker;
+ACMB_TESTS_NAMESPACE_END
+
+ACMB_NAMESPACE_BEGIN
 
 class ImageDecoder;
 
@@ -72,4 +74,4 @@ public:
 
 };
 
-#endif // STACKER_H
+ACMB_NAMESPACE_END

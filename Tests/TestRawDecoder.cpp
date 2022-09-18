@@ -3,6 +3,8 @@
 #include "./../Codecs/Raw/RawDecoder.h"
 #include "./../Codecs/PPM/ppmencoder.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE(RawDecoder)
 
 BEGIN_TEST(TestAttach)
@@ -65,3 +67,5 @@ auto f = []()
 ASSERT_THROWS(f, std::runtime_error);
 END_TEST
 END_SUITE (RawDecoder)
+
+ACMB_TESTS_NAMESPACE_END

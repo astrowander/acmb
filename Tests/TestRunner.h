@@ -1,15 +1,15 @@
 #pragma once
-
+#include "../Core/macros.h"
 #include <unordered_map>
 #include <string>
 #include <memory>
+
+ACMB_TESTS_NAMESPACE_BEGIN
 
 class Suite;
 
 class TestRunner
 {
-    //inline static auto _suites = std::unordered_map<std::string, std::shared_ptr<Suite>>();
-
 private:
     std::unordered_map<std::string, std::shared_ptr<Suite>> _suites;
 
@@ -33,3 +33,4 @@ public:
     static bool AddSuite( const std::string& suiteName, std::shared_ptr<Suite> pSuite );
 };
 
+ACMB_TESTS_NAMESPACE_END

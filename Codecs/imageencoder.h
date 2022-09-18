@@ -1,10 +1,11 @@
-#ifndef IMAGEENCODER_H
-#define IMAGEENCODER_H
-
+#pragma once
+#include "../Core/macros.h"
 #include <string>
 #include <ostream>
 #include <memory>
 #include <unordered_set>
+
+ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
 
@@ -39,4 +40,5 @@ protected:
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());
-#endif // IMAGEENCODER_H
+
+ACMB_NAMESPACE_END

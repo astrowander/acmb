@@ -3,6 +3,8 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
+ACMB_NAMESPACE_BEGIN
+
 template <PixelFormat pixelFormat>
 void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const uint8_t* data, int width, int height )
 {
@@ -95,3 +97,5 @@ uint32_t TiffDecoder::GetCurrentScanline() const
 {
     throw std::runtime_error( "not implemented" );
 }
+
+ACMB_NAMESPACE_END

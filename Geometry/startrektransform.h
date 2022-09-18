@@ -1,9 +1,10 @@
-#ifndef STARTREKTRANSFORM_H
-#define STARTREKTRANSFORM_H
+#pragma once
 
 #include "./../AGG/agg_trans_affine.h"
 #include "./point.h"
 #include "./../Tools/Newton2D.h"
+
+ACMB_NAMESPACE_BEGIN
 
 struct SphericalPoint
 {
@@ -36,5 +37,5 @@ public:
 	void transform(double* x, double* y);
 };
 
-#endif
+ACMB_NAMESPACE_END
 

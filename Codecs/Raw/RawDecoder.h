@@ -1,10 +1,11 @@
-#ifndef RAWDECODER_H
-#define RAWDECODER_H
+#pragma once
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
 
 class LibRaw;
+
+ACMB_NAMESPACE_BEGIN
 
 class RawDecoder : public ImageDecoder
 {
@@ -31,4 +32,4 @@ public:
     ADD_EXTENSIONS
 };
 
-#endif
+ACMB_NAMESPACE_END

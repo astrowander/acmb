@@ -1,9 +1,11 @@
 #include "CliParser.h"
 
+#include "./../Codecs/imagedecoder.h"
 #include "./../Registrator/stacker.h"
 #include "./../Transforms/ChannelEqualizer.h"
 #include "./../Transforms/HaloRemovalTransform.h"
 #include <filesystem>
+ACMB_NAMESPACE_BEGIN
 
 CliParser::CliParser( int argc, const char** argv )
 {
@@ -93,7 +95,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         it = _kv.find( "-autowb" );
         if ( it != std::end( _kv ) )
         {
-            pRes = BaseChannelEqualizer::AutoEqualize( pRes );
+            pRes = ChannelEqualizer::AutoEqualize( pRes );
         }
 
         it = _kv.find( "-removehalo" );
@@ -104,7 +106,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 intensity = std::stof( it->second ) / 100.0f;
             }
-            pRes = BaseHaloRemovalTransform::AutoRemove( pRes, intensity );
+            pRes = HaloRemovalTransform::AutoRemove( pRes, intensity );
         }
         IBitmap::Save( pRes, outputPath );
         return {};
@@ -118,3 +120,5 @@ std::tuple<int, std::string> CliParser::Parse( int argc, const char** argv )
     CliParser parser(argc, argv);
     return parser.Parse();
 }
+
+ACMB_NAMESPACE_END

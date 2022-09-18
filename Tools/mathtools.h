@@ -1,5 +1,5 @@
-#ifndef MATHTOOLS_H
-#define MATHTOOLS_H
+#pragma once
+#include "../Core/macros.h"
 #include <algorithm>
 #include <tuple>
 #include <array>
@@ -8,8 +8,7 @@
 #include <span>
 #include <cstdint>
 
-#undef max
-#undef min
+ACMB_NAMESPACE_BEGIN
 
 float QuadraticInterpolation(float t, float t0, float t1, float t2);
 float ArbitraryQuadraticInterpolation( float x, float x0, float y0, float x1, float y1, float x2, float y2 );
@@ -81,4 +80,4 @@ void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb 
 
 float normalDist( float x, float xmax, float ymax, float sigma );
 
-#endif
+ACMB_NAMESPACE_END

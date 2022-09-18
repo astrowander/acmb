@@ -1,24 +1,17 @@
 #pragma once
 #include "basetransform.h"
 
-class BaseBitmapSubtractor : public BaseTransform
+ACMB_NAMESPACE_BEGIN
+
+class BitmapSubtractor : public BaseTransform
 {
 protected:
     IBitmapPtr _pBitmapToSubtract;
+    BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
 
-public:
-    BaseBitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
-    static std::shared_ptr<BaseBitmapSubtractor> Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+public:    
+    static std::shared_ptr<BitmapSubtractor> Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
     static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
 };
 
-template <PixelFormat pixelFormat>
-class BitmapSubtractor final: public BaseBitmapSubtractor
-{
-    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-
-public:
-
-    BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
-    void Run() override;    
-};
+ACMB_NAMESPACE_END

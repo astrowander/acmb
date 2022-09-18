@@ -1,10 +1,11 @@
-#ifndef PIXELFORMATS_H
-#define PIXELFORMATS_H
-
+#pragma once
+#include "macros.h"
 #include <cstdint>
 #include <type_traits>
 #include <iostream>
 #include <limits>
+
+ACMB_NAMESPACE_BEGIN
 
 enum class PixelFormat : uint32_t
 {
@@ -28,46 +29,42 @@ enum class ColorSpace : uint32_t
     Gray = 2
 };
 
-constexpr ColorSpace GetColorSpace(PixelFormat pixelFormat)
+inline constexpr ColorSpace GetColorSpace( PixelFormat pixelFormat )
 {
-    return static_cast<ColorSpace>((static_cast<uint32_t>(pixelFormat) >> 8) & 0xFF);
-}
+    return static_cast< ColorSpace >( ( static_cast< uint32_t >( pixelFormat ) >> 8 ) & 0xFF );
+};
 
-constexpr uint32_t ChannelCount(PixelFormat pixelFormat)
+inline constexpr uint32_t ChannelCount( PixelFormat pixelFormat )
 {
-    return (uint32_t)pixelFormat & 0xFF;
+    return ( uint32_t ) pixelFormat & 0xFF;
 }
-
-constexpr uint32_t BytesPerChannel(PixelFormat pixelFormat)
+inline constexpr uint32_t BytesPerChannel( PixelFormat pixelFormat )
 {
-    return ((uint32_t)pixelFormat >> 16);
+    return ( ( uint32_t ) pixelFormat >> 16 );
 }
-
-constexpr uint32_t BytesPerPixel(PixelFormat pixelFormat)
+inline constexpr uint32_t BytesPerPixel( PixelFormat pixelFormat )
 {
-    return BytesPerChannel(pixelFormat) * ChannelCount(pixelFormat);
+    return BytesPerChannel( pixelFormat ) * ChannelCount( pixelFormat );
 }
-
-constexpr uint32_t BitsPerChannel(PixelFormat pixelFormat)
+inline constexpr uint32_t BitsPerChannel( PixelFormat pixelFormat )
 {
-    return BytesPerChannel(pixelFormat) * 8;
+    return BytesPerChannel( pixelFormat ) * 8;
 }
-
-constexpr uint32_t BitsPerPixel(PixelFormat pixelFormat)
+inline constexpr uint32_t BitsPerPixel( PixelFormat pixelFormat )
 {
-    return BytesPerPixel(pixelFormat) * 8;
+    return BytesPerPixel( pixelFormat ) * 8;
 }
 
 enum class ARGB32Color : uint32_t
 {
-    Black       = 0xFF000000,
-    Red         = 0xFFFF0000,
-    Green       = 0xFF00FF00,
-    Blue        = 0xFF0000FF,
-    White       = 0xFFFFFFFF,
-    Gray        = 0xFF7F7F7F,
-    Azure       = 0xFF007FFF,
-    Transparent = 0x00000000
+    Black       = 0xFF'00'00'00,
+    Red         = 0xFF'FF'00'00,
+    Green       = 0xFF'00'FF'00,
+    Blue        = 0xFF'00'00'FF,
+    White       = 0xFF'FF'FF'FF,
+    Gray        = 0xFF'7F'7F'7F,
+    Azure       = 0xFF'00'7F'FF,
+    Transparent = 0x00'00'00'00
 };
 
 enum class ARGB64Color : uint64_t
@@ -82,12 +79,12 @@ enum class ARGB64Color : uint64_t
     Transparent = 0x0000'0000'0000'0000
 };
 
-constexpr uint32_t MakeRGB24( uint8_t r, uint8_t g, uint8_t b )
+inline constexpr uint32_t MakeRGB24( uint8_t r, uint8_t g, uint8_t b )
 {
     return uint32_t{ b } + ( uint32_t{ g } << 8 ) + ( uint32_t{ r } << 16 );
 }
 
-constexpr uint64_t MakeRGB48( uint16_t r, uint16_t g, uint16_t b )
+inline constexpr uint64_t MakeRGB48( uint16_t r, uint16_t g, uint16_t b )
 {
     return uint64_t{ b } + ( uint64_t{ g } << 16 ) + ( uint64_t{ r } << 32 );
 }
@@ -142,4 +139,4 @@ PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerP
         default:\
             throw std::runtime_error("pixel format should be known");}
 
-#endif // PIXELFORMATS_H
+ACMB_NAMESPACE_END

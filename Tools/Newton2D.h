@@ -1,5 +1,5 @@
-#ifndef NEWTON2D_H
-#define NEWTON2D_H
+#pragma once
+#include "../Core/macros.h"
 
 #include "math.h"
 #include <functional>
@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <limits>
 #include <optional>
+
+ACMB_NAMESPACE_BEGIN
 
 using Vector2 = std::array<double, 2>;
 using Func2D = std::function<double(Vector2)>;
@@ -36,4 +38,4 @@ public:
 	static Vector2 Solve(const std::array<Func2D, 2>& f, Vector2 x);
 	static Vector2 Solve(const std::array<Func2D, 2>& f, const Jacobian& jacobian, Vector2 x);
 };
-#endif
+ACMB_NAMESPACE_END

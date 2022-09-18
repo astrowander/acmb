@@ -1,30 +1,15 @@
 #pragma once
 #include "basetransform.h"
 #include "../Geometry/size.h"
+ACMB_NAMESPACE_BEGIN
 
-class IBinningTransform : public BaseTransform
+class BinningTransform : public BaseTransform
 {
 protected:
     Size _bin;
-public:
-    IBinningTransform(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
-
-    static std::shared_ptr<IBinningTransform> Create(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
-};
-
-template<PixelFormat pixelFormat>
-class BinningTransform final: public IBinningTransform
-{
-    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-    static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
-
-    std::vector<ChannelType> _buf;
-
-public:
     BinningTransform( std::shared_ptr<IBitmap> pSrcBitmap, Size bin );
-    void Run() override;
-
-private:
-    void ProcessPixel( ChannelType* pSrcPixel, ChannelType* pDstPixel );
+public:
+    static std::shared_ptr<BinningTransform> Create(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
 };
 
+ACMB_NAMESPACE_END

@@ -4,6 +4,9 @@
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
+
+ACMB_TESTS_NAMESPACE_BEGIN
+
 bool BitmapsAreEqual(std::shared_ptr<IBitmap> lhs, std::shared_ptr<IBitmap> rhs)
 {
     if
@@ -51,3 +54,5 @@ std::string GetPathToTestFile(const std::string &fileName)
 {
     return testFilesPath + fileName;
 }
+
+ACMB_TESTS_NAMESPACE_END

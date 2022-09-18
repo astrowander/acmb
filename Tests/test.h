@@ -1,12 +1,14 @@
-#ifndef TEST_H
-#define TEST_H
+#pragma once
+
+#include "TestRunner.h"
 #include <iomanip>
 #include <iostream>
 #include <chrono>
 #include <functional>
 #include <unordered_map>
 #include <vector>
-#include "TestRunner.h"
+
+ACMB_TESTS_NAMESPACE_BEGIN
 
 class Suite
 {
@@ -58,7 +60,7 @@ return _tests.size();\
 };
 
 #define TEST_ACCESS(TestSuite) \
-    friend class Test##TestSuite;
+    friend class tests::Test##TestSuite;
 
 #define BEGIN_TEST(TestName)                                    \
 testName = std::string(#TestName); \
@@ -111,4 +113,4 @@ const std::string testStr = suiteName + std::string(" --> ") + testName + std::s
 #define ASSERT_NO_THROW(f) try { f(); } catch(...) { isTrue = false;}
 #define ASSERT_THROWS(f, ExceptionType) try {f();} catch(ExceptionType&) {isTrue &= true;}
 
-#endif // TEST_H
+ACMB_TESTS_NAMESPACE_END

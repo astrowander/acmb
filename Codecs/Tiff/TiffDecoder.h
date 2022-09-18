@@ -5,6 +5,8 @@
 
 struct TinyTIFFReaderFile;
 
+ACMB_NAMESPACE_BEGIN
+
 class TiffDecoder : public ImageDecoder
 {
     TinyTIFFReaderFile* _pReader;
@@ -30,3 +32,5 @@ public:
 
     ADD_EXTENSIONS
 };
+
+ACMB_NAMESPACE_END

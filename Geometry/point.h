@@ -1,9 +1,10 @@
-#ifndef POINT_H
-#define POINT_H
+#pragma once
+#include "./../Core/macros.h"
 #include <cstdint>
 #include <iostream>
 #include <math.h>
 
+ACMB_NAMESPACE_BEGIN
 
 template<typename T>
 struct PointT
@@ -55,4 +56,4 @@ using PointF = PointT<double>;
 using PointHasher = PointTHasher<int32_t>;
 using PointFHasher = PointTHasher<double>;
 
-#endif 
+ACMB_NAMESPACE_END

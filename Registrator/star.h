@@ -1,6 +1,6 @@
-#ifndef STAR_H
-#define STAR_H
+#pragma once
 #include "../Geometry/rect.h"
+ACMB_NAMESPACE_BEGIN
 
 struct Star
 {
@@ -10,4 +10,4 @@ struct Star
     uint32_t pixelCount = 0;  
 };
 
-#endif // STAR_H
+ACMB_NAMESPACE_END

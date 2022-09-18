@@ -4,6 +4,8 @@
 #include "../Codecs/imagedecoder.h"
 #include "../Codecs/imageencoder.h"
 
+ACMB_NAMESPACE_BEGIN
+
 std::string GetDirectory( const std::string& fileName )
 {
     size_t pos = fileName.find_last_of( "\\/" );
@@ -48,3 +50,5 @@ void IBitmap::Save(std::shared_ptr<IBitmap> pBitmap, const std::string &fileName
     pEncoder->Attach(fileName);
     return pEncoder->WriteBitmap(pBitmap);
 }
+
+ACMB_NAMESPACE_END

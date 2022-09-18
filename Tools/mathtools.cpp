@@ -1,5 +1,7 @@
  #include "mathtools.h"
 
+ACMB_NAMESPACE_BEGIN
+
 float QuadraticInterpolation(float t, float t0, float t1, float t2)
 {
     auto a = (t0 + t2) / 2 - t1;
@@ -36,3 +38,5 @@ float normalDist( float x, float xmax, float ymax, float sigma )
 {
     return ymax * exp( -0.5f * ( xmax - x ) * ( xmax - x ) / sigma / sigma );
 }
+
+ACMB_NAMESPACE_END

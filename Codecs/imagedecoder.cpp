@@ -9,7 +9,7 @@
 #include <set>
 #include <algorithm>
 
-
+ACMB_NAMESPACE_BEGIN
 std::string IntToString( size_t num, size_t minDigitCount )
 {
     auto res = std::to_string( num );
@@ -155,3 +155,5 @@ std::unique_ptr<std::istringstream> ImageDecoder::ReadLine()
     std::getline(*_pStream, res);
     return std::make_unique<std::istringstream>(res);
 }
+
+ACMB_NAMESPACE_END

@@ -2,6 +2,8 @@
 //#include "testtools.h"
 #include "./../Tools/Newton2D.h"
 
+ACMB_TESTS_NAMESPACE_BEGIN
+
 BEGIN_SUITE(Newton2D)
 
 BEGIN_TEST( TestNumericalJacobian )
@@ -50,3 +52,5 @@ EXPECT_NEAR(0.81, res[1], 0.01);
 END_TEST
 
 END_SUITE (Newton2D)
+
+ACMB_TESTS_NAMESPACE_END

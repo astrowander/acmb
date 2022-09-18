@@ -1,4 +1,5 @@
 #include "Newton2D.h"
+ACMB_NAMESPACE_BEGIN
 
 Newton2D::Newton2D(const std::array<Func2D, 2>& f)
 : _f(f)
@@ -68,3 +69,5 @@ std::array<double, 2> Newton2D::Solve(const std::array<Func2D, 2>& f, const Jaco
 	Newton2D solver(f, jacobian);
 	return solver.Solve(x);
 }
+
+ACMB_NAMESPACE_END

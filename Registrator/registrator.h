@@ -1,6 +1,4 @@
-#ifndef REGISTRATOR_H
-#define REGISTRATOR_H
-#include "../Tests/testtools.h"
+#pragma once
 #include "../Transforms/converter.h"
 #include "../Codecs/imagedecoder.h"
 
@@ -8,7 +6,7 @@
 #include <cstring>
 #include "star.h"
 
-//class IBitmap;
+ACMB_NAMESPACE_BEGIN
 
 class Registrator
 {
@@ -39,7 +37,7 @@ private:
 
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
         auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
-        //IBitmap::Save(pGrayBitmap, GetPathToTestFile("gray.pgm"));
+
         auto w = pGrayBitmap->GetWidth();
         auto h = pGrayBitmap->GetHeight();
 
@@ -76,7 +74,6 @@ private:
 
         }
 
-        //IBitmap::Save(pGrayBitmap, GetPathToTestFile("mask.pgm"));
         return res;
     }
 
@@ -121,4 +118,4 @@ private:
     }
 };
 
-#endif
+ACMB_NAMESPACE_END

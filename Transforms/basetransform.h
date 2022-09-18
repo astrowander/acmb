@@ -1,6 +1,7 @@
-#ifndef BASETRANSFORM_H
-#define BASETRANSFORM_H
+#pragma once
 #include "../Core/bitmap.h"
+
+ACMB_NAMESPACE_BEGIN
 
 class BaseTransform
 {
@@ -17,4 +18,4 @@ public:
     void SetSrcBitmap(IBitmapPtr pSrcBitmap);
 };
 
-#endif // BASETRANSFORM_H
+ACMB_NAMESPACE_END

@@ -1,6 +1,9 @@
 #define _USE_MATH_DEFINES
 
 #include "stacker.h"
+#include "FastAligner.h"
+#include "registrator.h"
+
 #include "../Codecs/imagedecoder.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/deaberratetransform.h"
@@ -8,6 +11,9 @@
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+
+ACMB_NAMESPACE_BEGIN
+
 
 template<PixelFormat pixelFormat>
 class AddingBitmapHelper
@@ -258,11 +264,11 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
     {
         auto pBitmap = dsPair.pDecoder->ReadBitmap();
         if ( _pDarkFrame )
-            BaseBitmapSubtractor::Subtract( pBitmap, _pDarkFrame );
+            BitmapSubtractor::Subtract( pBitmap, _pDarkFrame );
 
         if (_enableDeaberration)
         {
-            auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pBitmap, dsPair.pDecoder->GetCameraSettings());
+            auto pDeaberrateTransform = DeaberrateTransform::Create( pBitmap, dsPair.pDecoder->GetCameraSettings() );
             pBitmap = pDeaberrateTransform->RunAndGetBitmap();
         }
         
@@ -290,13 +296,13 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
     if ( _pDarkFrame )
-        BaseBitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
+        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
 
     Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is read");
 
     if (_enableDeaberration)
     {
-        auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+        auto pDeaberrateTransform = DeaberrateTransform::Create(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
         pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
     }
 
@@ -327,14 +333,14 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
         Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
         if ( _pDarkFrame )
-            BaseBitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
+            BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
         if (_enableDeaberration)
         {
-            auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+            auto pDeaberrateTransform = DeaberrateTransform::Create(pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings());
             pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
         }
 
@@ -412,11 +418,11 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
 
     auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
     if ( _pDarkFrame )
-        BaseBitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
+        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
 
     if (_enableDeaberration)
     {
-        auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+        auto pDeaberrateTransform = DeaberrateTransform::Create(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
         pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
     }
 
@@ -448,14 +454,14 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
         auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
         Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
         if ( _pDarkFrame )
-            BaseBitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
+            BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");
 
         if (_enableDeaberration)
         {
-            auto pDeaberrateTransform = std::make_shared<DeaberrateTransform>(pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings());
+            auto pDeaberrateTransform = DeaberrateTransform::Create( pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings() );
             pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
         }
 
@@ -497,3 +503,5 @@ void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& l
 
     lastPair = nearest;
 }
+
+ACMB_NAMESPACE_END

@@ -1,11 +1,12 @@
-#ifndef FASTALIGNER_H
-#define FASTALIGNER_H
+#pragma once
 
 #include <vector>
 #include <unordered_map>
 
 #include "star.h"
 #include "../AGG/agg_trans_affine.h"
+
+ACMB_NAMESPACE_BEGIN
 
 using StarPair = std::pair<Star, Star>;
 using IndexMap = std::unordered_map<size_t, size_t>;
@@ -94,4 +95,5 @@ public:
 
 	void SetEps(double eps);
 };
-#endif
+
+ACMB_NAMESPACE_END

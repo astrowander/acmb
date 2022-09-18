@@ -1,7 +1,5 @@
-#ifndef BITMAP_H
-#define BITMAP_H
+#pragma once
 #include "enums.h"
-
 
 #include <vector>
 #include <memory>
@@ -12,6 +10,8 @@
 #include "../Tools/mathtools.h"
 //#undef max
 
+ACMB_NAMESPACE_BEGIN
+
 class IBitmap : public ImageParams
 {
 public:
@@ -21,7 +21,7 @@ public:
     virtual char* GetPlanarScanline(uint32_t i) = 0;
     virtual uint32_t GetChannel(uint32_t i, uint32_t j, uint32_t k) const = 0;
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
-    virtual uint32_t GetByteSize() = 0;
+    virtual uint32_t GetByteSize() const = 0;
 
     virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) = 0;
 
@@ -109,12 +109,12 @@ public:
         _data[(_width * i + j) * channelCount + k] = value;
     }
 
-    uint32_t GetByteSize() override
+    uint32_t GetByteSize() const override
     {
         return _width * _height * BytesPerPixel(pixelFormat);
     }
 
-    const auto& GetData()
+    const auto& GetData() const
     {
         return _data;
     }
@@ -159,6 +159,4 @@ public:
     }
 };
 
-
-
-#endif // BITMAP_H
+ACMB_NAMESPACE_END
