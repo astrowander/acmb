@@ -173,6 +173,6 @@ EXPECT_EQ(116, matches.size());
 
 END_TEST
 
-END_SUITE (FastAligner)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

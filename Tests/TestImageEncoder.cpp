@@ -13,6 +13,6 @@ EXPECT_EQ( 7, extensions.size() );
 
 END_TEST
 
-END_SUITE( ImageEncoder )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

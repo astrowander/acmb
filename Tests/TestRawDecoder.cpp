@@ -35,7 +35,7 @@ END_TEST
 
 BEGIN_TEST(TestDNG)
 
-auto pDecoder = std::make_unique<RawDecoder>(true);
+auto pDecoder = std::make_unique<RawDecoder>( RawSettings {.halfSize = true, .extendedFormat = true} );
 pDecoder->Attach(GetPathToTestFile("RAW/IMG_20211020_190808.dng"));
 EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
 EXPECT_EQ(4096, pDecoder->GetWidth());
@@ -49,7 +49,7 @@ BEGIN_TEST(TestEmptyFile)
 
 auto f = []()
 {
-	auto pDecoder = std::make_unique<RawDecoder>(true);
+	auto pDecoder = std::make_unique<RawDecoder>();
 	pDecoder->Attach(GetPathToTestFile("RAW/empty.CR2"));
 };
 
@@ -60,12 +60,27 @@ BEGIN_TEST(TestCorruptedFile)
 
 auto f = []()
 {
-	auto pDecoder = std::make_unique<RawDecoder>(true);
+	auto pDecoder = std::make_unique<RawDecoder>();
 	pDecoder->Attach(GetPathToTestFile("RAW/corrupted.CR2"));
 };
 
 ASSERT_THROWS(f, std::runtime_error);
 END_TEST
-END_SUITE (RawDecoder)
+
+BEGIN_TEST( TestRGB24 )
+
+auto pDecoder = std::make_unique<RawDecoder>( RawSettings {.halfSize = false, .extendedFormat = false });
+pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
+EXPECT_EQ( PixelFormat::RGB24, pDecoder->GetPixelFormat() );
+EXPECT_EQ( 5496, pDecoder->GetWidth() );
+EXPECT_EQ( 3670, pDecoder->GetHeight() );
+
+auto pBitmap = pDecoder->ReadBitmap();
+
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/TestRGB24.ppm" ), pBitmap ) );
+
+END_TEST
+
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

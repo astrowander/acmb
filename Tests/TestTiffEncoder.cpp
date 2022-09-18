@@ -70,6 +70,6 @@ auto f = [] ()
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
-END_SUITE( TiffEncoder )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

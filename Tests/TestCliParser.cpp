@@ -124,6 +124,6 @@ EXPECT_EQ( 10, parser._darks.size() );
 
 END_TEST
 
-END_SUITE( CliParser )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

@@ -54,6 +54,6 @@ BEGIN_TEST( TestNullBitmap )
     ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
-END_SUITE( JpegEncoder )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

@@ -13,7 +13,7 @@ BEGIN_TEST(TestStackingWithoutAlignment)
     std::vector<std::shared_ptr<ImageDecoder>> decoders;
     for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/TestStackingWithoutAlignment/")))
     {
-        decoders.push_back(std::make_shared<RawDecoder>(true));
+        decoders.push_back(std::make_shared<RawDecoder>( RawSettings {.halfSize = true, .extendedFormat = true}));
         decoders.back()->Attach(path.path().generic_string());
     }
 
@@ -101,6 +101,6 @@ BEGIN_TEST( StackWithDarks )
 
 END_TEST
 
-END_SUITE (Stacker)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

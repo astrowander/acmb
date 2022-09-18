@@ -80,6 +80,6 @@ EXPECT_TRUE( BitmapsAreEqual( pFirstBitmap, pSecondBitmap ) );
 
 END_TEST
 
-END_SUITE( TiffDecoder )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

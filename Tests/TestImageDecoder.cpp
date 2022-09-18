@@ -13,6 +13,6 @@ EXPECT_EQ( 4, decoders.size() );
 
 END_TEST
 
-END_SUITE( ImageDecoder )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

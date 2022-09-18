@@ -104,6 +104,6 @@ EXPECT_EQ( 16252, pBitmap->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 1324, pBitmap->GetChannel( 0, 0, 2 ) );
 END_TEST
 
-END_SUITE (Bitmap)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

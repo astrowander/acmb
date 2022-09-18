@@ -7,13 +7,19 @@ class LibRaw;
 
 ACMB_NAMESPACE_BEGIN
 
+struct RawSettings
+{
+    bool halfSize = false;
+    bool extendedFormat = true;
+};
+
 class RawDecoder : public ImageDecoder
 {
 	LibRaw* _pLibRaw;
-    bool _halfSize;
+    RawSettings _rawSettings;
 
 public:
-	RawDecoder(bool halfSize = false);
+    RawDecoder( const RawSettings& rawSettings = {} );
     ~RawDecoder();
     void Attach(const std::string& fileName) override;
     void Attach(std::shared_ptr<std::istream> pStream) override;

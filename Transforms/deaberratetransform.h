@@ -1,7 +1,6 @@
 #pragma once
 #include "basetransform.h"
 #include <functional>
-#include "lensfun/lensfun.h"
 #include "./../Tools/mathtools.h"
 
 ACMB_NAMESPACE_BEGIN

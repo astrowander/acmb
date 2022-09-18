@@ -7,9 +7,9 @@
 
 ACMB_NAMESPACE_BEGIN
 
-RawDecoder::RawDecoder(bool halfSize)
+RawDecoder::RawDecoder( const RawSettings& rawSettings)
 : _pLibRaw(new LibRaw())
-, _halfSize(halfSize)
+, _rawSettings( rawSettings )
 {
 
 }
@@ -62,14 +62,13 @@ void RawDecoder::Attach(const std::string& fileName)
 	if (_pLibRaw->open_file(fileName.data()))
 		throw std::runtime_error("unable to read the file");
 
-    _pLibRaw->imgdata.params.output_bps = 16;
+	_pLibRaw->imgdata.params.output_bps = ( _rawSettings.extendedFormat ? 16 : 8 );
     _pLibRaw->imgdata.params.no_interpolation = 0;
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
     _pLibRaw->imgdata.params.med_passes = 0;
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
-    _pLibRaw->imgdata.params.half_size = _halfSize;
+    _pLibRaw->imgdata.params.half_size = _rawSettings.halfSize;
 	_pLibRaw->imgdata.params.user_qual = 0;
-    //_pLibRaw->imgdata.params.use_rawspeed = 1;
 
 	_pLibRaw->raw2image_start();
 	_width = _pLibRaw->imgdata.sizes.iwidth;
@@ -92,7 +91,7 @@ void RawDecoder::Attach(const std::string& fileName)
 	if (lensNames.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensNames))
 		_pCameraSettings->lensModelName = lensNames.at(_pLibRaw->imgdata.lens.makernotes.LensID);
 
-	_pixelFormat = PixelFormat::RGB48;
+	_pixelFormat = ( _rawSettings.extendedFormat ? PixelFormat::RGB48 : PixelFormat::RGB24 );
 }
 
 void RawDecoder::Attach(std::shared_ptr<std::istream>)

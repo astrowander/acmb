@@ -1,6 +1,7 @@
-#define GENERATE_PATTERNS
+//#define GENERATE_PATTERNS
 #include "testtools.h"
 #include "../Core/bitmap.h"
+#include "../Tools/SystemTools.h"
 #include <cstring>
 #include <cstdlib>
 #include <filesystem>
@@ -33,17 +34,8 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
     return BitmapsAreEqual(IBitmap::Create(fileName), rhs);
 }
 
-std::string GetEnv(const std::string& name)
-{
-    const char* val = std::getenv( name.c_str() );
-    if ( !val )
-        throw std::runtime_error(std::string("Environment variable ") + name + std::string(" does not exist"));
-
-    return val;
-}
-
-const std::string testFilesPath = GetEnv("ACMB_TESTS") + "/TestFiles/";
-const std::string patternsPath = GetEnv("ACMB_TESTS") + "/Patterns/";
+const std::string testFilesPath = GetEnv("ACMB_PATH") + "Tests/TestFiles/";
+const std::string patternsPath = GetEnv("ACMB_PATH") + "Tests/Patterns/";
 
 std::string GetPathToPattern(const std::string &fileName)
 {

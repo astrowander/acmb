@@ -24,6 +24,6 @@ EXPECT_EQ( 3210, pHistogramBuilder->GetChannelStatistics( 2 ).min );
 EXPECT_EQ( 8669, pHistogramBuilder->GetChannelStatistics( 2 ).peak );
 EXPECT_EQ( 65435, pHistogramBuilder->GetChannelStatistics( 2 ).max );
 END_TEST
-END_SUITE (HistogramBuilder)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

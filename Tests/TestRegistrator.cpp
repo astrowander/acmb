@@ -79,6 +79,6 @@ BEGIN_TEST(TestBlackBitmap)
 	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
 END_TEST
 
-END_SUITE (Registrator)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

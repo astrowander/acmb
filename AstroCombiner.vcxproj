@@ -49,6 +49,7 @@
     <ClInclude Include="Tools\CliParser.h" />
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
+    <ClInclude Include="Tools\SystemTools.h" />
     <ClInclude Include="Transforms\basetransform.h" />
     <ClInclude Include="Transforms\binningtransform.h" />
     <ClInclude Include="Transforms\BitmapSubtractor.h" />
@@ -80,6 +81,7 @@
     <ClCompile Include="Tools\CliParser.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />
+    <ClCompile Include="Tools\SystemTools.cpp" />
     <ClCompile Include="Transforms\basetransform.cpp" />
     <ClCompile Include="Transforms\binningtransform.cpp" />
     <ClCompile Include="Transforms\BitmapSubtractor.cpp" />

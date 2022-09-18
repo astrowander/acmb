@@ -108,6 +108,6 @@ EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapSubtractor/SubtractDarkFr
 
 END_TEST
 
-END_SUITE(BitmapSubtractor)
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

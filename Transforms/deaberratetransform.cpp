@@ -1,5 +1,12 @@
 #include "deaberratetransform.h"
 #include "./../Core/camerasettings.h"
+#include "./../Tools/SystemTools.h"
+
+#include "lensfun/lensfun.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+#include <tbb/enumerable_thread_specific.h>
+
 
 ACMB_NAMESPACE_BEGIN
 
@@ -15,23 +22,26 @@ class DeaberrateTransform_ final: public DeaberrateTransform
 		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
 		int lwidth = _pSrcBitmap->GetWidth() * 2 * PixelFormatTraits<pixelFormat>::channelCount;
-		std::vector<float> pos( lwidth );
-
-		for ( uint32_t y = 0; y < _pSrcBitmap->GetHeight(); y++ )
+		tbb::enumerable_thread_specific<std::vector<float>> buffer( lwidth );
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
 		{
-			if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, y, _pSrcBitmap->GetWidth(), 1, &pos[0] ) )
-				throw std::runtime_error( "unable to correct vignetting" );
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{				
+				auto& pos = buffer.local();
+				if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, i, _pSrcBitmap->GetWidth(), 1, &pos[0] ) )
+					throw std::runtime_error( "unable to correct distortion" );
 
-			auto pDstPixel = pDstBitmap->GetScanline( y );
+				auto pDstPixel = pDstBitmap->GetScanline( i );
 
-			for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
-			{
-				pDstPixel[0] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
-				pDstPixel[1] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
-				pDstPixel[2] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
-				pDstPixel += 3;
+				for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
+				{
+					pDstPixel[0] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
+					pDstPixel[1] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
+					pDstPixel[2] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
+					pDstPixel += 3;
+				}				
 			}
-		}
+		} );
 	}
 
 public:
@@ -39,7 +49,9 @@ public:
 	: DeaberrateTransform( pSrcBitmap, pCameraSettings )
     , _pDatabase( new lfDatabase() )
 	{
-		if ( _pDatabase->Load() )
+		auto path = GetEnv( "ACMB_PATH" ) + "/Libs/lensfun/data/db";
+		auto res = _pDatabase->Load( path.c_str() );
+		if ( res )
 			throw std::runtime_error( "unable to load the lens database" );
 	}
 
@@ -69,12 +81,15 @@ public:
 		//correct vignetting if available
 		if ( _pModifier->EnableVignettingCorrection( _pCameraSettings->aperture, _pCameraSettings->distance ) & LF_MODIFY_VIGNETTING )
 		{
-			for ( uint32_t y = 0; y < _pSrcBitmap->GetHeight(); y++ )
+			oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, width, height] ( const oneapi::tbb::blocked_range<int>& range ) 
 			{
-				auto pScanline = _pSrcBitmap->GetPlanarScanline( y );
-				if ( !_pModifier->ApplyColorModification( pScanline, 0.0, y, width, height, LF_CR_4( RED, GREEN, BLUE, UNKNOWN ), width * BytesPerPixel( pixelFormat ) ) )
-					throw std::runtime_error( "unable to correct vignetting" );
-			}
+				for ( int i = range.begin(); i < range.end(); ++i )
+				{
+					auto pScanline = _pSrcBitmap->GetPlanarScanline( i );
+					if ( !_pModifier->ApplyColorModification( pScanline, 0.0, i, width, height, LF_CR_4( RED, GREEN, BLUE, UNKNOWN ), width * BytesPerPixel( pixelFormat ) ) )
+						throw std::runtime_error( "unable to correct vignetting" );
+				}
+			} );
 		}
 
 		_pModifier->EnableDistortionCorrection();
@@ -90,13 +105,15 @@ public:
 DeaberrateTransform::DeaberrateTransform(IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings)
 : BaseTransform(pSrcBitmap)
 , _pCameraSettings(pCameraSettings)
-
 {
 	
 }
 
 std::shared_ptr<DeaberrateTransform> DeaberrateTransform::Create( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings )
 {
+	if ( !pCameraSettings )
+		throw std::invalid_argument( "pCameraSettings is null" );
+
 	switch ( pSrcBitmap->GetPixelFormat() )
 	{
 		case PixelFormat::RGB24:

@@ -130,6 +130,7 @@
     <ClCompile Include="TestChannelEqualizer.cpp" />
     <ClCompile Include="TestCliParser.cpp" />
     <ClCompile Include="TestConverter.cpp" />
+    <ClCompile Include="TestDeaberrateTransform.cpp" />
     <ClCompile Include="TestFastAligner.cpp" />
     <ClCompile Include="TestHaloRemoval.cpp" />
     <ClCompile Include="TestHistogramBuilder.cpp" />

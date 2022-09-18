@@ -32,7 +32,7 @@ Test##TestSuite()\
 const std::string suiteName(#TestSuite);\
 std::string testName;
 
-#define END_SUITE( TestSuite ) \
+#define END_SUITE \
 }\
 virtual std::vector<std::string> RunAll() override\
 {\

@@ -58,6 +58,6 @@ BEGIN_TEST(TestZeroSize)
 	ASSERT_THROWS(f, std::invalid_argument);
 END_TEST
 
-END_SUITE( BinningTransform )
+END_SUITE
 
 ACMB_TESTS_NAMESPACE_END
