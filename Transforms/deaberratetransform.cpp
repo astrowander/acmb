@@ -111,6 +111,9 @@ DeaberrateTransform::DeaberrateTransform(IBitmapPtr pSrcBitmap, std::shared_ptr<
 
 std::shared_ptr<DeaberrateTransform> DeaberrateTransform::Create( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings )
 {
+	if ( !pSrcBitmap )
+		throw std::invalid_argument( "pSrcBitmap is null" );
+
 	if ( !pCameraSettings )
 		throw std::invalid_argument( "pCameraSettings is null" );
 

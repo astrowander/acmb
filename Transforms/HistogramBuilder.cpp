@@ -111,6 +111,9 @@ HistorgamBuilder::HistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi)
 
 std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create(IBitmapPtr pBitmap, const Rect& roi)
 {
+	if ( !pBitmap )
+		throw std::invalid_argument( "pSrcBitmap is null" );
+
 	switch (pBitmap->GetPixelFormat())
 	{
 	case PixelFormat::Gray8:

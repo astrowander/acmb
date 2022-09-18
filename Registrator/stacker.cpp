@@ -245,6 +245,9 @@ Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enabl
 
     if (!decoders.empty())
     {
+        if ( !_stackingData[0].pDecoder )
+            throw std::invalid_argument( "decoder is null" );
+
         _width = _stackingData[0].pDecoder->GetWidth();
         _height = _stackingData[0].pDecoder->GetHeight();
         _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);

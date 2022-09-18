@@ -101,6 +101,16 @@ BEGIN_TEST( StackWithDarks )
 
 END_TEST
 
+BEGIN_TEST ( TestNullArgs )
+
+auto f = []
+{
+    std::vector<std::shared_ptr<ImageDecoder>> decoders { nullptr };
+    std::make_shared<Stacker>( decoders );
+};
+
+ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

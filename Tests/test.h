@@ -111,6 +111,6 @@ const std::string testStr = suiteName + std::string(" --> ") + testName + std::s
                                         if ((arg1 < arg2 - eps) || (arg1 > arg2 + eps)) \
                                 std::cout << "Expected " << arg1 << " +/- " << eps << ", but was " << arg2 << std::endl;
 #define ASSERT_NO_THROW(f) try { f(); } catch(...) { isTrue = false;}
-#define ASSERT_THROWS(f, ExceptionType) try {f();} catch(ExceptionType&) {isTrue &= true;}
+#define ASSERT_THROWS(f, ExceptionType) try {f();} catch(ExceptionType&) {isTrue &= true;} catch (...) {isTrue=false; std::cout << "Expected " << #ExceptionType << ", but was another" << std::endl;}
 
 ACMB_TESTS_NAMESPACE_END

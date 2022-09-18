@@ -90,6 +90,9 @@ HaloRemovalTransform::HaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensi
 
 std::shared_ptr<HaloRemovalTransform> HaloRemovalTransform::Create( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
 {
+    if ( !pSrcBitmap )
+        throw std::invalid_argument( "pSrcBitmap is null" );
+
     switch ( pSrcBitmap->GetPixelFormat() )
     {
         case PixelFormat::RGB24:

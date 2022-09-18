@@ -55,6 +55,12 @@ BitmapSubtractor::BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToS
 
 std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
 {
+    if ( !pSrcBitmap )
+        throw std::invalid_argument( "pSrcBitmap is null" );
+
+    if ( !pBitmapToSubtract )
+        throw std::invalid_argument( "pBitmapToSubtract is null" );
+
     switch ( pSrcBitmap->GetPixelFormat() )
     {
         case PixelFormat::Gray8:

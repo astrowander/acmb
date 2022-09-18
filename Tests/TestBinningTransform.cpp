@@ -53,9 +53,13 @@ ASSERT_THROWS(f, std::invalid_argument);
 END_TEST
 
 BEGIN_TEST(TestZeroSize)
-
 	auto f = []() {BinningTransform::Create(IBitmap::Create(100, 100, PixelFormat::Gray8), { 3, 3 }); };
 	ASSERT_THROWS(f, std::invalid_argument);
+END_TEST
+
+BEGIN_TEST( TestNullArg )
+auto f = [] (){	BinningTransform::Create( nullptr, { 3, 3 } ); };
+ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 END_SUITE

@@ -56,6 +56,9 @@ ChannelEqualizer::ChannelEqualizer(IBitmapPtr pSrcBitmap)
 
 std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms )
 {
+	if ( !pSrcBitmap )
+		throw std::invalid_argument( "pSrcBitmap is null" );
+
 	if ( channelTransforms.size() != ChannelCount(pSrcBitmap->GetPixelFormat()))
 		throw std::invalid_argument("Multiplier count must be equal to channel count");
 

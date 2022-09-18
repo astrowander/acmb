@@ -29,6 +29,9 @@ Registrator::Registrator( double threshold, uint32_t _minStarSize, uint32_t _max
 
 void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 {
+    if ( !pBitmap )
+        throw std::invalid_argument( "pBitmap is null" );
+
     auto [hTileCount, vTileCount] = GetTileCounts( pBitmap->GetWidth(), pBitmap->GetHeight() );
     
     _stars.clear();

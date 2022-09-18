@@ -20,6 +20,13 @@ auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/sagittarius.ppm" ) );
 auto pDstBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "ChannelEqualizer/TestRGB48.ppm" ), pDstBitmap ) );
 END_TEST
+
+BEGIN_TEST( TestNullArgs )
+
+auto f = [] { ChannelEqualizer::AutoEqualize( nullptr ); };
+ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

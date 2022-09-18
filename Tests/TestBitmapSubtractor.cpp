@@ -11,6 +11,8 @@ BEGIN_TEST(TestWrongArgs)
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Black );
 auto f = [pSrcBitmap]{ BitmapSubtractor::Create( pSrcBitmap, nullptr ); };  
 ASSERT_THROWS( f, std::invalid_argument );
+auto f2 = [pSrcBitmap]{ BitmapSubtractor::Create( nullptr, pSrcBitmap );};
+ASSERT_THROWS( f2, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST(SubtractFromBlack)

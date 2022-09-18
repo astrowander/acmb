@@ -36,6 +36,15 @@ pSrcBitmap = HaloRemovalTransform::AutoRemove( pSrcBitmap, 0.7f );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "HaloRemoval/TestHugeImage.ppm" ), pSrcBitmap ) );
 
 END_TEST
+
+BEGIN_TEST( TestNullArgs )
+auto f = []
+{
+    HaloRemovalTransform::AutoRemove( nullptr, 0.7f );
+};
+ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

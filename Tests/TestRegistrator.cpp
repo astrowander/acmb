@@ -79,6 +79,15 @@ BEGIN_TEST(TestBlackBitmap)
 	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
 END_TEST
 
+BEGIN_TEST( TestNullArgs )
+auto f = []
+{
+	auto pRegistrator = std::make_unique<Registrator>( 25 );
+	pRegistrator->Registrate( nullptr );
+};
+ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END
