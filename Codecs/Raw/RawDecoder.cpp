@@ -150,4 +150,9 @@ uint32_t RawDecoder::GetCurrentScanline() const
 	throw std::runtime_error("not implemented");
 }
 
+std::unordered_set<std::string> RawDecoder::GetExtensions()
+{
+	return { ".cr2", ".dng" };
+}
+
 ACMB_NAMESPACE_END

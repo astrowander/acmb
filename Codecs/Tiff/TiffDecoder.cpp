@@ -98,4 +98,9 @@ uint32_t TiffDecoder::GetCurrentScanline() const
     throw std::runtime_error( "not implemented" );
 }
 
+std::unordered_set<std::string> TiffDecoder::GetExtensions()
+{
+    return { ".tiff", ".tif" };
+}
+
 ACMB_NAMESPACE_END

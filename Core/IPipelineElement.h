@@ -18,7 +18,7 @@ public:
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) = 0;
     virtual ~IPipelineElement() = default;
 
-    std::shared_ptr<CameraSettings> GetCameraSettings();
+    std::shared_ptr<CameraSettings> GetCameraSettings() const;
     void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings );
 };
 

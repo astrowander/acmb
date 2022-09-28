@@ -72,14 +72,14 @@ public:
 
     void SetDarkFrame( IBitmapPtr pDarkFrame );
 
-    double GetThreshold() { return _threshold; }
+    double GetThreshold() const { return _threshold; }
     void SetThreshold( double threshold ) { _threshold = threshold; };
-    double GetMinStarSize() { return _minStarSize; }
+    double GetMinStarSize() const { return _minStarSize; }
     void SetMinStarSize( uint32_t minStarSize ) {  _minStarSize = minStarSize; };
-    double GetMaxStarSize() { return _threshold; }
+    double GetMaxStarSize() const { return _threshold; }
     void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
 
-    bool GetDoAlignment() { return _doAlignment; }
+    bool GetDoAlignment() const { return _doAlignment; }
     void SetDoAlignment( bool val ) { _doAlignment = val; }
 
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) override;

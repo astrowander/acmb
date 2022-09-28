@@ -10,7 +10,7 @@ void IPipelineElement::CalcParams( std::shared_ptr<ImageParams> pParams )
     _pixelFormat = pParams->GetPixelFormat();
 }
 
-std::shared_ptr<CameraSettings> IPipelineElement::GetCameraSettings()
+std::shared_ptr<CameraSettings> IPipelineElement::GetCameraSettings() const
 {
     return _pCameraSettings;
 }

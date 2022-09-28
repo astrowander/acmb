@@ -28,12 +28,17 @@ void JpegEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
          throw std::runtime_error("unable to write jpeg");
 }
 
-uint8_t JpegEncoder::GetQuality()
+std::unordered_set<std::string> JpegEncoder::GetExtensions()
+{
+    return { ".jpg", ".jpeg", ".jfif" };
+}
+
+uint8_t JpegEncoder::GetQuality() const 
 {
     return _quality;
 }
 
-bool JpegEncoder::GetDownsample()
+bool JpegEncoder::GetDownsample() const
 {
     return _downsample;
 }

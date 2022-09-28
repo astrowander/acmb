@@ -33,17 +33,17 @@ IBitmapPtr Pipeline::RunAndGetBitmap()
     return pBitmap;
 }
 
-std::shared_ptr<ImageParams> Pipeline::GetFinalParams()
+std::shared_ptr<ImageParams> Pipeline::GetFinalParams() const
 {
     return _elements.empty() ? nullptr : _elements.back();
 }
 
-std::shared_ptr<CameraSettings> Pipeline::GetCameraSettings()
+std::shared_ptr<CameraSettings> Pipeline::GetCameraSettings() const
 {
     return _elements.empty() ? nullptr : _elements.back()->GetCameraSettings();
 }
 
-std::string Pipeline::GetFileName()
+std::string Pipeline::GetFileName() const
 {
     if ( _elements.empty() )
         return {};

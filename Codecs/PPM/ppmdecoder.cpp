@@ -143,6 +143,11 @@ uint32_t PpmDecoder::GetCurrentScanline() const
     return _currentScanline;
 }
 
+std::unordered_set<std::string> PpmDecoder::GetExtensions()
+{
+    return { ".ppm", ".pgm" };
+}
+
 std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
 {
     switch(_pixelFormat)

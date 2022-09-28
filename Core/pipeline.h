@@ -15,9 +15,9 @@ public:
 
     IBitmapPtr RunAndGetBitmap();
 
-    std::shared_ptr<ImageParams> GetFinalParams();
-    std::shared_ptr<CameraSettings> GetCameraSettings();
+    std::shared_ptr<ImageParams> GetFinalParams() const;
+    std::shared_ptr<CameraSettings> GetCameraSettings() const;
 
-    std::string GetFileName();
+    std::string GetFileName() const;
 };
 ACMB_NAMESPACE_END

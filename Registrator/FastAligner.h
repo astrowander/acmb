@@ -90,8 +90,8 @@ public:
 		}
 	}
 
-	MatchMap GetMatches();
-	const agg::trans_affine& GetTransform();
+	MatchMap GetMatches() const;
+	const agg::trans_affine& GetTransform() const;
 
 	void SetEps(double eps);
 };

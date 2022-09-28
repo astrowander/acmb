@@ -63,6 +63,11 @@ void PpmEncoder::WriteBitmap(std::shared_ptr<IBitmap> pBitmap)
         (BytesPerChannel(pixelFormat) == 1) ? WriteBinary<1>(pBitmap) : WriteBinary<2>(pBitmap);
 }
 
+std::unordered_set<std::string> PpmEncoder::GetExtensions()
+{
+    return { ".ppm", ".pgm" };
+}
+
 void PpmEncoder::WriteText(std::shared_ptr<IBitmap> pBitmap)
 {
     for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)

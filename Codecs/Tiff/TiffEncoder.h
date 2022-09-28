@@ -22,10 +22,7 @@ public:
 
     void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
 
-    static std::unordered_set<std::string> GetExtensions()
-    {
-        return { ".tif", ".tiff" };
-    }
+    static std::unordered_set<std::string> GetExtensions();
 
     ADD_EXTENSIONS
 };

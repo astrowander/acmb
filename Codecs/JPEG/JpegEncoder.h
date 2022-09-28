@@ -13,13 +13,10 @@ public:
 
     void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
 
-    static std::unordered_set<std::string> GetExtensions()
-    {
-        return { ".jpg", ".jpeg", ".jfif" };
-    }
+    static std::unordered_set<std::string> GetExtensions();
 
-    uint8_t GetQuality();
-    bool GetDownsample();
+    uint8_t GetQuality() const;
+    bool GetDownsample() const;
 
     void SetQuality( uint8_t val );
     void SetDownsample( bool val );

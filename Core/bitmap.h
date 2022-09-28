@@ -23,7 +23,7 @@ public:
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
     virtual uint32_t GetByteSize() const = 0;
 
-    virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) = 0;
+    virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) const = 0;
 
     static std::shared_ptr<IBitmap> Create(const std::string& fileName);
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
@@ -124,7 +124,7 @@ public:
         _data = data;
     }
 
-    float GetInterpolatedChannel(float x, float y, uint32_t ch) override
+    float GetInterpolatedChannel(float x, float y, uint32_t ch) const override
     {
         if (x < 0 || x > _width - 1)
             throw std::invalid_argument("x");

@@ -25,10 +25,7 @@ public:
 
     uint32_t GetCurrentScanline() const override;
 
-    static std::unordered_set <std::string> GetExtensions()
-    {
-        return { ".tiff", ".tif" };
-    }
+    static std::unordered_set <std::string> GetExtensions();
 
     ADD_EXTENSIONS
 };

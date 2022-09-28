@@ -55,7 +55,7 @@ void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 	}
 }
 
-MatchMap FastAligner::GetMatches()
+MatchMap FastAligner::GetMatches() const
 {
 	MatchMap res;
 	for (auto it : _matches)
@@ -66,7 +66,7 @@ MatchMap FastAligner::GetMatches()
 	return res;
 }
 
-const agg::trans_affine& FastAligner::GetTransform()
+const agg::trans_affine& FastAligner::GetTransform() const
 {
 	return _transform;
 }

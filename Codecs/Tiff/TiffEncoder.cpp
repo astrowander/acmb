@@ -34,4 +34,9 @@ void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     TinyTIFFWriter_close( _pTiff );
 }
 
+std::unordered_set<std::string> TiffEncoder::GetExtensions()
+{
+    return { ".tif", ".tiff" };
+}
+
 ACMB_NAMESPACE_END
