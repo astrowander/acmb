@@ -89,4 +89,21 @@ std::shared_ptr<BinningTransform> BinningTransform::Create(std::shared_ptr<IBitm
     }
 }
 
+std::shared_ptr<BinningTransform> BinningTransform::Create( PixelFormat pixelFormat, Size bin )
+{
+    switch ( pixelFormat )
+    {
+        case PixelFormat::Gray8:
+            return std::make_shared<BinningTransform_<PixelFormat::Gray8>>( nullptr, bin );
+        case PixelFormat::Gray16:
+            return std::make_shared<BinningTransform_<PixelFormat::Gray16>>( nullptr, bin );
+        case PixelFormat::RGB24:
+            return std::make_shared<BinningTransform_<PixelFormat::RGB24>>( nullptr, bin );
+        case PixelFormat::RGB48:
+            return std::make_shared<BinningTransform_<PixelFormat::RGB48>>( nullptr, bin );
+        default:
+            throw std::runtime_error( "Pixel format must be known" );
+    }
+}
+
 ACMB_NAMESPACE_END

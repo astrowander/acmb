@@ -126,4 +126,17 @@ IBitmapPtr HaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap, float intens
     return HaloRemovalTransform::RemoveHalo( pRes, intensity * 1.2f, medianHsl[2] * 2, 300, 10 );
 }
 
+AutoHaloRemoval::AutoHaloRemoval( IBitmapPtr pSrcBitmap, float intensity )
+: BaseTransform( pSrcBitmap )
+, _intensity( intensity )
+{
+
+}
+
+void AutoHaloRemoval::Run()
+{
+    _pDstBitmap = HaloRemovalTransform::AutoRemove( _pSrcBitmap, _intensity );
+}
+
+
 ACMB_NAMESPACE_END

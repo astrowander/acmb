@@ -11,6 +11,7 @@ protected:
 
 public:
     static std::shared_ptr<Converter> Create(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
+    static std::shared_ptr<Converter> Create( PixelFormat srcPixelFormat, PixelFormat dstPixelFormat );
     static IBitmapPtr Convert(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat);
 };
 

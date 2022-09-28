@@ -35,7 +35,9 @@
     <ClInclude Include="Core\camerasettings.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
+    <ClInclude Include="Core\IPipelineElement.h" />
     <ClInclude Include="Core\macros.h" />
+    <ClInclude Include="Core\pipeline.h" />
     <ClInclude Include="Geometry\delaunator.hpp" />
     <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />
@@ -73,6 +75,8 @@
     <ClCompile Include="Core\bitmap.cpp" />
     <ClCompile Include="Core\enums.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
+    <ClCompile Include="Core\IPipelineElement.cpp" />
+    <ClCompile Include="Core\pipeline.cpp" />
     <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />

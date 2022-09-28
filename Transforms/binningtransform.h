@@ -10,6 +10,7 @@ protected:
     BinningTransform( std::shared_ptr<IBitmap> pSrcBitmap, Size bin );
 public:
     static std::shared_ptr<BinningTransform> Create(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
+    static std::shared_ptr<BinningTransform> Create( PixelFormat pixelFormat, Size bin );
 };
 
 ACMB_NAMESPACE_END

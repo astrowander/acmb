@@ -132,6 +132,12 @@
     <ClInclude Include="Tools\SystemTools.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Core\pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IPipelineElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -222,6 +228,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tools\SystemTools.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IPipelineElement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

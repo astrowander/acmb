@@ -206,4 +206,15 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 	return pEqualizer->RunAndGetBitmap();
 }
 
+AutoChannelEqualizer::AutoChannelEqualizer( IBitmapPtr pSrcBitmap )
+: BaseTransform( pSrcBitmap )
+{
+
+}
+
+void AutoChannelEqualizer::Run()
+{
+	_pDstBitmap = ChannelEqualizer::AutoEqualize( _pSrcBitmap );
+}
+
 ACMB_NAMESPACE_END

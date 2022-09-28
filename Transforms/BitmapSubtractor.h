@@ -11,6 +11,7 @@ protected:
 
 public:    
     static std::shared_ptr<BitmapSubtractor> Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+    static std::shared_ptr<BitmapSubtractor> Create( PixelFormat srcPixelFormat, IBitmapPtr pBitmapToSubtract );
     static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
 };
 

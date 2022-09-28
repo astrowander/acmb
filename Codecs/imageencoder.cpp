@@ -48,4 +48,21 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
     return pEncoder;
 }
 
+const std::unordered_set<std::string>& ImageEncoder::GetAllExtensions()
+{
+    return _allExtensions;
+}
+
+IBitmapPtr ImageEncoder::ProcessBitmap( IBitmapPtr pBitmap )
+{
+    WriteBitmap( pBitmap );
+    return pBitmap;
+}
+
+bool ImageEncoder::AddCommonExtensions( const std::unordered_set<std::string>& extensions )
+{
+    _allExtensions.insert( std::begin( extensions ), std::end( extensions ) );
+    return true;
+}
+
 ACMB_NAMESPACE_END

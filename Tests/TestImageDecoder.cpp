@@ -8,8 +8,8 @@ BEGIN_SUITE( ImageDecoder )
 
 BEGIN_TEST( TestExtensions )
 
-auto decoders = ImageDecoder::GetDecodersFromDir( GetPathToTestFile( "AllFormats/" ) );
-EXPECT_EQ( 4, decoders.size() );
+auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "AllFormats/" ) );
+EXPECT_EQ( 4, pipelines.size() );
 
 END_TEST
 

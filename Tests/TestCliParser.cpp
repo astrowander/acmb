@@ -53,7 +53,7 @@ std::vector<const char*> data = { "-stack", "-input", path.data(), "-output", "t
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 1, parser._decoders.size() );
+EXPECT_EQ( 1, parser._pipelinesBeforeStacker.size() );
 
 END_TEST
 
@@ -64,7 +64,7 @@ std::vector<const char*> data = { "-stack", "-input", fileNames.data(), "-output
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 2, parser._decoders.size() );
+EXPECT_EQ( 2, parser._pipelinesBeforeStacker.size() );
 
 END_TEST
 
@@ -86,18 +86,18 @@ std::vector<const char*> data = { "-stack", "-input", dirName.data(), "-output",
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 27, parser._decoders.size() );
+EXPECT_EQ( 27, parser._pipelinesBeforeStacker.size() );
 
 END_TEST
 
 BEGIN_TEST( StackRange )
 
-std::string fileRange = GetPathToTestFile( "RAW/MilkyWayCR2/" ) + "IMG_8947~63.CR2";
+std::string fileRange = GetPathToTestFile( "RAW/MilkyWayCR2/" ) + "IMG_8947:63.CR2";
 std::vector<const char*> data = { "-stack", "-input", fileRange.data(), "-output", "test.txt" };
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 17, parser._decoders.size() );
+EXPECT_EQ( 17, parser._pipelinesBeforeStacker.size() );
 
 END_TEST
 
@@ -119,8 +119,8 @@ std::vector<const char*> data = { "-stack", "-input", lights.data(), "-darks", d
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 10, parser._decoders.size() );
-EXPECT_EQ( 10, parser._darks.size() );
+EXPECT_EQ( 10, parser._pipelinesBeforeStacker.size() );
+EXPECT_EQ( 10, parser._pipelinesBeforeStacker.size() );
 
 END_TEST
 

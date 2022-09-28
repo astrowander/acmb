@@ -51,6 +51,11 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
+IBitmapPtr ImageDecoder::ProcessBitmap( IBitmapPtr pBitmap )
+{
+    return ReadBitmap();
+}
+
 std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
 {
     auto path = std::filesystem::path(fileName);
@@ -78,12 +83,17 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
     return pDecoder;
 }
 
-std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std::string path )
+const std::string& ImageDecoder::GetLastFileName() const
+{
+    return _lastFileName;
+}
+
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path )
 {
     if ( !std::filesystem::is_directory( path ) )
         return {};
 
-    std::vector<std::shared_ptr<ImageDecoder>>  res;
+    std::vector<Pipeline>  res;
     for ( const auto& entry : std::filesystem::directory_iterator( path) )
     {         
         if ( std::filesystem::is_directory( entry ) )
@@ -92,50 +102,50 @@ std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromDir( std
         auto extension = entry.path().extension().string();
         std::transform( extension.begin(), extension.end(), extension.begin(), [] ( unsigned char c ) { return std::tolower( c ); } );
         if ( GetAllExtensions().contains(extension) )
-            res.push_back( ImageDecoder::Create( entry.path().string() ) );        
+            res.emplace_back( ImageDecoder::Create( entry.path().string() ) );
     }
 
     return res;
 }
 
-std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromMask( std::string mask )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask )
 {
     size_t start = 0;
-    std::vector<std::shared_ptr<ImageDecoder>>  res;
+    std::vector<Pipeline> res;
 
     while ( start < mask.size() )
     {
         auto end = mask.find_first_of( ';', start );
         std::string fileName = mask.substr( start, end - start );
-        size_t tildePos = fileName.find_first_of( '~' );
+        size_t separatorPos = fileName.find_first_of( ':' );
 
         if ( std::filesystem::exists( fileName ) )
         {
             if ( std::filesystem::is_directory( fileName ) )
             {
-                auto decoders = ImageDecoder::GetDecodersFromDir( fileName );
-                res.insert( res.end(), decoders.begin(), decoders.end() );
+                auto pipelines = ImageDecoder::GetPipelinesFromDir( fileName );
+                res.insert( res.end(), pipelines.begin(), pipelines.end() );
             }
             else
             {
-                res.push_back( ImageDecoder::Create( fileName ) );
+                res.emplace_back( ImageDecoder::Create( fileName ) );
             }
         }
-        else if ( tildePos != std::string::npos )
+        else if ( separatorPos != std::string::npos )
         {
-            size_t pointPos = fileName.find_first_of( '.', tildePos );
-            auto varDigitCount = pointPos - tildePos - 1;
+            size_t pointPos = fileName.find_first_of( '.', separatorPos );
+            auto varDigitCount = pointPos - separatorPos - 1;
             if ( varDigitCount != 0 )
             {
 
-                int minNum = std::stoi( fileName.substr( tildePos - varDigitCount, varDigitCount ) );
-                int maxNum = std::stoi( fileName.substr( tildePos + 1, varDigitCount ) );
+                int minNum = std::stoi( fileName.substr( separatorPos - varDigitCount, varDigitCount ) );
+                int maxNum = std::stoi( fileName.substr( separatorPos + 1, varDigitCount ) );
 
                 for ( int j = minNum; j <= maxNum; ++j )
                 {
-                    auto tempName = fileName.substr( 0, tildePos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
+                    auto tempName = fileName.substr( 0, separatorPos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
                     if ( std::filesystem::exists( tempName ) )
-                        res.push_back( Create( tempName ) );
+                        res.emplace_back( Create( tempName ) );
                 }
             }
         }
@@ -147,6 +157,17 @@ std::vector<std::shared_ptr<ImageDecoder>> ImageDecoder::GetDecodersFromMask( st
     }
 
     return res;
+}
+
+const std::unordered_set<std::string>& ImageDecoder::GetAllExtensions()
+{
+    return _allExtensions;
+}
+
+bool ImageDecoder::AddCommonExtensions( const std::unordered_set<std::string>& extensions )
+{
+    _allExtensions.insert( std::begin( extensions ), std::end( extensions ) );
+    return true;
 }
 
 std::unique_ptr<std::istringstream> ImageDecoder::ReadLine()

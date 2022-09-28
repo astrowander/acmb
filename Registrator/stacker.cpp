@@ -233,26 +233,25 @@ if (enableLogging)
     std::cout << message << std::endl;
 }
 
-Stacker::Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration)
-: _gridWidth(0)
-, _gridHeight(0)
-, _enableDeaberration(enableDeaberration)
+Stacker::Stacker( const std::vector<Pipeline>& pipelines )
 {
-    for (auto& pDecoder : decoders)
+    for (const auto& pipeline : pipelines )
     {
-        _stackingData.push_back({ pDecoder, {}, {} });
+        _stackingData.push_back({ pipeline, {}, {} });
     }
 
-    if (!decoders.empty())
-    {
-        if ( !_stackingData[0].pDecoder )
-            throw std::invalid_argument( "decoder is null" );
+    if ( pipelines.empty() )
+        throw std::invalid_argument( "no pipelines" );
+    
+    auto finalParams = _stackingData[0].pipeline.GetFinalParams();
+    if ( !finalParams )
+        throw std::invalid_argument( "cannot calculate image params" );
 
-        _width = _stackingData[0].pDecoder->GetWidth();
-        _height = _stackingData[0].pDecoder->GetHeight();
-        _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
-        _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);
-    }
+    _width = finalParams->GetWidth();
+    _height = finalParams->GetHeight();
+    _pixelFormat = finalParams->GetPixelFormat();
+    _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
+    _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);    
 }
 
 void Stacker::SetDarkFrame( IBitmapPtr pDarkFrame )
@@ -260,20 +259,19 @@ void Stacker::SetDarkFrame( IBitmapPtr pDarkFrame )
     _pDarkFrame = pDarkFrame;
 }
 
-void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr pSrcBitmap )
 {
-    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
+    return _doAlignment ? RegistrateAndStack() : Stack();
+}
+
+void Stacker::Registrate()
+{
+    auto pRegistrator = std::make_unique<Registrator>(_threshold, _minStarSize, _maxStarSize);
     for (auto& dsPair : _stackingData)
     {
-        auto pBitmap = dsPair.pDecoder->ReadBitmap();
+        auto pBitmap = dsPair.pipeline.RunAndGetBitmap();
         if ( _pDarkFrame )
-            BitmapSubtractor::Subtract( pBitmap, _pDarkFrame );
-
-        if (_enableDeaberration)
-        {
-            auto pDeaberrateTransform = DeaberrateTransform::Create( pBitmap, dsPair.pDecoder->GetCameraSettings() );
-            pBitmap = pDeaberrateTransform->RunAndGetBitmap();
-        }
+            BitmapSubtractor::Subtract( pBitmap, _pDarkFrame );       
         
         pRegistrator->Registrate(pBitmap);
         dsPair.stars = pRegistrator->GetStars();
@@ -283,38 +281,32 @@ void Stacker::Registrate(double threshold, uint32_t minStarSize, uint32_t maxSta
             dsPair.totalStarCount += starVector.size();
         }
 
-        Log(dsPair.pDecoder->GetLastFileName() + " is registered");
+        Log(dsPair.pipeline.GetFileName() + " is registered");
         Log(std::to_string(dsPair.totalStarCount) + " stars are found");
     }   
 
     //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
-std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
+std::shared_ptr<IBitmap> Stacker::Stack()
 {
     if (_stackingData.size() == 0)
         return nullptr;
     
-    Log(_stackingData[0].pDecoder->GetLastFileName() + " in process");
+    Log(_stackingData[0].pipeline.GetFileName() + " in process");
 
-    auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
     if ( _pDarkFrame )
         BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
 
-    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is read");
-
-    if (_enableDeaberration)
-    {
-        auto pDeaberrateTransform = DeaberrateTransform::Create(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
-        pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
-    }
+    Log( _stackingData[0].pipeline.GetFileName() + " is read" );   
 
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
     const auto& refStars = _stackingData[0].stars;
 
-    if (doAlignment)
+    if (_doAlignment)
     {
         _aligners.clear();
 
@@ -328,26 +320,20 @@ std::shared_ptr<IBitmap> Stacker::Stack(bool doAlignment)
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 
-    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
+    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
-        auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-        Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        Log( _stackingData[i].pipeline.GetFileName() + " in process" );
+        auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
+        Log( _stackingData[i].pipeline.GetFileName() + " is read" );
         if ( _pDarkFrame )
             BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
-            throw std::runtime_error("bitmaps in stack should have the same pixel format");
+            throw std::runtime_error("bitmaps in stack should have the same pixel format");      
 
-        if (_enableDeaberration)
-        {
-            auto pDeaberrateTransform = DeaberrateTransform::Create(pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings());
-            pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
-        }
-
-        if (!doAlignment)
+        if (!_doAlignment)
         {
             CALL_HELPER(AddingBitmapHelper, pTargetBitmap);
             continue;
@@ -407,32 +393,26 @@ void Stacker::StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i)
         }
     }
 
-    Log(_stackingData[i].pDecoder->GetLastFileName() + " grid is calculated");
+    Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
 
     CALL_HELPER(AddingBitmapWithAlignmentHelper, pTargetBitmap);
 
-    Log(_stackingData[i].pDecoder->GetLastFileName() + " is stacked");
+    Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
 }
 
-std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t minStarSize, uint32_t maxStarSize)
+std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack()
 {
     if (_stackingData.size() == 0)
         return nullptr;   
 
-    auto pRefBitmap = _stackingData[0].pDecoder->ReadBitmap();
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
     if ( _pDarkFrame )
-        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
-
-    if (_enableDeaberration)
-    {
-        auto pDeaberrateTransform = DeaberrateTransform::Create(pRefBitmap, _stackingData[0].pDecoder->GetCameraSettings());
-        pRefBitmap = pDeaberrateTransform->RunAndGetBitmap();
-    }
+        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );    
 
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
-    auto pRegistrator = std::make_unique<Registrator>(threshold, minStarSize, maxStarSize);
+    auto pRegistrator = std::make_unique<Registrator>(_threshold, _minStarSize, _maxStarSize);
 
     pRegistrator->Registrate(pRefBitmap);
     _stackingData[0].stars = pRegistrator->GetStars();
@@ -449,24 +429,18 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack(double threshold, uint32_t
 
     CALL_HELPER(AddingBitmapHelper, pRefBitmap);
 
-    Log(_stackingData[0].pDecoder->GetLastFileName() + " bitmap is stacked");
+    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        Log(_stackingData[i].pDecoder->GetLastFileName() + " in process");
-        auto pTargetBitmap = _stackingData[i].pDecoder->ReadBitmap();
-        Log(_stackingData[i].pDecoder->GetLastFileName() + " bitmap is read");
+        Log( _stackingData[i].pipeline.GetFileName() + " in process" );
+        auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
+        Log( _stackingData[i].pipeline.GetFileName() + " bitmap is read" );
         if ( _pDarkFrame )
             BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
 
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
-            throw std::runtime_error("bitmaps in stack should have the same pixel format");
-
-        if (_enableDeaberration)
-        {
-            auto pDeaberrateTransform = DeaberrateTransform::Create( pTargetBitmap, _stackingData[0].pDecoder->GetCameraSettings() );
-            pTargetBitmap = pDeaberrateTransform->RunAndGetBitmap();
-        }
+            throw std::runtime_error("bitmaps in stack should have the same pixel format");       
 
         pRegistrator->Registrate(pTargetBitmap);
         _stackingData[i].stars = pRegistrator->GetStars();

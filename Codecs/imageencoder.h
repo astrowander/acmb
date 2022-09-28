@@ -1,5 +1,6 @@
 #pragma once
 #include "../Core/macros.h"
+#include "../Core/IPipelineElement.h"
 #include <string>
 #include <ostream>
 #include <memory>
@@ -9,7 +10,7 @@ ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
 
-class ImageEncoder
+class ImageEncoder: public IPipelineElement
 {
 protected:
     std::shared_ptr<std::ostream> _pStream;
@@ -27,16 +28,12 @@ public:
 
     static std::shared_ptr<ImageEncoder> Create(const std::string& fileName);
 
-    static const std::unordered_set<std::string>& GetAllExtensions()
-    {
-        return _allExtensions;
-    }
+    static const std::unordered_set<std::string>& GetAllExtensions();
+
+    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap ) override;
+
 protected:
-    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions )
-    {
-        _allExtensions.insert( std::begin( extensions ), std::end( extensions ) );
-        return true;
-    }
+    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());

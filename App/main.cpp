@@ -2,9 +2,17 @@
 
 int main(int argc, const char** argv)
 {
-    auto [res, errMsg] = acmb::CliParser::Parse(argc, argv);
-    if ( !errMsg.empty() )
-        std::cout << errMsg << std::endl;
+    try
+    {
+        auto [res, errMsg] = acmb::CliParser::Parse( argc, argv );
+        if ( !errMsg.empty() )
+            std::cout << errMsg << std::endl;
+        return res;
+    }
+    catch (std::exception& e )
+    {
+        std::cout << e.what() << std::endl;
+    }
 
-    return res;
+    return 1;
 }

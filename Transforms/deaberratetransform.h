@@ -15,6 +15,7 @@ protected:
 public:
 
 	static std::shared_ptr<DeaberrateTransform> Create( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings );
+	static std::shared_ptr<DeaberrateTransform> Create( PixelFormat pixelFormat, std::shared_ptr<CameraSettings> pCameraSettings );
 };
 
 ACMB_NAMESPACE_END

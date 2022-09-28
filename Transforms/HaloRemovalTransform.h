@@ -21,4 +21,13 @@ public:
     static IBitmapPtr AutoRemove( IBitmapPtr pSrcBitmap, float intensity );
 };
 
+class AutoHaloRemoval : public BaseTransform
+{
+    float _intensity;
+
+public:
+    AutoHaloRemoval( IBitmapPtr pSrcBitmap, float intensity );
+    virtual void Run() override;
+};
+
 ACMB_NAMESPACE_END

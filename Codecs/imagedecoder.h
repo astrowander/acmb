@@ -3,6 +3,7 @@
 #include "../Core/macros.h"
 #include "../Core/imageparams.h"
 #include "../Core/camerasettings.h"
+#include "../Core/pipeline.h"
 
 #include <string>
 #include <vector>
@@ -15,12 +16,11 @@ ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
 
-class ImageDecoder : public ImageParams
+class ImageDecoder : public IPipelineElement
 {
 protected:
     std::string _lastFileName;
-    std::shared_ptr<std::istream> _pStream;
-    std::shared_ptr<CameraSettings> _pCameraSettings = std::make_shared<CameraSettings>();
+    std::shared_ptr<std::istream> _pStream;    
     virtual std::unique_ptr<std::istringstream> ReadLine();
 
     inline static std::unordered_set<std::string> _allExtensions;
@@ -35,35 +35,21 @@ public:
 
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;
     virtual std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight) = 0;
-
     virtual uint32_t GetCurrentScanline() const = 0;
+
+    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
 
     static std::shared_ptr<ImageDecoder> Create(const std::string& fileName);
 
-    const std::string& GetLastFileName()
-    {
-        return _lastFileName;
-    }
+    const std::string& GetLastFileName() const;
 
-    std::shared_ptr<CameraSettings> GetCameraSettings()
-    {
-        return _pCameraSettings;
-    }
+    static std::vector<Pipeline> GetPipelinesFromDir( std::string path );
+    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask );
 
-    static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromDir( std::string path );
-    static std::vector<std::shared_ptr<ImageDecoder>> GetDecodersFromMask( std::string mask );
-
-    static const std::unordered_set<std::string>& GetAllExtensions()
-    {
-        return _allExtensions;
-    }
+    static const std::unordered_set<std::string>& GetAllExtensions();
 
 protected:
-    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions )
-    {
-        _allExtensions.insert( std::begin(extensions), std::end(extensions) );
-        return true;
-    }
+    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());

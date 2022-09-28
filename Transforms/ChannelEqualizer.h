@@ -15,4 +15,11 @@ public:
 	static IBitmapPtr AutoEqualize( IBitmapPtr pSrcBitmap );
 };
 
+class AutoChannelEqualizer : public BaseTransform
+{
+public:
+	AutoChannelEqualizer( IBitmapPtr pSrcBitmap = nullptr );
+	virtual void Run() override;
+};
+
 ACMB_NAMESPACE_END

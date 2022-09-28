@@ -76,6 +76,26 @@ std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitma
     }
 }
 
+std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( PixelFormat srcPixelFormat, IBitmapPtr pBitmapToSubtract )
+{
+    if ( !pBitmapToSubtract )
+        throw std::invalid_argument( "pBitmapToSubtract is null" );
+
+    switch ( srcPixelFormat )
+    {
+        case PixelFormat::Gray8:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::Gray8>>( nullptr, pBitmapToSubtract );
+        case PixelFormat::Gray16:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::Gray16>>( nullptr, pBitmapToSubtract );
+        case PixelFormat::RGB24:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::RGB24>>( nullptr, pBitmapToSubtract );
+        case PixelFormat::RGB48:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::RGB48>>( nullptr, pBitmapToSubtract );
+        default:
+            throw std::runtime_error( "pixel format must be known" );
+    }
+}
+
 IBitmapPtr BitmapSubtractor::Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
 {
     auto pSubtractor = Create( pSrcBitmap, pBitmapToSubtract );

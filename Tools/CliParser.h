@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Core/macros.h"
+#include "../Core/pipeline.h"
 #include "../Tests/test.h"
 #include <string>
 #include <unordered_map>
@@ -14,11 +15,18 @@ ACMB_NAMESPACE_BEGIN
 
 class ImageDecoder;
 
+struct KV
+{
+    std::string key;
+    std::vector<std::string> values;
+};
+
 class CliParser
 {
-    std::unordered_map<std::string, std::string> _kv;
-    std::vector<std::shared_ptr<ImageDecoder>> _decoders;
-    std::vector<std::shared_ptr<ImageDecoder>> _darks;
+    std::vector<KV> _kvs;
+    std::vector<Pipeline> _pipelinesBeforeStacker;
+    std::vector<Pipeline> _darkPipelines;
+    Pipeline _pipelineAfterStacker;
 
     CliParser( int argc, const char** argv );
     std::tuple<int, std::string> Parse( bool testMode = false );

@@ -20,4 +20,15 @@ std::string GetEnv( const std::string& name )
 #endif
 }
 
+std::string ToLower( const std::string& val )
+{
+	std::string res;
+	res.reserve( val.size() );
+	for ( auto& ch : val )
+	{
+		res.push_back( std::tolower( ch ) );
+	}
+	return res;
+}
+
 ACMB_NAMESPACE_END

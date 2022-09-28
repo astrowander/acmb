@@ -2,6 +2,7 @@
 
 #include "FastAligner.h"
 #include "../Core/bitmap.h"
+#include "../Core/pipeline.h"
 #include "../Geometry/triangle.h"
 #include "../AGG/agg_trans_affine.h"
 #include "../Tests/test.h"
@@ -18,12 +19,12 @@ class ImageDecoder;
 
 struct StackingDatum
 {
-    std::shared_ptr<ImageDecoder> pDecoder;
+    Pipeline pipeline;
     std::vector<std::vector<Star>> stars;
     uint64_t totalStarCount;
 };
 
-class Stacker
+class Stacker : public IPipelineElement
 {
     template <PixelFormat pixelFormat> friend class AddingBitmapHelper;
     template <PixelFormat pixelFormat> friend class AddingBitmapWithAlignmentHelper;
@@ -41,37 +42,49 @@ class Stacker
     std::vector<float> _devs;
     std::vector<uint16_t> _counts;
 
-    uint32_t _width = 0;
-    uint32_t _height = 0;
-
     static const size_t gridSize = 100;
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 
     double _alignmentError = 2.0;
 
-    bool _enableDeaberration;
+    bool _doAlignment = true;
 
     std::vector<std::shared_ptr<FastAligner>> _aligners;
     MatchMap _matches;
 
     IBitmapPtr _pDarkFrame;
 
+    double _threshold = 25.0;
+    uint32_t _minStarSize = 5;
+    uint32_t _maxStarSize = 25;
 
     void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const GridCell& trianglePairs);
     void StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i);
 
 public:
 
-    Stacker(std::vector<std::shared_ptr<ImageDecoder>> decoders, bool enableDeaberration = false);
+    Stacker(const std::vector<Pipeline>& pipeline);
 
-    void Registrate(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
-    std::shared_ptr<IBitmap>  RegistrateAndStack(double threshold = 40, uint32_t minStarSize = 5, uint32_t maxStarSize = 25);
-    std::shared_ptr<IBitmap> Stack(bool doAlignment);   
+    void Registrate();
+    std::shared_ptr<IBitmap>  RegistrateAndStack();
+    std::shared_ptr<IBitmap> Stack();   
 
     void SetDarkFrame( IBitmapPtr pDarkFrame );
-    TEST_ACCESS(Stacker);
 
+    double GetThreshold() { return _threshold; }
+    void SetThreshold( double threshold ) { _threshold = threshold; };
+    double GetMinStarSize() { return _minStarSize; }
+    void SetMinStarSize( uint32_t minStarSize ) {  _minStarSize = minStarSize; };
+    double GetMaxStarSize() { return _threshold; }
+    void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
+
+    bool GetDoAlignment() { return _doAlignment; }
+    void SetDoAlignment( bool val ) { _doAlignment = val; }
+
+    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) override;
+        
+    TEST_ACCESS(Stacker);
 };
 
 ACMB_NAMESPACE_END
