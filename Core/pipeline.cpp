@@ -55,4 +55,9 @@ std::string Pipeline::GetFileName() const
     return pDecoder->GetLastFileName();
 }
 
+size_t Pipeline::GetSize() const
+{
+    return _elements.size();
+}
+
 ACMB_NAMESPACE_END

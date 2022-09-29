@@ -84,14 +84,15 @@ HaloRemovalTransform::HaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensi
 , _sigma(std::clamp(sigma, 0.0f, 60.0f))
 , _bgL(std::clamp(bgL, 0.0f, 1.0f))
 {
-    if ( GetColorSpace( pSrcBitmap->GetPixelFormat() ) != ColorSpace::RGB )
-        throw std::invalid_argument( "unsupported pixel format" );
 }
 
 std::shared_ptr<HaloRemovalTransform> HaloRemovalTransform::Create( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )
 {
     if ( !pSrcBitmap )
         throw std::invalid_argument( "pSrcBitmap is null" );
+
+    if ( GetColorSpace( pSrcBitmap->GetPixelFormat() ) != ColorSpace::RGB )
+        throw std::invalid_argument( "unsupported pixel format" );
 
     switch ( pSrcBitmap->GetPixelFormat() )
     {

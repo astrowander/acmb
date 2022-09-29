@@ -174,10 +174,12 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         }
         else if ( key == "--removehalo" )
         {
-            if ( values.size() != 1 )
-                return { 1, "--subtract requires 1 argument" };
+            float intensity = 75.0f;
+            if ( values.size() > 1 )
+                return { 1, "--subtract requires 0 or 1 argument" };
+            else if ( values.size() == 1 )
+                intensity = std::stof( values[0] );
 
-            float intensity = std::stof( values[0] );
             if ( isStackerFound )
             {
                 _pipelineAfterStacker.Add( std::make_shared<AutoHaloRemoval>(nullptr, intensity ) );

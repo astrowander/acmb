@@ -45,6 +45,7 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
     if (!pEncoder)
         throw std::invalid_argument("fileName");
 
+    pEncoder->Attach( fileName );
     return pEncoder;
 }
 

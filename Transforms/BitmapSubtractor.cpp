@@ -43,14 +43,6 @@ BitmapSubtractor::BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToS
 : BaseTransform( pSrcBitmap )
 , _pBitmapToSubtract(pBitmapToSubtract)
 {
-    if ( !pBitmapToSubtract )
-        throw std::invalid_argument( "pBitmapToSubtract is null" );
-
-    if (pSrcBitmap->GetPixelFormat() != pBitmapToSubtract->GetPixelFormat() )
-        throw std::invalid_argument( "bitmaps should have the same pixel format" );
-
-    if ( pSrcBitmap->GetWidth() != pBitmapToSubtract->GetWidth() || pSrcBitmap->GetHeight() != pBitmapToSubtract->GetHeight() )
-        throw std::invalid_argument( "bitmaps should have the same size" );
 }
 
 std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )
@@ -60,6 +52,12 @@ std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitma
 
     if ( !pBitmapToSubtract )
         throw std::invalid_argument( "pBitmapToSubtract is null" );
+
+    if ( pSrcBitmap->GetPixelFormat() != pBitmapToSubtract->GetPixelFormat() )
+        throw std::invalid_argument( "bitmaps should have the same pixel format" );
+
+    if ( pSrcBitmap->GetWidth() != pBitmapToSubtract->GetWidth() || pSrcBitmap->GetHeight() != pBitmapToSubtract->GetHeight() )
+        throw std::invalid_argument( "bitmaps should have the same size" );
 
     switch ( pSrcBitmap->GetPixelFormat() )
     {

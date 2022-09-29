@@ -19,5 +19,6 @@ public:
     std::shared_ptr<CameraSettings> GetCameraSettings() const;
 
     std::string GetFileName() const;
+    size_t GetSize() const;
 };
 ACMB_NAMESPACE_END
