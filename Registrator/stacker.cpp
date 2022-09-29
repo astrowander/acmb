@@ -152,7 +152,8 @@ class AlignmentHelper
         : _stacker( stacker )
         , _alignerIndex( alignerIndex )
     {
-
+        if ( _stacker._aligners.size() <= _alignerIndex )
+            throw std::invalid_argument( "no aligner" );
     }
 
     void Job( uint32_t i )

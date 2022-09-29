@@ -13,10 +13,7 @@ public:
 
     void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) override;
 
-    static std::unordered_set<std::string> GetExtensions()
-    {
-        return { ".ppm", ".pgm" };
-    }
+    static std::unordered_set<std::string> GetExtensions();
 private:
     template<uint32_t bytes>
     void WriteBinary(std::shared_ptr<IBitmap> pBitmap);

@@ -22,10 +22,7 @@ public:
 
     uint32_t GetCurrentScanline() const override;
 
-    static std::unordered_set <std::string> GetExtensions()
-    {
-        return { ".ppm", ".pgm" };
-    }
+    static std::unordered_set <std::string> GetExtensions();
 private:    
 
     std::shared_ptr<IBitmap> CreateStripe(uint32_t stripeHeight);

@@ -19,7 +19,8 @@ BEGIN_TEST(TestStackingWithoutAlignment)
         pipelines.emplace_back( pDecoder );
     }
 
-    auto pStacker = std::make_shared<Stacker>(pipelines);
+    auto pStacker = std::make_shared<Stacker>( pipelines );
+    pStacker->SetDoAlignment( false );
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestStackingWithoutAlignment.ppm"), pStacker->Stack()));
 
 END_TEST
@@ -94,6 +95,7 @@ END_TEST
 BEGIN_TEST( StackWithDarks )
 
     auto pDarkStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) ) );
+    pDarkStacker->SetDoAlignment( false );
     auto pDarkFrame = pDarkStacker->Stack();
     pDarkStacker.reset();
 

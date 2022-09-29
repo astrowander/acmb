@@ -117,7 +117,7 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask )
     {
         auto end = mask.find_first_of( ';', start );
         std::string fileName = mask.substr( start, end - start );
-        size_t separatorPos = fileName.find_first_of( ':' );
+        size_t separatorPos = fileName.find_first_of( '#' );
 
         if ( std::filesystem::exists( fileName ) )
         {

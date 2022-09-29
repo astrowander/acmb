@@ -28,28 +28,28 @@ END_TEST
 
 BEGIN_TEST( NoOutput )
 
-std::vector<const char*> data = { "AstroCombiner", "-stack", "-input", "."};
+std::vector<const char*> data = { "AstroCombiner", "--input", "."};
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 1, res );
-EXPECT_EQ( "Output file is not specified", errMsg );
+EXPECT_EQ( "Output files must be specified in the last place", errMsg );
 
 END_TEST
 
 BEGIN_TEST( NoInput)
 
-std::vector<const char*> data = {  "-stack", "-output", "test.txt"};
+std::vector<const char*> data = { "acmb", "--output", "test.txt" };
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 1, res );
-EXPECT_EQ( "Input files are not specified", errMsg );
+EXPECT_EQ( "Input files must be specified in the first place", errMsg );
 
 END_TEST
 
 BEGIN_TEST( StackOneFile )
 
 std::string path = GetPathToTestFile( "RAW/IMG_8899.CR2" );
-std::vector<const char*> data = { "-stack", "-input", path.data(), "-output", "test.txt"};
+std::vector<const char*> data = { "acmb", "--input", path.data(), "--stack", "--output", "test.txt"};
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
@@ -60,7 +60,7 @@ END_TEST
 BEGIN_TEST( StackTwoFiles )
 
 std::string fileNames = GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) + ";" + GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8945.CR2" );
-std::vector<const char*> data = { "-stack", "-input", fileNames.data(), "-output", "test.txt"};
+std::vector<const char*> data = { "acmb", "--input", fileNames.data(), "--stack", "--output", "test.txt"};
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
@@ -70,19 +70,21 @@ END_TEST
 
 BEGIN_TEST( StackWrongDirectory )
 
-std::string dirName = GetPathToTestFile( "RAW/MilkyWayCR4/" );
-std::vector<const char*> data = { "-stack", "-input", dirName.data(), "-output", "test.txt" };
-CliParser parser( data.size(), ( &data[0] ) );
-auto [res,errMsg] = parser.Parse( true );
-EXPECT_EQ( 1, res );
-EXPECT_EQ( "Nothing to stack", errMsg );
+auto f = []
+{
+    std::string dirName = GetPathToTestFile( "RAW/MilkyWayCR4/" );
+    std::vector<const char*> data = { "acmb", "--input", dirName.data(), "--stack", "--output", "test.txt" };
+    CliParser parser( data.size(), ( &data[0] ) );
+    auto [res, errMsg] = parser.Parse( true );
+};
+ASSERT_THROWS( f, std::invalid_argument );
 
 END_TEST
 
 BEGIN_TEST( StackDirectory )
 
 std::string dirName = GetPathToTestFile( "RAW/MilkyWayCR2/" );
-std::vector<const char*> data = { "-stack", "-input", dirName.data(), "-output", "test.txt"};
+std::vector<const char*> data = { "acmb", "--input", dirName.data(), "--stack", "--output", "test.txt"};
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
@@ -92,34 +94,34 @@ END_TEST
 
 BEGIN_TEST( StackRange )
 
-std::string fileRange = GetPathToTestFile( "RAW/MilkyWayCR2/" ) + "IMG_8947:63.CR2";
-std::vector<const char*> data = { "-stack", "-input", fileRange.data(), "-output", "test.txt" };
+std::string fileRange = GetPathToTestFile( "RAW/MilkyWayCR2/" ) + "IMG_8947#63.CR2";
+std::vector<const char*> data = { "acmb", "--input", fileRange.data(), "--stack", "--output", "test.txt" };
 CliParser parser( data.size(), ( &data[0] ) );
-auto [res,errMsg] = parser.Parse( true );
-EXPECT_EQ( 0, res );
-EXPECT_EQ( 17, parser._pipelinesBeforeStacker.size() );
+auto [res, errMsg] = parser.Parse( true );
 
 END_TEST
 
-BEGIN_TEST( ManySemicolons)
+BEGIN_TEST( ManySemicolons )
 
-std::vector<const char*> data = { "-stack", "-input", ";;;;;;;;;;", "-output", "test.txt" };
-CliParser parser( data.size(), ( &data[0] ) );
-auto [res,errMsg] = parser.Parse( true );
-EXPECT_EQ( 1, res );
-EXPECT_EQ( "Nothing to stack", errMsg );
+auto f = []
+{
+    std::vector<const char*> data = { "acmb", "--input", ";;;;;;;;;;", "--stack", "--output", "test.txt" };
+    CliParser parser( data.size(), ( &data[0] ) );
+    auto [res, errMsg] = parser.Parse( true );
+};
+
+ASSERT_THROWS( f, std::invalid_argument );
 
 END_TEST
 
-BEGIN_TEST ( StackWithDarks)
-std::string lights = GetPathToTestFile( "RAW/StackWithDarks/Lights/" );
+BEGIN_TEST(StackDarks)
+
 std::string darks = GetPathToTestFile( "RAW/StackWithDarks/Darks/" );
-std::vector<const char*> data = { "-stack", "-input", lights.data(), "-darks", darks.data(), "-output", "test.txt"};
+std::vector<const char*> data = { "acmb", "--input", darks.data(), "--stack", "noalign", "--output", "test.tif" };
 
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
-EXPECT_EQ( 10, parser._pipelinesBeforeStacker.size() );
 EXPECT_EQ( 10, parser._pipelinesBeforeStacker.size() );
 
 END_TEST

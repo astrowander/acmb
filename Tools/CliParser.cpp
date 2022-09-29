@@ -53,10 +53,10 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
     if ( _kvs.empty() )
         return { 1, "Nothing to do" };
 
-    if ( _kvs.front().key != "--input" && _kvs.front().values.empty() )
+    if ( _kvs.front().key != "--input" || _kvs.front().values.empty() )
         return { 1, "Input files must be specified in the first place" };
 
-    if ( _kvs.back().key != "--output" && _kvs.back().values.empty() )
+    if ( _kvs.back().key != "--output" || _kvs.back().values.empty() )
         return { 1, "Output files must be specified in the last place" };
 
     for ( const auto& inputString : _kvs.front().values )
@@ -193,11 +193,14 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         else if ( key == "--stack" )
         {
         if ( isStackerFound )
-            return { 1, "only one --stack is allowed" };
+            return { 1, "only one --stack is allowed" };        
 
         isStackerFound = true;
 
         auto pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker );
+        if ( !values.empty() && values[0] == "noalign" )
+            pStacker->SetDoAlignment( false );
+
         _pipelineAfterStacker.Add( pStacker );
         }
         else
@@ -206,7 +209,11 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         }
     }
 
-    const std::string& pathToOutput = _kvs.back().values[0];
+    if ( testMode )
+        return {};
+
+    const std::string& pathToOutput = _kvs.back().values[0];    
+
     if ( isStackerFound )
     {
         _pipelineAfterStacker.Add( ImageEncoder::Create( pathToOutput ) );
@@ -228,8 +235,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         _pipelinesBeforeStacker[0].Add( ImageEncoder::Create( pathToOutput ) );
     }
 
-    if ( testMode )
-        return {};
+    
 
     if ( isStackerFound )
     {

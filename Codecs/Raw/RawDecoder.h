@@ -30,10 +30,7 @@ public:
 
     uint32_t GetCurrentScanline() const override;
 
-    static std::unordered_set <std::string> GetExtensions()
-    {
-        return { ".cr2", ".dng" };
-    }
+    static std::unordered_set <std::string> GetExtensions();
 
     ADD_EXTENSIONS
 };

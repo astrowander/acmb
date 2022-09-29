@@ -60,14 +60,14 @@ public:
 
 
                             //auto coef = normalDist( hsl[2], ( 1 + bgL ) / 2, _intensity, ( 1 - bgL ) / 6 );
-                            hsl[2] = std::max( _bgL, hsl[2] * ( 1 - _intensity * hsl[1] * coef * normalDist( hue, _peakHue, 1, _sigma ) ) );
+                            hsl[2] = std::max( _bgL, hsl[2] * ( 1 - _intensity * hsl[1] * coef * NormalDist( hue, _peakHue, 1, _sigma ) ) );
                         }
                         /*else
                         {
                         hsl[2] = std::min( _bgL, hsl[2] * ( 1 + _intensity * hsl[1] * coef * normalDist( hue, _peakHue, 1, _sigma ) ) );
                         }*/
 
-                        hsl[1] *= ( 1 - _intensity * normalDist( hue, _peakHue, 1, _sigma ) );
+                        hsl[1] *= ( 1 - _intensity * NormalDist( hue, _peakHue, 1, _sigma ) );
                         HslToRgb( hsl, rgb );
                     }
                 }

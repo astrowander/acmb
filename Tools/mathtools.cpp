@@ -34,7 +34,7 @@ float ArbitraryQuadraticInterpolation( float x, float x0, float y0, float x1, fl
 	return res;
 }
 
-float normalDist( float x, float xmax, float ymax, float sigma )
+float NormalDist( float x, float xmax, float ymax, float sigma )
 {
     return ymax * exp( -0.5f * ( xmax - x ) * ( xmax - x ) / sigma / sigma );
 }
