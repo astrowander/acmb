@@ -18,8 +18,11 @@ public:
 class AutoChannelEqualizer : public BaseTransform
 {
 public:
+	struct Settings {};
+
 	AutoChannelEqualizer( IBitmapPtr pSrcBitmap = nullptr );
 	virtual void Run() override;
+	static std::shared_ptr<AutoChannelEqualizer> Create( PixelFormat, Settings = {} );
 };
 
 ACMB_NAMESPACE_END

@@ -139,5 +139,10 @@ void AutoHaloRemoval::Run()
     _pDstBitmap = HaloRemovalTransform::AutoRemove( _pSrcBitmap, _intensity );
 }
 
+std::shared_ptr<AutoHaloRemoval> AutoHaloRemoval::Create( PixelFormat pixelFormat, float intensity )
+{
+    return std::make_shared<AutoHaloRemoval>( nullptr, intensity );
+}
+
 
 ACMB_NAMESPACE_END

@@ -217,4 +217,9 @@ void AutoChannelEqualizer::Run()
 	_pDstBitmap = ChannelEqualizer::AutoEqualize( _pSrcBitmap );
 }
 
+std::shared_ptr<AutoChannelEqualizer> AutoChannelEqualizer::Create( PixelFormat, Settings )
+{
+	return std::make_shared<AutoChannelEqualizer>();
+}
+
 ACMB_NAMESPACE_END

@@ -5,6 +5,8 @@ ACMB_NAMESPACE_BEGIN
 
 class BitmapSubtractor : public BaseTransform
 {
+public:
+    using Settings = IBitmapPtr;
 protected:
     IBitmapPtr _pBitmapToSubtract;
     BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );

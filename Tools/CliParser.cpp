@@ -80,15 +80,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             Size bin{ std::stoi( values[0] ), std::stoi( values[1] ) };
             if ( isStackerFound )
             {
-                auto pBinningTransform = BinningTransform::Create( _pipelineAfterStacker.GetFinalParams()->GetPixelFormat(), bin );
-                _pipelineAfterStacker.Add( pBinningTransform );
+                _pipelineAfterStacker.AddTransform<BinningTransform>( bin );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    auto pBinningTransform = BinningTransform::Create( pipeline.GetFinalParams()->GetPixelFormat(), bin );
-                    pipeline.Add( pBinningTransform );
+                    pipeline.AddTransform<BinningTransform>( bin );
                 }
             }
         }
@@ -103,15 +101,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                auto pConverter = Converter::Create( _pipelineAfterStacker.GetFinalParams()->GetPixelFormat(), it->second );
-                _pipelineAfterStacker.Add( pConverter );
+                _pipelineAfterStacker.AddTransform<Converter>( it->second );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    auto pConverter = Converter::Create( pipeline.GetFinalParams()->GetPixelFormat(), it->second );
-                    pipeline.Add( pConverter );
+                    pipeline.AddTransform<Converter>( it->second );
                 }
             }
         }
@@ -124,15 +120,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                auto pConverter = BitmapSubtractor::Create( _pipelineAfterStacker.GetFinalParams()->GetPixelFormat(), pBitmapToSubtract );
-                _pipelineAfterStacker.Add( pConverter );
+                _pipelineAfterStacker.AddTransform<BitmapSubtractor>( pBitmapToSubtract );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    auto pConverter = BitmapSubtractor::Create( pipeline.GetFinalParams()->GetPixelFormat(), pBitmapToSubtract );
-                    pipeline.Add( pConverter );
+                    pipeline.AddTransform<BitmapSubtractor>( pBitmapToSubtract );
                 }
             }
         }
@@ -143,13 +137,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                _pipelineAfterStacker.Add( std::make_shared<AutoChannelEqualizer>() );
+                _pipelineAfterStacker.AddTransform<AutoChannelEqualizer>();
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {                   
-                    pipeline.Add( std::make_shared<AutoChannelEqualizer>() );
+                    pipeline.AddTransform<AutoChannelEqualizer>();
                 }
             }
         }
@@ -160,15 +154,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                auto pDeaberrateTransform = DeaberrateTransform::Create( _pipelineAfterStacker.GetFinalParams()->GetPixelFormat(), _pipelineAfterStacker.GetCameraSettings() );
-                _pipelineAfterStacker.Add( pDeaberrateTransform );
+                _pipelineAfterStacker.AddTransform<DeaberrateTransform>( _pipelineAfterStacker.GetCameraSettings() );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    auto pDeaberrateTransform = DeaberrateTransform::Create( pipeline.GetFinalParams()->GetPixelFormat(), pipeline.GetCameraSettings() );
-                    pipeline.Add( pDeaberrateTransform );
+                    pipeline.AddTransform<DeaberrateTransform>( _pipelineAfterStacker.GetCameraSettings() );
                 }
             }
         }
@@ -182,13 +174,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                _pipelineAfterStacker.Add( std::make_shared<AutoHaloRemoval>(nullptr, intensity ) );
+                _pipelineAfterStacker.AddTransform<AutoHaloRemoval>( intensity );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.Add( std::make_shared<AutoHaloRemoval>( nullptr, intensity ) );
+                    pipeline.AddTransform<AutoHaloRemoval>( intensity );
                 }
             }
         }
@@ -214,7 +206,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
     if ( testMode )
         return {};
 
-    const std::string& pathToOutput = _kvs.back().values[0];    
+    const std::string& pathToOutput = _kvs.back().values[0];
 
     if ( isStackerFound )
     {

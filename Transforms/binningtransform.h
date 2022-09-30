@@ -5,6 +5,9 @@ ACMB_NAMESPACE_BEGIN
 
 class BinningTransform : public BaseTransform
 {
+public:
+    using Settings = Size;
+
 protected:
     Size _bin;
     BinningTransform( std::shared_ptr<IBitmap> pSrcBitmap, Size bin );

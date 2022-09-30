@@ -129,4 +129,21 @@ std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create(IBitmapPtr pBitmap, c
 	}
 }
 
+std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create( PixelFormat pixelFormat, const Rect& roi )
+{
+	switch ( pixelFormat )
+	{
+		case PixelFormat::Gray8:
+			return std::make_shared<HistogramBuilder_<PixelFormat::Gray8>>( nullptr, roi );
+		case PixelFormat::Gray16:
+			return std::make_shared<HistogramBuilder_<PixelFormat::Gray16>>( nullptr, roi );
+		case PixelFormat::RGB24:
+			return std::make_shared<HistogramBuilder_<PixelFormat::RGB24>>( nullptr, roi );
+		case PixelFormat::RGB48:
+			return std::make_shared<HistogramBuilder_<PixelFormat::RGB48>>( nullptr, roi );
+		default:
+			throw std::runtime_error( "pixel format should be known" );
+	}
+}
+
 ACMB_NAMESPACE_END

@@ -23,11 +23,16 @@ public:
 
 class AutoHaloRemoval : public BaseTransform
 {
+public:
+    using Settings = float;
+
+private:
     float _intensity;
 
 public:
     AutoHaloRemoval( IBitmapPtr pSrcBitmap, float intensity );
     virtual void Run() override;
+    static std::shared_ptr<AutoHaloRemoval> Create( PixelFormat pixelFormat, float intensity );
 };
 
 ACMB_NAMESPACE_END

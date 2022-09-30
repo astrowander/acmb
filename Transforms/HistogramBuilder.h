@@ -18,6 +18,7 @@ class HistorgamBuilder
 {
 public:
 	using ChannelHistogram = std::vector<uint32_t>;
+	using Settings = Rect;
 
 protected:
 	IBitmapPtr _pBitmap;
@@ -25,7 +26,8 @@ protected:
 	HistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi);
 
 public:
-	static std::shared_ptr<HistorgamBuilder> Create(IBitmapPtr pBitmap, const Rect& roi = {});
+	static std::shared_ptr<HistorgamBuilder> Create( IBitmapPtr pBitmap, const Rect& roi = {});
+	static std::shared_ptr<HistorgamBuilder> Create( PixelFormat pixelFormat, const Rect& roi = {} );
 
 	virtual void BuildHistogram() = 0;
 	virtual const ChannelHistogram& GetChannelHistogram(uint32_t ch) const = 0;

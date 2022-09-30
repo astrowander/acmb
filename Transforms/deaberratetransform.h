@@ -9,6 +9,8 @@ struct CameraSettings;
 
 class DeaberrateTransform : public BaseTransform
 {
+public:
+	using Settings = std::shared_ptr<CameraSettings>;
 protected:
 	std::shared_ptr<CameraSettings> _pCameraSettings;
 	DeaberrateTransform( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings );

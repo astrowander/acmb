@@ -6,6 +6,9 @@ ACMB_NAMESPACE_BEGIN
 
 class Converter : public BaseTransform
 {
+public:
+    using Settings = PixelFormat;
+
 protected:
     Converter(IBitmapPtr pSrcBitmap);
 
