@@ -14,6 +14,8 @@ protected:
 public:
     static std::shared_ptr<BinningTransform> Create(std::shared_ptr<IBitmap> pSrcBitmap, Size bin);
     static std::shared_ptr<BinningTransform> Create( PixelFormat pixelFormat, Size bin );
+
+    virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
 };
 
 ACMB_NAMESPACE_END

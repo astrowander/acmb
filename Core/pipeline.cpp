@@ -3,15 +3,30 @@
 
 ACMB_NAMESPACE_BEGIN
 
-Pipeline::Pipeline( IPipelineElementPtr pElement )
+Pipeline::Pipeline( IPipelineFirstElementPtr pElement )
 {
+    if ( !pElement )
+        throw std::invalid_argument( " pElement is null" );
+
     _elements.push_back( pElement );
 }
 
 void Pipeline::Add( IPipelineElementPtr pElement )
 {
+    if ( !pElement )
+        throw std::invalid_argument( " pElement is null" );
+
+    auto pFirstElement = std::dynamic_pointer_cast< IPipelineFirstElement >( pElement );
+    if ( _elements.empty() && !pFirstElement )
+    {
+        throw std::runtime_error( "unable to add this element to the start of the pipeline" );
+    }
+    
     if ( !_elements.empty() )
     {
+        if ( pFirstElement )
+            throw std::runtime_error( "this element can be added only to the start of the pipeline" );
+
         pElement->CalcParams( _elements.back() );
         pElement->SetCameraSettings( _elements.back()->GetCameraSettings() );
     }

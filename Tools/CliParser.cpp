@@ -77,7 +77,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             if ( values.size() != 2 )
                 return { 1, "--binning requires exactly two arguments" };
 
-            Size bin{ std::stoi( values[0] ), std::stoi( values[1] ) };
+            const int width = std::stoi( values[0] );
+            const int height = std::stoi( values[1] );
+            if ( width <= 0 || height <= 0 )
+            {
+                return { 1, "--binning requires strictly positive arguments" };
+            }
+            Size bin{ uint32_t( width ), uint32_t( height ) };
             if ( isStackerFound )
             {
                 _pipelineAfterStacker.AddTransform<BinningTransform>( bin );

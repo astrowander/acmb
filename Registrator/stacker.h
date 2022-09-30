@@ -24,7 +24,7 @@ struct StackingDatum
     uint64_t totalStarCount;
 };
 
-class Stacker : public IPipelineElement
+class Stacker : public IPipelineFirstElement
 {
     template <PixelFormat pixelFormat> friend class AddingBitmapHelper;
     template <PixelFormat pixelFormat> friend class AddingBitmapWithAlignmentHelper;

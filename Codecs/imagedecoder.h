@@ -16,7 +16,7 @@ ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
 
-class ImageDecoder : public IPipelineElement
+class ImageDecoder : public IPipelineFirstElement
 {
 protected:
     std::string _lastFileName;

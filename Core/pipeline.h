@@ -9,14 +9,20 @@ class Pipeline
 
 public:
     Pipeline() = default;
-    Pipeline( IPipelineElementPtr pElement );
+    Pipeline( IPipelineFirstElementPtr pElement );
 
     void Add( IPipelineElementPtr pElement );    
 
     template<std::derived_from<BaseTransform> ElementType>
     void AddTransform( typename ElementType::Settings settings = {})
     {
-        _elements.push_back( ElementType::Create( GetFinalParams()->GetPixelFormat(), settings ) );
+        if ( _elements.empty() )
+            throw std::runtime_error( "unable to add a transform to the empty pipeline" );
+
+        auto pElement = ElementType::Create( GetFinalParams()->GetPixelFormat(), settings );
+        pElement->CalcParams( _elements.back() );
+        pElement->SetCameraSettings( _elements.back()->GetCameraSettings() );
+        _elements.push_back( pElement );        
     }
 
     IBitmapPtr RunAndGetBitmap();

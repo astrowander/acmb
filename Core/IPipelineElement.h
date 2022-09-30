@@ -22,6 +22,11 @@ public:
     void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings );
 };
 
+class IPipelineFirstElement : public IPipelineElement
+{
+};
+
 using IPipelineElementPtr = std::shared_ptr<IPipelineElement>;
+using IPipelineFirstElementPtr = std::shared_ptr<IPipelineFirstElement>;
 
 ACMB_NAMESPACE_END

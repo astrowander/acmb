@@ -106,4 +106,11 @@ std::shared_ptr<BinningTransform> BinningTransform::Create( PixelFormat pixelFor
     }
 }
 
+void BinningTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
+{
+    _width = pParams->GetWidth() / _bin.width;
+    _height = pParams->GetWidth() / _bin.height;
+    _pixelFormat = pParams->GetPixelFormat();
+}
+
 ACMB_NAMESPACE_END

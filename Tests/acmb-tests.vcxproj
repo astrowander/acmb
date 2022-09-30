@@ -124,6 +124,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />
     <ClCompile Include="TestBitmap.cpp" />
     <ClCompile Include="TestBitmapSubtractor.cpp" />

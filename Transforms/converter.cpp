@@ -61,6 +61,13 @@ public:
             }
         } );
     }
+
+    virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override
+    {
+        _width = pParams->GetWidth();
+        _height = pParams->GetWidth();
+        _pixelFormat = dstPixelFormat;
+    }
 };
 
 Converter::Converter(IBitmapPtr pSrcBitmap)
