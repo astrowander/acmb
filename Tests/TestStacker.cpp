@@ -4,6 +4,7 @@
 #include "../Codecs/Raw/RawDecoder.h"
 #include "../Registrator/stacker.h"
 #include "../Transforms/converter.h"
+#include "../Transforms/BitmapSubtractor.h"
 #include <filesystem>
 
 ACMB_TESTS_NAMESPACE_BEGIN
@@ -150,8 +151,11 @@ BEGIN_TEST( StackWithDarks )
     auto pDarkFrame = pDarkStacker->Stack();
     pDarkStacker.reset();
 
-    auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) ) );
-    pStacker->SetDarkFrame( pDarkFrame );
+    auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );
+    for ( auto& pipeline : pipelines )
+        pipeline.AddTransform<BitmapSubtractor>( pDarkFrame );
+
+    auto pStacker = std::make_shared<Stacker>( pipelines );
     EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/StackWithDarks.ppm" ), pStacker->RegistrateAndStack() ) );
 
 END_TEST

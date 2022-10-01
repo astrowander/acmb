@@ -15,12 +15,14 @@ ACMB_NAMESPACE_BEGIN
 
 class ImageDecoder;
 
+/// holds key and list of its argumnets
 struct KV
 {
     std::string key;
     std::vector<std::string> values;
 };
 
+/// Parses command line and calls needed functions of the library
 class CliParser
 {
     std::vector<KV> _kvs;
@@ -33,6 +35,7 @@ class CliParser
 
 public:
 
+    /// Parse given command line
     static std::tuple<int, std::string> Parse( int argc, const char** argv );
     TEST_ACCESS( CliParser );
 };

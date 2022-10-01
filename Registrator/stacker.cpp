@@ -273,11 +273,6 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines )
     _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);    
 }
 
-void Stacker::SetDarkFrame( IBitmapPtr pDarkFrame )
-{
-    _pDarkFrame = pDarkFrame;
-}
-
 IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr pSrcBitmap )
 {
     return _doAlignment ? RegistrateAndStack() : Stack();
@@ -288,9 +283,7 @@ void Stacker::Registrate()
     auto pRegistrator = std::make_unique<Registrator>(_threshold, _minStarSize, _maxStarSize);
     for (auto& dsPair : _stackingData)
     {
-        auto pBitmap = dsPair.pipeline.RunAndGetBitmap();
-        if ( _pDarkFrame )
-            BitmapSubtractor::Subtract( pBitmap, _pDarkFrame );       
+        auto pBitmap = dsPair.pipeline.RunAndGetBitmap();      
         
         pRegistrator->Registrate(pBitmap);
         dsPair.stars = pRegistrator->GetStars();
@@ -314,9 +307,7 @@ std::shared_ptr<IBitmap> Stacker::Stack()
     
     Log(_stackingData[0].pipeline.GetFileName() + " in process");
 
-    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
-    if ( _pDarkFrame )
-        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();  
 
     Log( _stackingData[0].pipeline.GetFileName() + " is read" );   
 
@@ -346,9 +337,7 @@ std::shared_ptr<IBitmap> Stacker::Stack()
         Log( _stackingData[i].pipeline.GetFileName() + " in process" );
         auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
         Log( _stackingData[i].pipeline.GetFileName() + " is read" );
-        if ( _pDarkFrame )
-            BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
-
+       
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");      
 
@@ -425,9 +414,7 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack()
         return nullptr;   
 
     auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
-    if ( _pDarkFrame )
-        BitmapSubtractor::Subtract( pRefBitmap, _pDarkFrame );    
-
+   
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
@@ -455,9 +442,7 @@ std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack()
         Log( _stackingData[i].pipeline.GetFileName() + " in process" );
         auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
         Log( _stackingData[i].pipeline.GetFileName() + " bitmap is read" );
-        if ( _pDarkFrame )
-            BitmapSubtractor::Subtract( pTargetBitmap, _pDarkFrame );
-
+       
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");       
 

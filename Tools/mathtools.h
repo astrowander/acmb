@@ -9,10 +9,12 @@
 #include <cstdint>
 
 ACMB_NAMESPACE_BEGIN
-
+/// Builds a parabola with three points: (0;t0) (1;t1) (2;t2) and find its value with arg = t
 float QuadraticInterpolation(float t, float t0, float t1, float t2);
+/// Builds a parabola with three points: (x0;y0) (x1;y1) (x2;y2) and find its value with arg = x
 float ArbitraryQuadraticInterpolation( float x, float x0, float y0, float x1, float y1, float x2, float y2 );
 
+/// rounds given value and cast it to given type
 template<typename T>
 constexpr T FastRound(double x)
 {
@@ -20,12 +22,12 @@ constexpr T FastRound(double x)
 }
 
 static constexpr uint32_t tileSize = 600;
-
+/// returns nuber of tiles in the  image of specified size
 constexpr std::tuple<uint32_t, uint32_t> GetTileCounts( uint32_t width, uint32_t height )
 {
     return { std::max<uint32_t>( 1u, width / tileSize ), std::max<uint32_t>( 1u, height / tileSize ) };
 }
-
+/// converts RGB color to HSL color space
 template <typename ChannelType>
 std::array<float, 3> RgbToHsl( const std::span<ChannelType, 3>& rgb )
 {
@@ -61,6 +63,7 @@ std::array<float, 3> RgbToHsl( const std::span<ChannelType, 3>& rgb )
     return hsl;
 }
 
+/// converts HSL color to RGB color space
 template <typename ChannelType>
 void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb )
 {
@@ -77,7 +80,9 @@ void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb 
     rgb[1] = ChannelType( std::clamp( f( 8 ) * channelMax, 0.0f, channelMax ) + 0.5f );
     rgb[2] = ChannelType( std::clamp( f( 4 ) * channelMax, 0.0f, channelMax ) + 0.5f );
 }
-
+/// calculates value of Gaussian in the point x 
+/// xmax and ymax are coords of maximum point
+/// sigma is standard deviation
 float NormalDist( float x, float xmax, float ymax, float sigma );
 
 ACMB_NAMESPACE_END

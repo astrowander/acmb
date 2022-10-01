@@ -16,7 +16,7 @@ ACMB_TESTS_NAMESPACE_END
 ACMB_NAMESPACE_BEGIN
 
 class ImageDecoder;
-
+/// Unites image to stack, list of its stars and total number of stars
 struct StackingDatum
 {
     Pipeline pipeline;
@@ -24,6 +24,9 @@ struct StackingDatum
     uint64_t totalStarCount;
 };
 
+/// <summary>
+/// Combines a bunch of images to the one stacked image.
+/// </summary>
 class Stacker : public IPipelineFirstElement
 {
     template <PixelFormat pixelFormat> friend class AddingBitmapHelper;
@@ -53,8 +56,6 @@ class Stacker : public IPipelineFirstElement
     std::vector<std::shared_ptr<FastAligner>> _aligners;
     MatchMap _matches;
 
-    IBitmapPtr _pDarkFrame;
-
     double _threshold = 25.0;
     uint32_t _minStarSize = 5;
     uint32_t _maxStarSize = 25;
@@ -63,14 +64,15 @@ class Stacker : public IPipelineFirstElement
     void StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i);
 
 public:
+    /// creates an instance with the given images
+    Stacker(const std::vector<Pipeline>& pipelines);
 
-    Stacker(const std::vector<Pipeline>& pipeline);
-
+    /// detects stars in the images
     void Registrate();
+    /// detects stars and stacks images in one time
     std::shared_ptr<IBitmap>  RegistrateAndStack();
+    /// stacks registered images
     std::shared_ptr<IBitmap> Stack();   
-
-    void SetDarkFrame( IBitmapPtr pDarkFrame );
 
     double GetThreshold() const { return _threshold; }
     void SetThreshold( double threshold ) { _threshold = threshold; };
@@ -82,6 +84,7 @@ public:
     bool GetDoAlignment() const { return _doAlignment; }
     void SetDoAlignment( bool val ) { _doAlignment = val; }
 
+    /// needed for compatibility with pipeline API
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) override;
         
     TEST_ACCESS(Stacker);

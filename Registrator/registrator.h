@@ -7,10 +7,13 @@
 #include "star.h"
 
 ACMB_NAMESPACE_BEGIN
-
+/// <summary>
+/// Find stars on image and returns them in a list
+/// </summary>
 class Registrator
 {
 public:
+    /// split image to squares of this size and detects stars in parallel
     static constexpr uint32_t tileSize = 600;
 
 private:
@@ -23,10 +26,13 @@ private:
 
 public:
     Registrator() = default;
+    /// Creates registarator with given threshold (star will be detected if its luminosity more than threshold percent above median level)
+    /// Also star will be placed to list only if its size more than minStarSize and less than maxStarSize
     Registrator( double threshold, uint32_t _minStarSize = 5, uint32_t _maxStarSize = 25);
+    /// Detects stars in the given image
     void Registrate(std::shared_ptr<IBitmap> pBitmap);
-    const std::vector<std::vector<Star>>& GetStars() const;
-    
+    /// Returns list of detected stars
+    const std::vector<std::vector<Star>>& GetStars() const;   
     
 private:
 

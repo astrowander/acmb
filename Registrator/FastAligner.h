@@ -11,7 +11,9 @@ ACMB_NAMESPACE_BEGIN
 using StarPair = std::pair<Star, Star>;
 using IndexMap = std::unordered_map<size_t, size_t>;
 using MatchMap = std::unordered_map<PointF, PointF, PointFHasher>;
-
+/// <summary>
+/// This class receives two vectors of stars and finds respective stars in them.
+/// </summary>
 class FastAligner
 {
 	std::vector<Star> _refStars;
@@ -70,11 +72,12 @@ class FastAligner
 	}
 
 public:
-
+	/// Creates object with reference vector of stars
 	FastAligner(const std::vector<Star>& refStars);
-
+	/// Receives the target vector of stars and finds respective stars to the reference vector
 	void Align(const std::vector<Star>& targetStars, double eps = 5.0);
 
+	/// Receives the target vector of stars, applies given transform and finds respective stars to the reference vector
 	template<class TransformType>
 	void Align(const std::vector<Star>& targetStars, const TransformType& transform, double eps = 5.0)
 	{
@@ -89,10 +92,11 @@ public:
 				return;
 		}
 	}
-
+	/// Returns map of respective stars
 	MatchMap GetMatches() const;
+	/// Returns found transform
 	const agg::trans_affine& GetTransform() const;
-
+	/// Sets maximal error
 	void SetEps(double eps);
 };
 
