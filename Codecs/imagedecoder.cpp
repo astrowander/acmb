@@ -51,6 +51,16 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
+std::shared_ptr<IBitmap> ImageDecoder::ReadStripe( uint32_t stripeHeight )
+{
+    throw std::runtime_error( "not implemented" );
+}
+
+uint32_t ImageDecoder::GetCurrentScanline() const
+{
+    throw std::runtime_error( "not implemented" );
+}
+
 IBitmapPtr ImageDecoder::ProcessBitmap( IBitmapPtr pBitmap )
 {
     return ReadBitmap();

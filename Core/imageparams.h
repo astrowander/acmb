@@ -4,6 +4,7 @@
 
 ACMB_NAMESPACE_BEGIN
 
+/// represents parameters of image: width, weight and pixel format
 class ImageParams
 {
 protected:

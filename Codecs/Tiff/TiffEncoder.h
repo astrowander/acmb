@@ -5,7 +5,9 @@
 struct TinyTIFFWriterFile;
 
 ACMB_NAMESPACE_BEGIN
-
+/// <summary>
+/// Writes bitmaps in TIFF format without compression and tiling
+/// </summary>
 class TiffEncoder : public ImageEncoder
 {
     std::string _fileName;
@@ -13,15 +15,15 @@ class TiffEncoder : public ImageEncoder
 
 public:
     TiffEncoder() = default;
-
+    /// attach to stream
     virtual void Attach( std::shared_ptr<std::ostream> pStream ) override;
-
+    /// attach to file
     virtual void Attach( const std::string& fileName ) override;
 
     virtual void Detach() override;
-
+    /// write given bitmap
     void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
-
+    /// returns supported extensions
     static std::unordered_set<std::string> GetExtensions();
 
     ADD_EXTENSIONS

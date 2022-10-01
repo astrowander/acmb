@@ -140,19 +140,9 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	return pRes;
 }
 
-std::shared_ptr<IBitmap> RawDecoder::ReadStripe(uint32_t)
-{
-	throw std::runtime_error("not implemented");
-}
-
-uint32_t RawDecoder::GetCurrentScanline() const
-{
-	throw std::runtime_error("not implemented");
-}
-
 std::unordered_set<std::string> RawDecoder::GetExtensions()
 {
-	return { ".cr2", ".dng" };
+	return { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".cr3", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rw1", ".rw2", "r3d", "srw", ".x3f" };
 }
 
 ACMB_NAMESPACE_END

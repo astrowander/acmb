@@ -15,7 +15,9 @@
 ACMB_NAMESPACE_BEGIN
 
 class IBitmap;
-
+/// <summary>
+/// Abstract class for reading bitmap from a file or a stream
+/// </summary>
 class ImageDecoder : public IPipelineFirstElement
 {
 protected:
@@ -26,26 +28,34 @@ protected:
     inline static std::unordered_set<std::string> _allExtensions;
 
 public:
-
+    /// attach decoder to stream
     virtual void Attach(std::shared_ptr<std::istream> pStream);
+    /// attach decoder to file
     virtual void Attach(const std::string& fileName);
+    /// detach and attach again to read file from beginning
     virtual void Reattach();
+    /// detach decoder
     virtual void Detach();
     virtual ~ImageDecoder() = default;
-
+    
+    /// read whole bitmap, need to implement in the derived class
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;
-    virtual std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight) = 0;
-    virtual uint32_t GetCurrentScanline() const = 0;
-
+    /// read a stripe (several lines), throws exception "not implemented, override this if the image format allows to read file partially.
+    virtual std::shared_ptr<IBitmap> ReadStripe( uint32_t stripeHeight );
+    /// returns beginning of the next stripe, throws exception "not implemented, override this if the image format allows to read file partially.
+    virtual uint32_t GetCurrentScanline() const;
+    /// reads and returns bitmap, needed for the compatibility with pipelines
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
-
+    /// needed for the compatibility with pipelines
     static std::shared_ptr<ImageDecoder> Create(const std::string& fileName);
-
+    /// returns name of the last attached file, if no file was attached returns empty string
     const std::string& GetLastFileName() const;
 
+    /// finds all files of supported formats in given directory, attaches decoders to them and creates pipelines
     static std::vector<Pipeline> GetPipelinesFromDir( std::string path );
+    /// finds all files of supported formats satisfying given mask, attaches decoders to them and creates pipelines
     static std::vector<Pipeline> GetPipelinesFromMask( std::string mask );
-
+    /// returns all supported extensions by all decoders
     static const std::unordered_set<std::string>& GetAllExtensions();
 
 protected:

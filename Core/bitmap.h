@@ -11,34 +11,43 @@
 //#undef max
 
 ACMB_NAMESPACE_BEGIN
-
+/// <summary>
+/// Abstract factory class for bitmap of any pixel format
+/// </summary>
 class IBitmap : public ImageParams
 {
 public:
 
     virtual ~IBitmap() = default;
-
+    /// returns given scanline casted to char*
     virtual char* GetPlanarScanline(uint32_t i) = 0;
+    /// returns k-th channel of j-th pixel on i-th scanline
     virtual uint32_t GetChannel(uint32_t i, uint32_t j, uint32_t k) const = 0;
+    /// sets k-th channel of j-th pixel on i-th scanline
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
+    /// returns count of allocated bytes
     virtual uint32_t GetByteSize() const = 0;
-
-    virtual float GetInterpolatedChannel(float x, float y, uint32_t ch) const = 0;
-
+    /// creates bitmap from a given file
     static std::shared_ptr<IBitmap> Create(const std::string& fileName);
+    /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
+    /// saves given bitmap to a file
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
 };
-
+/// alias for pointer to bitmap
 using IBitmapPtr = std::shared_ptr<IBitmap>;
 
+/// represents bitmap of a certain pixel format
 template<PixelFormat pixelFormat>
 class Bitmap : public IBitmap
 {
+    /// alias for channel type (uint8_t/uint16_t)
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+    /// alias for color type (uint32_t/uint64_t)
     using ColorType = typename PixelFormatTraits<pixelFormat>::ColorType;
+    /// alias for enum with predefined color
     using EnumColorType = typename PixelFormatTraits<pixelFormat>::EnumColorType;
-
+    /// alias for channel count of pixel format
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
     std::vector<ChannelType> _data;
@@ -65,6 +74,7 @@ class Bitmap : public IBitmap
     }
 
 public:
+    /// creates bitmap with given size and fills it with given color (black by default)
     Bitmap(uint32_t width, uint32_t height, ColorType fillColor = 0)
     {
         if (width == 0 || height == 0)
@@ -83,48 +93,49 @@ public:
             Fill(fillColor);
         }
     }
-
+    /// creates bitmap with given size and fills it with given color
     Bitmap(uint32_t width, uint32_t height, EnumColorType fillColor)
     : Bitmap(width, height, static_cast<ColorType>(fillColor))
     {
     }
-
+    /// returns given scanline
     ChannelType* GetScanline(uint32_t i)
     {
         return &_data[_width * i * channelCount];
     }
-
+    /// returns given scanline casted to char*
     char* GetPlanarScanline(uint32_t i) override
     {
         return reinterpret_cast<char*>(&_data[_width * i * channelCount]);
     }
-
+    /// returns k-th channel of j-th pixel on i-th scanline
     uint32_t GetChannel(uint32_t i, uint32_t j, uint32_t k) const override
     {
         return _data[(_width * i + j) * channelCount + k];
     }
-
+    /// sets k-th channel of j-th pixel on i-th scanline
     void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) override
     {
         _data[(_width * i + j) * channelCount + k] = value;
     }
-
+    /// returns count of allocated bytes
     uint32_t GetByteSize() const override
     {
         return _width * _height * BytesPerPixel(pixelFormat);
     }
-
+    
+    /// returns data vector    
     const auto& GetData() const
     {
         return _data;
     }
-
+    /// sets data vector
     void SetData(const std::vector<ChannelType>& data)
     {
         _data = data;
     }
-
-    float GetInterpolatedChannel(float x, float y, uint32_t ch) const override
+    /// receives arbitrary coords, returns interpolated channel value
+    float GetInterpolatedChannel(float x, float y, uint32_t ch) const
     {
         if (x < 0 || x > _width - 1)
             throw std::invalid_argument("x");

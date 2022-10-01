@@ -6,25 +6,23 @@
 struct TinyTIFFReaderFile;
 
 ACMB_NAMESPACE_BEGIN
-
+/// <summary>
+/// Reads simple TIFF files without compression and tiling
+/// </summary>
 class TiffDecoder : public ImageDecoder
 {
-    TinyTIFFReaderFile* _pReader;
-
-   
+    TinyTIFFReaderFile* _pReader;   
 
 public:
     TiffDecoder() = default;
-
+    /// attach to file
     void Attach( const std::string& fileName ) override;
+    /// attach to stream
     void Attach( std::shared_ptr<std::istream> pStream ) override;
     void Detach() override;
-
+    /// read whole bitmap
     std::shared_ptr<IBitmap> ReadBitmap() override;
-    std::shared_ptr<IBitmap> ReadStripe( uint32_t stripeHeight = 0 ) override;
-
-    uint32_t GetCurrentScanline() const override;
-
+    /// returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
 
     ADD_EXTENSIONS

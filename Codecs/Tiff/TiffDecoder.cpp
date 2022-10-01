@@ -88,16 +88,6 @@ IBitmapPtr TiffDecoder::ReadBitmap()
     return pBitmap;
 }
 
-std::shared_ptr<IBitmap> TiffDecoder::ReadStripe( uint32_t )
-{
-    throw std::runtime_error( "not implemented" );
-}
-
-uint32_t TiffDecoder::GetCurrentScanline() const
-{
-    throw std::runtime_error( "not implemented" );
-}
-
 std::unordered_set<std::string> TiffDecoder::GetExtensions()
 {
     return { ".tiff", ".tif" };

@@ -4,7 +4,9 @@
 #include "../../Core/enums.h"
 
 ACMB_NAMESPACE_BEGIN
-
+/// <summary>
+/// Reads PPM/PGM files
+/// </summary>
 class PpmDecoder : public ImageDecoder
 {
     PpmMode _ppmMode = PpmMode::Binary;
@@ -14,14 +16,17 @@ class PpmDecoder : public ImageDecoder
     uint32_t _currentScanline = 0;
 
 public:
+    /// attach to file
     void Attach(const std::string& fileName) override;
+    /// attach to stream
     void Attach(std::shared_ptr<std::istream> pStream) override;
-
+    /// read the whole bitmap
     std::shared_ptr<IBitmap> ReadBitmap() override;
+    /// read several lines. If stripeHeight==0 read the whole bitmap
     std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;
-
+    /// returns first scanline of the next stripe
     uint32_t GetCurrentScanline() const override;
-
+    /// returns supported file extensions
     static std::unordered_set <std::string> GetExtensions();
 private:    
 

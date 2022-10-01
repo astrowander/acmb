@@ -23,21 +23,21 @@ class DeaberrateTransform_ final: public DeaberrateTransform
 
 		int lwidth = _pSrcBitmap->GetWidth() * 2 * PixelFormatTraits<pixelFormat>::channelCount;
 		tbb::enumerable_thread_specific<std::vector<float>> buffer( lwidth );
-		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
 		{
 			for ( int i = range.begin(); i < range.end(); ++i )
 			{				
 				auto& pos = buffer.local();
-				if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, i, _pSrcBitmap->GetWidth(), 1, &pos[0] ) )
+				if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, i, pSrcBitmap->GetWidth(), 1, &pos[0] ) )
 					throw std::runtime_error( "unable to correct distortion" );
 
 				auto pDstPixel = pDstBitmap->GetScanline( i );
 
 				for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
 				{
-					pDstPixel[0] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
-					pDstPixel[1] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
-					pDstPixel[2] = _pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
+					pDstPixel[0] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
+					pDstPixel[1] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
+					pDstPixel[2] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
 					pDstPixel += 3;
 				}				
 			}

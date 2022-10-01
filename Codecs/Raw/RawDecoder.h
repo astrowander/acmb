@@ -6,30 +6,35 @@
 class LibRaw;
 
 ACMB_NAMESPACE_BEGIN
-
+/// Settings for RAW files reading
 struct RawSettings
 {
+    /// if true bitmap size will be two times smaller
     bool halfSize = false;
+    /// if true bitmap will have 16 bit per channel otherwise 8 bit per channel
     bool extendedFormat = true;
 };
 
+/// <summary>
+/// Reads RAW files
+/// </summary>
 class RawDecoder : public ImageDecoder
 {
 	LibRaw* _pLibRaw;
     RawSettings _rawSettings;
 
 public:
+    /// Creates riader with given settings
     RawDecoder( const RawSettings& rawSettings = {} );
     ~RawDecoder();
+    /// attach to a file
     void Attach(const std::string& fileName) override;
+    /// attach to a stream
     void Attach(std::shared_ptr<std::istream> pStream) override;
     void Detach() override;
-
+    ///read whole bitmap
     std::shared_ptr<IBitmap> ReadBitmap() override;
-    std::shared_ptr<IBitmap> ReadStripe(uint32_t stripeHeight = 0) override;
-
-    uint32_t GetCurrentScanline() const override;
-
+    ///returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
 
     ADD_EXTENSIONS

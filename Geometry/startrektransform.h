@@ -5,13 +5,18 @@
 #include "./../Tools/Newton2D.h"
 
 ACMB_NAMESPACE_BEGIN
-
+/// point on a celestial sphere
 struct SphericalPoint
 {
 	double rha;
 	double decl;
 };
-
+/// <summary>
+/// Star trails have the complicated form and motion of the stars cannot be represented with simple affine matrix. 
+/// Here we have two shots of starry sky taken with known time interval, from still camera
+/// We know pixel coords of a given star on the first image
+/// This class calculates coords of this star on the second image
+/// </summary>
 class StarTrekTransform
 {
 	agg::trans_affine _affineMatrix;
@@ -30,8 +35,14 @@ class StarTrekTransform
 	SphericalPoint GetInverseProjection(PointF p/*, SphericalPoint firstApproach*/);
 
 public:
-
+	/// <summary>
+	/// creates transform object with given params
+	/// </summary>
+	/// <param name="affineMatrix">basic affine matrix, defines scaling and rotation</param>
+	/// <param name="delta0">declination in the center of image</param>
+	/// <param name="timeSpan">time between thwo shots</param>
 	StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan);
+	/// receives coords of the star in first image, returns coords of the star in second image
 	PointF Transform(PointF p);
 	//for compatibility with agg::trans_affine
 	void transform(double* x, double* y);

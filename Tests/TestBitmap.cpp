@@ -54,10 +54,9 @@ BEGIN_TEST(TestRgb24)
     EXPECT_EQ(PixelFormat::RGB24, pBitmap->GetPixelFormat());
 END_TEST
 
-BEGIN_TEST(TestInterpolation)
+BEGIN_TEST( TestInterpolation )
 
-    auto pBitmap = IBitmap::Create(GetPathToTestFile("PPM/binary.ppm"));
-
+    auto pBitmap = std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( IBitmap::Create( GetPathToTestFile( "PPM/binary.ppm" ) ) );
     EXPECT_NEAR(28.125, pBitmap->GetInterpolatedChannel(0.5, 0.5, 0), 0.01);
     EXPECT_NEAR(147.51, pBitmap->GetInterpolatedChannel(1.75, 2.25, 2), 0.01);
     EXPECT_NEAR(189.263, pBitmap->GetInterpolatedChannel(2.85, 2.96, 1), 0.01);

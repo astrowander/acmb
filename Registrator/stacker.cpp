@@ -12,6 +12,24 @@
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
+#define CALL_HELPER(Helper, pBitmap) \
+    switch (pBitmap->GetPixelFormat()) \
+    { \
+        case PixelFormat::Gray8: \
+            Helper<PixelFormat::Gray8>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pBitmap)); \
+            break; \
+        case PixelFormat::Gray16:\
+             Helper<PixelFormat::Gray16>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap)); \
+            break; \
+        case PixelFormat::RGB24:\
+             Helper<PixelFormat::RGB24>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pBitmap)); \
+            break; \
+        case PixelFormat::RGB48:\
+              Helper<PixelFormat::RGB48>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pBitmap)); \
+            break; \
+        default:\
+            throw std::runtime_error("pixel format should be known");}
+
 ACMB_NAMESPACE_BEGIN
 
 
@@ -227,7 +245,7 @@ public:
     }
 };
 
-static constexpr bool enableLogging = false;
+static constexpr bool enableLogging = true;
 void Log(const std::string& message)
 {
 if (enableLogging)
