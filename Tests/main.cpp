@@ -2,5 +2,5 @@
 
 int main()
 {
-    return !acmb::tests::TestRunner::RunSuite( "CliParser" );
+    return !acmb::tests::TestRunner::RunAllTests();
 }

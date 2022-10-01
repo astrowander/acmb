@@ -25,6 +25,49 @@ EXPECT_EQ( 8669, pHistogramBuilder->GetChannelStatistics( 2 ).peak );
 EXPECT_EQ( 65435, pHistogramBuilder->GetChannelStatistics( 2 ).max );
 END_TEST
 
+BEGIN_TEST( TestRGB24 )
+
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/IMG_8970.ppm" ) );
+auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+pHistogramBuilder->BuildHistogram();
+
+EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 67, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 255, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+
+EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 1 ).min );
+EXPECT_EQ( 56, pHistogramBuilder->GetChannelStatistics( 1 ).peak );
+EXPECT_EQ( 255, pHistogramBuilder->GetChannelStatistics( 1 ).max );
+
+EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 2 ).min );
+EXPECT_EQ( 31, pHistogramBuilder->GetChannelStatistics( 2 ).peak );
+EXPECT_EQ( 255, pHistogramBuilder->GetChannelStatistics( 2 ).max );
+END_TEST
+
+BEGIN_TEST( TestGray16 )
+
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "/gray.pgm" ) );
+auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+pHistogramBuilder->BuildHistogram();
+
+EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 65535, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 65535, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+
+END_TEST
+
+BEGIN_TEST( TestGray8 )
+
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "Tiff/Gray8.tiff" ) );
+auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+pHistogramBuilder->BuildHistogram();
+
+EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 20, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 255, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+
+END_TEST
+
 BEGIN_TEST( TestNullArgs )
 auto f = []
 {

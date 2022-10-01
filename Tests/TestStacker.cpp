@@ -3,6 +3,7 @@
 #include "../Core/pipeline.h"
 #include "../Codecs/Raw/RawDecoder.h"
 #include "../Registrator/stacker.h"
+#include "../Transforms/converter.h"
 #include <filesystem>
 
 ACMB_TESTS_NAMESPACE_BEGIN
@@ -22,6 +23,56 @@ BEGIN_TEST(TestStackingWithoutAlignment)
     auto pStacker = std::make_shared<Stacker>( pipelines );
     pStacker->SetDoAlignment( false );
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestStackingWithoutAlignment.ppm"), pStacker->Stack()));
+
+END_TEST
+
+BEGIN_TEST( TestRgb24 )
+
+std::vector<Pipeline> pipelines;
+for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
+{
+    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .extendedFormat = false } );
+    pDecoder->Attach( path.path().generic_string() );
+    pipelines.emplace_back( pDecoder );
+}
+
+auto pStacker = std::make_shared<Stacker>( pipelines );
+pStacker->SetDoAlignment( false );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestRgb24.ppm" ), pStacker->Stack() ) );
+
+END_TEST
+
+BEGIN_TEST( TestGray8 )
+
+std::vector<Pipeline> pipelines;
+for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
+{
+    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .extendedFormat = false } );
+    pDecoder->Attach( path.path().generic_string() );
+    pipelines.emplace_back( pDecoder );
+    pipelines.back().AddTransform<Converter>( PixelFormat::Gray8 );
+}
+
+auto pStacker = std::make_shared<Stacker>( pipelines );
+pStacker->SetDoAlignment( false );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray8.ppm" ), pStacker->Stack() ) );
+
+END_TEST
+
+BEGIN_TEST( TestGray16 )
+
+std::vector<Pipeline> pipelines;
+for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
+{
+    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .extendedFormat = true } );
+    pDecoder->Attach( path.path().generic_string() );
+    pipelines.emplace_back( pDecoder );
+    pipelines.back().AddTransform<Converter>( PixelFormat::Gray16 );
+}
+
+auto pStacker = std::make_shared<Stacker>( pipelines );
+pStacker->SetDoAlignment( false );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray16.ppm" ), pStacker->Stack() ) );
 
 END_TEST
 

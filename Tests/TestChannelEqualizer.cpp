@@ -21,6 +21,18 @@ auto pDstBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "ChannelEqualizer/TestRGB48.ppm" ), pDstBitmap ) );
 END_TEST
 
+BEGIN_TEST( TestGray8 )
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "Tiff/Gray8.tiff" ) );
+auto pDstBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "ChannelEqualizer/TestGray8.ppm" ), pDstBitmap ) );
+END_TEST
+
+BEGIN_TEST( TestGray16 )
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "Tiff/Gray16.tiff" ) );
+auto pDstBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "ChannelEqualizer/TestGray16.ppm" ), pDstBitmap ) );
+END_TEST
+
 BEGIN_TEST( TestNullArgs )
 
 auto f = [] { ChannelEqualizer::AutoEqualize( nullptr ); };
