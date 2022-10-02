@@ -1,5 +1,5 @@
 # What is it? 
-Tne name "acmb" is a reduction from "AstroCombiner". acmb is an open-source cross-platform software for astronomical photographic image manipulation.
+The name "acmb" is a reduction from "AstroCombiner". acmb is an open-source cross-platform software for astronomical photographic image manipulation.
 ## Building instructions
 ### Download sources from GitHub
 ```sh
