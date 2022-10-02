@@ -13,6 +13,12 @@ EXPECT_EQ( 4, pipelines.size() );
 
 END_TEST
 
+BEGIN_TEST( TestExtensionsSize )
+
+EXPECT_EQ( 32, ImageDecoder::GetAllExtensions().size() );
+
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

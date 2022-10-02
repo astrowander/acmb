@@ -122,7 +122,7 @@ std::shared_ptr<DeaberrateTransform> DeaberrateTransform::Create( IBitmapPtr pSr
 		case PixelFormat::RGB24:
 			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB24>>( pSrcBitmap, pCameraSettings );
 		case PixelFormat::RGB48:
-			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB24>>( pSrcBitmap, pCameraSettings );
+			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB48>>( pSrcBitmap, pCameraSettings );
 		default:
 			throw std::runtime_error( "Unsupported pixel format" );
 	}
