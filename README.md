@@ -60,4 +60,16 @@ This command line means:
 7. Save the result to "file.tif"
 
 See the full list of trasformations below
-#### --binning
+#### --autowb
+It automatically fixes contrast and white balance in the image
+#### --binning width height
+Width and height are the positive integers. This transform merges each region of given size (bin) in the source image to the single pixel in the destination
+#### --convert [gray8, gray16, rgb24, rgb48]
+It converts given image to the specified pixel format. Four pixel formats are supported now.
+#### --deaberrate
+It automatically fixes optical aberrations if the parameners of the lens is known. It uses the EXIF metadata and the database of cameras and lenses from lensfun library.
+#### --removehalo intensity
+It automatically removes purple halos around bright stars. Intensity means how strong is effect and changes from 0 (no effect) to 100 (maximal effect)
+#### --subtract "/path/to/image"
+subtracts given image from their input
+
