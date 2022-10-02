@@ -51,7 +51,7 @@ CliParser::CliParser( int argc, const char** argv )
 std::tuple<int, std::string> CliParser::Parse( bool testMode )
 {
     if ( _kvs.empty() )
-        return { 1, "Nothing to do" };
+        return {0, std::string("acmb version ") + FULL_VERSION };
 
     if ( _kvs.front().key != "--input" || _kvs.front().values.empty() )
         return { 1, "Input files must be specified in the first place" };
