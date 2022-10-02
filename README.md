@@ -72,4 +72,5 @@ It automatically fixes optical aberrations if the parameners of the lens is know
 It automatically removes purple halos around bright stars. Intensity means how strong is effect and changes from 0 (no effect) to 100 (maximal effect)
 #### --subtract "/path/to/image"
 subtracts given image from their input
-
+### Tests
+acmb is provided with a bunch of unit tests. If you want to run them please set the environment variable ACMB_PATH="/path/to/acmb/. It must store the location oh the main acmb directory (where you have downloaded it). Also you need to download the set of test files. It is too large to store it in GitHub, you can download it from Google Drive
