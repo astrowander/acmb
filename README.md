@@ -73,4 +73,4 @@ It automatically removes purple halos around bright stars. Intensity means how s
 #### --subtract "/path/to/image"
 subtracts given image from their input
 ### Tests
-acmb is provided with a bunch of unit tests. If you want to run them please set the environment variable ACMB_PATH="/path/to/acmb/. It must store the location oh the main acmb directory (where you have downloaded it). Also you need to download the set of test files. It is too large to store it in GitHub, you can download it from Google Drive
+acmb is provided with a bunch of unit tests. If you want to run them please set the environment variable ACMB_PATH="/path/to/acmb/. It must store the location oh the main acmb directory (where you have downloaded it). Also you need to download the set of test files. It is too large to store it in GitHub, you can download it from Google Drive https://drive.google.com/file/d/1whnWlp1ww4q_VxdOZxBYbZuihow6O_T3/view?usp=sharing. Unzip it and place into the "Tests" folder
