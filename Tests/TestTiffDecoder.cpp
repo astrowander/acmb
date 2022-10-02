@@ -73,7 +73,7 @@ END_TEST
 BEGIN_TEST( ReadTwice )
 
 auto pDecoder = std::make_unique<TiffDecoder>();
-pDecoder->Attach( GetPathToTestFile( "Tiff/RGB24.tiff" ) );
+pDecoder->Attach( GetPathToTestFile( "TIFF/RGB24.tiff" ) );
 auto pFirstBitmap = pDecoder->ReadBitmap();
 auto pSecondBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE( BitmapsAreEqual( pFirstBitmap, pSecondBitmap ) );

@@ -27,6 +27,7 @@ SOURCES += \
     TestImageEncoder.cpp \
     TestJpegEncoder.cpp \
     TestNewton2D.cpp \
+    TestPipeline.cpp \
     TestPpmDecoder.cpp \
     TestPpmEncoder.cpp \
     TestRawDecoder.cpp \

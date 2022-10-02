@@ -34,8 +34,8 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
     return BitmapsAreEqual(IBitmap::Create(fileName), rhs);
 }
 
-const std::string testFilesPath = GetEnv("ACMB_PATH") + "Tests/TestFiles/";
-const std::string patternsPath = GetEnv("ACMB_PATH") + "Tests/Patterns/";
+const std::string testFilesPath = GetEnv("ACMB_PATH") + "/Tests/TestFiles/";
+const std::string patternsPath = GetEnv("ACMB_PATH") + "/Tests/Patterns/";
 
 std::string GetPathToPattern(const std::string &fileName)
 {

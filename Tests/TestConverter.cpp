@@ -4,7 +4,7 @@
 
 #define PIXEL_FORMAT_TEST(fmt1, fmt2) \
 BEGIN_TEST(Test ##fmt1 ## To ##fmt2)\
-EXPECT_TRUE( ( BitmapsAreEqual( GetPathToPattern( "Converter/Test" #fmt1 "To" #fmt2 ".tif" ), Converter::Convert( IBitmap::Create( GetPathToTestFile( "TIFF/" #fmt1 ".tiff" ) ), PixelFormat::##fmt2 ) ) ) )\
+EXPECT_TRUE( ( BitmapsAreEqual( GetPathToPattern( "Converter/Test" #fmt1 "To" #fmt2 ".tif" ), Converter::Convert( IBitmap::Create( GetPathToTestFile( "TIFF/" #fmt1 ".tiff" ) ), PixelFormat::fmt2 ) ) ) )\
 END_TEST
 
 ACMB_TESTS_NAMESPACE_BEGIN

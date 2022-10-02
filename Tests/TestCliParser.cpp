@@ -127,7 +127,7 @@ EXPECT_EQ( 10, parser._pipelinesBeforeStacker.size() );
 END_TEST
 
 BEGIN_TEST( StackWithDarks )
-std::string dark = GetPathToTestFile( "DarkFrame/masterDark.ppm" );
+std::string dark = GetPathToTestFile( "DarkFrame/masterdark.ppm" );
 std::string lights = GetPathToTestFile( "RAW/StackWithDarks/Lights/" );
 std::vector<const char*> data = { "acmb", "--input", lights.data(), "--subtract", dark.data(), "--stack", "--autowb", "--removehalo", "--output", "test.tif" };
 CliParser parser( data.size(), ( &data[0] ) );

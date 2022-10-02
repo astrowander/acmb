@@ -13,16 +13,16 @@ static bool TestPixelFormat(const std::string& pixelFormat)
 {
     auto pRefBitmap = IBitmap::Create( GetPathToTestFile( std::string("TIFF/") +  pixelFormat + ".tiff" ) );
     TiffEncoder tiffEncoder;
-    auto tempDir = std::filesystem::temp_directory_path();
+    auto tempDir = GetPathToTestFile("/tmp/");
 
     PpmEncoder ppmEncoder(PpmMode::Binary);
-    std::string ppmFileName = tempDir.string() + pixelFormat + "_temp.ppm";
+    std::string ppmFileName = tempDir + pixelFormat + "_temp.ppm";
     ppmEncoder.Attach( ppmFileName );
     ppmEncoder.WriteBitmap( pRefBitmap );
     ppmEncoder.Detach();
 
 
-    std::string tmpFileName = tempDir.string() + pixelFormat + "_temp.tif";
+    std::string tmpFileName = tempDir + pixelFormat + "_temp.tif";
 
     tiffEncoder.Attach( tmpFileName );
     tiffEncoder.WriteBitmap( pRefBitmap );

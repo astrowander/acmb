@@ -2,7 +2,7 @@
 #include "testtools.h"
 #include "../Core/pipeline.h"
 #include "../Transforms/ChannelEqualizer.h"
-#include "../Transforms/BinningTransform.h"
+#include "../Transforms/binningtransform.h"
 #include "../Transforms/BitmapSubtractor.h"
 #include "../Transforms/HaloRemovalTransform.h"
 #include "../Transforms/converter.h"

@@ -22,15 +22,18 @@ SOURCES += \
     Codecs/Raw/RawDecoder.cpp \
     Codecs/Tiff/TiffDecoder.cpp \
     Codecs/Tiff/TiffEncoder.cpp \
+    Core/IPipelineElement.cpp \
     Core/bitmap.cpp \
     Core/enums.cpp \
     Core/imageparams.cpp \
+    Core/pipeline.cpp \
     Geometry/startrektransform.cpp \
     Geometry/triangle.cpp \
     Registrator/FastAligner.cpp \
     Registrator/registrator.cpp \
     Registrator/stacker.cpp \
     Tools/CliParser.cpp \
+    Tools/SystemTools.cpp \
     Tools/mathtools.cpp \
     Tools/Newton2D.cpp \
     Transforms/basetransform.cpp \
@@ -55,11 +58,13 @@ HEADERS += \
     Codecs/Raw/RawDecoder.h \
     Codecs/Tiff/TiffDecoder.h \
     Codecs/Tiff/TiffEncoder.h \
+    Core/IPipelineElement.h \
     Core/bitmap.h \
     Core/camerasettings.h \
     Core/enums.h \
     Core/imageparams.h \
     Core/macros.h \
+    Core/pipeline.h \
     Geometry/delaunator.hpp \
     Geometry/point.h \
     Geometry/rect.h \
@@ -71,6 +76,7 @@ HEADERS += \
     Registrator/stacker.h \
     Registrator/star.h \
     Tools/CliParser.h \
+    Tools/SystemTools.h \
     Tools/mathtools.h \
     Tools/Newton2D.h \
     Transforms/basetransform.h \

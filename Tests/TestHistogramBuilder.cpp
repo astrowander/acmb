@@ -58,7 +58,7 @@ END_TEST
 
 BEGIN_TEST( TestGray8 )
 
-auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "Tiff/Gray8.tiff" ) );
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "TIFF/Gray8.tiff" ) );
 auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
 pHistogramBuilder->BuildHistogram();
 

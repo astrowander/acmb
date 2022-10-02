@@ -4,10 +4,7 @@
 #include "FastAligner.h"
 #include "registrator.h"
 
-#include "../Codecs/imagedecoder.h"
 #include "../Geometry/delaunator.hpp"
-#include "../Transforms/deaberratetransform.h"
-#include "../Transforms/BitmapSubtractor.h"
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -245,7 +242,7 @@ public:
     }
 };
 
-static constexpr bool enableLogging = true;
+static constexpr bool enableLogging = false;
 void Log(const std::string& message)
 {
 if (enableLogging)
@@ -273,7 +270,7 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines )
     _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);    
 }
 
-IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr pSrcBitmap )
+IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr )
 {
     return _doAlignment ? RegistrateAndStack() : Stack();
 }

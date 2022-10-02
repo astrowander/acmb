@@ -1,7 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Transforms/HaloRemovalTransform.h"
-#include "../Transforms/Converter.h"
+#include "../Transforms/converter.h"
 #include "../Transforms/ChannelEqualizer.h"
 #include "../Transforms/HistogramBuilder.h"
 
