@@ -9,7 +9,7 @@ BEGIN_SUITE( DeaberrateTransform )
 
 BEGIN_TEST( TestNullArgs )
 
-    auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .extendedFormat = false } );
+    auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
     pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
     auto pCameraSettings = pDecoder->GetCameraSettings();
     auto pBitmap = IBitmap::Create( 1, 1, PixelFormat::RGB24 );
@@ -35,14 +35,14 @@ BEGIN_TEST( TestNullArgs )
 END_TEST
 
 BEGIN_TEST( TestRgb24 )
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .extendedFormat = false } );
+auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestRgb24.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
 END_TEST
 
 BEGIN_TEST( TestRgb48 )
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .extendedFormat = true } );
+auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestRgb48.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );

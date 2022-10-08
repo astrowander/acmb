@@ -22,7 +22,7 @@ std::vector<const char*> data = { "AstroCombiner" };
 CliParser parser(data.size(), (&data[0]) );
 auto [res, errMsg] = parser.Parse( true );
 EXPECT_EQ(1, res);
-EXPECT_EQ( "Nothing to do", errMsg);
+EXPECT_EQ( std::string( "acmb version " ) + FULL_VERSION, errMsg);
 
 END_TEST
 

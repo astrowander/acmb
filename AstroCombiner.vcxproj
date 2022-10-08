@@ -58,6 +58,7 @@
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
+    <ClInclude Include="Transforms\DebayerTransform.h" />
     <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
   </ItemGroup>
@@ -92,6 +93,7 @@
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
+    <ClCompile Include="Transforms\DebayerTransform.cpp" />
     <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
   </ItemGroup>

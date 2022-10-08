@@ -25,7 +25,7 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
 {
 #ifdef GENERATE_PATTERNS
     const auto dir = fileName.substr(0, fileName.find_last_of("/\\"));
-    if ( !std::filesystem::exists(dir) && !std::filesystem::create_directory( dir ))
+    if ( !std::filesystem::exists(dir) && !std::filesystem::create_directories( dir ))
         throw std::runtime_error(std::string("unable to create directory") + dir);
 
     IBitmap::Save(rhs, fileName);

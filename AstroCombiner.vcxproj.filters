@@ -138,6 +138,9 @@
     <ClInclude Include="Core\IPipelineElement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms\DebayerTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -234,6 +237,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\IPipelineElement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\DebayerTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

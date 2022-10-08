@@ -32,7 +32,7 @@ PIXEL_FORMAT_TEST( Gray16, RGB24 )
 PIXEL_FORMAT_TEST( Gray16, RGB48 )
 
 BEGIN_TEST(TestAstrophoto)
-    EXPECT_TRUE((BitmapsAreEqual(GetPathToPattern("Converter/IMG_4030.ppm"), Converter::Convert(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")), PixelFormat::Gray16))));
+    EXPECT_TRUE((BitmapsAreEqual(GetPathToTestFile("Converter/IMG_8970.ppm"), Converter::Convert(IBitmap::Create(GetPathToTestFile("PPM/IMG_4030.ppm")), PixelFormat::Gray16))));
 END_TEST
 
 BEGIN_TEST( TestNullArgs )

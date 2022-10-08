@@ -11,8 +11,8 @@ struct RawSettings
 {
     /// if true bitmap size will be two times smaller
     bool halfSize = false;
-    /// if true bitmap will have 16 bit per channel otherwise 8 bit per channel
-    bool extendedFormat = true;
+    /// if format is grayscale picture will not be debayered
+    PixelFormat outputFormat = PixelFormat::RGB48;
 };
 
 /// <summary>
