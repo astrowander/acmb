@@ -20,6 +20,7 @@ SOURCES += \
     TestChannelEqualizer.cpp \
     TestCliParser.cpp \
     TestConverter.cpp \
+    TestDebayerTransform.cpp \
     TestFastAligner.cpp \
     TestHaloRemoval.cpp \
     TestHistogramBuilder.cpp \

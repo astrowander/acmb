@@ -36,6 +36,7 @@ SOURCES += \
     Tools/SystemTools.cpp \
     Tools/mathtools.cpp \
     Tools/Newton2D.cpp \
+    Transforms/DebayerTransform.cpp \
     Transforms/basetransform.cpp \
     Transforms/binningtransform.cpp \
     Transforms/BitmapSubtractor.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     AGG/agg_trans_affine.h \
     AGG/agg_config.h \
     AGG/agg_basics.h \
+    Codecs/Raw/RawSettings.h \
     Codecs/imageencoder.h \
     Codecs/imagedecoder.h \
     Codecs/JPEG/toojpeg/toojpeg.h \
@@ -65,6 +67,7 @@ HEADERS += \
     Core/imageparams.h \
     Core/macros.h \
     Core/pipeline.h \
+    Core/versioning.h \
     Geometry/delaunator.hpp \
     Geometry/point.h \
     Geometry/rect.h \
@@ -79,6 +82,7 @@ HEADERS += \
     Tools/SystemTools.h \
     Tools/mathtools.h \
     Tools/Newton2D.h \
+    Transforms/DebayerTransform.h \
     Transforms/basetransform.h \
     Transforms/binningtransform.h \
     Transforms/BitmapSubtractor.h \

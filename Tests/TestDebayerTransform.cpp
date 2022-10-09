@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "../Core/CameraSettings.h"
+#include "../Core/camerasettings.h"
 #include "../Transforms/DebayerTransform.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN

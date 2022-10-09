@@ -2,7 +2,6 @@
 
 #include "./../Core/versioning.h"
 #include "./../Codecs/imagedecoder.h"
-#include "./../Codecs/RAW/RawDecoder.h"
 #include "./../Codecs/imageencoder.h"
 #include "./../Registrator/stacker.h"
 #include "./../Transforms/binningtransform.h"
