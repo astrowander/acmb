@@ -4,6 +4,7 @@
 #include "../Core/imageparams.h"
 #include "../Core/camerasettings.h"
 #include "../Core/pipeline.h"
+#include "Raw/RawSettings.h"
 
 #include <string>
 #include <vector>
@@ -46,15 +47,17 @@ public:
     virtual uint32_t GetCurrentScanline() const;
     /// reads and returns bitmap, needed for the compatibility with pipelines
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
-    /// needed for the compatibility with pipelines
-    static std::shared_ptr<ImageDecoder> Create(const std::string& fileName);
+    /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
+    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, const RawSettings& rawSettings = {} );
     /// returns name of the last attached file, if no file was attached returns empty string
     const std::string& GetLastFileName() const;
 
     /// finds all files of supported formats in given directory, attaches decoders to them and creates pipelines
-    static std::vector<Pipeline> GetPipelinesFromDir( std::string path );
+    /// if opening file is RAW, rawSettings will be applied
+    static std::vector<Pipeline> GetPipelinesFromDir( std::string path, const RawSettings& rawSettings = {} );
     /// finds all files of supported formats satisfying given mask, attaches decoders to them and creates pipelines
-    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask );
+    /// if opening file is RAW, rawSettings will be applied
+    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, const RawSettings& rawSettings = {} );
     /// returns all supported extensions by all decoders
     static const std::unordered_set<std::string>& GetAllExtensions();
 

@@ -29,6 +29,7 @@
     <ClInclude Include="Codecs\PPM\ppmdecoder.h" />
     <ClInclude Include="Codecs\PPM\ppmencoder.h" />
     <ClInclude Include="Codecs\Raw\RawDecoder.h" />
+    <ClInclude Include="Codecs\Raw\RawSettings.h" />
     <ClInclude Include="Codecs\Tiff\TiffDecoder.h" />
     <ClInclude Include="Codecs\Tiff\TiffEncoder.h" />
     <ClInclude Include="Core\bitmap.h" />
@@ -38,6 +39,7 @@
     <ClInclude Include="Core\IPipelineElement.h" />
     <ClInclude Include="Core\macros.h" />
     <ClInclude Include="Core\pipeline.h" />
+    <ClInclude Include="Core\versioning.h" />
     <ClInclude Include="Geometry\delaunator.hpp" />
     <ClInclude Include="Geometry\point.h" />
     <ClInclude Include="Geometry\rect.h" />

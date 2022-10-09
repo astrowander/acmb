@@ -21,8 +21,7 @@ BEGIN_TEST(TestStackingWithoutAlignment)
         pipelines.emplace_back( pDecoder );
     }
 
-    auto pStacker = std::make_shared<Stacker>( pipelines );
-    pStacker->SetDoAlignment( false );
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestStackingWithoutAlignment.ppm"), pStacker->Stack()));
 
 END_TEST
@@ -37,8 +36,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.emplace_back( pDecoder );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines );
-pStacker->SetDoAlignment( false );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestRgb24.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -54,8 +52,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray8 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines );
-pStacker->SetDoAlignment( false );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray8.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -71,8 +68,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray16 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines );
-pStacker->SetDoAlignment( false );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray16.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -85,7 +81,7 @@ BEGIN_TEST(TestTwoPics)
         { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8970.CR2" ) ) }
     };
 
-    auto pStacker = std::make_shared<Stacker>( pipelines);
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
     pStacker->Registrate();
     auto pStacked = pStacker->Stack();
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestTwoPics.ppm"), pStacked));
@@ -100,7 +96,7 @@ std::vector<Pipeline> pipelines
     { ImageDecoder::Create( GetPathToTestFile( "RAW/Equator/IMG_9442.CR2" ) ) }
 };
 
-auto pStacker = std::make_shared<Stacker>( pipelines);
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
 pStacker->Registrate();
 auto pStacked = pStacker->Stack();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestEquatorialRegion.ppm"), pStacked));
@@ -116,7 +112,7 @@ std::vector<Pipeline> pipelines
     { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8946.CR2" ) ) }
 };
 
-auto pStacker = std::make_shared<Stacker>( pipelines );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
 pStacker->Registrate();
 auto pStacked = pStacker->Stack();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestThreePics.ppm"), pStacked));
@@ -125,7 +121,7 @@ END_TEST
 
 BEGIN_TEST(TestMilkyWay)
 
-auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/MilkyWayCR2/" ) ) );
+auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/MilkyWayCR2/" ) ), StackMode::Light );
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestMilkyWay.ppm"), pStacker->RegistrateAndStack()));
 
 END_TEST
@@ -139,23 +135,26 @@ std::vector<Pipeline> pipelines
     { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8946.CR2" ) ) }
 };
 
-auto pStacker = std::make_shared<Stacker>( pipelines );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestFastStacking.ppm"), pStacker->RegistrateAndStack()));
 
 END_TEST
 
 BEGIN_TEST( StackWithDarks )
 
-    auto pDarkStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) ) );
-    pDarkStacker->SetDoAlignment( false );
+    auto darkPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) );
+    auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
     auto pDarkFrame = pDarkStacker->Stack();
     pDarkStacker.reset();
+    EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/masterdark.ppm" ), pDarkFrame ) );
 
-    auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );
+    auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );    
     for ( auto& pipeline : pipelines )
+    {        
         pipeline.AddTransform<BitmapSubtractor>( pDarkFrame );
+    }
 
-    auto pStacker = std::make_shared<Stacker>( pipelines );
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
     EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/StackWithDarks.ppm" ), pStacker->RegistrateAndStack() ) );
 
 END_TEST
@@ -165,7 +164,7 @@ BEGIN_TEST ( TestNullArgs )
 auto f = []
 {
     std::vector<Pipeline> pipelines{ { nullptr } };
-    auto pStacker = std::make_shared<Stacker>( pipelines );
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
 };
 
 ASSERT_THROWS( f, std::invalid_argument );

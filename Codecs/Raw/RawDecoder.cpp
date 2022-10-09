@@ -4,6 +4,8 @@
 #include <map>
 #include <string>
 #include "libraw/libraw.h"
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
 
 ACMB_NAMESPACE_BEGIN
 
@@ -77,7 +79,6 @@ void RawDecoder::Attach(const std::string& fileName)
 	_width = _pLibRaw->imgdata.sizes.iwidth;
 	_height = _pLibRaw->imgdata.sizes.iheight;
 
-	_pCameraSettings = std::make_shared<CameraSettings>();
 	_pCameraSettings->timestamp = _pLibRaw->imgdata.other.timestamp;
 	_pCameraSettings->sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
 	_pCameraSettings->cropFactor = cropFactors[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
@@ -89,6 +90,12 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pCameraSettings->cameraModelName = _pCameraSettings->cameraMakerName;
 	_pCameraSettings->cameraModelName.push_back(' ');
 	_pCameraSettings->cameraModelName.append(_pLibRaw->imgdata.idata.model);
+
+	_pCameraSettings->maxChannel = _pLibRaw->imgdata.color.maximum;	
+	for ( int i = 0; i < 4; ++i )
+	{
+		_pCameraSettings->channelPremultipiers[i] = _pLibRaw->imgdata.color.pre_mul[i];
+	}
 
 	if (lensMakers.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensMakers))
 		_pCameraSettings->lensMakerName = lensMakers.at(_pLibRaw->imgdata.lens.makernotes.LensID);
@@ -121,6 +128,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	{
 		throw std::runtime_error("raw processing error");
 	}
+	_pCameraSettings->blackLevel = _pLibRaw->imgdata.color.black;
 
 	if ( _pixelFormat == PixelFormat::Gray16 )
 	{
@@ -129,11 +137,14 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 		const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _pixelFormat );
 		const int stride = _width * BytesPerPixel( _pixelFormat );
 
-		for ( uint32_t i = 0; i < _height; ++i )
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] (const oneapi::tbb::blocked_range<int>& range)
 		{
-			memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast<char*>( _pLibRaw->imgdata.rawdata.raw_image ) + topOffset + i * rawStride + leftOffset, stride);
-		}
-
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >( _pLibRaw->imgdata.rawdata.raw_image ) + topOffset + i * rawStride + leftOffset, stride );
+			}
+		} );
+		pRes->SetCameraSettings( _pCameraSettings );
 		Reattach();
 		return pRes;
 	}
@@ -163,6 +174,16 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 std::unordered_set<std::string> RawDecoder::GetExtensions()
 {
 	return { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".cr3", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rw1", ".rw2", "r3d", "srw", ".x3f" };
+}
+
+const RawSettings& RawDecoder::GetRawSettings()
+{
+	return _rawSettings;
+}
+
+void RawDecoder::SetRawSettings( const RawSettings& rawSettings )
+{
+	_rawSettings = rawSettings;
 }
 
 ACMB_NAMESPACE_END

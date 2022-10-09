@@ -11,7 +11,7 @@ BEGIN_TEST(TestAttach)
 
 auto pDecoder = std::make_unique<RawDecoder>();
 pDecoder->Attach(GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ));
-EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
+EXPECT_EQ(PixelFormat::Gray16, pDecoder->GetPixelFormat());
 EXPECT_EQ(5496, pDecoder->GetWidth());
 EXPECT_EQ(3670, pDecoder->GetHeight());
 

@@ -1,4 +1,5 @@
 #include "BitmapSubtractor.h"
+#include "../Core/camerasettings.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -36,6 +37,7 @@ public:
             }
         } );
         this->_pDstBitmap = this->_pSrcBitmap;
+        _pCameraSettings->blackLevel = 0;
     }
 };
 

@@ -3,6 +3,7 @@
 #include "stacker.h"
 #include "FastAligner.h"
 #include "registrator.h"
+#include "../Transforms/DebayerTransform.h"
 
 #include "../Geometry/delaunator.hpp"
 
@@ -242,18 +243,21 @@ public:
     }
 };
 
-static constexpr bool enableLogging = false;
+static constexpr bool enableLogging = true;
 void Log(const std::string& message)
 {
 if (enableLogging)
     std::cout << message << std::endl;
 }
 
-Stacker::Stacker( const std::vector<Pipeline>& pipelines )
+Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
+: _stackMode( stackMode )
 {
     for (const auto& pipeline : pipelines )
     {
         _stackingData.push_back({ pipeline, {}, {} });
+        if ( stackMode == StackMode::Light )
+            _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
     }
 
     if ( pipelines.empty() )
@@ -272,7 +276,7 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines )
 
 IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr )
 {
-    return _doAlignment ? RegistrateAndStack() : Stack();
+    return ( _stackMode == StackMode::Light ) ? RegistrateAndStack() : Stack();
 }
 
 void Stacker::Registrate()
@@ -313,7 +317,7 @@ std::shared_ptr<IBitmap> Stacker::Stack()
 
     const auto& refStars = _stackingData[0].stars;
 
-    if (_doAlignment)
+    if ( _stackMode == StackMode::Light )
     {
         _aligners.clear();
 
@@ -338,7 +342,7 @@ std::shared_ptr<IBitmap> Stacker::Stack()
         if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
             throw std::runtime_error("bitmaps in stack should have the same pixel format");      
 
-        if (!_doAlignment)
+        if ( _stackMode != StackMode::Light )
         {
             CALL_HELPER(AddingBitmapHelper, pTargetBitmap);
             continue;

@@ -38,6 +38,11 @@ public:
     std::string GetFileName() const;
     /// returns number of elements
     size_t GetSize() const;
+
+    IPipelineElementPtr operator[]( size_t i )
+    {
+        return _elements[i];
+    }
 };
 
 ACMB_NAMESPACE_END

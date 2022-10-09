@@ -1,8 +1,8 @@
 #include "bitmap.h"
 #include <fstream>
 #include <filesystem>
-#include "../Codecs/imagedecoder.h"
 #include "../Codecs/imageencoder.h"
+#include "../Codecs/imagedecoder.h"
 
 ACMB_NAMESPACE_BEGIN
 
@@ -12,9 +12,9 @@ std::string GetDirectory( const std::string& fileName )
     return ( std::string::npos == pos ) ? "" : fileName.substr( 0, pos );
 }
 
-std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName)
+std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, const RawSettings& rawSettings)
 {
-    auto pDecoder = ImageDecoder::Create(fileName);
+    auto pDecoder = ImageDecoder::Create( fileName, rawSettings );
     pDecoder->Attach(fileName);
     return pDecoder->ReadBitmap();
 }

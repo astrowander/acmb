@@ -1,6 +1,8 @@
 #include "CliParser.h"
 
+#include "./../Core/versioning.h"
 #include "./../Codecs/imagedecoder.h"
+#include "./../Codecs/RAW/RawDecoder.h"
 #include "./../Codecs/imageencoder.h"
 #include "./../Registrator/stacker.h"
 #include "./../Transforms/binningtransform.h"
@@ -8,6 +10,7 @@
 #include "./../Transforms/converter.h"
 #include "./../Transforms/ChannelEqualizer.h"
 #include "./../Transforms/deaberratetransform.h"
+#include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/HaloRemovalTransform.h"
 #include "./../Tools/SystemTools.h"
 #include <filesystem>
@@ -59,15 +62,30 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
     if ( _kvs.back().key != "--output" || _kvs.back().values.empty() )
         return { 1, "Output files must be specified in the last place" };
 
+    size_t iStart = 1;
+    RawSettings rawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 };
+    if ( _kvs[1].key == "--rawsettings" )
+    {
+        iStart = 2;
+
+        for ( auto& value : _kvs[1].values )
+        {
+            if ( value == "half_size" )
+                rawSettings.halfSize = true;
+            else if ( stringToPixelFormat.contains( value ) )
+                rawSettings.outputFormat = stringToPixelFormat.at( value );
+        }
+    }
+
     for ( const auto& inputString : _kvs.front().values )
     {
-        auto pipelines = ImageDecoder::GetPipelinesFromMask( inputString );
+        auto pipelines = ImageDecoder::GetPipelinesFromMask( inputString, rawSettings );
         _pipelinesBeforeStacker.insert( _pipelinesBeforeStacker.end(), pipelines.begin(), pipelines.end() );
     }
 
     bool isStackerFound = false;
 
-    for ( size_t i = 1; i < _kvs.size() - 1; ++i )
+    for ( size_t i = iStart; i < _kvs.size() - 1; ++i )
     {
         const auto& key = _kvs[i].key;
         const auto& values = _kvs[i].values;
@@ -193,15 +211,36 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         else if ( key == "--stack" )
         {
         if ( isStackerFound )
-            return { 1, "only one --stack is allowed" };        
+            return { 1, "only one --stack is allowed" };
 
         isStackerFound = true;
 
-        auto pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker );
-        if ( !values.empty() && values[0] == "noalign" )
-            pStacker->SetDoAlignment( false );
+        std::shared_ptr<Stacker> pStacker;
+        if ( values.empty() || values[0] == "lights" )
+            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::Light );
+        else if ( values[0] == "darks" )
+            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::Dark );
+        else
+            return { 1, "invalid stack mode" };
 
         _pipelineAfterStacker.Add( pStacker );
+        }
+        else if ( key == "--debayer" )
+        {
+        if ( values.size() != 0 )
+            return { 1, "--deaberrate requires no argument" };
+
+        if ( isStackerFound )
+        {
+            _pipelineAfterStacker.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+        }
+        else
+        {
+            for ( auto& pipeline : _pipelinesBeforeStacker )
+            {
+                pipeline.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+            }
+        }
         }
         else
         {

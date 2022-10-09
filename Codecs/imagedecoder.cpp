@@ -66,7 +66,7 @@ IBitmapPtr ImageDecoder::ProcessBitmap( IBitmapPtr )
     return ReadBitmap();
 }
 
-std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
+std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, const RawSettings& rawSettings )
 {
     auto path = std::filesystem::path(fileName);
     auto extension = path.extension().string();
@@ -79,7 +79,7 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName)
     }
     else if ( RawDecoder::GetExtensions().contains( extension ) )
     {
-        pDecoder.reset(new RawDecoder());
+        pDecoder.reset(new RawDecoder( rawSettings ));
     }
     else if ( TiffDecoder::GetExtensions().contains( extension ) )
     {
@@ -98,7 +98,7 @@ const std::string& ImageDecoder::GetLastFileName() const
     return _lastFileName;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const RawSettings& rawSettings )
 {
     if ( !std::filesystem::is_directory( path ) )
         return {};
@@ -112,13 +112,13 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path )
         auto extension = entry.path().extension().string();
         std::transform( extension.begin(), extension.end(), extension.begin(), [] ( unsigned char c ) { return std::tolower( c ); } );
         if ( GetAllExtensions().contains(extension) )
-            res.emplace_back( ImageDecoder::Create( entry.path().string() ) );
+            res.emplace_back( ImageDecoder::Create( entry.path().string(), rawSettings ) );
     }
 
     return res;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, const RawSettings& rawSettings )
 {
     size_t start = 0;
     std::vector<Pipeline> res;
@@ -133,12 +133,12 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask )
         {
             if ( std::filesystem::is_directory( fileName ) )
             {
-                auto pipelines = ImageDecoder::GetPipelinesFromDir( fileName );
+                auto pipelines = ImageDecoder::GetPipelinesFromDir( fileName, rawSettings );
                 res.insert( res.end(), pipelines.begin(), pipelines.end() );
             }
             else
             {
-                res.emplace_back( ImageDecoder::Create( fileName ) );
+                res.emplace_back( ImageDecoder::Create( fileName, rawSettings ) );
             }
         }
         else if ( separatorPos != std::string::npos )
@@ -155,7 +155,7 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask )
                 {
                     auto tempName = fileName.substr( 0, separatorPos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
                     if ( std::filesystem::exists( tempName ) )
-                        res.emplace_back( Create( tempName ) );
+                        res.emplace_back( Create( tempName, rawSettings ) );
                 }
             }
         }

@@ -8,9 +8,13 @@
 #include <algorithm>
 #include "imageparams.h"
 #include "../Tools/mathtools.h"
+#include "camerasettings.h"
+#include "../Codecs/Raw/RawSettings.h"
+
 //#undef max
 
 ACMB_NAMESPACE_BEGIN
+
 /// <summary>
 /// Abstract factory class for bitmap of any pixel format
 /// </summary>
@@ -27,8 +31,11 @@ public:
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
     /// returns count of allocated bytes
     virtual uint32_t GetByteSize() const = 0;
+
+    virtual std::shared_ptr<CameraSettings> GetCameraSettings() const = 0;
+    virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) = 0;
     /// creates bitmap from a given file
-    static std::shared_ptr<IBitmap> Create(const std::string& fileName);
+    static std::shared_ptr<IBitmap> Create( const std::string& fileName, const RawSettings& rawSettings = RawSettings {} );
     /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     /// saves given bitmap to a file
@@ -51,6 +58,7 @@ class Bitmap : public IBitmap
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
     std::vector<ChannelType> _data;
+    std::shared_ptr<CameraSettings> _pCameraSettings;
 
     void Fill(ColorType fillColor)
     {
@@ -167,6 +175,16 @@ public:
 
         const ChannelType maxChannel = std::numeric_limits<ChannelType>::max();
         return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, maxChannel);
+    }
+
+    virtual std::shared_ptr<CameraSettings> GetCameraSettings() const override
+    {
+        return _pCameraSettings;
+    }
+
+    virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) override
+    {
+        _pCameraSettings = pCameraSettings;
     }
 };
 

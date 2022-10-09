@@ -1,6 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Tools/CliParser.h"
+#include "./../Core/versioning.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN
 
@@ -21,7 +22,7 @@ BEGIN_TEST( NoArgs )
 std::vector<const char*> data = { "AstroCombiner" };
 CliParser parser(data.size(), (&data[0]) );
 auto [res, errMsg] = parser.Parse( true );
-EXPECT_EQ(1, res);
+EXPECT_EQ(0, res);
 EXPECT_EQ( std::string( "acmb version " ) + FULL_VERSION, errMsg);
 
 END_TEST
@@ -117,7 +118,7 @@ END_TEST
 BEGIN_TEST(StackDarks)
 
 std::string darks = GetPathToTestFile( "RAW/StackWithDarks/Darks/" );
-std::vector<const char*> data = { "acmb", "--input", darks.data(), "--stack", "noalign", "--output", "test.tif" };
+std::vector<const char*> data = { "acmb", "--input", darks.data(), "--stack", "darks", "--output", "test.tif" };
 
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );

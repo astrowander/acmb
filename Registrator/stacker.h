@@ -24,6 +24,12 @@ struct StackingDatum
     uint64_t totalStarCount;
 };
 
+enum class StackMode
+{
+    Light,
+    Dark
+};
+
 /// <summary>
 /// Combines a bunch of images to the one stacked image.
 /// </summary>
@@ -51,8 +57,6 @@ class Stacker : public IPipelineFirstElement
 
     double _alignmentError = 2.0;
 
-    bool _doAlignment = true;
-
     std::vector<std::shared_ptr<FastAligner>> _aligners;
     MatchMap _matches;
 
@@ -60,12 +64,14 @@ class Stacker : public IPipelineFirstElement
     uint32_t _minStarSize = 5;
     uint32_t _maxStarSize = 25;
 
+    StackMode _stackMode;
+
     void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const GridCell& trianglePairs);
     void StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i);
 
 public:
     /// creates an instance with the given images
-    Stacker(const std::vector<Pipeline>& pipelines);
+    Stacker(const std::vector<Pipeline>& pipelines, StackMode stackMode);
 
     /// detects stars in the images
     void Registrate();
@@ -79,10 +85,7 @@ public:
     double GetMinStarSize() const { return _minStarSize; }
     void SetMinStarSize( uint32_t minStarSize ) {  _minStarSize = minStarSize; };
     double GetMaxStarSize() const { return _threshold; }
-    void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
-
-    bool GetDoAlignment() const { return _doAlignment; }
-    void SetDoAlignment( bool val ) { _doAlignment = val; }
+    void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };    
 
     /// needed for compatibility with pipeline API
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) override;

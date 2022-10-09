@@ -3,6 +3,12 @@
 
 ACMB_NAMESPACE_BEGIN
 
+IPipelineElement::IPipelineElement()
+: _pCameraSettings( std::make_shared<CameraSettings>() )
+{
+
+}
+
 void IPipelineElement::CalcParams( std::shared_ptr<ImageParams> pParams )
 {
     _width = pParams->GetWidth();

@@ -22,6 +22,8 @@ public:
 	/// Creates instance with source pixel format and camera settings. Source bitmap must be set later
 	static std::shared_ptr<DebayerTransform> Create( PixelFormat pixelFormat, std::shared_ptr<CameraSettings> pCameraSettings );
 
+	static IBitmapPtr Debayer( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings );
+
 	virtual void Run() override;
 	virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
 };

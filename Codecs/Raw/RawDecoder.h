@@ -6,14 +6,6 @@
 class LibRaw;
 
 ACMB_NAMESPACE_BEGIN
-/// Settings for RAW files reading
-struct RawSettings
-{
-    /// if true bitmap size will be two times smaller
-    bool halfSize = false;
-    /// if format is grayscale picture will not be debayered
-    PixelFormat outputFormat = PixelFormat::RGB48;
-};
 
 /// <summary>
 /// Reads RAW files
@@ -36,6 +28,9 @@ public:
     std::shared_ptr<IBitmap> ReadBitmap() override;
     ///returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
+
+    const RawSettings& GetRawSettings();
+    void SetRawSettings( const RawSettings& rawSettings );
 
     ADD_EXTENSIONS
 };

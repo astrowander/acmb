@@ -15,6 +15,8 @@ protected:
     std::shared_ptr<CameraSettings> _pCameraSettings;
 
 public:
+    ///
+    IPipelineElement();
     /// override this if derived class changes size or pixel format of the image
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams );
     /// abstract fuction where the given bitmap is processed
