@@ -104,6 +104,7 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const
         return {};
 
     std::vector<Pipeline>  res;
+    std::set<std::string> sortedNames;
     for ( const auto& entry : std::filesystem::directory_iterator( path) )
     {         
         if ( std::filesystem::is_directory( entry ) )
@@ -112,8 +113,11 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const
         auto extension = entry.path().extension().string();
         std::transform( extension.begin(), extension.end(), extension.begin(), [] ( unsigned char c ) { return std::tolower( c ); } );
         if ( GetAllExtensions().contains(extension) )
-            res.emplace_back( ImageDecoder::Create( entry.path().string(), rawSettings ) );
+            sortedNames.insert( entry.path().string() );
     }
+
+    for (const auto & fileName : sortedNames)
+        res.emplace_back( ImageDecoder::Create( fileName, rawSettings ) );
 
     return res;
 }

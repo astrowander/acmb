@@ -90,6 +90,14 @@ CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );
 EXPECT_EQ( 0, res );
 EXPECT_EQ( 27, parser._pipelinesBeforeStacker.size() );
+for (int i = 0; i < 27; ++i )
+{
+    const auto fullName = parser._pipelinesBeforeStacker[i].GetFileName();
+    const auto pos = fullName.find_last_of("\\/");
+    const auto fileName = fullName.substr(pos + 1);
+    EXPECT_EQ(std::string("IMG_89") + std::to_string(44 + i) + ".CR2", fileName);
+}
+
 
 END_TEST
 
@@ -99,7 +107,15 @@ std::string fileRange = GetPathToTestFile( "RAW/MilkyWayCR2/" ) + "IMG_8947#63.C
 std::vector<const char*> data = { "acmb", "--input", fileRange.data(), "--stack", "--output", "test.txt" };
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res, errMsg] = parser.Parse( true );
-
+EXPECT_EQ( 0, res );
+EXPECT_EQ( 17, parser._pipelinesBeforeStacker.size() );
+for (int i = 0; i < 17; ++i )
+{
+    const auto fullName = parser._pipelinesBeforeStacker[i].GetFileName();
+    const auto pos = fullName.find_last_of("\\/");
+    const auto fileName = fullName.substr(pos + 1);
+    EXPECT_EQ(std::string("IMG_89") + std::to_string(47 + i) + ".CR2", fileName);
+}
 END_TEST
 
 BEGIN_TEST( ManySemicolons )
