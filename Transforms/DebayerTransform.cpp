@@ -17,6 +17,9 @@ DebayerTransform::DebayerTransform( IBitmapPtr pSrcBitmap, std::shared_ptr<Camer
 
 std::shared_ptr<DebayerTransform> DebayerTransform::Create( IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings )
 {
+    if ( !pSrcBitmap )
+        throw std::invalid_argument( "pCameraSettings is null" );
+
     if ( !pCameraSettings )
         throw std::invalid_argument( "pCameraSettings is null" );
 
