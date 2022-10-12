@@ -1,11 +1,17 @@
 #include "RawDecoder.h"
 
 #include "../../Core/bitmap.h"
+#include "../../Tools/SystemTools.h"
+
 #include <map>
 #include <string>
 #include "libraw/libraw.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+
+#include <fstream>
+
+#undef min
 
 ACMB_NAMESPACE_BEGIN
 
@@ -15,6 +21,48 @@ RawDecoder::RawDecoder( const RawSettings& rawSettings)
 {
 	if ( _rawSettings.outputFormat == PixelFormat::Gray8 )
 		throw std::invalid_argument( "unsupported pixel format" );
+}
+
+RawDecoder::LensDB RawDecoder::LoadLensDB()
+{
+	LensDB res;
+
+	std::ifstream in( GetEnv( "ACMB_PATH" ) + "/Codecs/Raw/lensdb.txt" );
+	if ( !in.is_open() )
+		return res;
+
+	while ( !in.eof() )
+	{
+		std::string line;
+		std::getline( in, line );
+
+		const auto pointPos = line.find_first_of( '.' );
+		const auto tabPos = line.find_first_of( '\t' );
+		const auto spacePos = line.find_first_of( ' ' );
+		const auto key = uint16_t( std::stoi( line.substr( 0, std::min( pointPos, tabPos ) ) ) );
+
+		res[key].emplace_back();
+		auto& info = res[key].back();
+
+		info.fullName = line.substr( spacePos + 1 );
+		const auto focalStart = info.fullName.find_first_of( "1234567890" );
+		const auto focalEnd = info.fullName.find_first_of( 'm', focalStart );
+		const auto minusPos = info.fullName.find_first_of( '-', focalStart );
+		if ( focalStart == std::string::npos || focalEnd == std::string::npos )
+			continue;
+
+		if ( minusPos < focalEnd )
+		{
+			info.minFocal = std::stoi( info.fullName.substr( focalStart, minusPos - focalStart ) );
+			info.maxFocal = std::stoi( info.fullName.substr( minusPos + 1, focalEnd - minusPos - 1 ) );
+		}
+		else
+		{
+			info.minFocal = info.maxFocal = std::stoi( info.fullName.substr( focalStart, focalEnd - focalStart ) );
+		}
+	}
+
+	return res;
 }
 
 RawDecoder::~RawDecoder()
@@ -48,16 +96,6 @@ const SizeF sensorSizes[9] =
 	{17.3, 13.0} // 4/3
 };
 
-const std::map<uint32_t, std::string> lensMakers =
-{
-	{180, "Sigma"}
-};
-
-const std::map<uint32_t, std::string> lensNames =
-{
-	{180, "Sigma 24mm f/1.4 DG HSM [A]"}
-};
-
 void RawDecoder::Attach(const std::string& fileName)
 {
 	_lastFileName = fileName;
@@ -65,9 +103,10 @@ void RawDecoder::Attach(const std::string& fileName)
 	if (_pLibRaw->open_file(fileName.data()))
 		throw std::runtime_error("unable to read the file");
 
-	const bool doDebayering = ( GetColorSpace( _rawSettings.outputFormat ) == ColorSpace::RGB );
+	_pixelFormat = _rawSettings.outputFormat;
+	const bool doDebayering = ( GetColorSpace( _pixelFormat ) == ColorSpace::RGB );
 
-	_pLibRaw->imgdata.params.output_bps = BitsPerChannel(_rawSettings.outputFormat);
+	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _pixelFormat );
     _pLibRaw->imgdata.params.no_interpolation = int ( !doDebayering );
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
     _pLibRaw->imgdata.params.med_passes = 0;
@@ -97,13 +136,18 @@ void RawDecoder::Attach(const std::string& fileName)
 		_pCameraSettings->channelPremultipiers[i] = _pLibRaw->imgdata.color.pre_mul[i];
 	}
 
-	if (lensMakers.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensMakers))
-		_pCameraSettings->lensMakerName = lensMakers.at(_pLibRaw->imgdata.lens.makernotes.LensID);
-
-	if (lensNames.find(_pLibRaw->imgdata.lens.makernotes.LensID) != std::end(lensNames))
-		_pCameraSettings->lensModelName = lensNames.at(_pLibRaw->imgdata.lens.makernotes.LensID);
-
-	_pixelFormat = _rawSettings.outputFormat;
+	if ( !lensDB.contains( _pLibRaw->imgdata.lens.makernotes.LensID ) )
+		return;
+	
+	for ( const auto& candidate : lensDB.at( _pLibRaw->imgdata.lens.makernotes.LensID ) )
+	{
+		if ( int( _pCameraSettings->focalLength ) >= candidate.minFocal && int( _pCameraSettings->focalLength ) <= candidate.maxFocal )
+		{
+			_pCameraSettings->lensMakerName = candidate.fullName.substr( 0, candidate.fullName.find_first_of( ' ' ) );
+			_pCameraSettings->lensModelName = candidate.fullName;
+			break;
+		}
+	}
 }
 
 void RawDecoder::Attach(std::shared_ptr<std::istream>)

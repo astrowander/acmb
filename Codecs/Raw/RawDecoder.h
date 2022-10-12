@@ -2,16 +2,28 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
+#include <unordered_map>
 
 class LibRaw;
 
 ACMB_NAMESPACE_BEGIN
+
+struct LensInfo
+{
+    std::string fullName;    
+    int minFocal = 0;
+    int maxFocal = 0;
+    LensInfo() = default;
+};
 
 /// <summary>
 /// Reads RAW files
 /// </summary>
 class RawDecoder : public ImageDecoder
 {
+    using LensDB = std::unordered_map<uint16_t, std::vector<LensInfo>>;
+    static LensDB LoadLensDB();
+    inline static LensDB lensDB = LoadLensDB();
 	LibRaw* _pLibRaw;
     RawSettings _rawSettings;
 
