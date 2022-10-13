@@ -22,24 +22,40 @@ class DeaberrateTransform_ final: public DeaberrateTransform
 		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
 		int lwidth = _pSrcBitmap->GetWidth() * 2 * PixelFormatTraits<pixelFormat>::channelCount;
-		tbb::enumerable_thread_specific<std::vector<float>> buffer( lwidth );
+		tbb::enumerable_thread_specific<std::vector<float>> buffer(lwidth);
 		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
 		{
 			for ( int i = range.begin(); i < range.end(); ++i )
 			{				
 				auto& pos = buffer.local();
-				if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, i, pSrcBitmap->GetWidth(), 1, &pos[0] ) )
-					throw std::runtime_error( "unable to correct distortion" );
-
-				auto pDstPixel = pDstBitmap->GetScanline( i );
-
-				for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
+				if constexpr ( GetColorSpace( pixelFormat ) == ColorSpace::RGB )
 				{
-					pDstPixel[0] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
-					pDstPixel[1] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
-					pDstPixel[2] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
-					pDstPixel += 3;
-				}				
+					if ( !_pModifier->ApplySubpixelGeometryDistortion( 0.0, i, pSrcBitmap->GetWidth(), 1, &pos[0] ) )
+						throw std::runtime_error( "unable to correct distortion" );
+
+					auto pDstPixel = pDstBitmap->GetScanline( i );
+
+					for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
+					{
+						pDstPixel[0] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x], pos[6 * x + 1], 0 );
+						pDstPixel[1] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 2], pos[6 * x + 3], 1 );
+						pDstPixel[2] = pSrcBitmap->GetInterpolatedChannel( pos[6 * x + 4], pos[6 * x + 5], 2 );
+						pDstPixel += 3;
+					}
+				}
+				else //Grayscale
+				{
+					if ( !_pModifier->ApplyGeometryDistortion( 0.0, i, pSrcBitmap->GetWidth(), 1, &pos[0] ) )
+						throw std::runtime_error( "unable to correct distortion" );
+
+					auto pDstPixel = pDstBitmap->GetScanline( i );
+
+					for ( uint32_t x = 0; x < _pSrcBitmap->GetWidth(); ++x )
+					{
+						pDstPixel[0] = pSrcBitmap->GetInterpolatedChannel( pos[2 * x], pos[2 * x + 1], 0 );
+						++pDstPixel;
+					}
+				}
 			}
 		} );
 	}
@@ -86,8 +102,16 @@ public:
 				for ( int i = range.begin(); i < range.end(); ++i )
 				{
 					auto pScanline = _pSrcBitmap->GetPlanarScanline( i );
-					if ( !_pModifier->ApplyColorModification( pScanline, 0.0, i, width, height, LF_CR_4( RED, GREEN, BLUE, UNKNOWN ), width * BytesPerPixel( pixelFormat ) ) )
-						throw std::runtime_error( "unable to correct vignetting" );
+					if constexpr ( GetColorSpace( pixelFormat ) == ColorSpace::RGB )
+					{
+						if ( !_pModifier->ApplyColorModification( pScanline, 0.0, i, width, 1, LF_CR_3( RED, GREEN, BLUE ), width * BytesPerPixel( pixelFormat ) ) )
+							throw std::runtime_error( "unable to correct vignetting" );
+					}
+					else // Gray
+					{
+						if ( !_pModifier->ApplyColorModification( pScanline, 0.0, i, width, 1, LF_CR_1( INTENSITY ), width * BytesPerPixel( pixelFormat ) ) )
+							throw std::runtime_error( "unable to correct vignetting" );
+					}
 				}
 			} );
 		}
@@ -123,6 +147,10 @@ std::shared_ptr<DeaberrateTransform> DeaberrateTransform::Create( IBitmapPtr pSr
 			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB24>>( pSrcBitmap, pCameraSettings );
 		case PixelFormat::RGB48:
 			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB48>>( pSrcBitmap, pCameraSettings );
+		case PixelFormat::Gray8:
+			return std::make_shared<DeaberrateTransform_<PixelFormat::Gray8>>( pSrcBitmap, pCameraSettings );
+		case PixelFormat::Gray16:
+			return std::make_shared<DeaberrateTransform_<PixelFormat::Gray16>>( pSrcBitmap, pCameraSettings );
 		default:
 			throw std::runtime_error( "Unsupported pixel format" );
 	}
@@ -138,7 +166,11 @@ std::shared_ptr<DeaberrateTransform> DeaberrateTransform::Create( PixelFormat pi
 		case PixelFormat::RGB24:
 			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB24>>( nullptr, pCameraSettings );
 		case PixelFormat::RGB48:
-			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB24>>( nullptr, pCameraSettings );
+			return std::make_shared<DeaberrateTransform_<PixelFormat::RGB48>>( nullptr, pCameraSettings );
+		case PixelFormat::Gray8:
+			return std::make_shared<DeaberrateTransform_<PixelFormat::Gray8>>( nullptr, pCameraSettings );
+		case PixelFormat::Gray16:
+			return std::make_shared<DeaberrateTransform_<PixelFormat::Gray16>>( nullptr, pCameraSettings );
 		default:
 			throw std::runtime_error( "Unsupported pixel format" );
 	}

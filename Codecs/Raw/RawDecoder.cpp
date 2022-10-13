@@ -44,7 +44,9 @@ RawDecoder::LensDB RawDecoder::LoadLensDB()
 		res[key].emplace_back();
 		auto& info = res[key].back();
 
-		info.fullName = line.substr( spacePos + 1 );
+		const auto endPos = line.find( " or" );
+		info.fullName = line.substr( spacePos + 1, endPos - spacePos - 1 );
+
 		const auto focalStart = info.fullName.find_first_of( "1234567890" );
 		const auto focalEnd = info.fullName.find_first_of( 'm', focalStart );
 		const auto minusPos = info.fullName.find_first_of( '-', focalStart );

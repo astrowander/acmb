@@ -103,6 +103,26 @@ auto f = []
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
+BEGIN_TEST (TestLensInfo)
+auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+
+pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_200_mm.CR2" ) );
+EXPECT_EQ( "Canon", pDecoder->GetCameraSettings()->lensMakerName );
+EXPECT_EQ( "Canon EF 200mm f/2.8L II USM", pDecoder->GetCameraSettings()->lensModelName );
+
+pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_24_105_mm.CR2" ) );
+EXPECT_EQ( "Canon", pDecoder->GetCameraSettings()->lensMakerName );
+EXPECT_EQ( "Canon EF 24-105mm f/4L IS USM", pDecoder->GetCameraSettings()->lensModelName );
+
+pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Samyang_85_mm.CR2" ) );
+EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensMakerName );
+EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensModelName );
+
+
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END
