@@ -56,6 +56,7 @@
     <ClInclude Include="Tools\SystemTools.h" />
     <ClInclude Include="Transforms\basetransform.h" />
     <ClInclude Include="Transforms\binningtransform.h" />
+    <ClInclude Include="Transforms\BitmapDivisor.h" />
     <ClInclude Include="Transforms\BitmapSubtractor.h" />
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
@@ -91,6 +92,7 @@
     <ClCompile Include="Tools\SystemTools.cpp" />
     <ClCompile Include="Transforms\basetransform.cpp" />
     <ClCompile Include="Transforms\binningtransform.cpp" />
+    <ClCompile Include="Transforms\BitmapDivisor.cpp" />
     <ClCompile Include="Transforms\BitmapSubtractor.cpp" />
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />

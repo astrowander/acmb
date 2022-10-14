@@ -6,6 +6,7 @@
 #include "./../Registrator/stacker.h"
 #include "./../Transforms/binningtransform.h"
 #include "./../Transforms/BitmapSubtractor.h"
+#include "./../Transforms/BitmapDivisor.h"
 #include "./../Transforms/converter.h"
 #include "./../Transforms/ChannelEqualizer.h"
 #include "./../Transforms/deaberratetransform.h"
@@ -150,6 +151,25 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
                     pipeline.AddTransform<BitmapSubtractor>( pBitmapToSubtract );
+                }
+            }
+        }
+        else if ( key == "--divide" )
+        {
+            if ( values.size() != 1 )
+                return { 1, "--divide requires exactly one argument" };
+
+            auto pDivisor = IBitmap::Create( values[0] );
+
+            if ( isStackerFound )
+            {
+                _pipelineAfterStacker.AddTransform<BitmapDivisor>( pDivisor );
+            }
+            else
+            {
+                for ( auto& pipeline : _pipelinesBeforeStacker )
+                {
+                    pipeline.AddTransform<BitmapSubtractor>( pDivisor );
                 }
             }
         }

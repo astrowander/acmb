@@ -75,13 +75,21 @@ public:
 	{
 		auto cameras = std::unique_ptr<const lfCamera*, std::function<void( void* )>>( _pDatabase->FindCameras( _pCameraSettings->cameraMakerName.c_str(), _pCameraSettings->cameraModelName.c_str() ), lf_free );
 		if ( !cameras )
-			throw std::runtime_error( "unable to find the camera" );
+		{
+			std::cout << "unable to find the camera, skip deaberration" << std::endl;
+			_pDstBitmap = _pSrcBitmap;
+			return;
+		}
 
 		auto pCamera = cameras.get()[0];
 
 		auto lenses = std::unique_ptr<const lfLens*, std::function<void( void* )>>( _pDatabase->FindLenses( pCamera, _pCameraSettings->lensMakerName.c_str(), _pCameraSettings->lensModelName.c_str() ), lf_free );
 		if ( !lenses )
-			throw std::runtime_error( "unable to find the lens" );
+		{
+			std::cout << "unable to find the lens, skip deaberration" << std::endl;
+			_pDstBitmap = _pSrcBitmap;
+			return;
+		}
 
 		auto pLens = lenses.get()[0];
 
