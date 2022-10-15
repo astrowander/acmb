@@ -345,11 +345,13 @@ std::shared_ptr<IBitmap> Stacker::Stack()
         if ( _stackMode != StackMode::Light )
         {
             CALL_HELPER(AddingBitmapHelper, pTargetBitmap);
+            Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
             continue;
         }
 
         
         StackWithAlignment(pTargetBitmap, i);
+        Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
     }
     
     auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());

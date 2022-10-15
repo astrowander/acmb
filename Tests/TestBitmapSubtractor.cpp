@@ -110,6 +110,16 @@ EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapSubtractor/SubtractDarkFr
 
 END_TEST
 
+BEGIN_TEST( SubtractUndebayered )
+
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "FlatField/IMG_0914.CR2" ) );
+auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "FlatField/masterdark.tif" ) );
+auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, pDarkFrame );
+auto pResult = pSubtractor->RunAndGetBitmap();
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapSubtractor/SubtractUndebayered.tif" ), pResult ) );
+
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

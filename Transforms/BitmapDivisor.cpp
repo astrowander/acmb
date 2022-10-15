@@ -1,8 +1,9 @@
 #include "BitmapDivisor.h"
-#include "HistogramBuilder.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/parallel_sort.h>
 #include <algorithm>
+#include <array>
 
 ACMB_NAMESPACE_BEGIN
 
@@ -10,13 +11,12 @@ template <PixelFormat pixelFormat>
 class BitmapDivisor_ final : public BitmapDivisor
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-    std::shared_ptr<HistorgamBuilder> _pHistogramBuilder;
+
 public:
 
     BitmapDivisor_( IBitmapPtr pSrcBitmap, IBitmapPtr pDivisor )
     : BitmapDivisor( pSrcBitmap, pDivisor )
     {
-        _pHistogramBuilder = HistorgamBuilder::Create( _pSrcBitmap );
     }
 
     virtual void Run() override
@@ -26,28 +26,67 @@ public:
         constexpr uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
-        _pHistogramBuilder->BuildHistogram();
-        int maxValues[channelCount] = {};
-        for ( uint32_t ch = 0; ch < channelCount; ++ch )
+        const auto width = pSrcBitmap->GetWidth();
+        const auto height = pSrcBitmap->GetHeight();
+        const auto halfWidth = width / 2 + width % 2;
+        const auto halfHeight = height / 2 + height % 2;
+
+        std::array<std::vector<ChannelType>, channelCount * 4> subpixelVectors;
+        for ( auto& subpixelVector : subpixelVectors )
+            subpixelVector.resize( halfWidth * halfHeight );
+
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
         {
-            maxValues[ch] = _pHistogramBuilder->GetChannelStatistics(ch).centils[99];
+            for ( int y = range.begin(); y < range.end(); ++y )
+            {
+                auto pDivisorScanline = pDivisor->GetScanline( y );
+
+                for ( uint32_t x = 0; x < pDivisor->GetWidth(); ++x )
+                {
+                    const auto subpixelIndex = (x % 2) + (2 * (y % 2) );
+                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                    {
+                        subpixelVectors[4 * ch + subpixelIndex][halfWidth * ( y / 2 ) + ( x / 2 )] = pDivisorScanline[x * channelCount + ch];
+                    }
+                }
+            }
+        } );
+
+#ifdef NDEBUG
+        for ( auto& subpixelVector : subpixelVectors )
+            oneapi::tbb::parallel_sort( subpixelVector.begin(), subpixelVector.end() );
+#else
+        for ( auto& subpixelVector : subpixelVectors )
+            std::sort( subpixelVector.begin(), subpixelVector.end() );
+#endif
+        std::array <ChannelType, channelCount * 4> maxValues;
+        for ( int i = 0; i < channelCount * 4; ++i )
+        {
+            maxValues[i] = subpixelVectors[i][ size_t( subpixelVectors[i].size() * 0.995f )];
         }
 
-        const auto srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
-        const auto divisorBlackLevel = pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->blackLevel : 0;
-        const auto diffLevels = srcBlackLevel - divisorBlackLevel;
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [pSrcBitmap, pDivisor, maxValues, diffLevels] ( const oneapi::tbb::blocked_range<int>& range )
-        {
-            for ( int i = range.begin(); i < range.end(); ++i )
-            {
-                auto pSrcScanline = pSrcBitmap->GetScanline( i );
-                auto pDivisorScanline = pDivisor->GetScanline( i );
+        const float srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
 
-                for ( uint32_t j = 0; j < pSrcBitmap->GetWidth(); ++j )
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+        {
+            for ( int y = range.begin(); y < range.end(); ++y )
+            {
+                auto pSrcScanline = pSrcBitmap->GetScanline( y );
+                auto pDivisorScanline = pDivisor->GetScanline( y );
+
+                for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
                 {
-                    for ( uint32_t k = 0; k < channelCount; ++k )
+                    const auto subpixelIndex = ( x % 2 ) + ( 2 * ( y % 2 ) );
+                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
                     {
-                        pSrcScanline[j * channelCount + k] = ChannelType( std::clamp( float(pSrcScanline[j]) * (maxValues[k] + diffLevels) / ( pDivisorScanline[j * channelCount + k] + diffLevels ), 0.0f, float( PixelFormatTraits<pixelFormat>::channelMax ) ) );
+                        const size_t index = x * channelCount + ch;
+                        const float srcValue = pSrcScanline[index];
+                        const float divisorValue = pDivisorScanline[index];
+                        float coeff = ( maxValues[4 * ch + subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel );
+                        coeff = 1.0f + ( coeff - 1.0f ) * 0.25f;
+                        const float maxChannel = pSrcBitmap->GetCameraSettings() ? float (pSrcBitmap->GetCameraSettings()->maxChannel) : float(PixelFormatTraits<pixelFormat>::channelMax );
+                        const float res = std::min( srcBlackLevel + std::max(0.0f,  srcValue - srcBlackLevel ) * coeff,  maxChannel );
+                        pSrcScanline[index] = ChannelType( res );
                     }
                 }
             }

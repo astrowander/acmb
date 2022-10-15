@@ -169,7 +169,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.AddTransform<BitmapSubtractor>( pDivisor );
+                    pipeline.AddTransform<BitmapDivisor>( pDivisor );
                 }
             }
         }

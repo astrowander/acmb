@@ -20,8 +20,11 @@ public:
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
         auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmapToSubtract );
+        const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        const int subtractBlackLevel = pBitmapToSubtract->GetCameraSettings() ? pBitmapToSubtract->GetCameraSettings()->blackLevel : 0;
+        using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [pSrcBitmap, pBitmapToSubtract] ( const oneapi::tbb::blocked_range<int>& range )
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
         {
             for ( int i = range.begin(); i < range.end(); ++i )
             {
@@ -32,12 +35,11 @@ public:
 
                 for ( uint32_t j = 0; j < N; ++j )
                 {
-                    pSrcScanline[j] = std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] );
+                    pSrcScanline[j] = ChannelType( srcBlackLevel + std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] ) );
                 }
             }
         } );
         this->_pDstBitmap = this->_pSrcBitmap;
-        _pCameraSettings->blackLevel = 0;
     }
 };
 
