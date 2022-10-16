@@ -105,7 +105,7 @@ public:
 		//correct vignetting if available
 		if ( _pModifier->EnableVignettingCorrection( _pCameraSettings->aperture, _pCameraSettings->distance ) & LF_MODIFY_VIGNETTING )
 		{
-			oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, width, height] ( const oneapi::tbb::blocked_range<int>& range ) 
+            oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, width] ( const oneapi::tbb::blocked_range<int>& range )
 			{
 				for ( int i = range.begin(); i < range.end(); ++i )
 				{

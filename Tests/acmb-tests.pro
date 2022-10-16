@@ -16,10 +16,12 @@ HEADERS += \
 SOURCES += \
     TestBinningTransform.cpp \
     TestBitmap.cpp \
+    TestBitmapDivisor.cpp \
     TestBitmapSubtractor.cpp \
     TestChannelEqualizer.cpp \
     TestCliParser.cpp \
     TestConverter.cpp \
+    TestDeaberrateTransform.cpp \
     TestDebayerTransform.cpp \
     TestFastAligner.cpp \
     TestHaloRemoval.cpp \

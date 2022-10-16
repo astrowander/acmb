@@ -36,6 +36,7 @@ SOURCES += \
     Tools/SystemTools.cpp \
     Tools/mathtools.cpp \
     Tools/Newton2D.cpp \
+    Transforms/BitmapDivisor.cpp \
     Transforms/DebayerTransform.cpp \
     Transforms/basetransform.cpp \
     Transforms/binningtransform.cpp \
@@ -82,6 +83,7 @@ HEADERS += \
     Tools/SystemTools.h \
     Tools/mathtools.h \
     Tools/Newton2D.h \
+    Transforms/BitmapDivisor.h \
     Transforms/DebayerTransform.h \
     Transforms/basetransform.h \
     Transforms/binningtransform.h \
