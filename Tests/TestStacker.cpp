@@ -22,7 +22,7 @@ BEGIN_TEST(TestStackingWithoutAlignment)
         pipelines.emplace_back( pDecoder );
     }
 
-    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestStackingWithoutAlignment.ppm"), pStacker->Stack()));
 
 END_TEST
@@ -37,7 +37,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.emplace_back( pDecoder );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestRgb24.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -53,7 +53,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray8 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray8.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -69,7 +69,7 @@ for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile(
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray16 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Dark );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray16.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -144,7 +144,7 @@ END_TEST
 BEGIN_TEST( StackWithDarks )
 
     auto darkPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) );
-    auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
+    auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::DarkOrFlat );
     auto pDarkFrame = pDarkStacker->Stack();
     pDarkStacker.reset();
     EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/masterdark.ppm" ), pDarkFrame ) );
@@ -163,11 +163,11 @@ END_TEST
 BEGIN_TEST( StackWithDarksAndFlats )
 
 auto darkPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) );
-auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
+auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::DarkOrFlat );
 auto pDarkFrame = pDarkStacker->Stack();
 
 auto darkFlatPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/DarkFlats/" ) );
-auto pDarkFlatStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
+auto pDarkFlatStacker = std::make_shared<Stacker>( darkPipelines, StackMode::DarkOrFlat );
 auto pDarkFlatFrame = pDarkStacker->Stack();
 
 auto flatPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Flats/" ) );
@@ -176,7 +176,7 @@ for ( auto& pipeline : flatPipelines )
     pipeline.AddTransform<BitmapSubtractor>( pDarkFlatFrame );
 }
 
-auto pFlatStacker = std::make_shared<Stacker>( flatPipelines, StackMode::Dark );
+auto pFlatStacker = std::make_shared<Stacker>( flatPipelines, StackMode::DarkOrFlat );
 auto pFlatFrame = pFlatStacker->Stack();
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/masterflat.ppm" ), pFlatFrame ) );
 

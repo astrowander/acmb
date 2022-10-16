@@ -134,7 +134,7 @@ END_TEST
 BEGIN_TEST(StackDarks)
 
 std::string darks = GetPathToTestFile( "RAW/StackWithDarks/Darks/" );
-std::vector<const char*> data = { "acmb", "--input", darks.data(), "--stack", "darks", "--output", "test.tif" };
+std::vector<const char*> data = { "acmb", "--input", darks.data(), "--stack", "dark", "--output", "test.tif" };
 
 CliParser parser( data.size(), ( &data[0] ) );
 auto [res,errMsg] = parser.Parse( true );

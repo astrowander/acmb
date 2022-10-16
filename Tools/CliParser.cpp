@@ -240,10 +240,10 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         isStackerFound = true;
 
         std::shared_ptr<Stacker> pStacker;
-        if ( values.empty() || values[0] == "lights" )
+        if ( values.empty() || values[0] == "light" )
             pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::Light );
-        else if ( values[0] == "darks" )
-            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::Dark );
+        else if ( values[0] == "dark" || values[0] == "flat" )
+            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::DarkOrFlat );
         else
             return { 1, "invalid stack mode" };
 
