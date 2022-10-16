@@ -5,6 +5,7 @@
 #include "../Registrator/stacker.h"
 #include "../Transforms/converter.h"
 #include "../Transforms/BitmapSubtractor.h"
+#include "../Transforms/BitmapDivisor.h"
 #include <filesystem>
 
 ACMB_TESTS_NAMESPACE_BEGIN
@@ -156,6 +157,38 @@ BEGIN_TEST( StackWithDarks )
 
     auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
     EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/StackWithDarks.ppm" ), pStacker->RegistrateAndStack() ) );
+
+END_TEST
+
+BEGIN_TEST( StackWithDarksAndFlats )
+
+auto darkPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Darks/" ) );
+auto pDarkStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
+auto pDarkFrame = pDarkStacker->Stack();
+
+auto darkFlatPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/DarkFlats/" ) );
+auto pDarkFlatStacker = std::make_shared<Stacker>( darkPipelines, StackMode::Dark );
+auto pDarkFlatFrame = pDarkStacker->Stack();
+
+auto flatPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Flats/" ) );
+for ( auto& pipeline : flatPipelines )
+{
+    pipeline.AddTransform<BitmapSubtractor>( pDarkFlatFrame );
+}
+
+auto pFlatStacker = std::make_shared<Stacker>( flatPipelines, StackMode::Dark );
+auto pFlatFrame = pFlatStacker->Stack();
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/masterflat.ppm" ), pFlatFrame ) );
+
+auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );
+for ( auto& pipeline : pipelines )
+{
+    pipeline.AddTransform<BitmapSubtractor>( pDarkFrame );
+    pipeline.AddTransform<BitmapDivisor>( { .pDivisor = pFlatFrame } );
+}
+
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/StackWithDarksAndFlats.ppm" ), pStacker->RegistrateAndStack() ) );
 
 END_TEST
 

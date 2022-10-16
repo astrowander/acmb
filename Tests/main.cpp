@@ -2,5 +2,5 @@
 
 int main()
 {
-    return !acmb::tests::TestRunner::RunSuite("DeaberrateTransform");
+    return !acmb::tests::TestRunner::RunAllTests();
 }

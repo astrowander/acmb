@@ -14,12 +14,12 @@ BEGIN_TEST( TestWrongArgs )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Black );
 auto f = [pSrcBitmap]
 {
-    BitmapDivisor::Create( pSrcBitmap, nullptr );
+    BitmapDivisor::Create( pSrcBitmap, { .pDivisor = nullptr } );
 };
 ASSERT_THROWS( f, std::invalid_argument );
 auto f2 = [pSrcBitmap]
 {
-    BitmapDivisor::Create( nullptr, pSrcBitmap );
+    BitmapDivisor::Create( nullptr, { .pDivisor = pSrcBitmap } );
 };
 ASSERT_THROWS( f2, std::invalid_argument );
 END_TEST
@@ -28,7 +28,8 @@ BEGIN_TEST( TestUndebayeredDivision )
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("FlatField/IMG_0914.CR2"));
 auto pFlatField = IBitmap::Create( GetPathToTestFile( "FlatField/masterflat.tif" ) );
-auto pResult = BitmapDivisor::Divide( pSrcBitmap, pFlatField );
+auto pResult = BitmapDivisor::Divide( pSrcBitmap, { .pDivisor = pFlatField, .intensity = 33 } );
+pResult = DebayerTransform::Debayer( pResult, pSrcBitmap->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapDivisor/TestUndebayeredDivision.tif" ), pResult ) );
 
 END_TEST
@@ -39,7 +40,8 @@ auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "FlatField/IMG_0914.CR2" )
 auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "FlatField/masterdark.tif" ) );
 auto pFlatField = IBitmap::Create( GetPathToTestFile( "FlatField/masterflat.tif" ) );
 auto pResult = BitmapSubtractor::Subtract( pSrcBitmap, pDarkFrame );
-pResult = BitmapDivisor::Divide( pResult, pFlatField );
+pResult = BitmapDivisor::Divide( pResult, { .pDivisor = pFlatField, .intensity = 33 } );
+pResult = DebayerTransform::Debayer( pResult, pSrcBitmap->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapDivisor/TestUndebayeredSubtractionAndDivision.tif" ), pResult ) );
 
 END_TEST

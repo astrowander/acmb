@@ -156,20 +156,25 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         }
         else if ( key == "--divide" )
         {
-            if ( values.size() != 1 )
-                return { 1, "--divide requires exactly one argument" };
+            if ( values.size() < 1 || values.size() > 2 )
+                return { 1, "--divide requires one or two arguments" };
 
             auto pDivisor = IBitmap::Create( values[0] );
+            float intensity = 100.0f;
+            if ( values.size() == 2 )
+            {
+                intensity = std::stof( values[1] );
+            }
 
             if ( isStackerFound )
             {
-                _pipelineAfterStacker.AddTransform<BitmapDivisor>( pDivisor );
+                _pipelineAfterStacker.AddTransform<BitmapDivisor>( { pDivisor, intensity } );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.AddTransform<BitmapDivisor>( pDivisor );
+                    pipeline.AddTransform<BitmapDivisor>( { pDivisor, intensity } );
                 }
             }
         }

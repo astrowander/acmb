@@ -1,71 +1,53 @@
 #include "BitmapDivisor.h"
+#include "HistogramBuilder.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-#include <tbb/parallel_sort.h>
 #include <algorithm>
 #include <array>
+#include <unordered_map>
 
 ACMB_NAMESPACE_BEGIN
 
 template <PixelFormat pixelFormat>
 class BitmapDivisor_ final : public BitmapDivisor
 {
-    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;    
+
+    inline static std::unordered_map<IBitmapPtr, std::array<float, 4>> _cachedPivots = {};
 
 public:
 
-    BitmapDivisor_( IBitmapPtr pSrcBitmap, IBitmapPtr pDivisor )
-    : BitmapDivisor( pSrcBitmap, pDivisor )
+    BitmapDivisor_( IBitmapPtr pSrcBitmap, const Settings& settings )
+    : BitmapDivisor( pSrcBitmap, settings )
     {
     }
 
     virtual void Run() override
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
-        auto pDivisor = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDivisor );
+        auto pDivisor = std::static_pointer_cast< Bitmap<pixelFormat> >( _settings.pDivisor );
         constexpr uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
-        const auto width = pSrcBitmap->GetWidth();
-        const auto height = pSrcBitmap->GetHeight();
-        const auto halfWidth = width / 2 + width % 2;
-        const auto halfHeight = height / 2 + height % 2;
+        const float srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        std::array<float, 4> pivots = {};
 
-        std::array<std::vector<ChannelType>, channelCount * 4> subpixelVectors;
-        for ( auto& subpixelVector : subpixelVectors )
-            subpixelVector.resize( halfWidth * halfHeight );
-
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+        if ( _cachedPivots.contains( pDivisor ) )
         {
-            for ( int y = range.begin(); y < range.end(); ++y )
-            {
-                auto pDivisorScanline = pDivisor->GetScanline( y );
-
-                for ( uint32_t x = 0; x < pDivisor->GetWidth(); ++x )
-                {
-                    const auto subpixelIndex = (x % 2) + (2 * (y % 2) );
-                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
-                    {
-                        subpixelVectors[4 * ch + subpixelIndex][halfWidth * ( y / 2 ) + ( x / 2 )] = pDivisorScanline[x * channelCount + ch];
-                    }
-                }
-            }
-        } );
-
-#ifdef NDEBUG
-        for ( auto& subpixelVector : subpixelVectors )
-            oneapi::tbb::parallel_sort( subpixelVector.begin(), subpixelVector.end() );
-#else
-        for ( auto& subpixelVector : subpixelVectors )
-            std::sort( subpixelVector.begin(), subpixelVector.end() );
-#endif
-        std::array <ChannelType, channelCount * 4> maxValues;
-        for ( int i = 0; i < channelCount * 4; ++i )
+            pivots = _cachedPivots[pDivisor];
+        }
+        else
         {
-            maxValues[i] = subpixelVectors[i][ size_t( subpixelVectors[i].size() * 0.995f )];
+            auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
+            pHistogramBuilder->BuildHistogram();
+            pivots[0] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f );
+            pivots[1] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f );
+            pivots[2] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f );
+            pivots[3] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f );
+            _cachedPivots[pDivisor] = pivots;
         }
 
-        const float srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        const float maxChannel = pSrcBitmap->GetCameraSettings() ? float( pSrcBitmap->GetCameraSettings()->maxChannel ) : float( PixelFormatTraits<pixelFormat>::channelMax );
 
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
         {
@@ -76,18 +58,14 @@ public:
 
                 for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
                 {
-                    const auto subpixelIndex = ( x % 2 ) + ( 2 * ( y % 2 ) );
-                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
-                    {
-                        const size_t index = x * channelCount + ch;
-                        const float srcValue = pSrcScanline[index];
-                        const float divisorValue = pDivisorScanline[index];
-                        float coeff = ( maxValues[4 * ch + subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel );
-                        coeff = 1.0f + ( coeff - 1.0f ) * 0.25f;
-                        const float maxChannel = pSrcBitmap->GetCameraSettings() ? float (pSrcBitmap->GetCameraSettings()->maxChannel) : float(PixelFormatTraits<pixelFormat>::channelMax );
-                        const float res = std::min( srcBlackLevel + std::max(0.0f,  srcValue - srcBlackLevel ) * coeff,  maxChannel );
-                        pSrcScanline[index] = ChannelType( res );
-                    }
+                    const auto subpixelIndex = ( x % 2 ) + ( 2 * ( y % 2 ) );                        
+                    const size_t index = x * channelCount;
+                    const float srcValue = pSrcScanline[index];
+                    const float divisorValue = pDivisorScanline[index];
+                    float coeff = std::max( 0.0f, ( pivots[subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel ) );
+                    coeff = 1.0f + ( coeff - 1.0f ) * ( _settings.intensity / 100.0f );
+                    const float res = std::min( srcBlackLevel + std::max( 0.0f, srcValue - srcBlackLevel ) * coeff, maxChannel );
+                    pSrcScanline[index] = ChannelType( res );
                 }
             }
         } );
@@ -95,64 +73,56 @@ public:
     }
 };
 
-BitmapDivisor::BitmapDivisor( IBitmapPtr pSrcBitmap, IBitmapPtr pDivisor )
+BitmapDivisor::BitmapDivisor( IBitmapPtr pSrcBitmap, const Settings& settings )
     : BaseTransform( pSrcBitmap )
-    , _pDivisor( pDivisor )
+    , _settings( settings )
 {
 }
 
-std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, IBitmapPtr pDivisor )
+std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, const Settings& settings )
 {
     if ( !pSrcBitmap )
         throw std::invalid_argument( "pSrcBitmap is null" );
 
-    if ( !pDivisor )
+    if ( !settings.pDivisor )
         throw std::invalid_argument( "pDivisor is null" );
 
-    if ( pSrcBitmap->GetPixelFormat() != pDivisor->GetPixelFormat() )
+    if ( pSrcBitmap->GetPixelFormat() != settings.pDivisor->GetPixelFormat() )
         throw std::invalid_argument( "bitmaps should have the same pixel format" );
 
-    if ( pSrcBitmap->GetWidth() != pDivisor->GetWidth() || pSrcBitmap->GetHeight() != pDivisor->GetHeight() )
+    if ( pSrcBitmap->GetWidth() != settings.pDivisor->GetWidth() || pSrcBitmap->GetHeight() != settings.pDivisor->GetHeight() )
         throw std::invalid_argument( "bitmaps should have the same size" );
 
     switch ( pSrcBitmap->GetPixelFormat() )
     {
         case PixelFormat::Gray8:
-            return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( pSrcBitmap, pDivisor );
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( pSrcBitmap, settings );
         case PixelFormat::Gray16:
-            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, pDivisor );
-        case PixelFormat::RGB24:
-            return std::make_shared<BitmapDivisor_<PixelFormat::RGB24>>( pSrcBitmap, pDivisor );
-        case PixelFormat::RGB48:
-            return std::make_shared<BitmapDivisor_<PixelFormat::RGB48>>( pSrcBitmap, pDivisor );
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
         default:
-            throw std::runtime_error( "pixel format must be known" );
+            throw std::runtime_error( "only grayscale bitmaps can be divided" );
     }
 }
 
-std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( PixelFormat srcPixelFormat, IBitmapPtr pDivisor )
+std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( PixelFormat srcPixelFormat, const Settings& settings )
 {
-    if ( !pDivisor )
+    if ( !settings.pDivisor )
         throw std::invalid_argument( "pDivisor is null" );
 
     switch ( srcPixelFormat )
     {
         case PixelFormat::Gray8:
-            return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( nullptr, pDivisor );
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( nullptr, settings );
         case PixelFormat::Gray16:
-            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, pDivisor );
-        case PixelFormat::RGB24:
-            return std::make_shared<BitmapDivisor_<PixelFormat::RGB24>>( nullptr, pDivisor );
-        case PixelFormat::RGB48:
-            return std::make_shared<BitmapDivisor_<PixelFormat::RGB48>>( nullptr, pDivisor );
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, settings );
         default:
-            throw std::runtime_error( "pixel format must be known" );
+            throw std::runtime_error( "only grayscale bitmaps can be divided" );
     }
 }
 
-IBitmapPtr BitmapDivisor::Divide( IBitmapPtr pSrcBitmap, IBitmapPtr pDivisor )
+IBitmapPtr BitmapDivisor::Divide( IBitmapPtr pSrcBitmap, const Settings& settings )
 {
-    auto pSubtractor = Create( pSrcBitmap, pDivisor );
+    auto pSubtractor = Create( pSrcBitmap, settings );
     return pSubtractor->RunAndGetBitmap();
 }
 

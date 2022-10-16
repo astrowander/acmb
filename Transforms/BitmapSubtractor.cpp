@@ -21,6 +21,7 @@ public:
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
         auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmapToSubtract );
         const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        const int maxChannel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->maxChannel : PixelFormatTraits<pixelFormat>::channelMax;
         const int subtractBlackLevel = pBitmapToSubtract->GetCameraSettings() ? pBitmapToSubtract->GetCameraSettings()->blackLevel : 0;
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
@@ -35,7 +36,7 @@ public:
 
                 for ( uint32_t j = 0; j < N; ++j )
                 {
-                    pSrcScanline[j] = ChannelType( srcBlackLevel + std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] ) );
+                    pSrcScanline[j] = ChannelType( std::min (srcBlackLevel + std::max( 0, pSrcScanline[j] - pScanlineToSubtract[j] ), maxChannel ) );
                 }
             }
         } );
