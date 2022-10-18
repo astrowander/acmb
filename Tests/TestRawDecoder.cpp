@@ -35,7 +35,7 @@ END_TEST
 
 BEGIN_TEST(TestDNG)
 
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings {.halfSize = true, .outputFormat = PixelFormat::RGB48 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings {.halfSize = true, .outputFormat = PixelFormat::RGB48 } );
 pDecoder->Attach(GetPathToTestFile("RAW/IMG_20211020_190808.dng"));
 EXPECT_EQ(PixelFormat::RGB48, pDecoder->GetPixelFormat());
 EXPECT_EQ(4096, pDecoder->GetWidth());
@@ -69,7 +69,7 @@ END_TEST
 
 BEGIN_TEST( TestRGB24 )
 
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings {.halfSize = false, .outputFormat = PixelFormat::RGB24 });
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings {.halfSize = false, .outputFormat = PixelFormat::RGB24 });
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 EXPECT_EQ( PixelFormat::RGB24, pDecoder->GetPixelFormat() );
 EXPECT_EQ( 5496, pDecoder->GetWidth() );
@@ -83,7 +83,7 @@ END_TEST
 
 BEGIN_TEST ( TestGray16 )
 
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 EXPECT_EQ( PixelFormat::Gray16, pDecoder->GetPixelFormat() );
 EXPECT_EQ( 5496, pDecoder->GetWidth() );
@@ -97,25 +97,25 @@ BEGIN_TEST( TestGray8 )
 
 auto f = []
 {
-	auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray8 } );
+	auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray8 } );
 };
 
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST (TestLensInfo)
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
 
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_200_mm.CR2" ) );
 EXPECT_EQ( "Canon", pDecoder->GetCameraSettings()->lensMakerName );
 EXPECT_EQ( "Canon EF 200mm f/2.8L II USM", pDecoder->GetCameraSettings()->lensModelName );
 
-pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_24_105_mm.CR2" ) );
 EXPECT_EQ( "Canon", pDecoder->GetCameraSettings()->lensMakerName );
 EXPECT_EQ( "Canon EF 24-105mm f/4L IS USM", pDecoder->GetCameraSettings()->lensModelName );
 
-pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Samyang_85_mm.CR2" ) );
 EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensMakerName );
 EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensModelName );

@@ -69,6 +69,8 @@ std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitma
             return std::make_shared<BitmapSubtractor_<PixelFormat::Gray8>>( pSrcBitmap, pBitmapToSubtract );
         case PixelFormat::Gray16:
             return std::make_shared<BitmapSubtractor_<PixelFormat::Gray16>>( pSrcBitmap, pBitmapToSubtract );
+        case PixelFormat::Bayer16:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::Bayer16>>( pSrcBitmap, pBitmapToSubtract );
         case PixelFormat::RGB24:
             return std::make_shared<BitmapSubtractor_<PixelFormat::RGB24>>( pSrcBitmap, pBitmapToSubtract );
         case PixelFormat::RGB48:
@@ -89,6 +91,8 @@ std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( PixelFormat srcPixel
             return std::make_shared<BitmapSubtractor_<PixelFormat::Gray8>>( nullptr, pBitmapToSubtract );
         case PixelFormat::Gray16:
             return std::make_shared<BitmapSubtractor_<PixelFormat::Gray16>>( nullptr, pBitmapToSubtract );
+        case PixelFormat::Bayer16:
+            return std::make_shared<BitmapSubtractor_<PixelFormat::Bayer16>>( nullptr, pBitmapToSubtract );
         case PixelFormat::RGB24:
             return std::make_shared<BitmapSubtractor_<PixelFormat::RGB24>>( nullptr, pBitmapToSubtract );
         case PixelFormat::RGB48:

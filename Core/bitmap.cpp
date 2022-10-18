@@ -12,7 +12,7 @@ std::string GetDirectory( const std::string& fileName )
     return ( std::string::npos == pos ) ? "" : fileName.substr( 0, pos );
 }
 
-std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, const RawSettings& rawSettings)
+std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, const DecoderSettings& rawSettings)
 {
     auto pDecoder = ImageDecoder::Create( fileName, rawSettings );
     pDecoder->Attach(fileName);
@@ -31,6 +31,8 @@ std::shared_ptr<IBitmap> IBitmap::Create(uint32_t width, uint32_t height, PixelF
         return std::make_shared<Bitmap<PixelFormat::RGB24>>(width, height);
     case PixelFormat::RGB48:
         return std::make_shared<Bitmap<PixelFormat::RGB48>>(width, height);
+    case PixelFormat::Bayer16:
+        return std::make_shared<Bitmap<PixelFormat::Bayer16>>( width, height );
     default:
         throw std::runtime_error("not implemented");
 

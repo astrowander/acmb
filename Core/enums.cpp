@@ -4,7 +4,7 @@ std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat)
 {
     switch (pixelFormat)
     {
-    case PixelFormat::Unknown:
+    case PixelFormat::Unspecified:
         return out << "Unknown";
     case PixelFormat::Gray8:
         return out << "Gray8";
@@ -24,11 +24,11 @@ PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerP
     switch ( channelsPerPixel )
     {
         case 1:
-            return ( bitsPerChannel == 8 ) ? PixelFormat::Gray8 : ( bitsPerChannel == 16 ) ? PixelFormat::Gray16 : PixelFormat::Unknown;
+            return ( bitsPerChannel == 8 ) ? PixelFormat::Gray8 : ( bitsPerChannel == 16 ) ? PixelFormat::Gray16 : PixelFormat::Unspecified;
         case 3:
-            return ( bitsPerChannel == 8 ) ? PixelFormat::RGB24 : ( bitsPerChannel == 16 ) ? PixelFormat::RGB48 : PixelFormat::Unknown;
+            return ( bitsPerChannel == 8 ) ? PixelFormat::RGB24 : ( bitsPerChannel == 16 ) ? PixelFormat::RGB48 : PixelFormat::Unspecified;
         default:
-            return PixelFormat::Unknown;
+            return PixelFormat::Unspecified;
     }
 }
 

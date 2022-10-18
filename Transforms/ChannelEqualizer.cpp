@@ -115,7 +115,7 @@ std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap
 
 		} );
 	default:
-		throw std::runtime_error("pixel format should be known");
+		throw std::runtime_error("unsupported pixel format");
 	}
 }
 
@@ -199,8 +199,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 			} );
 			break;
 		default:
-			throw std::runtime_error( "Pixel format sholud be known" );
-		
+			throw std::runtime_error( "unsupported pixel format" );		
 	}
 	
 	return pEqualizer->RunAndGetBitmap();

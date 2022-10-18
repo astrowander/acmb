@@ -85,7 +85,7 @@ std::shared_ptr<BinningTransform> BinningTransform::Create(std::shared_ptr<IBitm
     case PixelFormat::RGB48:
         return std::make_shared<BinningTransform_<PixelFormat::RGB48>>(pSrcBitmap, bin);
     default:
-        throw std::runtime_error("Pixel format must be known");
+        throw std::runtime_error("unsupported pixel format");
     }
 }
 
@@ -102,7 +102,7 @@ std::shared_ptr<BinningTransform> BinningTransform::Create( PixelFormat pixelFor
         case PixelFormat::RGB48:
             return std::make_shared<BinningTransform_<PixelFormat::RGB48>>( nullptr, bin );
         default:
-            throw std::runtime_error( "Pixel format must be known" );
+            throw std::runtime_error( "unsupported pixel format" );
     }
 }
 

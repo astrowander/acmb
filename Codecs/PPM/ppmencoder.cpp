@@ -48,6 +48,7 @@ void PpmEncoder::WriteBitmap(std::shared_ptr<IBitmap> pBitmap)
         (_ppmMode == PpmMode::Binary) ? *_pStream << "P6" : *_pStream << "P3";
         break;
     case ColorSpace::Gray:
+    case ColorSpace::Bayer:
         (_ppmMode == PpmMode::Binary) ? *_pStream << "P5" : *_pStream << "P2";
         break;
     }

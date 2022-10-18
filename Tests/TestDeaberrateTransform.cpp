@@ -10,7 +10,7 @@ BEGIN_SUITE( DeaberrateTransform )
 
 BEGIN_TEST( TestNullArgs )
 
-    auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
+    auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
     pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
     auto pCameraSettings = pDecoder->GetCameraSettings();
     auto pBitmap = IBitmap::Create( 1, 1, PixelFormat::RGB24 );
@@ -36,14 +36,14 @@ BEGIN_TEST( TestNullArgs )
 END_TEST
 
 BEGIN_TEST( TestRgb24 )
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestRgb24.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
 END_TEST
 
 BEGIN_TEST( TestRgb48 )
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestRgb48.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
@@ -51,12 +51,12 @@ END_TEST
 
 BEGIN_TEST( TestDifferentLenses )
 
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_200_mm.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/Canon_200_mm.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
 
-pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_24_105_mm.CR2" ) );
 pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/Canon_24_105_mm.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
@@ -65,7 +65,7 @@ END_TEST
 
 BEGIN_TEST( TestNotDebayered )
 
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Canon_24_105_mm.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestNotDebayered.ppm" ), pDeaberrateTransform->RunAndGetBitmap() ) );
@@ -73,7 +73,7 @@ EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DeaberrateTransform/TestNotDeba
 END_TEST
 
 BEGIN_TEST( TestGray8 )
-auto pDecoder = std::make_unique<RawDecoder>( RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
+auto pDecoder = std::make_unique<RawDecoder>( DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB24 } );
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
 auto pDeaberrateTransform = DeaberrateTransform::Create( pDecoder->ReadBitmap(), pDecoder->GetCameraSettings() );
 auto pConverter = Converter::Create( pDeaberrateTransform->RunAndGetBitmap(), PixelFormat::Gray8 );

@@ -113,13 +113,13 @@ END_TEST
 
 BEGIN_TEST(RealPhotoTest)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), RawSettings {.halfSize = false, .outputFormat = PixelFormat::RGB48 });
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings {.halfSize = false, .outputFormat = PixelFormat::RGB48 });
 auto pRegistrator = std::make_unique<Registrator>(70);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
@@ -134,13 +134,13 @@ END_TEST
 
 BEGIN_TEST(TestLargeIntervalPhotos)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 auto pRegistrator = std::make_unique<Registrator>(40);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"), RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
@@ -155,13 +155,13 @@ END_TEST
 
 BEGIN_TEST(TestThreshold60)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 auto pRegistrator = std::make_unique<Registrator>(60);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), RawSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();

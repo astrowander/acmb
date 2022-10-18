@@ -10,7 +10,7 @@ ACMB_NAMESPACE_BEGIN
 /// represents pixel format of an image
 enum class PixelFormat : uint32_t
 {
-    Unknown = 0x0,
+    Unspecified = 0x0,
     RGB24 = 0x010103,
     //ARGB32 = 0x010104,
     RGB48 = 0x020103,
@@ -20,6 +20,7 @@ enum class PixelFormat : uint32_t
    // Agray16 = 0x010202,
     Gray16 = 0x020201,
    // Agray32 = 0x020202
+   Bayer16 = 0x020301
 };
 /// prints pixel format to stream
 std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat);
@@ -27,7 +28,8 @@ std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat);
 enum class ColorSpace : uint32_t
 {
     RGB = 1,
-    Gray = 2
+    Gray = 2,
+    Bayer = 3
 };
 /// returns color space of given pixel format
 inline constexpr ColorSpace GetColorSpace( PixelFormat pixelFormat )

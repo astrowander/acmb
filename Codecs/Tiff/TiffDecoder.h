@@ -11,10 +11,10 @@ ACMB_NAMESPACE_BEGIN
 /// </summary>
 class TiffDecoder : public ImageDecoder
 {
-    TinyTIFFReaderFile* _pReader;   
+    TinyTIFFReaderFile* _pReader;
 
 public:
-    TiffDecoder() = default;
+    TiffDecoder( const DecoderSettings& settings = {} );
     /// attach to file
     void Attach( const std::string& fileName ) override;
     /// attach to stream

@@ -3,6 +3,11 @@
 
 ACMB_NAMESPACE_BEGIN
 
+PpmDecoder::PpmDecoder( const DecoderSettings& settings )
+: ImageDecoder( settings )
+{
+}
+
 void PpmDecoder::Attach(const std::string &fileName)
 {
     ImageDecoder::Attach(fileName);
@@ -135,7 +140,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadStripe(uint32_t stripeHeight)
         pRes = BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
 
     _currentScanline += stripeHeight;
-    return pRes;
+    return ToOutputFormat(pRes);
 }
 
 uint32_t PpmDecoder::GetCurrentScanline() const
@@ -155,7 +160,10 @@ std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
     case PixelFormat::Gray8:
         return std::make_shared<Bitmap<PixelFormat::Gray8>>(_width, stripeHeight);
     case PixelFormat::Gray16:
-        return std::make_shared<Bitmap<PixelFormat::Gray16>>(_width, stripeHeight);
+        if ( _decoderSettings.outputFormat == PixelFormat::Bayer16 )
+            return std::make_shared<Bitmap<PixelFormat::Bayer16>>( _width, stripeHeight );
+        else
+            return std::make_shared<Bitmap<PixelFormat::Gray16>>( _width, stripeHeight );
     case PixelFormat::RGB24:
         return std::make_shared<Bitmap<PixelFormat::RGB24>>(_width, stripeHeight);
     case PixelFormat::RGB48:

@@ -4,6 +4,9 @@
 #include "Raw/RawDecoder.h"
 #include "Tiff/TiffDecoder.h"
 
+#include "./../Transforms/DebayerTransform.h"
+#include "./../Transforms/converter.h"
+
 #include <fstream>
 #include <filesystem>
 #include <set>
@@ -19,6 +22,11 @@ std::string IntToString( size_t num, size_t minDigitCount )
     }
 
     return res;
+}
+
+ImageDecoder::ImageDecoder( const DecoderSettings& settings )
+: _decoderSettings( settings )
+{
 }
 
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
@@ -66,7 +74,7 @@ IBitmapPtr ImageDecoder::ProcessBitmap( IBitmapPtr )
     return ReadBitmap();
 }
 
-std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, const RawSettings& rawSettings )
+std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, const DecoderSettings& rawSettings )
 {
     auto path = std::filesystem::path(fileName);
     auto extension = path.extension().string();
@@ -98,7 +106,7 @@ const std::string& ImageDecoder::GetLastFileName() const
     return _lastFileName;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const RawSettings& rawSettings )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const DecoderSettings& rawSettings )
 {
     if ( !std::filesystem::is_directory( path ) )
         return {};
@@ -122,7 +130,7 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const
     return res;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, const RawSettings& rawSettings )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, const DecoderSettings& rawSettings )
 {
     size_t start = 0;
     std::vector<Pipeline> res;
@@ -176,6 +184,22 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, cons
 const std::unordered_set<std::string>& ImageDecoder::GetAllExtensions()
 {
     return _allExtensions;
+}
+
+IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
+{
+    if ( _decoderSettings.outputFormat == PixelFormat::Unspecified || _decoderSettings.outputFormat == pSrcBitmap->GetPixelFormat() )
+        return pSrcBitmap;
+
+    IBitmapPtr pRes;
+
+    if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
+        pRes = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );
+
+    if ( pRes->GetPixelFormat() == _decoderSettings.outputFormat )
+        return pRes;
+
+    return Converter::Convert( pRes, _decoderSettings.outputFormat );
 }
 
 bool ImageDecoder::AddCommonExtensions( const std::unordered_set<std::string>& extensions )

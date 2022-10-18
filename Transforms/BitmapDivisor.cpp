@@ -99,6 +99,8 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, con
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( pSrcBitmap, settings );
         case PixelFormat::Gray16:
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
+        case PixelFormat::Bayer16:
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
         default:
             throw std::runtime_error( "only grayscale bitmaps can be divided" );
     }
@@ -114,6 +116,8 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( PixelFormat srcPixelFormat
         case PixelFormat::Gray8:
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray8>>( nullptr, settings );
         case PixelFormat::Gray16:
+            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, settings );
+        case PixelFormat::Bayer16:
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, settings );
         default:
             throw std::runtime_error( "only grayscale bitmaps can be divided" );

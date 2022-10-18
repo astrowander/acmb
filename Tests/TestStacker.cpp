@@ -17,7 +17,7 @@ BEGIN_TEST(TestStackingWithoutAlignment)
     std::vector<Pipeline> pipelines;
     for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/TestStackingWithoutAlignment/")))
     {
-        auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
+        auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
         pDecoder->Attach( path.path().generic_string() );
         pipelines.emplace_back( pDecoder );
     }
@@ -32,7 +32,7 @@ BEGIN_TEST( TestRgb24 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
+    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
 }
@@ -47,7 +47,7 @@ BEGIN_TEST( TestGray8 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
+    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray8 );
@@ -63,7 +63,7 @@ BEGIN_TEST( TestGray16 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( RawSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
+    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
     pipelines.back().AddTransform<Converter>( PixelFormat::Gray16 );

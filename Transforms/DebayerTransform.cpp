@@ -11,7 +11,7 @@ DebayerTransform::DebayerTransform( IBitmapPtr pSrcBitmap, std::shared_ptr<Camer
     if ( !pCameraSettings )
         throw std::invalid_argument( "pCameraSettings is null" );
 
-    if ( pSrcBitmap && pSrcBitmap->GetPixelFormat() != PixelFormat::Gray16 )
+    if ( pSrcBitmap && pSrcBitmap->GetPixelFormat() != PixelFormat::Bayer16 )
         throw std::invalid_argument( "only extended grayscale images can be debayered" );
 }
 

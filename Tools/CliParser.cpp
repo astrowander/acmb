@@ -63,7 +63,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         return { 1, "Output files must be specified in the last place" };
 
     size_t iStart = 1;
-    RawSettings rawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 };
+    DecoderSettings rawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 };
     if ( _kvs[1].key == "--rawsettings" )
     {
         iStart = 2;

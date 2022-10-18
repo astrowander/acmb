@@ -15,12 +15,10 @@
 
 ACMB_NAMESPACE_BEGIN
 
-RawDecoder::RawDecoder( const RawSettings& rawSettings)
-: _pLibRaw(new LibRaw())
-, _rawSettings( rawSettings )
-{
-	if ( _rawSettings.outputFormat == PixelFormat::Gray8 )
-		throw std::invalid_argument( "unsupported pixel format" );
+RawDecoder::RawDecoder( const DecoderSettings& rawSettings)
+: ImageDecoder(rawSettings)
+, _pLibRaw(new LibRaw())
+{	
 }
 
 RawDecoder::LensDB RawDecoder::LoadLensDB()
@@ -105,15 +103,14 @@ void RawDecoder::Attach(const std::string& fileName)
 	if (_pLibRaw->open_file(fileName.data()))
 		throw std::runtime_error("unable to read the file");
 
-	_pixelFormat = _rawSettings.outputFormat;
-	const bool doDebayering = ( GetColorSpace( _pixelFormat ) == ColorSpace::RGB );
+	_pixelFormat = PixelFormat::Bayer16;	
 
 	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _pixelFormat );
-    _pLibRaw->imgdata.params.no_interpolation = int ( !doDebayering );
+    _pLibRaw->imgdata.params.no_interpolation = 1;
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
     _pLibRaw->imgdata.params.med_passes = 0;
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
-    _pLibRaw->imgdata.params.half_size = _rawSettings.halfSize;
+    _pLibRaw->imgdata.params.half_size = _decoderSettings.halfSize;
 	_pLibRaw->imgdata.params.user_qual = 0;
 
 	_pLibRaw->raw2image_start();
@@ -175,46 +172,22 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 		throw std::runtime_error("raw processing error");
 	}
 	_pCameraSettings->blackLevel = _pLibRaw->imgdata.color.black;
+	
+	const int rawStride = _pLibRaw->imgdata.sizes.raw_width * BytesPerPixel( _pixelFormat );
+	const int topOffset = rawStride * _pLibRaw->imgdata.sizes.top_margin;
+	const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _pixelFormat );
+	const int stride = _width * BytesPerPixel( _pixelFormat );
 
-	if ( _pixelFormat == PixelFormat::Gray16 )
+	oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] (const oneapi::tbb::blocked_range<int>& range)
 	{
-		const int rawStride = _pLibRaw->imgdata.sizes.raw_width * BytesPerPixel( _pixelFormat );
-		const int topOffset = rawStride * _pLibRaw->imgdata.sizes.top_margin;
-		const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _pixelFormat );
-		const int stride = _width * BytesPerPixel( _pixelFormat );
-
-		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] (const oneapi::tbb::blocked_range<int>& range)
+		for ( int i = range.begin(); i < range.end(); ++i )
 		{
-			for ( int i = range.begin(); i < range.end(); ++i )
-			{
-				memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >( _pLibRaw->imgdata.rawdata.raw_image ) + topOffset + i * rawStride + leftOffset, stride );
-			}
-		} );
-		pRes->SetCameraSettings( _pCameraSettings );
-		Reattach();
-		return pRes;
-	}
-
-	ret = _pLibRaw->dcraw_process();
-	if (ret != LIBRAW_SUCCESS)
-	{
-		Detach();
-		throw std::runtime_error("raw processing error");
-	}
-
-	_pLibRaw->imgdata.sizes.flip = 0;
-	libraw_processed_image_t* image = _pLibRaw->dcraw_make_mem_image(&ret);
-	if (ret != LIBRAW_SUCCESS)
-	{
-		_pLibRaw->dcraw_clear_mem(image);
-		Detach();
-		throw std::runtime_error("raw processing error");
-	}
-    memcpy(pRes->GetPlanarScanline(0), image->data, image->data_size);
-
-	_pLibRaw->dcraw_clear_mem(image);
+			memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >( _pLibRaw->imgdata.rawdata.raw_image ) + topOffset + i * rawStride + leftOffset, stride );
+		}
+	} );
+	pRes->SetCameraSettings( _pCameraSettings );
 	Reattach();
-	return pRes;
+	return ToOutputFormat( pRes );
 }
 
 std::unordered_set<std::string> RawDecoder::GetExtensions()
@@ -222,14 +195,14 @@ std::unordered_set<std::string> RawDecoder::GetExtensions()
 	return { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".cr3", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rw1", ".rw2", "r3d", "srw", ".x3f" };
 }
 
-const RawSettings& RawDecoder::GetRawSettings()
+const DecoderSettings& RawDecoder::GetRawSettings()
 {
-	return _rawSettings;
+	return _decoderSettings;
 }
 
-void RawDecoder::SetRawSettings( const RawSettings& rawSettings )
+void RawDecoder::SetRawSettings( const DecoderSettings& rawSettings )
 {
-	_rawSettings = rawSettings;
+	_decoderSettings = rawSettings;
 }
 
 ACMB_NAMESPACE_END

@@ -13,7 +13,7 @@ protected:
     PixelFormat _pixelFormat;
 
 public:
-    ImageParams(uint32_t width = 0, uint32_t height = 0, PixelFormat pixelFormat = PixelFormat::Unknown);
+    ImageParams(uint32_t width = 0, uint32_t height = 0, PixelFormat pixelFormat = PixelFormat::Unspecified);
     uint32_t GetWidth() const;
     uint32_t GetHeight() const;
     PixelFormat GetPixelFormat() const;

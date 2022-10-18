@@ -29,6 +29,11 @@ void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const uint8_t* 
     } );
 }
 
+TiffDecoder::TiffDecoder( const DecoderSettings& settings )
+: ImageDecoder( settings )
+{
+}
+
 void TiffDecoder::Attach( const std::string& fileName )
 {
     _pReader =  TinyTIFFReader_open( fileName.c_str() ) ;
@@ -37,7 +42,9 @@ void TiffDecoder::Attach( const std::string& fileName )
 
     _width = TinyTIFFReader_getWidth(_pReader);
     _height = TinyTIFFReader_getHeight( _pReader );
-    _pixelFormat = ConstructPixelFormat( TinyTIFFReader_getBitsPerSample( _pReader, 0 ), TinyTIFFReader_getSamplesPerPixel( _pReader ) );    
+    _pixelFormat = ConstructPixelFormat( TinyTIFFReader_getBitsPerSample( _pReader, 0 ), TinyTIFFReader_getSamplesPerPixel( _pReader ) );
+    if ( _pixelFormat == PixelFormat::Gray16 && _decoderSettings.outputFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::Bayer16;
 }
 
 void TiffDecoder::Attach( std::shared_ptr<std::istream> )
@@ -85,7 +92,7 @@ IBitmapPtr TiffDecoder::ReadBitmap()
             break;
     }
 
-    return pBitmap;
+    return ToOutputFormat(pBitmap);
 }
 
 std::unordered_set<std::string> TiffDecoder::GetExtensions()

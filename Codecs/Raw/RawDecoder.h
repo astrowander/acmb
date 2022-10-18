@@ -25,11 +25,10 @@ class RawDecoder : public ImageDecoder
     static LensDB LoadLensDB();
     inline static LensDB lensDB = LoadLensDB();
 	LibRaw* _pLibRaw;
-    RawSettings _rawSettings;
 
 public:
     /// Creates riader with given settings
-    RawDecoder( const RawSettings& rawSettings = {} );
+    RawDecoder( const DecoderSettings& rawSettings = {} );
     ~RawDecoder();
     /// attach to a file
     void Attach(const std::string& fileName) override;
@@ -41,8 +40,8 @@ public:
     ///returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
 
-    const RawSettings& GetRawSettings();
-    void SetRawSettings( const RawSettings& rawSettings );
+    const DecoderSettings& GetRawSettings();
+    void SetRawSettings( const DecoderSettings& rawSettings );
 
     ADD_EXTENSIONS
 };

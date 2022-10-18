@@ -3,13 +3,13 @@
 
 ACMB_NAMESPACE_BEGIN
 
-/// Settings for RAW files reading
-struct RawSettings
+/// Settings for files reading
+struct DecoderSettings
 {
     /// if true bitmap size will be two times smaller
     bool halfSize = false;
-    /// if format is grayscale picture will not be debayered
-    PixelFormat outputFormat = PixelFormat::Gray16;
+    /// if format is specified and not the same as decoded one picture will be converted
+    PixelFormat outputFormat = PixelFormat::Unspecified;
 };
 
 ACMB_NAMESPACE_END

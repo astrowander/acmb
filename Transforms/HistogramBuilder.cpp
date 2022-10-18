@@ -120,6 +120,8 @@ std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create(IBitmapPtr pBitmap, c
 		return std::make_shared<HistogramBuilder_<PixelFormat::Gray8>>(pBitmap, roi);
 	case PixelFormat::Gray16:
 		return std::make_shared<HistogramBuilder_<PixelFormat::Gray16>>(pBitmap, roi);
+	case PixelFormat::Bayer16:
+		return std::make_shared<HistogramBuilder_<PixelFormat::Bayer16>>( pBitmap, roi );
 	case PixelFormat::RGB24:
 		return std::make_shared<HistogramBuilder_<PixelFormat::RGB24>>(pBitmap, roi);
 	case PixelFormat::RGB48:
@@ -137,6 +139,8 @@ std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create( PixelFormat pixelFor
 			return std::make_shared<HistogramBuilder_<PixelFormat::Gray8>>( nullptr, roi );
 		case PixelFormat::Gray16:
 			return std::make_shared<HistogramBuilder_<PixelFormat::Gray16>>( nullptr, roi );
+		case PixelFormat::Bayer16:
+			return std::make_shared<HistogramBuilder_<PixelFormat::Bayer16>>( nullptr, roi );
 		case PixelFormat::RGB24:
 			return std::make_shared<HistogramBuilder_<PixelFormat::RGB24>>( nullptr, roi );
 		case PixelFormat::RGB48:

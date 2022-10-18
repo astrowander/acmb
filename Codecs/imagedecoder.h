@@ -27,6 +27,10 @@ protected:
     virtual std::unique_ptr<std::istringstream> ReadLine();
 
     inline static std::unordered_set<std::string> _allExtensions;
+    
+    DecoderSettings _decoderSettings;
+
+    ImageDecoder( const DecoderSettings& settings );
 
 public:
     /// attach decoder to stream
@@ -48,21 +52,23 @@ public:
     /// reads and returns bitmap, needed for the compatibility with pipelines
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
     /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
-    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, const RawSettings& rawSettings = {} );
+    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, const DecoderSettings& rawSettings = {} );
     /// returns name of the last attached file, if no file was attached returns empty string
     const std::string& GetLastFileName() const;
 
     /// finds all files of supported formats in given directory, attaches decoders to them and creates pipelines
     /// if opening file is RAW, rawSettings will be applied
-    static std::vector<Pipeline> GetPipelinesFromDir( std::string path, const RawSettings& rawSettings = {} );
+    static std::vector<Pipeline> GetPipelinesFromDir( std::string path, const DecoderSettings& rawSettings = {} );
     /// finds all files of supported formats satisfying given mask, attaches decoders to them and creates pipelines
     /// if opening file is RAW, rawSettings will be applied
-    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, const RawSettings& rawSettings = {} );
+    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, const DecoderSettings& rawSettings = {} );
     /// returns all supported extensions by all decoders
-    static const std::unordered_set<std::string>& GetAllExtensions();
+    static const std::unordered_set<std::string>& GetAllExtensions();    
 
 protected:
     static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
+    
+    IBitmapPtr ToOutputFormat( IBitmapPtr pSrcBitmap );
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());

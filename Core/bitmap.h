@@ -35,7 +35,7 @@ public:
     virtual std::shared_ptr<CameraSettings> GetCameraSettings() const = 0;
     virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) = 0;
     /// creates bitmap from a given file
-    static std::shared_ptr<IBitmap> Create( const std::string& fileName, const RawSettings& rawSettings = RawSettings {} );
+    static std::shared_ptr<IBitmap> Create( const std::string& fileName, const DecoderSettings& rawSettings = DecoderSettings {} );
     /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     /// saves given bitmap to a file
@@ -140,6 +140,9 @@ public:
     /// sets data vector
     void SetData(const std::vector<ChannelType>& data)
     {
+        if ( data.size() != _data.size() )
+            throw std::invalid_argument( "data has different size" );
+
         _data = data;
     }
     /// receives arbitrary coords, returns interpolated channel value
