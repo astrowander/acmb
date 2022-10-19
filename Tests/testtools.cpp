@@ -1,4 +1,4 @@
-#define GENERATE_PATTERNS
+//#define GENERATE_PATTERNS
 #include "testtools.h"
 #include "../Core/bitmap.h"
 #include "../Tools/SystemTools.h"
@@ -31,7 +31,7 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
     IBitmap::Save(rhs, fileName);
     return true;
 #endif
-    return BitmapsAreEqual(IBitmap::Create(fileName), rhs);
+    return BitmapsAreEqual(IBitmap::Create(fileName, rhs->GetPixelFormat()), rhs);
 }
 
 const std::string testFilesPath = GetEnv("ACMB_PATH") + "/Tests/TestFiles/";

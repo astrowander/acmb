@@ -15,7 +15,6 @@ std::string GetDirectory( const std::string& fileName )
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, PixelFormat outputFormat )
 {
     auto pDecoder = ImageDecoder::Create( fileName, outputFormat );
-    pDecoder->Attach(fileName);
     return pDecoder->ReadBitmap();
 }
 
