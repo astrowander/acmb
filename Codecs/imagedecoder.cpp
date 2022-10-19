@@ -24,9 +24,9 @@ std::string IntToString( size_t num, size_t minDigitCount )
     return res;
 }
 
-ImageDecoder::ImageDecoder( const DecoderSettings& settings )
-: _decoderSettings( settings )
+ImageDecoder::ImageDecoder( PixelFormat outputFormat )
 {
+    _pixelFormat = outputFormat;
 }
 
 void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
@@ -74,7 +74,7 @@ IBitmapPtr ImageDecoder::ProcessBitmap( IBitmapPtr )
     return ReadBitmap();
 }
 
-std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, const DecoderSettings& rawSettings )
+std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, PixelFormat outputFormat )
 {
     auto path = std::filesystem::path(fileName);
     auto extension = path.extension().string();
@@ -83,19 +83,19 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     std::shared_ptr<ImageDecoder> pDecoder;
     if ( PpmDecoder::GetExtensions().contains( extension ) )
     {
-        pDecoder.reset(new PpmDecoder());
+        pDecoder.reset(new PpmDecoder( outputFormat ));
     }
     else if ( RawDecoder::GetExtensions().contains( extension ) )
     {
-        pDecoder.reset(new RawDecoder( rawSettings ));
+        pDecoder.reset(new RawDecoder( outputFormat ));
     }
     else if ( TiffDecoder::GetExtensions().contains( extension ) )
     {
-        pDecoder.reset( new TiffDecoder() );
+        pDecoder.reset( new TiffDecoder( outputFormat ) );
     }
 
-    if (!pDecoder)
-        throw std::invalid_argument("fileName");
+    if ( !pDecoder )
+        throw std::runtime_error( std::string( "unable to open file" ) + fileName );
 
     pDecoder->Attach(fileName);
     return pDecoder;
@@ -106,7 +106,7 @@ const std::string& ImageDecoder::GetLastFileName() const
     return _lastFileName;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const DecoderSettings& rawSettings )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, PixelFormat outputFormat )
 {
     if ( !std::filesystem::is_directory( path ) )
         return {};
@@ -125,12 +125,12 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromDir( std::string path, const
     }
 
     for (const auto & fileName : sortedNames)
-        res.emplace_back( ImageDecoder::Create( fileName, rawSettings ) );
+        res.emplace_back( ImageDecoder::Create( fileName, outputFormat ) );
 
     return res;
 }
 
-std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, const DecoderSettings& rawSettings )
+std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, PixelFormat outputFormat )
 {
     size_t start = 0;
     std::vector<Pipeline> res;
@@ -145,12 +145,12 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, cons
         {
             if ( std::filesystem::is_directory( fileName ) )
             {
-                auto pipelines = ImageDecoder::GetPipelinesFromDir( fileName, rawSettings );
+                auto pipelines = ImageDecoder::GetPipelinesFromDir( fileName, outputFormat );
                 res.insert( res.end(), pipelines.begin(), pipelines.end() );
             }
             else
             {
-                res.emplace_back( ImageDecoder::Create( fileName, rawSettings ) );
+                res.emplace_back( ImageDecoder::Create( fileName, outputFormat ) );
             }
         }
         else if ( separatorPos != std::string::npos )
@@ -167,7 +167,7 @@ std::vector<Pipeline> ImageDecoder::GetPipelinesFromMask( std::string mask, cons
                 {
                     auto tempName = fileName.substr( 0, separatorPos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
                     if ( std::filesystem::exists( tempName ) )
-                        res.emplace_back( Create( tempName, rawSettings ) );
+                        res.emplace_back( Create( tempName, outputFormat ) );
                 }
             }
         }
@@ -188,7 +188,7 @@ const std::unordered_set<std::string>& ImageDecoder::GetAllExtensions()
 
 IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
 {
-    if ( _decoderSettings.outputFormat == PixelFormat::Unspecified || _decoderSettings.outputFormat == pSrcBitmap->GetPixelFormat() )
+    if ( _pixelFormat == PixelFormat::Unspecified || _pixelFormat == pSrcBitmap->GetPixelFormat() )
         return pSrcBitmap;
 
     IBitmapPtr pRes;
@@ -196,10 +196,10 @@ IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
     if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
         pRes = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );
 
-    if ( pRes->GetPixelFormat() == _decoderSettings.outputFormat )
+    if ( pRes->GetPixelFormat() == _pixelFormat )
         return pRes;
 
-    return Converter::Convert( pRes, _decoderSettings.outputFormat );
+    return Converter::Convert( pRes, _pixelFormat );
 }
 
 bool ImageDecoder::AddCommonExtensions( const std::unordered_set<std::string>& extensions )

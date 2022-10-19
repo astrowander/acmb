@@ -14,7 +14,7 @@ class TiffDecoder : public ImageDecoder
     TinyTIFFReaderFile* _pReader;
 
 public:
-    TiffDecoder( const DecoderSettings& settings = {} );
+    TiffDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
     /// attach to file
     void Attach( const std::string& fileName ) override;
     /// attach to stream

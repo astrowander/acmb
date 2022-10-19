@@ -16,7 +16,7 @@ class PpmDecoder : public ImageDecoder
     uint32_t _currentScanline = 0;
 
 public:
-    PpmDecoder( const DecoderSettings& settings = {} );
+    PpmDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
     /// attach to file
     void Attach(const std::string& fileName) override;
     /// attach to stream

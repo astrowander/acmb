@@ -25,6 +25,9 @@
         case PixelFormat::RGB48:\
               Helper<PixelFormat::RGB48>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pBitmap)); \
             break; \
+        case PixelFormat::Bayer16:\
+              Helper<PixelFormat::Bayer16>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Bayer16>>(pBitmap)); \
+            break; \
         default:\
             throw std::runtime_error("pixel format should be known");}
 
@@ -256,7 +259,7 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
     for (const auto& pipeline : pipelines )
     {
         _stackingData.push_back({ pipeline, {}, {} });
-        if ( stackMode == StackMode::Light )
+        if ( ( stackMode == StackMode::Light || stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
             _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
     }
 

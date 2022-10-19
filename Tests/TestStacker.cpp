@@ -17,12 +17,12 @@ BEGIN_TEST(TestStackingWithoutAlignment)
     std::vector<Pipeline> pipelines;
     for (const auto& path : std::filesystem::directory_iterator(GetPathToTestFile("RAW/TestStackingWithoutAlignment/")))
     {
-        auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
+        auto pDecoder = std::make_shared<RawDecoder>();
         pDecoder->Attach( path.path().generic_string() );
         pipelines.emplace_back( pDecoder );
     }
 
-    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
+    auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::LightNoAlign );
     EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("Stacker/TestStackingWithoutAlignment.ppm"), pStacker->Stack()));
 
 END_TEST
@@ -32,12 +32,12 @@ BEGIN_TEST( TestRgb24 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
+    auto pDecoder = std::make_shared<RawDecoder>( PixelFormat::RGB24 );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::LightNoAlign );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestRgb24.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -47,13 +47,12 @@ BEGIN_TEST( TestGray8 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB24 } );
+    auto pDecoder = std::make_shared<RawDecoder>( PixelFormat::Gray8 );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
-    pipelines.back().AddTransform<Converter>( PixelFormat::Gray8 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::LightNoAlign );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray8.ppm" ), pStacker->Stack() ) );
 
 END_TEST
@@ -63,13 +62,12 @@ BEGIN_TEST( TestGray16 )
 std::vector<Pipeline> pipelines;
 for ( const auto& path : std::filesystem::directory_iterator( GetPathToTestFile( "RAW/TestStackingWithoutAlignment/" ) ) )
 {
-    auto pDecoder = std::make_shared<RawDecoder>( DecoderSettings{ .halfSize = true, .outputFormat = PixelFormat::RGB48 } );
+    auto pDecoder = std::make_shared<RawDecoder>( PixelFormat::Gray16 );
     pDecoder->Attach( path.path().generic_string() );
     pipelines.emplace_back( pDecoder );
-    pipelines.back().AddTransform<Converter>( PixelFormat::Gray16 );
 }
 
-auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::DarkOrFlat );
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::LightNoAlign );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestGray16.ppm" ), pStacker->Stack() ) );
 
 END_TEST

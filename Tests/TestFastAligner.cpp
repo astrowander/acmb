@@ -113,13 +113,13 @@ END_TEST
 
 BEGIN_TEST(RealPhotoTest)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings {.halfSize = false, .outputFormat = PixelFormat::RGB48 });
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), PixelFormat::RGB48 );
 auto pRegistrator = std::make_unique<Registrator>(70);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), PixelFormat::RGB48 );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
@@ -127,20 +127,20 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0], 1.0);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(64, matches.size());
+EXPECT_EQ(75, matches.size());
 
 
 END_TEST
 
 BEGIN_TEST(TestLargeIntervalPhotos)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), PixelFormat::RGB48 );
 auto pRegistrator = std::make_unique<Registrator>(40);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8970.CR2"), PixelFormat::RGB48 );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
@@ -148,20 +148,20 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0]);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(21, matches.size());
+EXPECT_EQ(15, matches.size());
 
 
 END_TEST
 
 BEGIN_TEST(TestThreshold60)
 
-auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pRefBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"), PixelFormat::RGB48 );
 auto pRegistrator = std::make_unique<Registrator>(60);
 pRegistrator->Registrate(pRefBitmap);
 auto refStars = pRegistrator->GetStars();
 pRefBitmap.reset();
 
-auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pTargetBitmap = IBitmap::Create(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8945.CR2"), PixelFormat::RGB48 );
 pRegistrator->Registrate(pTargetBitmap);
 auto targetStars = pRegistrator->GetStars();
 pTargetBitmap.reset();
@@ -169,7 +169,7 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0]);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(116, matches.size());
+EXPECT_EQ(134, matches.size());
 
 END_TEST
 

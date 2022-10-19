@@ -62,7 +62,7 @@ public:
                     const size_t index = x * channelCount;
                     const float srcValue = pSrcScanline[index];
                     const float divisorValue = pDivisorScanline[index];
-                    float coeff = std::max( 0.0f, ( pivots[subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel ) );
+                    float coeff = std::max( 1.0f, ( pivots[subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel ) );
                     coeff = 1.0f + ( coeff - 1.0f ) * ( _settings.intensity / 100.0f );
                     const float res = std::min( srcBlackLevel + std::max( 0.0f, srcValue - srcBlackLevel ) * coeff, maxChannel );
                     pSrcScanline[index] = ChannelType( res );

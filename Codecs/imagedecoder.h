@@ -4,7 +4,6 @@
 #include "../Core/imageparams.h"
 #include "../Core/camerasettings.h"
 #include "../Core/pipeline.h"
-#include "Raw/RawSettings.h"
 
 #include <string>
 #include <vector>
@@ -28,9 +27,9 @@ protected:
 
     inline static std::unordered_set<std::string> _allExtensions;
     
-    DecoderSettings _decoderSettings;
+    PixelFormat _decodedFormat = PixelFormat::Unspecified;
 
-    ImageDecoder( const DecoderSettings& settings );
+    ImageDecoder( PixelFormat outputFormat );
 
 public:
     /// attach decoder to stream
@@ -52,16 +51,16 @@ public:
     /// reads and returns bitmap, needed for the compatibility with pipelines
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
     /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
-    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, const DecoderSettings& rawSettings = {} );
+    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// returns name of the last attached file, if no file was attached returns empty string
     const std::string& GetLastFileName() const;
 
     /// finds all files of supported formats in given directory, attaches decoders to them and creates pipelines
     /// if opening file is RAW, rawSettings will be applied
-    static std::vector<Pipeline> GetPipelinesFromDir( std::string path, const DecoderSettings& rawSettings = {} );
+    static std::vector<Pipeline> GetPipelinesFromDir( std::string path, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// finds all files of supported formats satisfying given mask, attaches decoders to them and creates pipelines
     /// if opening file is RAW, rawSettings will be applied
-    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, const DecoderSettings& rawSettings = {} );
+    static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// returns all supported extensions by all decoders
     static const std::unordered_set<std::string>& GetAllExtensions();    
 

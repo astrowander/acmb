@@ -113,7 +113,7 @@ END_TEST
 BEGIN_TEST( SubtractUndebayered )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "FlatField/IMG_0914.CR2" ) );
-auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "FlatField/masterdark.tif" ) );
+auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "FlatField/masterdark.tif" ), PixelFormat::Bayer16 );
 auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, pDarkFrame );
 auto pResult = pSubtractor->RunAndGetBitmap();
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapSubtractor/SubtractUndebayered.tif" ), pResult ) );

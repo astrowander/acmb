@@ -29,8 +29,8 @@ void JoinChannels( std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const uint8_t* 
     } );
 }
 
-TiffDecoder::TiffDecoder( const DecoderSettings& settings )
-: ImageDecoder( settings )
+TiffDecoder::TiffDecoder( PixelFormat outputFormat )
+: ImageDecoder( outputFormat )
 {
 }
 
@@ -42,9 +42,16 @@ void TiffDecoder::Attach( const std::string& fileName )
 
     _width = TinyTIFFReader_getWidth(_pReader);
     _height = TinyTIFFReader_getHeight( _pReader );
-    _pixelFormat = ConstructPixelFormat( TinyTIFFReader_getBitsPerSample( _pReader, 0 ), TinyTIFFReader_getSamplesPerPixel( _pReader ) );
-    if ( _pixelFormat == PixelFormat::Gray16 && _decoderSettings.outputFormat == PixelFormat::Bayer16 )
-        _pixelFormat = PixelFormat::Bayer16;
+    _decodedFormat = ConstructPixelFormat( TinyTIFFReader_getBitsPerSample( _pReader, 0 ), TinyTIFFReader_getSamplesPerPixel( _pReader ) );
+    if ( _pixelFormat == PixelFormat::Bayer16 )
+    {
+        if ( _decodedFormat != PixelFormat::Gray16 )
+            throw std::runtime_error( "unable to treat pixel format as bayer 16" );
+
+        _decodedFormat = PixelFormat::Bayer16;
+    }
+    if ( _pixelFormat == PixelFormat::Unspecified )
+        _pixelFormat = _decodedFormat;
 }
 
 void TiffDecoder::Attach( std::shared_ptr<std::istream> )
@@ -61,26 +68,26 @@ IBitmapPtr TiffDecoder::ReadBitmap()
 {
     if ( !_pReader )
         throw std::runtime_error( "TiffDecoder is detached" );
-    IBitmapPtr pBitmap = IBitmap::Create( _width, _height, _pixelFormat );
+    IBitmapPtr pBitmap = IBitmap::Create( _width, _height, _decodedFormat );
     uint8_t* pData = nullptr;
     std::vector<uint8_t> data;
-    if ( GetColorSpace( _pixelFormat ) == ColorSpace::Gray )
+    if ( GetColorSpace( _decodedFormat ) == ColorSpace::Gray || GetColorSpace( _decodedFormat ) == ColorSpace::Bayer )
     {
         pData = (uint8_t*)pBitmap->GetPlanarScanline( 0 );
     }
     else
     {
-        data.resize( _width * _height * BytesPerChannel( _pixelFormat ) * ChannelCount( _pixelFormat ) );
+        data.resize( _width * _height * BytesPerChannel( _decodedFormat ) * ChannelCount( _decodedFormat ) );
         pData = &data[0];
     }    
     
-    uint32_t sampleSize = _width * _height * BytesPerChannel( _pixelFormat );    
-    for ( uint16_t i = 0; i < ChannelCount( _pixelFormat ); ++i )
+    uint32_t sampleSize = _width * _height * BytesPerChannel( _decodedFormat );
+    for ( uint16_t i = 0; i < ChannelCount( _decodedFormat ); ++i )
     {
         TinyTIFFReader_getSampleData( _pReader, pData + i * sampleSize, i );
     }
 
-    switch ( _pixelFormat )
+    switch ( _decodedFormat )
     {
         case PixelFormat::RGB24:
             JoinChannels<PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( pBitmap ), data.data(), _width, _height );

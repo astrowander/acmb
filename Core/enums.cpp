@@ -13,7 +13,9 @@ std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat)
     case PixelFormat::RGB24:
         return out << "RGB24";
     case PixelFormat::RGB48:
-        return out << "RGB248";
+        return out << "RGB48";
+    case PixelFormat::Bayer16:
+        return out << "Bayer16";
     }
 
     throw std::runtime_error("Unexpexted pixel format");

@@ -28,7 +28,7 @@ class RawDecoder : public ImageDecoder
 
 public:
     /// Creates riader with given settings
-    RawDecoder( const DecoderSettings& rawSettings = {} );
+    RawDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
     ~RawDecoder();
     /// attach to a file
     void Attach(const std::string& fileName) override;
@@ -39,9 +39,6 @@ public:
     std::shared_ptr<IBitmap> ReadBitmap() override;
     ///returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
-
-    const DecoderSettings& GetRawSettings();
-    void SetRawSettings( const DecoderSettings& rawSettings );
 
     ADD_EXTENSIONS
 };

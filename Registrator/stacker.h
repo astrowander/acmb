@@ -27,6 +27,7 @@ struct StackingDatum
 enum class StackMode
 {
     Light,
+    LightNoAlign,
     DarkOrFlat
 };
 

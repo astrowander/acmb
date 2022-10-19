@@ -15,8 +15,8 @@
 
 ACMB_NAMESPACE_BEGIN
 
-RawDecoder::RawDecoder( const DecoderSettings& rawSettings)
-: ImageDecoder(rawSettings)
+RawDecoder::RawDecoder( PixelFormat outputFormat )
+: ImageDecoder(outputFormat)
 , _pLibRaw(new LibRaw())
 {	
 }
@@ -103,14 +103,14 @@ void RawDecoder::Attach(const std::string& fileName)
 	if (_pLibRaw->open_file(fileName.data()))
 		throw std::runtime_error("unable to read the file");
 
-	_pixelFormat = PixelFormat::Bayer16;	
-
+	_decodedFormat = PixelFormat::Bayer16;
+	
 	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _pixelFormat );
     _pLibRaw->imgdata.params.no_interpolation = 1;
     _pLibRaw->imgdata.params.fbdd_noiserd = 0;
     _pLibRaw->imgdata.params.med_passes = 0;
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
-    _pLibRaw->imgdata.params.half_size = _decoderSettings.halfSize;
+    _pLibRaw->imgdata.params.half_size = 0;
 	_pLibRaw->imgdata.params.user_qual = 0;
 
 	_pLibRaw->raw2image_start();
@@ -135,18 +135,22 @@ void RawDecoder::Attach(const std::string& fileName)
 		_pCameraSettings->channelPremultipiers[i] = _pLibRaw->imgdata.color.pre_mul[i];
 	}
 
-	if ( !lensDB.contains( _pLibRaw->imgdata.lens.makernotes.LensID ) )
-		return;
-	
-	for ( const auto& candidate : lensDB.at( _pLibRaw->imgdata.lens.makernotes.LensID ) )
+	if ( lensDB.contains( _pLibRaw->imgdata.lens.makernotes.LensID ) )
 	{
-		if ( int( _pCameraSettings->focalLength ) >= candidate.minFocal && int( _pCameraSettings->focalLength ) <= candidate.maxFocal )
+
+		for ( const auto& candidate : lensDB.at( _pLibRaw->imgdata.lens.makernotes.LensID ) )
 		{
-			_pCameraSettings->lensMakerName = candidate.fullName.substr( 0, candidate.fullName.find_first_of( ' ' ) );
-			_pCameraSettings->lensModelName = candidate.fullName;
-			break;
+			if ( int( _pCameraSettings->focalLength ) >= candidate.minFocal && int( _pCameraSettings->focalLength ) <= candidate.maxFocal )
+			{
+				_pCameraSettings->lensMakerName = candidate.fullName.substr( 0, candidate.fullName.find_first_of( ' ' ) );
+				_pCameraSettings->lensModelName = candidate.fullName;
+				break;
+			}
 		}
 	}
+
+	if ( _pixelFormat == PixelFormat::Unspecified )
+		_pixelFormat = _decodedFormat;
 }
 
 void RawDecoder::Attach(std::shared_ptr<std::istream>)
@@ -164,7 +168,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	if (!_pLibRaw)
 		throw std::runtime_error("RawDecoder is detached");
 
-	auto pRes = IBitmap::Create(_width, _height, _pixelFormat);
+	auto pRes = IBitmap::Create(_width, _height, _decodedFormat );
 
 	auto ret = _pLibRaw->unpack();
 	if (ret != LIBRAW_SUCCESS)
@@ -173,10 +177,10 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	}
 	_pCameraSettings->blackLevel = _pLibRaw->imgdata.color.black;
 	
-	const int rawStride = _pLibRaw->imgdata.sizes.raw_width * BytesPerPixel( _pixelFormat );
+	const int rawStride = _pLibRaw->imgdata.sizes.raw_width * BytesPerPixel( _decodedFormat );
 	const int topOffset = rawStride * _pLibRaw->imgdata.sizes.top_margin;
-	const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _pixelFormat );
-	const int stride = _width * BytesPerPixel( _pixelFormat );
+	const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _decodedFormat );
+	const int stride = _width * BytesPerPixel( _decodedFormat );
 
 	oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] (const oneapi::tbb::blocked_range<int>& range)
 	{
@@ -193,16 +197,6 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 std::unordered_set<std::string> RawDecoder::GetExtensions()
 {
 	return { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".cr3", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rw1", ".rw2", "r3d", "srw", ".x3f" };
-}
-
-const DecoderSettings& RawDecoder::GetRawSettings()
-{
-	return _decoderSettings;
-}
-
-void RawDecoder::SetRawSettings( const DecoderSettings& rawSettings )
-{
-	_decoderSettings = rawSettings;
 }
 
 ACMB_NAMESPACE_END

@@ -63,23 +63,21 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         return { 1, "Output files must be specified in the last place" };
 
     size_t iStart = 1;
-    DecoderSettings rawSettings{ .halfSize = false, .outputFormat = PixelFormat::Gray16 };
-    if ( _kvs[1].key == "--rawsettings" )
+    PixelFormat desiredFormat = PixelFormat::Unspecified;
+    if ( _kvs[1].key == "--desiredFormat" )
     {
         iStart = 2;
+        const auto& values = _kvs[1].values;
 
-        for ( auto& value : _kvs[1].values )
-        {
-            if ( value == "half_size" )
-                rawSettings.halfSize = true;
-            else if ( stringToPixelFormat.contains( value ) )
-                rawSettings.outputFormat = stringToPixelFormat.at( value );
+        if ( stringToPixelFormat.contains( values[0]) )
+        {            
+            desiredFormat = stringToPixelFormat.at( values[0]);
         }
     }
 
     for ( const auto& inputString : _kvs.front().values )
     {
-        auto pipelines = ImageDecoder::GetPipelinesFromMask( inputString, rawSettings );
+        auto pipelines = ImageDecoder::GetPipelinesFromMask( inputString, desiredFormat );
         _pipelinesBeforeStacker.insert( _pipelinesBeforeStacker.end(), pipelines.begin(), pipelines.end() );
     }
 
@@ -140,7 +138,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             if ( values.size() != 1 )
                 return { 1, "--subtract requires exactly one argument" };
 
-            auto pBitmapToSubtract = IBitmap::Create( values[0] );
+            auto pBitmapToSubtract = IBitmap::Create( values[0], ( ( isStackerFound ) ? _pipelineAfterStacker.GetFinalParams()->GetPixelFormat() : _pipelinesBeforeStacker[0].GetFinalParams()->GetPixelFormat() ) );
 
             if ( isStackerFound )
             {
@@ -159,7 +157,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             if ( values.size() < 1 || values.size() > 2 )
                 return { 1, "--divide requires one or two arguments" };
 
-            auto pDivisor = IBitmap::Create( values[0] );
+            auto pDivisor = IBitmap::Create( values[0], ( (isStackerFound) ? _pipelineAfterStacker.GetFinalParams()->GetPixelFormat() : _pipelinesBeforeStacker[0].GetFinalParams()->GetPixelFormat() ) );
             float intensity = 100.0f;
             if ( values.size() == 2 )
             {

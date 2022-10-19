@@ -141,9 +141,6 @@
     <ClInclude Include="Transforms\DebayerTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Codecs\Raw\RawSettings.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Core\versioning.h">
       <Filter>Header Files</Filter>
     </ClInclude>

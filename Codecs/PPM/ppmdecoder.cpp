@@ -3,8 +3,8 @@
 
 ACMB_NAMESPACE_BEGIN
 
-PpmDecoder::PpmDecoder( const DecoderSettings& settings )
-: ImageDecoder( settings )
+PpmDecoder::PpmDecoder( PixelFormat outputFormat )
+: ImageDecoder( outputFormat )
 {
 }
 
@@ -39,25 +39,35 @@ void PpmDecoder::Attach(std::shared_ptr<std::istream> pStream)
     {
     case '2':
         _ppmMode = PpmMode::Text;
-        _pixelFormat = (_maxval < 256) ? PixelFormat::Gray8 : PixelFormat::Gray16;
+        _decodedFormat = (_maxval < 256) ? PixelFormat::Gray8 : PixelFormat::Gray16;
         break;
     case '3':
         _ppmMode = PpmMode::Text;
-        _pixelFormat = (_maxval < 256) ? PixelFormat::RGB24 : PixelFormat::RGB48;
+        _decodedFormat = (_maxval < 256) ? PixelFormat::RGB24 : PixelFormat::RGB48;
         break;
     case '5':
         _ppmMode = PpmMode::Binary;
-        _pixelFormat = (_maxval < 256) ? PixelFormat::Gray8 : PixelFormat::Gray16;
+        _decodedFormat = (_maxval < 256) ? PixelFormat::Gray8 : PixelFormat::Gray16;
         break;
     case '6':
         _ppmMode = PpmMode::Binary;
-        _pixelFormat = (_maxval < 256) ? PixelFormat::RGB24 : PixelFormat::RGB48;
+        _decodedFormat = (_maxval < 256) ? PixelFormat::RGB24 : PixelFormat::RGB48;
         break;
     default:
         throw std::runtime_error("not supported");
     }
 
     _dataOffset = pStream->tellg();
+    
+    if ( _pixelFormat == PixelFormat::Bayer16 )
+    {
+        if ( _decodedFormat != PixelFormat::Gray16 )
+            throw std::runtime_error( "unable to treat pixel format as bayer 16" );
+
+        _decodedFormat = PixelFormat::Bayer16;
+    }
+    if ( _pixelFormat == PixelFormat::Unspecified )
+        _pixelFormat = _decodedFormat;
 }
 
 template<>
@@ -66,7 +76,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<1>(uint32_t stripeHeight)
     auto res = CreateStripe(stripeHeight);
 
     auto pScanline = res->GetPlanarScanline(0);
-    _pStream->read(pScanline, _width * stripeHeight * BytesPerPixel(_pixelFormat));    
+    _pStream->read(pScanline, _width * stripeHeight * BytesPerPixel( _decodedFormat ));
 
     return res;
 }
@@ -79,7 +89,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadBinaryStripe<2>(uint32_t stripeHeight)
     for (uint32_t i = 0; i < stripeHeight; ++i)
     {
         auto pScanline = res->GetPlanarScanline(i);
-        for (uint32_t j = 0; j < _width * ChannelCount(_pixelFormat); ++j)
+        for (uint32_t j = 0; j < _width * ChannelCount( _decodedFormat ); ++j)
         {
             char bytes[2];
             _pStream->read(bytes, 2);
@@ -99,7 +109,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadTextStripe(uint32_t stripeHeight)
     {
         for (uint32_t j = 0; j < _width; ++j)
         {
-            for (uint32_t k = 0; k < ChannelCount(_pixelFormat); ++k)
+            for (uint32_t k = 0; k < ChannelCount( _decodedFormat ); ++k)
             {
                 uint32_t v;
                 *_pStream >> v;
@@ -137,7 +147,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadStripe(uint32_t stripeHeight)
     if (_ppmMode == PpmMode::Text)
         pRes = ReadTextStripe(stripeHeight);
     else 
-        pRes = BytesPerChannel(_pixelFormat) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
+        pRes = BytesPerChannel( _decodedFormat ) == 1 ? ReadBinaryStripe<1>(stripeHeight) : ReadBinaryStripe<2>(stripeHeight);
 
     _currentScanline += stripeHeight;
     return ToOutputFormat(pRes);
@@ -155,15 +165,14 @@ std::unordered_set<std::string> PpmDecoder::GetExtensions()
 
 std::shared_ptr<IBitmap> PpmDecoder::CreateStripe(uint32_t stripeHeight)
 {
-    switch(_pixelFormat)
+    switch( _decodedFormat )
     {
     case PixelFormat::Gray8:
         return std::make_shared<Bitmap<PixelFormat::Gray8>>(_width, stripeHeight);
     case PixelFormat::Gray16:
-        if ( _decoderSettings.outputFormat == PixelFormat::Bayer16 )
-            return std::make_shared<Bitmap<PixelFormat::Bayer16>>( _width, stripeHeight );
-        else
-            return std::make_shared<Bitmap<PixelFormat::Gray16>>( _width, stripeHeight );
+        return std::make_shared<Bitmap<PixelFormat::Gray16>>( _width, stripeHeight );
+    case PixelFormat::Bayer16:
+        return std::make_shared<Bitmap<PixelFormat::Bayer16>>( _width, stripeHeight );
     case PixelFormat::RGB24:
         return std::make_shared<Bitmap<PixelFormat::RGB24>>(_width, stripeHeight);
     case PixelFormat::RGB48:

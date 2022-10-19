@@ -29,14 +29,24 @@ ASSERT_THROWS( f2, std::invalid_argument );
 ASSERT_THROWS( f3, std::invalid_argument );
 END_TEST
 
-BEGIN_TEST( TestGray16 )
+BEGIN_TEST( TestBayer16 )
 
-auto pBitmap = IBitmap::Create( GetPathToTestFile( "PPM/bayer.pgm" ) );
+auto pBitmap = IBitmap::Create( GetPathToTestFile( "PPM/bayer.pgm" ), PixelFormat::Bayer16 );
 auto pCameraSettings = std::make_shared<CameraSettings>();
 pCameraSettings->maxChannel = 15340;
 pCameraSettings->channelPremultipiers = { 2.09313083f, 0.943063855f, 1.34144759f, 0.0f };
 auto pDebayer = DebayerTransform::Create( pBitmap, pCameraSettings );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "DebayerTransform/TestGray16.ppm" ), pDebayer->RunAndGetBitmap() ) );
+END_TEST
+
+BEGIN_TEST( TestGray16 )
+auto f = []
+{
+    auto pBitmap = IBitmap::Create( 10, 10, PixelFormat::Gray16 );
+    auto pDebayer = DebayerTransform::Create( pBitmap, std::make_shared<CameraSettings>() );
+};
+
+ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST( TestGray8 )

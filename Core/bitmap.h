@@ -9,7 +9,6 @@
 #include "imageparams.h"
 #include "../Tools/mathtools.h"
 #include "camerasettings.h"
-#include "../Codecs/Raw/RawSettings.h"
 
 //#undef max
 
@@ -35,7 +34,7 @@ public:
     virtual std::shared_ptr<CameraSettings> GetCameraSettings() const = 0;
     virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) = 0;
     /// creates bitmap from a given file
-    static std::shared_ptr<IBitmap> Create( const std::string& fileName, const DecoderSettings& rawSettings = DecoderSettings {} );
+    static std::shared_ptr<IBitmap> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     /// saves given bitmap to a file

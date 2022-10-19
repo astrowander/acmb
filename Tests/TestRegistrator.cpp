@@ -44,7 +44,7 @@ END_TEST
 
 BEGIN_TEST(TestMultipleTiles)
 auto pRegistrator = std::make_unique<Registrator>(25);
-auto pBitmap = IBitmap::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ), DecoderSettings{ .halfSize = false, .outputFormat = PixelFormat::RGB48 } );
+auto pBitmap = IBitmap::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ), PixelFormat::RGB48 );
 pRegistrator->Registrate( pBitmap );
 auto stars = pRegistrator->GetStars();
 EXPECT_EQ(54, stars.size());
@@ -54,7 +54,7 @@ for (auto& tileStars : stars)
 {
 	sum += tileStars.size();
 }
-EXPECT_EQ(14818, sum);
+EXPECT_EQ(15544, sum);
 END_TEST
 
 BEGIN_TEST(Test1x1Bitmap)
