@@ -12,6 +12,7 @@
 #include "./../Transforms/deaberratetransform.h"
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/HaloRemovalTransform.h"
+#include "./../Transforms/ResizeTransform.h"
 #include "./../Tools/SystemTools.h"
 #include <filesystem>
 
@@ -232,6 +233,26 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
                     pipeline.AddTransform<AutoHaloRemoval>( intensity );
                 }
             }
+        }
+        else if ( key == "--resize" )
+        {
+        if ( values.size() != 2 )
+            return { 1, "--resize requires exactly 2 arguments" };
+
+        const auto width = uint32_t(std::stoi( values[0] ));
+        const auto height = uint32_t(std::stoi( values[1] ));
+
+        if ( isStackerFound )
+        {
+            _pipelineAfterStacker.AddTransform<ResizeTransform>( Size {width, height });
+        }
+        else
+        {
+            for ( auto& pipeline : _pipelinesBeforeStacker )
+            {
+                pipeline.AddTransform<ResizeTransform>( Size{ width, height } );
+            }
+        }
         }
         else if ( key == "--stack" )
         {

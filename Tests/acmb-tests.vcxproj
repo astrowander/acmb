@@ -145,6 +145,7 @@
     <ClCompile Include="TestPpmEncoder.cpp" />
     <ClCompile Include="TestRawDecoder.cpp" />
     <ClCompile Include="TestRegistrator.cpp" />
+    <ClCompile Include="TestResizeTransform.cpp" />
     <ClCompile Include="TestRgbToHsl.cpp" />
     <ClCompile Include="TestRunner.cpp" />
     <ClCompile Include="TestStacker.cpp" />

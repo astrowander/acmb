@@ -53,6 +53,11 @@
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
     <ClInclude Include="Tools\SystemTools.h" />
+    <ClInclude Include="Transforms\avir\avir.h" />
+    <ClInclude Include="Transforms\avir\avir_dil.h" />
+    <ClInclude Include="Transforms\avir\avir_float4_sse.h" />
+    <ClInclude Include="Transforms\avir\avir_float8_avx.h" />
+    <ClInclude Include="Transforms\avir\lancir.h" />
     <ClInclude Include="Transforms\basetransform.h" />
     <ClInclude Include="Transforms\binningtransform.h" />
     <ClInclude Include="Transforms\BitmapDivisor.h" />
@@ -63,6 +68,7 @@
     <ClInclude Include="Transforms\DebayerTransform.h" />
     <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
+    <ClInclude Include="Transforms\ResizeTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
@@ -99,6 +105,7 @@
     <ClCompile Include="Transforms\DebayerTransform.cpp" />
     <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
+    <ClCompile Include="Transforms\ResizeTransform.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
