@@ -171,8 +171,8 @@ class AlignmentHelper
         : _stacker( stacker )
         , _alignerIndex( alignerIndex )
     {
-        if ( _stacker._aligners.size() <= _alignerIndex )
-            throw std::invalid_argument( "no aligner" );
+        if ( _stacker._stackingData.size() <= _alignerIndex )
+            throw std::invalid_argument( "aligner index exceeds tile count" );
     }
 
     void Job( uint32_t i )

@@ -78,6 +78,9 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
     for ( const auto& inputString : _kvs.front().values )
     {
         auto pipelines = ImageDecoder::GetPipelinesFromMask( inputString, desiredFormat );
+        if ( pipelines.empty() )
+            return { 1, "no input files" };
+
         _pipelinesBeforeStacker.insert( _pipelinesBeforeStacker.end(), pipelines.begin(), pipelines.end() );
     }
 
