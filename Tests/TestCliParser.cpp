@@ -155,6 +155,15 @@ EXPECT_EQ( 3, parser._pipelineAfterStacker.GetSize() );
 
 END_TEST
 
+BEGIN_TEST( StackEmptyDir )
+std::string lights = GetPathToTestFile( "EmptyDir/" );
+std::vector<const char*> data = { "acmb", "--input", lights.data(), "--stack", "--output", "test.tif" };
+CliParser parser( data.size(), ( &data[0] ) );
+auto [res, errMsg] = parser.Parse( true );
+EXPECT_EQ( 1, res );
+EXPECT_EQ( "no input files", errMsg );
+
+END_TEST
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END
