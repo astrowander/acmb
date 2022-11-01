@@ -72,6 +72,12 @@ std::shared_ptr<ResizeTransform> ResizeTransform::Create( PixelFormat pixelForma
     }
 }
 
+IBitmapPtr ResizeTransform::Resize( IBitmapPtr pSrcBitmap, Size dstSize )
+{
+    auto pResizeTransform = Create( pSrcBitmap, dstSize );
+    return pResizeTransform->RunAndGetBitmap();
+}
+
 void ResizeTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
 {
     _width = _dstSize.width;
