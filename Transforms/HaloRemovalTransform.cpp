@@ -75,6 +75,12 @@ public:
         } );
         _pDstBitmap = _pSrcBitmap;
     }
+
+    virtual void ValidateSettings() override
+    {
+        if ( GetColorSpace( _pSrcBitmap->GetPixelFormat() ) != ColorSpace::RGB )
+            throw std::invalid_argument( "unsupported pixel format" );
+    }
 };
 
 HaloRemovalTransform::HaloRemovalTransform( IBitmapPtr pSrcBitmap, float intensity, float bgL, float peakHue, float sigma )

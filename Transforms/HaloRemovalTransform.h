@@ -65,6 +65,8 @@ public:
     virtual void Run() override;
     /// Creates instance with given pixel format. Source bitmap must be set later
     static std::shared_ptr<AutoHaloRemoval> Create( PixelFormat pixelFormat, float intensity );
+
+    virtual void ValidateSettings() override {}
 };
 
 ACMB_NAMESPACE_END

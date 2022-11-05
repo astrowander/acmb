@@ -58,6 +58,10 @@ private:
             pDstPixel[ch] = static_cast< ChannelType >( std::clamp<double>( sum, 0, std::numeric_limits<ChannelType>::max() ) );
         }
     }
+
+    virtual void ValidateSettings() override
+    {
+    }
 };
 
 

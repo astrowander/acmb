@@ -132,6 +132,10 @@ public:
 			CorrectDistortion();
 		}
 	}
+
+	virtual void ValidateSettings() override
+	{		
+	}
 };
 
 DeaberrateTransform::DeaberrateTransform(IBitmapPtr pSrcBitmap, std::shared_ptr<CameraSettings> pCameraSettings)

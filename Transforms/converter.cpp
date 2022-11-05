@@ -164,6 +164,10 @@ public:
         _height = pParams->GetHeight();
         _pixelFormat = dstPixelFormat;
     }
+
+    virtual void ValidateSettings() override
+    {
+    }
 };
 
 Converter::Converter(IBitmapPtr pSrcBitmap)

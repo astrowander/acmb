@@ -16,11 +16,9 @@ void BaseTransform::SetSrcBitmap(IBitmapPtr pSrcBitmap)
 {
     if ( !pSrcBitmap )
         throw std::invalid_argument( "pSrcBitmap is null" );
-
-    //if ( pSrcBitmap->GetPixelFormat() != _pixelFormat )
-      //  throw std::invalid_argument( "pSrcBitmap has different pixel format" );
-
+    
     _pSrcBitmap = pSrcBitmap;
+    ValidateSettings();
 }
 
 ACMB_NAMESPACE_END

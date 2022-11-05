@@ -71,6 +71,15 @@ public:
         } );
         this->_pDstBitmap = this->_pSrcBitmap;
     }
+
+    virtual void ValidateSettings() override
+    {
+        if ( _pSrcBitmap->GetPixelFormat() != _settings.pDivisor->GetPixelFormat() )
+            throw std::invalid_argument( "bitmaps should have the same pixel format" );
+
+        if ( _pSrcBitmap->GetWidth() != _settings.pDivisor->GetWidth() || _pSrcBitmap->GetHeight() != _settings.pDivisor->GetHeight() )
+            throw std::invalid_argument( "bitmaps should have the same size" );
+    }
 };
 
 BitmapDivisor::BitmapDivisor( IBitmapPtr pSrcBitmap, const Settings& settings )

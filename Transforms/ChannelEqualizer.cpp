@@ -46,6 +46,12 @@ public:
 			}
 		} );
 	}
+
+	virtual void ValidateSettings() override
+	{
+		if ( _channelTransforms.size() != ChannelCount( _pSrcBitmap->GetPixelFormat() ) )
+			throw std::invalid_argument( "Multiplier count must be equal to channel count" );
+	}
 };
 
 ChannelEqualizer::ChannelEqualizer(IBitmapPtr pSrcBitmap)
@@ -219,6 +225,10 @@ void AutoChannelEqualizer::Run()
 std::shared_ptr<AutoChannelEqualizer> AutoChannelEqualizer::Create( PixelFormat, Settings )
 {
 	return std::make_shared<AutoChannelEqualizer>();
+}
+
+void  AutoChannelEqualizer::ValidateSettings()
+{
 }
 
 ACMB_NAMESPACE_END

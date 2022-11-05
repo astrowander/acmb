@@ -32,6 +32,8 @@ public:
 	virtual void Run() override;
 	/// Creates instance with given pixel format. Source bitmap must be set later
 	static std::shared_ptr<AutoChannelEqualizer> Create( PixelFormat, Settings = {} );
+
+	virtual void ValidateSettings() override;
 };
 
 ACMB_NAMESPACE_END

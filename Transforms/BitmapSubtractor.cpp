@@ -41,6 +41,15 @@ public:
         } );
         this->_pDstBitmap = this->_pSrcBitmap;
     }
+
+    virtual void ValidateSettings() override
+    {
+        if ( _pSrcBitmap->GetPixelFormat() != _pBitmapToSubtract->GetPixelFormat() )
+            throw std::invalid_argument( "bitmaps should have the same pixel format" );
+
+        if ( _pSrcBitmap->GetWidth() != _pBitmapToSubtract->GetWidth() || _pSrcBitmap->GetHeight() != _pBitmapToSubtract->GetHeight() )
+            throw std::invalid_argument( "bitmaps should have the same size" );
+    }
 };
 
 BitmapSubtractor::BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract )

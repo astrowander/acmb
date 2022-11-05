@@ -25,6 +25,10 @@ public:
         avir::CImageResizer<> resizer( BitsPerChannel( pixelFormat ) );
         resizer.resizeImage( pSrcBitmap->GetScanline(0), pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight(), 0, pDstBitmap->GetScanline( 0 ), _dstSize.width, _dstSize.height, channelCount, 0, nullptr );
     }
+
+    virtual void ValidateSettings() override
+    {
+    }
 };
 
 ResizeTransform::ResizeTransform( std::shared_ptr<IBitmap> pSrcBitmap, Size dstSize )

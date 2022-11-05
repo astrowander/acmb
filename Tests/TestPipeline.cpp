@@ -5,6 +5,7 @@
 #include "../Transforms/binningtransform.h"
 #include "../Transforms/BitmapSubtractor.h"
 #include "../Transforms/HaloRemovalTransform.h"
+#include "../Transforms/ResizeTransform.h"
 #include "../Transforms/converter.h"
 #include "../Codecs/PPM/ppmdecoder.h"
 
@@ -55,6 +56,8 @@ END_TEST
 
 BEGIN_TEST( TestLongPipeline )
 Pipeline pipeline( ImageDecoder::Create( GetPathToTestFile( "PPM/IMG_8970.ppm" ) ) );
+pipeline.AddTransform<ResizeTransform>( { 5496, 3670 } );
+pipeline.AddTransform<Converter>( PixelFormat::RGB48 );
 pipeline.AddTransform<BitmapSubtractor>( IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark.ppm" ) ) );
 pipeline.AddTransform<AutoChannelEqualizer>();
 pipeline.AddTransform<AutoHaloRemoval>();

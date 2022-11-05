@@ -26,6 +26,7 @@ public:
 
 	virtual void Run() override;
 	virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
+	virtual void ValidateSettings() override;
 };
 
 ACMB_NAMESPACE_END

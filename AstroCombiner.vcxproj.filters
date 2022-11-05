@@ -165,6 +165,9 @@
     <ClInclude Include="Transforms\avir\lancir.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms\CropTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -270,6 +273,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\ResizeTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\CropTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

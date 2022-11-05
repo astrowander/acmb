@@ -93,6 +93,10 @@ void DebayerTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
     _pixelFormat = ConstructPixelFormat( BitsPerChannel( pParams->GetPixelFormat() ) , 3 );
 }
 
+void DebayerTransform::ValidateSettings()
+{    
+}
+
 ACMB_NAMESPACE_END
 
 /// Creates instance with source bitmap and camera settings

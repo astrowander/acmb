@@ -12,6 +12,9 @@ protected:
     IBitmapPtr _pSrcBitmap;
     IBitmapPtr _pDstBitmap;
 
+    /// this function is called in SetSrcBitmap. It checks if the given bitmap is compatible with the given settings. If not throw an exception
+    virtual void ValidateSettings() = 0;
+
 public:
     BaseTransform(IBitmapPtr pSrcBitmap);
     virtual ~BaseTransform() = default;

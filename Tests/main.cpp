@@ -2,5 +2,5 @@
 
 int main()
 {
-    return !acmb::tests::TestRunner::RunAllTests();
+    acmb::tests::TestRunner::RunAllTests();
 }
