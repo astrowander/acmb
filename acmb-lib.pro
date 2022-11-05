@@ -37,7 +37,9 @@ SOURCES += \
     Tools/mathtools.cpp \
     Tools/Newton2D.cpp \
     Transforms/BitmapDivisor.cpp \
+    Transforms/CropTransform.cpp \
     Transforms/DebayerTransform.cpp \
+    Transforms/ResizeTransform.cpp \
     Transforms/basetransform.cpp \
     Transforms/binningtransform.cpp \
     Transforms/BitmapSubtractor.cpp \
@@ -84,7 +86,9 @@ HEADERS += \
     Tools/mathtools.h \
     Tools/Newton2D.h \
     Transforms/BitmapDivisor.h \
+    Transforms/CropTransform.h \
     Transforms/DebayerTransform.h \
+    Transforms/ResizeTransform.h \
     Transforms/basetransform.h \
     Transforms/binningtransform.h \
     Transforms/BitmapSubtractor.h \

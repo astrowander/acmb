@@ -30,8 +30,9 @@ bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
 
     IBitmap::Save(rhs, fileName);
     return true;
-#endif
+#else
     return BitmapsAreEqual(IBitmap::Create(fileName, rhs->GetPixelFormat()), rhs);
+#endif
 }
 
 const std::string testFilesPath = GetEnv("ACMB_PATH") + "/Tests/TestFiles/";

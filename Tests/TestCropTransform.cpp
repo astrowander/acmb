@@ -14,8 +14,8 @@ BEGIN_SUITE( CropTransform )
 
 TEST_PIXEL_FORMAT( Gray8 );
 TEST_PIXEL_FORMAT( Gray16 );
-TEST_PIXEL_FORMAT( Rgb24 );
-TEST_PIXEL_FORMAT( Rgb48 );
+TEST_PIXEL_FORMAT( RGB24 );
+TEST_PIXEL_FORMAT( RGB48 );
 
 BEGIN_TEST( TestZeroSize )
 
@@ -72,7 +72,7 @@ ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST( Test1x1 )
-EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/Test1x1.tiff" ), CropTransform::Crop( IBitmap::Create( GetPathToTestFile( "TIFF/Rgb24.tiff" ) ), { 0, 0, 1, 1 } ) ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/Test1x1.tiff" ), CropTransform::Crop( IBitmap::Create( GetPathToTestFile( "TIFF/RGB24.tiff" ) ), { 0, 0, 1, 1 } ) ) );
 END_TEST
 
 END_SUITE

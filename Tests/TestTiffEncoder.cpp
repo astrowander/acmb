@@ -1,6 +1,5 @@
 #include "test.h"
 #include "testtools.h"
-#include "../Codecs/Tiff/TiffDecoder.h"
 #include "../Codecs/Tiff/TiffEncoder.h"
 #include "../Codecs/PPM/ppmencoder.h"
 #include "../Core/bitmap.h"

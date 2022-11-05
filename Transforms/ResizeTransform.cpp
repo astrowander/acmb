@@ -1,5 +1,5 @@
 #include "ResizeTransform.h"
-#include "avir.h"
+#include "../Libs/avir/avir.h"
 
 ACMB_NAMESPACE_BEGIN
 

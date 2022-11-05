@@ -21,6 +21,7 @@ SOURCES += \
     TestChannelEqualizer.cpp \
     TestCliParser.cpp \
     TestConverter.cpp \
+    TestCropTransform.cpp \
     TestDeaberrateTransform.cpp \
     TestDebayerTransform.cpp \
     TestFastAligner.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
     TestPpmEncoder.cpp \
     TestRawDecoder.cpp \
     TestRegistrator.cpp \
+    TestResizeTransform.cpp \
     TestRgbToHsl.cpp \
     TestRunner.cpp \
     TestStacker.cpp \
