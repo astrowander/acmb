@@ -1,7 +1,7 @@
 #include "CropTransform.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
-
+#include <cstring>
 ACMB_NAMESPACE_BEGIN
 
 template<PixelFormat pixelFormat>
