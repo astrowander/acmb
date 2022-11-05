@@ -13,6 +13,7 @@
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/HaloRemovalTransform.h"
 #include "./../Transforms/ResizeTransform.h"
+#include "./../Transforms/CropTransform.h"
 #include "./../Tools/SystemTools.h"
 #include <filesystem>
 
@@ -251,6 +252,28 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             for ( auto& pipeline : _pipelinesBeforeStacker )
             {
                 pipeline.AddTransform<ResizeTransform>( Size{ width, height } );
+            }
+        }
+        }
+        else if ( key == "--crop" )
+        {
+        if ( values.size() != 4 )
+            return { 1, "--crop requires exactly 4 arguments" };
+
+        const int x = std::stoi( values[0] );
+        const int y = std::stoi( values[1] );
+        const int width = std::stoi( values[2] );
+        const int height = std::stoi( values[3] );
+
+        if ( isStackerFound )
+        {
+            _pipelineAfterStacker.AddTransform<CropTransform>( Rect { x, y, width, height });
+        }
+        else
+        {
+            for ( auto& pipeline : _pipelinesBeforeStacker )
+            {
+                pipeline.AddTransform<CropTransform>( Rect{ x, y, width, height } );
             }
         }
         }
