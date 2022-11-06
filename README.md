@@ -41,12 +41,12 @@ $ acmb --input "/path/to/input/IMG_1349#1353.CR2" --output "/path/to/output/file
 This means you will load five files: IMG_1349.CR2, IMG_1350.CR2, IMG_1351.CR2, IMG_1352.CR2, IMG_1353.CR2. Also if you have several inputs you must specify output directory, not the single file. 
 acmb supports reading from RAW, TIFF and PPM files, and writing to JPEG, TIFF and PPM.
 ### Stacking
-You can combine several pictures to a resulting sum with greater signal-to-noise ration than a single frame has. By default the application will detect stars in the pictures, search the same stars on the different frames, and align images such a way that stars matched. If you want just to stack images without alignment (e.g. to prepare master dark/flat frame) write argument "dark"/"flat". You can also specify argument "light", it behaves exactly as default.
+You can combine several pictures to a resulting sum with greater signal-to-noise ratio than a single frame has. By default the application will detect stars in the pictures, search the same stars on the different frames, and align images such a way that stars matched. If you want just to stack images without alignment (e.g. to prepare master dark/flat frame) write argument "dark"/"flat". You can also specify argument "light", it behaves exactly as default.
 ```sh
 $ acmb --input "/path/to/input/files/" --stack [dark,light,flat] --output "/path/to/output/file.tif"
 ```
 ### Additional transformations
-There are some image transformations in acmb. They can be applied to each input image if you write the key before "--stack" or to stacked result if you write later. For example:
+There are some image transformations in acmb. They can be applied to each input image if you write the key before "--stack" or to stacked result if you write it later. For example:
 ```sh
 $ acmb --input "/path/to/input/files/" --subtract "/path/to/dark/masterdark.tif" --deaberrate --stack [lights] --autowb --removehalo 70 --output "/path/to/output/file.tif"
 ```
@@ -74,5 +74,9 @@ It automatically removes purple halos around bright stars. Intensity means how s
 subtracts given image from their input
 #### --divide "/path/to/image" [intensity]
 subtracts given image from their input. Intensity means how strong is effect and changes from 0 (no effect) to 100 (maximal effect)
+#### --resize width height
+Width and height are the positive integers. This transform resizes the entire image to the given size
+#### --crop x y width height
+x, y, Width and height are the positive integers. This transform cuts the given rectangular area from the given image. The specified rect must not exceed the image, otherwise you'll get an error.
 ### Tests
 acmb is provided with a bunch of unit tests. If you want to run them please set the environment variable ACMB_PATH="/path/to/acmb/. It must store the location oh the main acmb directory (where you have downloaded it). Also you need to download the set of test files. It is too large to store it in GitHub, you can download it from Google Drive https://drive.google.com/file/d/1whnWlp1ww4q_VxdOZxBYbZuihow6O_T3/view?usp=sharing. Unzip it and place into the "Tests" folder
