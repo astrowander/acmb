@@ -1,7 +1,60 @@
 #include "ResizeTransform.h"
 #include "../Libs/avir/avir.h"
+#include <thread>
 
 ACMB_NAMESPACE_BEGIN
+
+class ResizeTransformThreadPool : public avir::CImageResizerThreadPool
+{
+    inline static const int MaxThreadCount = std::thread::hardware_concurrency();    
+    std::vector<CWorkload*> workloads;
+    uint64_t threadsRunningMask = 0;
+
+public:
+    ResizeTransformThreadPool()
+    : avir::CImageResizerThreadPool()
+    {
+        if ( MaxThreadCount <= 0 || MaxThreadCount > 64 )
+            throw std::runtime_error( "invalid processor count" );
+        
+        workloads.reserve( MaxThreadCount );
+    }
+
+    virtual int getSuggestedWorkloadCount() const override
+    {
+        return MaxThreadCount;
+    }
+
+    virtual void addWorkload( CWorkload* const workload ) override
+    {
+        workloads.push_back( workload );
+    }
+
+    virtual void startAllWorkloads() override
+    {
+        for ( size_t i = 0; i < workloads.size(); ++i )
+        {
+            threadsRunningMask |= ( 1ui64 << i );
+            std::thread thread( [&]
+            {
+                workloads[i]->process();
+                threadsRunningMask &= ~( 1ui64 << i );
+            } );
+            thread.join();
+        }        
+    }
+
+    virtual void waitAllWorkloadsToFinish() override
+    {
+        while ( threadsRunningMask != 0)
+        {}
+    }
+
+    virtual void removeAllWorkloads() override
+    {
+        workloads.clear();
+    }
+};
 
 template<PixelFormat pixelFormat>
 class ResizeTransform_ : public ResizeTransform
@@ -23,7 +76,10 @@ public:
         auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
         avir::CImageResizer<> resizer( BitsPerChannel( pixelFormat ) );
-        resizer.resizeImage( pSrcBitmap->GetScanline(0), pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight(), 0, pDstBitmap->GetScanline( 0 ), _dstSize.width, _dstSize.height, channelCount, 0, nullptr );
+        ResizeTransformThreadPool threadPool;
+        avir::CImageResizerVars vars;
+        vars.ThreadPool = &threadPool;
+        resizer.resizeImage( pSrcBitmap->GetScanline(0), pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight(), 0, pDstBitmap->GetScanline( 0 ), _dstSize.width, _dstSize.height, channelCount, 0, &vars );
     }
 
     virtual void ValidateSettings() override
