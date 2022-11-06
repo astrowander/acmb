@@ -34,11 +34,11 @@ public:
     {
         for ( size_t i = 0; i < workloads.size(); ++i )
         {
-            threadsRunningMask |= ( 1ui64 << i );
+            threadsRunningMask |= ( 1ull << i );
             std::thread thread( [&]
             {
                 workloads[i]->process();
-                threadsRunningMask &= ~( 1ui64 << i );
+                threadsRunningMask &= ~( 1ull << i );
             } );
             thread.join();
         }        
