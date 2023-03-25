@@ -214,7 +214,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -238,7 +238,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>

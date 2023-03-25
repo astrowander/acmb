@@ -2,9 +2,10 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
-#include <unordered_map>
+#include <parallel_hashmap/phmap.h>
 
 class LibRaw;
+using phmap::parallel_flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
@@ -21,7 +22,7 @@ struct LensInfo
 /// </summary>
 class RawDecoder : public ImageDecoder
 {
-    using LensDB = std::unordered_map<uint16_t, std::vector<LensInfo>>;
+    using LensDB = parallel_flat_hash_map<uint16_t, std::vector<LensInfo>>;
     static LensDB LoadLensDB();
     inline static LensDB lensDB = LoadLensDB();
 	LibRaw* _pLibRaw;

@@ -16,11 +16,13 @@
 #include "./../Transforms/CropTransform.h"
 #include "./../Tools/SystemTools.h"
 #include <filesystem>
+#include <parallel_hashmap/phmap.h>
 
+using phmap::parallel_flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
-static const std::unordered_map<std::string, PixelFormat> stringToPixelFormat =
+static const parallel_flat_hash_map<std::string, PixelFormat> stringToPixelFormat =
 {
     {"gray8", PixelFormat::Gray8},
     {"gray16", PixelFormat::Gray16},

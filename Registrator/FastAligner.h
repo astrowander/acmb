@@ -1,16 +1,18 @@
 #pragma once
 
 #include <vector>
-#include <unordered_map>
+#include <parallel_hashmap/phmap.h>
 
 #include "star.h"
 #include "../AGG/agg_trans_affine.h"
 
+using phmap::parallel_flat_hash_map;
+
 ACMB_NAMESPACE_BEGIN
 
 using StarPair = std::pair<Star, Star>;
-using IndexMap = std::unordered_map<size_t, size_t>;
-using MatchMap = std::unordered_map<PointF, PointF, PointFHasher>;
+using IndexMap = parallel_flat_hash_map<size_t, size_t>;
+using MatchMap = parallel_flat_hash_map<PointF, PointF, PointFHasher>;
 /// <summary>
 /// This class receives two vectors of stars and finds respective stars in them.
 /// </summary>

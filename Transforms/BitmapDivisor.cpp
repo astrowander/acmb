@@ -2,9 +2,12 @@
 #include "HistogramBuilder.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <parallel_hashmap/phmap.h>
+
 #include <algorithm>
 #include <array>
-#include <unordered_map>
+
+using phmap::parallel_flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
@@ -13,7 +16,7 @@ class BitmapDivisor_ final : public BitmapDivisor
 {
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;    
 
-    inline static std::unordered_map<IBitmapPtr, std::array<float, 4>> _cachedPivots = {};
+    inline static parallel_flat_hash_map<IBitmapPtr, std::array<float, 4>> _cachedPivots = {};
 
 public:
 
