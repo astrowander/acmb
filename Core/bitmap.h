@@ -175,8 +175,7 @@ public:
             QuadraticInterpolation(x - x0, _data[((y0 + 2) * _width + x0) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 2) * channelCount + ch])
         };
 
-        const ChannelType maxChannel = std::numeric_limits<ChannelType>::max();
-        return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, maxChannel);
+        return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, std::numeric_limits<ChannelType>::max() );
     }
 
     virtual std::shared_ptr<CameraSettings> GetCameraSettings() const override

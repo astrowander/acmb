@@ -11,7 +11,7 @@ ACMB_NAMESPACE_BEGIN
 class TiffEncoder : public ImageEncoder
 {
     std::string _fileName;
-    TinyTIFFWriterFile* _pTiff;
+    TinyTIFFWriterFile* _pTiff = nullptr;
 
 public:
     TiffEncoder() = default;

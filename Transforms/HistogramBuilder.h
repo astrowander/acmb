@@ -18,9 +18,9 @@ struct HistogramStatistics
 	// i% pixels has lower value than i-st element if this array
 	uint32_t centils[100] = {};
 	// average value
-	float mean;
+	float mean = 0.0f;
 	// standard deviation
-	float dev;
+	float dev = 0.0f;
 };
 /// <summary>
 /// Count statistics of the image and builds the histogram

@@ -11,7 +11,7 @@ ACMB_NAMESPACE_BEGIN
 /// </summary>
 class TiffDecoder : public ImageDecoder
 {
-    TinyTIFFReaderFile* _pReader;
+    TinyTIFFReaderFile* _pReader = nullptr;
 
 public:
     TiffDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );

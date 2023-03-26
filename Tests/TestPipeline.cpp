@@ -16,7 +16,7 @@ BEGIN_SUITE( Pipeline )
 BEGIN_TEST( TestNullArgs )
 auto f1 = []
 {
-    Pipeline( nullptr );
+    Pipeline pipeline( nullptr );
 };
 ASSERT_THROWS( f1, std::invalid_argument );
 
