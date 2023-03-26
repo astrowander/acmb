@@ -1,18 +1,23 @@
 #pragma once
 
-#include <vector>
+#include "star.h"
+
+#include "../AGG/agg_trans_affine.h"
 #include "../Libs/parallel-hashmap/parallel_hashmap/phmap.h"
 
-#include "star.h"
-#include "../AGG/agg_trans_affine.h"
+#include <vector>
+#include <array>
 
 using phmap::parallel_flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
+constexpr uint32_t bruteForceSearchSize = 30;
+
 using StarPair = std::pair<Star, Star>;
 using IndexMap = parallel_flat_hash_map<size_t, size_t>;
 using MatchMap = parallel_flat_hash_map<PointF, PointF, PointFHasher>;
+using BruteForceIndexMap = std::pair< std::array<uint8_t, bruteForceSearchSize>, uint8_t>;
 /// <summary>
 /// This class receives two vectors of stars and finds respective stars in them.
 /// </summary>
@@ -27,7 +32,7 @@ class FastAligner
 	double _eps = 1.0;
 
 	std::pair< IndexMap, agg::trans_affine> BruteForceSearch(const size_t n);
-	void BruteForceCheckTransform(const size_t refLim, const size_t targetLim, IndexMap& temp, const agg::trans_affine& transform);
+	BruteForceIndexMap BruteForceCheckTransform(const size_t refLim, const size_t targetLim, const std::pair<uint8_t, uint8_t>& refs, const std::pair<uint8_t, uint8_t>& targets, const agg::trans_affine& transform);
 	
 	template <class TransformType>
 	bool TryRefStar(size_t refIndex, IndexMap& matches, const TransformType& transform)
