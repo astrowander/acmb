@@ -2,7 +2,7 @@
 
 #include "../imagedecoder.h"
 #include "../../Core/enums.h"
-#include <parallel_hashmap/phmap.h>
+#include "../../Libs/parallel-hashmap/parallel_hashmap/phmap.h"
 
 class LibRaw;
 using phmap::parallel_flat_hash_map;

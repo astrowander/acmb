@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <parallel_hashmap/phmap.h>
+#include "../Libs/parallel-hashmap/parallel_hashmap/phmap.h"
 
 #include "star.h"
 #include "../AGG/agg_trans_affine.h"
