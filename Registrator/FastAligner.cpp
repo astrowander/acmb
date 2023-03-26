@@ -135,6 +135,8 @@ BruteForceIndexMap FastAligner::BruteForceCheckTransform( const size_t refLim, c
 	res.first[targets.second] = refs.second + 1;
 	res.second = 2;
 
+	const auto squaredEps = _eps * _eps;
+
 	for (uint8_t i = 0; i < targetLim; ++i)
 	{
 		if (targets.first == i || targets.second == i)
@@ -148,7 +150,7 @@ BruteForceIndexMap FastAligner::BruteForceCheckTransform( const size_t refLim, c
 			if (refs.first == j || refs.second == j)
 				continue;
 
-			if (transformedRefPoint.Distance(_refStars[j].center) > _eps)
+			if ( transformedRefPoint.SquaredDistance(_refStars[j].center) > squaredEps )
 				continue;
 
 			res.first[i] = j + 1;
