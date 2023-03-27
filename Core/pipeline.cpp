@@ -43,9 +43,8 @@ IBitmapPtr Pipeline::RunAndGetBitmap()
     for ( size_t i = 1; i < _elements.size(); ++i )
     {
         _elements[i]->SetCameraSettings( _elements[i - 1]->GetCameraSettings() );
-        pBitmap = _elements[i]->ProcessBitmap( pBitmap );
+        pBitmap = _elements[i]->ProcessBitmap( pBitmap );     
     }
-    _elements.clear();
     return pBitmap;
 }
 

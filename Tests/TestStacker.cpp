@@ -104,7 +104,7 @@ END_TEST
 
 BEGIN_TEST(TestThreePics)
 
-std::vector<Pipeline> pipelines
+const std::vector<Pipeline> pipelines
 {
     { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) ) },
     { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8945.CR2" ) ) },

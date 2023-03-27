@@ -31,7 +31,10 @@ public:
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap ) override
     {
         SetSrcBitmap( pSrcBitmap );
-        return RunAndGetBitmap();
+        auto res = RunAndGetBitmap();
+        _pSrcBitmap.reset();
+        _pDstBitmap.reset();
+        return res;
     }
 };
 

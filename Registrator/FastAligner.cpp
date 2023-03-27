@@ -110,7 +110,7 @@ std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const siz
 
 			//IndexMap temp2 = IndexMap{ {k, j}, {l, i} };
 			transform = CalculateTransform(refPair, { _targetStars[l].center , _targetStars[k].center });
-			matches = BruteForceCheckTransform( refLim, targetLim, { k,l }, { j,i }, transform );
+			matches = BruteForceCheckTransform( refLim, targetLim, { j,i }, { k,l }, transform );
 			if ( matches.second > resMatches.second )
 			{
 				resMatches = matches;
