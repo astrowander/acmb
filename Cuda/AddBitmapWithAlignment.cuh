@@ -26,4 +26,9 @@ struct TriangleTransformPair
 using GridCell = DynamicArray<TriangleTransformPair>;
 using Grid = DynamicArray<TriangleTransformPair*>;
 
+template<typename ChannelType>
+void AddBitmapWithAlignmentKernel( const ChannelType* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
+                              const TriangleTransformPair** grid, const uint32_t* cellSizes, const size_t gridWidth, const size_t gridHeight, const size_t gridPixelSize,
+                              float* pMeans, float* pDevs, uint16_t* pCounts );
+
 ACMB_CUDA_NAMESPACE_END

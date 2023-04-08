@@ -32,7 +32,7 @@ __global__ void AddBitmapKernel( const ChannelType* pPixels, float* pMeans, floa
     if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
     {
         dev = n * ( dev + ( channel - mean ) * ( channel - mean ) / ( n + 1 ) ) / ( n + 1 );
-        mean = Clamp( ( n * mean + channel ) / ( n + 1 ), 0.0f, float( Max<ChannelType>() ) );
+        mean = Clamp( ( n * mean + channel ) / ( n + 1 ), 0.0f, float( MaxValue<ChannelType>() ) );
         ++n;
     }
 }

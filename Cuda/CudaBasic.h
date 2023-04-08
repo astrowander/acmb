@@ -71,6 +71,7 @@ private:
 
 using DynamicArrayU8 = DynamicArray<uint8_t>;
 using DynamicArrayU16 = DynamicArray<uint16_t>;
+using DynamicArrayU32 = DynamicArray<uint32_t>;
 using DynamicArrayF = DynamicArray<float>;
 
 // Sets all float values of GPU array to zero
