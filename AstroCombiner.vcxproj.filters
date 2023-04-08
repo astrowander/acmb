@@ -168,6 +168,12 @@
     <ClInclude Include="Transforms\CropTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registrator\BaseStacker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -276,6 +282,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\CropTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registrator\BaseStacker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -36,6 +36,7 @@
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
     <ClInclude Include="Core\IPipelineElement.h" />
+    <ClInclude Include="Core\log.h" />
     <ClInclude Include="Core\macros.h" />
     <ClInclude Include="Core\pipeline.h" />
     <ClInclude Include="Core\versioning.h" />
@@ -45,6 +46,7 @@
     <ClInclude Include="Geometry\size.h" />
     <ClInclude Include="Geometry\startrektransform.h" />
     <ClInclude Include="Geometry\triangle.h" />
+    <ClInclude Include="Registrator\BaseStacker.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
@@ -86,9 +88,11 @@
     <ClCompile Include="Core\enums.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
     <ClCompile Include="Core\IPipelineElement.cpp" />
+    <ClCompile Include="Core\log.cpp" />
     <ClCompile Include="Core\pipeline.cpp" />
     <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />
+    <ClCompile Include="Registrator\BaseStacker.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />

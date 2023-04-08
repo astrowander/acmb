@@ -1,12 +1,8 @@
 #define _USE_MATH_DEFINES
 
 #include "stacker.h"
-#include "FastAligner.h"
 #include "registrator.h"
-#include "../Transforms/DebayerTransform.h"
-
-#include "../Geometry/delaunator.hpp"
-
+#include "../Core/log.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -246,62 +242,13 @@ public:
     }
 };
 
-static constexpr bool enableLogging = true;
-void Log(const std::string& message)
-{
-if (enableLogging)
-    std::cout << message << std::endl;
-}
-
 Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
-: _stackMode( stackMode )
-{
-    for (const auto& pipeline : pipelines )
-    {
-        _stackingData.push_back({ pipeline, {}, {} });
-        if ( ( stackMode == StackMode::Light || stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
-            _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
-    }
-
-    if ( pipelines.empty() )
-        throw std::invalid_argument( "no pipelines" );
-    
-    auto finalParams = _stackingData[0].pipeline.GetFinalParams();
-    if ( !finalParams )
-        throw std::invalid_argument( "cannot calculate image params" );
-
-    _width = finalParams->GetWidth();
-    _height = finalParams->GetHeight();
-    _pixelFormat = finalParams->GetPixelFormat();
-    _gridWidth = _width / gridSize + ((_width % gridSize) ? 1 : 0);
-    _gridHeight = _height / gridSize + ((_height % gridSize) ? 1 : 0);    
-}
+: BaseStacker( pipelines, stackMode )
+{}
 
 IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr )
 {
     return ( _stackMode == StackMode::Light ) ? RegistrateAndStack() : Stack();
-}
-
-void Stacker::Registrate()
-{
-    auto pRegistrator = std::make_unique<Registrator>(_threshold, _minStarSize, _maxStarSize);
-    for (auto& dsPair : _stackingData)
-    {
-        auto pBitmap = dsPair.pipeline.RunAndGetBitmap();      
-        
-        pRegistrator->Registrate(pBitmap);
-        dsPair.stars = pRegistrator->GetStars();
-
-        for (const auto& starVector : dsPair.stars)
-        {
-            dsPair.totalStarCount += starVector.size();
-        }
-
-        Log(dsPair.pipeline.GetFileName() + " is registered");
-        Log(std::to_string(dsPair.totalStarCount) + " stars are found");
-    }   
-
-    //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
 std::shared_ptr<IBitmap> Stacker::Stack()
@@ -364,54 +311,15 @@ std::shared_ptr<IBitmap> Stacker::Stack()
     return pRes;
 }
 
-void Stacker::StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i)
+void Stacker::StackWithAlignment( IBitmapPtr pTargetBitmap, uint32_t bitmapIndex )
 {
-    _matches.clear();
-    AlignmentHelper::Run(*this, i);
-    Log(std::to_string(_matches.size()) + " matching stars");
+    CalculateAligningGrid( bitmapIndex );    
 
-    std::vector<double> coords;
-    for (auto& match : _matches)
-    {
-        coords.push_back(match.first.x);
-        coords.push_back(match.first.y);
-    }
-
-    delaunator::Delaunator d(coords);
-
-    Grid grid;
-    _grid.clear();
-    _grid.resize(_gridWidth * _gridHeight);
-
-    for (std::size_t i = 0; i < d.triangles.size(); i += 3)
-    {
-        Triangle targetTriangle{ PointF {d.coords[2 * d.triangles[i]], d.coords[2 * d.triangles[i] + 1]}, PointF {d.coords[2 * d.triangles[i + 1]], d.coords[2 * d.triangles[i + 1] + 1]}, PointF {d.coords[2 * d.triangles[i + 2]], d.coords[2 * d.triangles[i + 2] + 1]} };
-        Triangle refTriangle{ _matches[targetTriangle.vertices[0]], _matches[targetTriangle.vertices[1]], _matches[targetTriangle.vertices[2]] };
-
-        TriangleTransformPair pair = { refTriangle, agg::trans_affine(reinterpret_cast<double*>(refTriangle.vertices.data()), reinterpret_cast<double*>(targetTriangle.vertices.data())) };
-
-        for (size_t j = 0; j < _gridWidth * _gridHeight; ++j)
-        {
-            RectF cell =
-            {
-                static_cast<double>((j % _gridWidth) * gridSize),
-                static_cast<double>((j / _gridWidth) * gridSize),
-                gridSize,
-                gridSize
-            };
-
-            if (refTriangle.GetBoundingBox().Overlaps(cell))
-            {
-                _grid[j].push_back(pair);
-            }
-        }
-    }
-
-    Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
+    Log( _stackingData[bitmapIndex].pipeline.GetFileName() + " grid is calculated" );
 
     CALL_HELPER(AddingBitmapWithAlignmentHelper, pTargetBitmap);
 
-    Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
+    Log( _stackingData[bitmapIndex].pipeline.GetFileName() + " is stacked" );
 }
 
 std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack()

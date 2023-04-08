@@ -1,7 +1,7 @@
 #include "triangle.h"
 ACMB_NAMESPACE_BEGIN
 
-float Sign(PointF p1, PointF p2, PointF p3)
+double Sign(PointF p1, PointF p2, PointF p3)
 {
 	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 }
