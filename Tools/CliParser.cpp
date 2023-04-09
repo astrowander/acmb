@@ -3,7 +3,6 @@
 #include "./../Core/versioning.h"
 #include "./../Codecs/imagedecoder.h"
 #include "./../Codecs/imageencoder.h"
-#include "./../Registrator/stacker.h"
 #include "./../Transforms/binningtransform.h"
 #include "./../Transforms/BitmapSubtractor.h"
 #include "./../Transforms/BitmapDivisor.h"
@@ -54,12 +53,17 @@ CliParser::CliParser( int argc, const char** argv )
         auto& kv = _kvs.back();
         kv.values.push_back( argv[i] );
     }
+
+    _createStackerCallback = [] ( const std::vector<Pipeline>& pipelines, StackMode stackMode )
+    {
+        return std::make_shared<Stacker>( pipelines, stackMode );
+    };
 }
 
 std::tuple<int, std::string> CliParser::Parse( bool testMode )
 {
     if ( _kvs.empty() )
-        return {0, std::string("acmb version ") + FULL_VERSION };
+        return { 0, std::string( "acmb version " ) + FULL_VERSION };
 
     if ( _kvs.front().key != "--input" || _kvs.front().values.empty() )
         return { 1, "Input files must be specified in the first place" };
@@ -74,9 +78,9 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         iStart = 2;
         const auto& values = _kvs[1].values;
 
-        if ( stringToPixelFormat.contains( values[0]) )
-        {            
-            desiredFormat = stringToPixelFormat.at( values[0]);
+        if ( stringToPixelFormat.contains( values[0] ) )
+        {
+            desiredFormat = stringToPixelFormat.at( values[0] );
         }
     }
 
@@ -165,7 +169,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             if ( values.size() < 1 || values.size() > 2 )
                 return { 1, "--divide requires one or two arguments" };
 
-            auto pDivisor = IBitmap::Create( values[0], ( (isStackerFound) ? _pipelineAfterStacker.GetFinalParams()->GetPixelFormat() : _pipelinesBeforeStacker[0].GetFinalParams()->GetPixelFormat() ) );
+            auto pDivisor = IBitmap::Create( values[0], ( ( isStackerFound ) ? _pipelineAfterStacker.GetFinalParams()->GetPixelFormat() : _pipelinesBeforeStacker[0].GetFinalParams()->GetPixelFormat() ) );
             float intensity = 100.0f;
             if ( values.size() == 2 )
             {
@@ -196,7 +200,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
-                {                   
+                {
                     pipeline.AddTransform<AutoChannelEqualizer>();
                 }
             }
@@ -240,79 +244,79 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         }
         else if ( key == "--resize" )
         {
-        if ( values.size() != 2 )
-            return { 1, "--resize requires exactly 2 arguments" };
+            if ( values.size() != 2 )
+                return { 1, "--resize requires exactly 2 arguments" };
 
-        const auto width = uint32_t(std::stoi( values[0] ));
-        const auto height = uint32_t(std::stoi( values[1] ));
+            const auto width = uint32_t( std::stoi( values[0] ) );
+            const auto height = uint32_t( std::stoi( values[1] ) );
 
-        if ( isStackerFound )
-        {
-            _pipelineAfterStacker.AddTransform<ResizeTransform>( Size {width, height });
-        }
-        else
-        {
-            for ( auto& pipeline : _pipelinesBeforeStacker )
+            if ( isStackerFound )
             {
-                pipeline.AddTransform<ResizeTransform>( Size{ width, height } );
+                _pipelineAfterStacker.AddTransform<ResizeTransform>( Size{ width, height } );
             }
-        }
+            else
+            {
+                for ( auto& pipeline : _pipelinesBeforeStacker )
+                {
+                    pipeline.AddTransform<ResizeTransform>( Size{ width, height } );
+                }
+            }
         }
         else if ( key == "--crop" )
         {
-        if ( values.size() != 4 )
-            return { 1, "--crop requires exactly 4 arguments" };
+            if ( values.size() != 4 )
+                return { 1, "--crop requires exactly 4 arguments" };
 
-        const int x = std::stoi( values[0] );
-        const int y = std::stoi( values[1] );
-        const int width = std::stoi( values[2] );
-        const int height = std::stoi( values[3] );
+            const int x = std::stoi( values[0] );
+            const int y = std::stoi( values[1] );
+            const int width = std::stoi( values[2] );
+            const int height = std::stoi( values[3] );
 
-        if ( isStackerFound )
-        {
-            _pipelineAfterStacker.AddTransform<CropTransform>( Rect { x, y, width, height });
-        }
-        else
-        {
-            for ( auto& pipeline : _pipelinesBeforeStacker )
+            if ( isStackerFound )
             {
-                pipeline.AddTransform<CropTransform>( Rect{ x, y, width, height } );
+                _pipelineAfterStacker.AddTransform<CropTransform>( Rect{ x, y, width, height } );
             }
-        }
+            else
+            {
+                for ( auto& pipeline : _pipelinesBeforeStacker )
+                {
+                    pipeline.AddTransform<CropTransform>( Rect{ x, y, width, height } );
+                }
+            }
         }
         else if ( key == "--stack" )
         {
-        if ( isStackerFound )
-            return { 1, "only one --stack is allowed" };
+            if ( isStackerFound )
+                return { 1, "only one --stack is allowed" };
 
-        isStackerFound = true;
+            isStackerFound = true;
 
-        std::shared_ptr<Stacker> pStacker;
-        if ( values.empty() || values[0] == "light" )
-            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::Light );
-        else if ( values[0] == "dark" || values[0] == "flat" )
-            pStacker = std::make_shared<Stacker>( _pipelinesBeforeStacker, StackMode::DarkOrFlat );
-        else
-            return { 1, "invalid stack mode" };
+            std::shared_ptr<BaseStacker> pStacker;
+            if ( values.empty() || values[0] == "light" )
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::Light );
+            else if ( values[0] == "dark" || values[0] == "flat" )
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::DarkOrFlat );
+            else
+                return { 1, "invalid stack mode" };
 
-        _pipelineAfterStacker.Add( pStacker );
+            _pipelineAfterStacker.Add( pStacker );
         }
         else if ( key == "--debayer" )
         {
-        if ( values.size() != 0 )
-            return { 1, "--deaberrate requires no argument" };
+            if ( values.size() != 0 )
+                return { 1, "--deaberrate requires no argument" };
 
-        if ( isStackerFound )
-        {
-            _pipelineAfterStacker.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
-        }
-        else
-        {
-            for ( auto& pipeline : _pipelinesBeforeStacker )
+            if ( isStackerFound )
             {
-                pipeline.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+                _pipelineAfterStacker.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
             }
-        }
+            else
+            {
+                for ( auto& pipeline : _pipelinesBeforeStacker )
+                {
+                    pipeline.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+                }
+            }
         }
         else
         {
@@ -335,7 +339,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         {
             const auto fullPath = pipeline.GetFileName();
             const auto fileName = fullPath.substr( fullPath.find_last_of( "/\\" ) );
-            pipeline.Add( ImageEncoder::Create( pathToOutput + "/" + fileName  + "." + ( ( _kvs.back().values.size() > 0 ) ? _kvs.back().values[1] : "tif" ) ) );
+            pipeline.Add( ImageEncoder::Create( pathToOutput + "/" + fileName + "." + ( ( _kvs.back().values.size() > 0 ) ? _kvs.back().values[1] : "tif" ) ) );
         }
     }
     else
@@ -346,14 +350,14 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         _pipelinesBeforeStacker[0].Add( ImageEncoder::Create( pathToOutput ) );
     }
 
-    
+
 
     if ( isStackerFound )
     {
         _pipelineAfterStacker.RunAndGetBitmap();
         return {};
     }
-    
+
     for ( auto& pipeline : _pipelinesBeforeStacker )
     {
         std::cout << pipeline.GetFileName() << std::endl;
@@ -363,9 +367,12 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
     return {};
 }
 
-std::tuple<int, std::string> CliParser::Parse( int argc, const char** argv )
+std::tuple<int, std::string> CliParser::Parse( int argc, const char** argv, CreateStackerCallback createStackerCallback )
 {
-    CliParser parser(argc, argv);
+    CliParser parser( argc, argv );
+    if ( createStackerCallback )
+        parser._createStackerCallback = createStackerCallback;
+
     return parser.Parse();
 }
 

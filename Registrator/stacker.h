@@ -36,9 +36,6 @@ public:
     virtual std::shared_ptr<IBitmap>  RegistrateAndStack() override;
     /// stacks registered images
     virtual std::shared_ptr<IBitmap> Stack() override;
-
-    /// needed for compatibility with pipeline API
-    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) override;
         
     TEST_ACCESS(Stacker);
 };

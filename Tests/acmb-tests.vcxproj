@@ -105,7 +105,7 @@
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-lib.lib;tbb12.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
@@ -114,7 +114,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-lib.lib;tbb12_debug.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <ClCompile>

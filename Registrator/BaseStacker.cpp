@@ -138,4 +138,9 @@ void BaseStacker::CalculateAligningGrid( uint32_t bitmapIndex )
     }
 }
 
+IBitmapPtr BaseStacker::ProcessBitmap( IBitmapPtr )
+{
+    return ( _stackMode == StackMode::Light ) ? RegistrateAndStack() : Stack();
+}
+
 ACMB_NAMESPACE_END

@@ -207,11 +207,6 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
 : BaseStacker( pipelines, stackMode )
 {}
 
-IBitmapPtr Stacker::ProcessBitmap( IBitmapPtr )
-{
-    return ( _stackMode == StackMode::Light ) ? RegistrateAndStack() : Stack();
-}
-
 std::shared_ptr<IBitmap> Stacker::Stack()
 {
     if (_stackingData.size() == 0)

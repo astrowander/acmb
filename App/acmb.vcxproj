@@ -25,6 +25,9 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 12.1.props" />
+  </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -101,19 +104,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>
-      </AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(CudaToolkitIncludeDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-lib.lib;tbb12.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_1)/lib/x64</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-lib.lib;tbb12_debug.lib;</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
     </Link>

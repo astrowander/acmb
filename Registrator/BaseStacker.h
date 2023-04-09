@@ -65,6 +65,9 @@ public:
     void SetMinStarSize( uint32_t minStarSize ) { _minStarSize = minStarSize; };
     double GetMaxStarSize() const { return _threshold; }
     void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
+
+    /// needed for compatibility with pipeline API
+    IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr );
 };
 
 ACMB_NAMESPACE_END

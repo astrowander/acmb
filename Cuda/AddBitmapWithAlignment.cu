@@ -148,10 +148,18 @@ void AddBitmapWithAlignmentKernel( const ChannelType* pixels, const uint32_t wid
 {
     int maxThreadsPerBlock = 0;
     cudaDeviceGetAttribute( &maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, 0 );
-    int numBlocks = ( int( size ) + maxThreadsPerBlock - 1 ) / maxThreadsPerBlock;
+    int numBlocks = ( int( width * height ) + maxThreadsPerBlock - 1 ) / maxThreadsPerBlock;
     kernel<ChannelType> << <numBlocks, maxThreadsPerBlock >> > ( pixels, width, height, channelCount,
                                                                  grid, cellSizes, gridWidth, gridHeight, gridPixelSize,
                                                                  pMeans, pDevs, pCounts );
 }
+
+template void AddBitmapWithAlignmentKernel<uint8_t>( const uint8_t*, uint32_t, uint32_t, uint32_t,
+                                                     const TriangleTransformPair**, const uint32_t*, size_t, size_t, size_t,
+                                                     float*, float*, uint16_t* );
+
+template void AddBitmapWithAlignmentKernel<uint16_t>( const uint16_t*, uint32_t, uint32_t, uint32_t,
+                                                     const TriangleTransformPair**, const uint32_t*, size_t, size_t, size_t,
+                                                     float*, float*, uint16_t* );
 
 ACMB_CUDA_NAMESPACE_END
