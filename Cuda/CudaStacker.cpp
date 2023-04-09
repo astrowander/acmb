@@ -1,7 +1,10 @@
 #include "CudaStacker.h"
 #include "AddBitmap.h"
+#include "AddBitmapWithAlignment.h"
+#include "GenerateResult.h"
 
 #include "./../Core/log.h"
+#include "./../Registrator/registrator.h"
 ACMB_CUDA_NAMESPACE_BEGIN
 
 void CallAddBitmapHelper( IBitmapPtr pBitmap, float* pMeans, float* pDevs, uint16_t * pCounts, size_t size )
@@ -38,6 +41,25 @@ void CallAddBitmapHelper( IBitmapPtr pBitmap, float* pMeans, float* pDevs, uint1
             AddBitmapHelper( pPixels.data(), pMeans, pDevs, pCounts, size );
             break;
         }
+        default:
+            throw std::runtime_error( "pixel format should be known" );
+    }
+}
+
+IBitmapPtr CallGeneratingResultHelper( float* pMeans, uint32_t width, uint32_t height, PixelFormat pixelFormat )
+{
+    switch ( pixelFormat )
+    {
+        case PixelFormat::RGB24:
+            return GeneratingResultHelper<PixelFormat::RGB24>( pMeans, width, height );
+        case acmb::PixelFormat::RGB48:
+            return GeneratingResultHelper<PixelFormat::RGB48>( pMeans, width, height );
+        case acmb::PixelFormat::Gray8:
+            return GeneratingResultHelper<PixelFormat::Gray8>( pMeans, width, height );
+        case acmb::PixelFormat::Gray16:
+            return GeneratingResultHelper<PixelFormat::Gray16>( pMeans, width, height );
+        case acmb::PixelFormat::Bayer16:
+            return GeneratingResultHelper<PixelFormat::Bayer16>( pMeans, width, height );
         default:
             throw std::runtime_error( "pixel format should be known" );
     }
@@ -96,22 +118,74 @@ std::shared_ptr<IBitmap> Stacker::Stack()
             continue;
         }
 
+        CalculateAligningGrid( i );
+
+        Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
+
+        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, _gridWidth, _gridHeight, gridSize );
+
+        Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
+    }
+
+    return CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
+}
+
+std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
+{
+    if ( _stackingData.size() == 0 )
+        return nullptr;
+
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
+
+    if ( _stackingData.size() == 1 )
+        return pRefBitmap;
+
+    auto pRegistrator = std::make_unique<Registrator>( _threshold, _minStarSize, _maxStarSize );
+
+    pRegistrator->Registrate( pRefBitmap );
+    _stackingData[0].stars = pRegistrator->GetStars();
+
+    const auto& refStars = _stackingData[0].stars;
+
+    _aligners.clear();
+    for ( const auto& refStarVector : refStars )
+        _aligners.push_back( std::make_shared<FastAligner>( refStarVector ) );
+
+    const size_t size = _width * _height * ChannelCount( pRefBitmap->GetPixelFormat() );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );
+
+    CallAddBitmapHelper( pRefBitmap, _means.data(), _devs.data(), _counts.data(), size );
+
+    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
+
+    for ( uint32_t i = 1; i < _stackingData.size(); ++i )
+    {
+        Log( _stackingData[i].pipeline.GetFileName() + " in process" );
+        auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
+        Log( _stackingData[i].pipeline.GetFileName() + " is read" );
+
+        if ( pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat() )
+            throw std::runtime_error( "bitmaps in stack should have the same pixel format" );
+
+        if ( _stackMode != StackMode::Light )
+        {
+            CallAddBitmapHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), size );
+            Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
+            continue;
+        }
 
         CalculateAligningGrid( i );
 
         Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
 
-      //  CALL_HELPER( AddingBitmapWithAlignmentHelper, pTargetBitmap );
+        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, _gridWidth, _gridHeight, gridSize );
 
         Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
     }
 
-    return pRefBitmap;
-}
-
-std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
-{
-    return nullptr;
+    return CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
 }
 
 

@@ -136,6 +136,12 @@ public:
     {
         return _data;
     }
+
+    /// returns data vector  UNSAFE 
+    auto& GetData()
+    {
+        return _data;
+    }
     /// sets data vector
     void SetData(const std::vector<ChannelType>& data)
     {

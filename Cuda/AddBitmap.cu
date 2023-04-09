@@ -2,21 +2,12 @@
 #include "CudaUtils.cuh"
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <algorithm>
-#include <limits>
-#include <cassert>
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
 template<typename ChannelType>
 __global__ void AddBitmapKernel( const ChannelType* pPixels, float* pMeans, float* pDevs, uint16_t* pCounts, size_t size )
 {
-    if ( size == 0 )
-    {
-        assert( false );
-        return;
-    }
-
     size_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if ( index >= size )
         return;

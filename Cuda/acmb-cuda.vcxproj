@@ -96,6 +96,7 @@
   <ItemGroup>
     <CudaCompile Include="AddBitmap.cu" />
     <CudaCompile Include="AddBitmapWithAlignment.cu" />
+    <CudaCompile Include="GenerateResult.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddBitmap.h" />
@@ -105,11 +106,14 @@
     <ClInclude Include="CudaBasic.hpp" />
     <ClInclude Include="CudaStacker.h" />
     <ClInclude Include="CudaUtils.cuh" />
+    <ClInclude Include="GenerateResult.cuh" />
+    <ClInclude Include="GenerateResult.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AddBitmapWithAlignment.cpp" />
     <ClCompile Include="CudaBasic.cpp" />
     <ClCompile Include="CudaStacker.cpp" />
+    <ClCompile Include="GenerateResult.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

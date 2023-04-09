@@ -1,7 +1,6 @@
 #include "AddBitmapWithAlignment.h"
 #include "AddBitmapWithAlignment.cuh"
 #include "./../Core/bitmap.h"
-#include "./../Registrator/BaseStacker.h"
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
