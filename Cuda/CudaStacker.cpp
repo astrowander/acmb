@@ -31,8 +31,8 @@ void CallAddBitmapHelper( IBitmapPtr pBitmap, float* pMeans, float* pDevs, uint1
         }
         case PixelFormat::RGB48:
         {
-            DynamicArrayU16 pPixels( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >( pBitmap )->GetData() );
-            AddBitmapHelper( pPixels.data(), pMeans, pDevs, pCounts, size );
+            DynamicArrayU16 pPixels( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >( pBitmap )->GetData() );            
+            AddBitmapHelper( pPixels.data(), pMeans, pDevs, pCounts, size);
             break;
         }
         case PixelFormat::Bayer16:
@@ -67,7 +67,27 @@ IBitmapPtr CallGeneratingResultHelper( float* pMeans, uint32_t width, uint32_t h
 
 Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
 : BaseStacker(pipelines, stackMode)
-{ }
+{ 
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );
+
+    switch ( _pixelFormat )
+    {
+        case PixelFormat::Gray8:
+        case PixelFormat::RGB24:
+            _cudaBitmap =  std::move( DynamicArrayU8(size) );
+            break;
+        case PixelFormat::Gray16:
+        case PixelFormat::Bayer16:
+        case PixelFormat::RGB48:
+            _cudaBitmap = std::move( DynamicArrayU16( size ) );
+            break;
+        default:
+            throw std::runtime_error( "pixel format should be known" );
+    }
+}
 
 std::shared_ptr<IBitmap> Stacker::Stack()
 {
@@ -99,6 +119,8 @@ std::shared_ptr<IBitmap> Stacker::Stack()
     _counts.resize( size );
 
     CallAddBitmapHelper( pRefBitmap, _means.data(), _devs.data(), _counts.data(), size );
+   // if ( cudaDeviceSynchronize() != cudaSuccess )
+     //   throw std::runtime_error( "error in CUDA kernel occured" );
 
     Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
 
@@ -114,6 +136,8 @@ std::shared_ptr<IBitmap> Stacker::Stack()
         if ( _stackMode != StackMode::Light )
         {
             CallAddBitmapHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), size );
+           // if ( cudaDeviceSynchronize() != cudaSuccess )
+               // throw std::runtime_error( "error in CUDA kernel occured" );
             Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
             continue;
         }
@@ -122,12 +146,18 @@ std::shared_ptr<IBitmap> Stacker::Stack()
 
         Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
 
-        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, _gridWidth, _gridHeight, gridSize );
+        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, gridSize, _gridWidth );
+       // if ( cudaDeviceSynchronize() != cudaSuccess )
+         //   throw std::runtime_error( "error in CUDA kernel occured" );
 
         Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
     }
 
-    return CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
+    const auto res = CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
+   // if ( cudaDeviceSynchronize() != cudaSuccess )
+     //   throw std::runtime_error( "error in CUDA kernel occured" );
+
+    return res;
 }
 
 std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
@@ -149,14 +179,16 @@ std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
 
     _aligners.clear();
     for ( const auto& refStarVector : refStars )
-        _aligners.push_back( std::make_shared<FastAligner>( refStarVector ) );
+        _aligners.push_back( std::make_shared<FastAligner>( refStarVector ) );    
 
-    const size_t size = _width * _height * ChannelCount( pRefBitmap->GetPixelFormat() );
-    _means.resize( size );
-    _devs.resize( size );
-    _counts.resize( size );
-
+    //auto errCode = cudaDeviceSynchronize();
+    //if ( errCode != cudaSuccess )
+     //   throw std::runtime_error( "error in CUDA kernel occured" );
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
     CallAddBitmapHelper( pRefBitmap, _means.data(), _devs.data(), _counts.data(), size );
+   // errCode = cudaDeviceSynchronize();
+   // if (  errCode != cudaSuccess )
+    //    throw std::runtime_error( "error in CUDA kernel occured" );
 
     Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
 
@@ -166,12 +198,17 @@ std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
         auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
         Log( _stackingData[i].pipeline.GetFileName() + " is read" );
 
-        if ( pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat() )
-            throw std::runtime_error( "bitmaps in stack should have the same pixel format" );
+       // if ( pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat() )
+         //   throw std::runtime_error( "bitmaps in stack should have the same pixel format" );
+
+        pRegistrator->Registrate( pTargetBitmap );
+        _stackingData[i].stars = pRegistrator->GetStars();
 
         if ( _stackMode != StackMode::Light )
         {
             CallAddBitmapHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), size );
+           // if ( cudaDeviceSynchronize() != cudaSuccess )
+             //   throw std::runtime_error( "error in CUDA kernel occured" );
             Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
             continue;
         }
@@ -180,12 +217,17 @@ std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
 
         Log( _stackingData[i].pipeline.GetFileName() + " grid is calculated" );
 
-        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, _gridWidth, _gridHeight, gridSize );
+        AddBitmapWithAlignmentHelper( pTargetBitmap, _means.data(), _devs.data(), _counts.data(), _grid, gridSize, _gridWidth );
+       // if ( cudaDeviceSynchronize() != cudaSuccess )
+       //     throw std::runtime_error( "error in CUDA kernel occured" );
 
         Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
     }
 
-    return CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
+    const auto res = CallGeneratingResultHelper( _means.data(), _width, _height, _pixelFormat );
+  //  if ( cudaDeviceSynchronize() != cudaSuccess )
+   //     throw std::runtime_error( "error in CUDA kernel occured" );
+    return res;
 }
 
 

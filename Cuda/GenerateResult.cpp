@@ -14,6 +14,7 @@ std::shared_ptr<Bitmap<pixelFormat>> GeneratingResultHelper( const float* pMeans
     DynamicArray<ChannelType> cudaBitmap( size );
     GeneratingResultKernel( pMeans, cudaBitmap.data(), size );
     cudaBitmap.toVector( pRes->GetData() );
+    //GeneratingResultKernel( pMeans, pRes->GetData().data(), size);
     return pRes;
 }
 

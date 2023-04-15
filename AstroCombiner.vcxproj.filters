@@ -123,9 +123,6 @@
     <ClInclude Include="Codecs\JPEG\toojpeg\toojpeg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tools\CliParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Core\macros.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -258,9 +255,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\JPEG\toojpeg\toojpeg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tools\CliParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tools\SystemTools.cpp">

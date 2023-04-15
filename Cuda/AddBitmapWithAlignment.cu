@@ -65,7 +65,7 @@ __device__ void Transform( const TransAffine& transform, double* x, double* y )
  
 template<typename ChannelType>
 __device__ float GetInterpolatedChannel( float x, float y, uint32_t ch,
-                                         ChannelType* data, uint32_t width, uint32_t height, uint32_t channelCount )
+                                         const ChannelType* data, uint32_t width, uint32_t height, uint32_t channelCount )
 {
     if ( x < 0 || x > width - 1 )
         return 0.0f;
@@ -96,10 +96,10 @@ __device__ float GetInterpolatedChannel( float x, float y, uint32_t ch,
 }
 template<typename ChannelType>
 __global__ void kernel( const ChannelType* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
-                        const TriangleTransformPair** grid, const uint32_t* cellSizes, const size_t gridWidth, const size_t gridHeight, const size_t gridPixelSize,
+                        const TriangleTransformPair* grid, const uint32_t* cellOffsets, const size_t gridWidth, const size_t gridPixelSize,
                         float* pMeans, float* pDevs, uint16_t* pCounts )
 {
-    const size_t size = width * height;    
+    const size_t size = width * height;
 
     size_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if ( index >= size )
@@ -112,18 +112,22 @@ __global__ void kernel( const ChannelType* pixels, const uint32_t width, const u
 
     size_t hGridIndex = x / gridPixelSize;
     size_t vGridIndex = y / gridPixelSize;
-    
+
     const size_t cellIndex = vGridIndex * gridWidth + hGridIndex;
-    auto pair = ChooseTriangle( p, grid[cellIndex], cellSizes[cellIndex] );
-    Transform( pair.transform, &p.x, &p.y );
+    const size_t cellSize = cellOffsets[cellIndex + 1] - cellOffsets[cellIndex];
+    if ( cellSize > 0 )
+    {
+        auto pair = ChooseTriangle( p, &grid[cellOffsets[cellIndex]], cellSize );
+        Transform( pair.transform, &p.x, &p.y );
+    }
 
     if ( p.x < 0 || p.x > width - 1 || p.y < 0 || p.y > height - 1 )
         return;
-    
+
     for ( uint32_t ch = 0; ch < channelCount; ++ch )
     {
-        const auto interpolatedChannel = GetInterpolatedChannel( float( p.x ), float( p.y ), ch, pixels, width, height, channelCount );
-        const size_t channelIndex = y * width * channelCount + x * channelCount + ch;
+        const auto interpolatedChannel = GetInterpolatedChannel<ChannelType>( float( p.x ), float( p.y ), ch, pixels, width, height, channelCount );
+        const size_t channelIndex = y * width * 3 + x * 3 + ch;
         auto& mean = pMeans[channelIndex];
         auto& dev = pDevs[channelIndex];
         auto& n = pCounts[channelIndex];
@@ -138,28 +142,28 @@ __global__ void kernel( const ChannelType* pixels, const uint32_t width, const u
             mean = Clamp( ( n * mean + interpolatedChannel ) / ( n + 1 ), 0.0f, float( MaxValue<ChannelType>() ) );
             ++n;
         }
-    }    
+    }
 }
 
 template<typename ChannelType>
 void AddBitmapWithAlignmentKernel( const ChannelType* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
-                                   const TriangleTransformPair** grid, const uint32_t* cellSizes, const size_t gridWidth, const size_t gridHeight, const size_t gridPixelSize,
+                                   const TriangleTransformPair* grid, const uint32_t* cellOffsets, const size_t gridWidth, const size_t gridPixelSize,
                                    float* pMeans, float* pDevs, uint16_t* pCounts )
 {
     int maxThreadsPerBlock = 0;
     cudaDeviceGetAttribute( &maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, 0 );
     int numBlocks = ( int( width * height ) + maxThreadsPerBlock - 1 ) / maxThreadsPerBlock;
     kernel<ChannelType> << <numBlocks, maxThreadsPerBlock >> > ( pixels, width, height, channelCount,
-                                                                 grid, cellSizes, gridWidth, gridHeight, gridPixelSize,
+                                                                 grid, cellOffsets, gridWidth, gridPixelSize,
                                                                  pMeans, pDevs, pCounts );
 }
 
 template void AddBitmapWithAlignmentKernel<uint8_t>( const uint8_t*, uint32_t, uint32_t, uint32_t,
-                                                     const TriangleTransformPair**, const uint32_t*, size_t, size_t, size_t,
+                                                     const TriangleTransformPair*, const uint32_t*, size_t, size_t,
                                                      float*, float*, uint16_t* );
 
 template void AddBitmapWithAlignmentKernel<uint16_t>( const uint16_t*, uint32_t, uint32_t, uint32_t,
-                                                     const TriangleTransformPair**, const uint32_t*, size_t, size_t, size_t,
+                                                     const TriangleTransformPair*, const uint32_t*, size_t, size_t,
                                                      float*, float*, uint16_t* );
 
 ACMB_CUDA_NAMESPACE_END

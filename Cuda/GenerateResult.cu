@@ -23,8 +23,9 @@ void GeneratingResultKernel( const float* pMeans, ChannelType* pOutput, const si
     int maxThreadsPerBlock = 0;
     cudaDeviceGetAttribute( &maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, 0 );
     int numBlocks = ( int( size ) + maxThreadsPerBlock - 1 ) / maxThreadsPerBlock;
-
     kernel<< <numBlocks, maxThreadsPerBlock >> > ( pMeans, pOutput, size );
+    //for ( size_t index = 0; index < size; ++index )
+      //  pOutput[index] = ChannelType( pMeans[index] );
 }
 
 template void GeneratingResultKernel<uint8_t>( const float*, uint8_t*, const size_t );

@@ -134,7 +134,6 @@
     <ClCompile Include="TestBitmap.cpp" />
     <ClCompile Include="TestBitmapSubtractor.cpp" />
     <ClCompile Include="TestChannelEqualizer.cpp" />
-    <ClCompile Include="TestCliParser.cpp" />
     <ClCompile Include="TestConverter.cpp" />
     <ClCompile Include="TestDeaberrateTransform.cpp" />
     <ClCompile Include="TestFastAligner.cpp" />

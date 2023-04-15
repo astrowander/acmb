@@ -1,4 +1,4 @@
-#include "../Tools/CliParser.h"
+#include "CliParser.h"
 #include "../Cuda/CudaStacker.h"
 #include "../Registrator/Stacker.h"
 

@@ -35,6 +35,23 @@ void AddBitmapHelper( const ChannelType* pPixels, float* pMeans, float* pDevs, u
     cudaDeviceGetAttribute( &maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, 0 );
     int numBlocks = ( int( size ) + maxThreadsPerBlock - 1 ) / maxThreadsPerBlock;
     AddBitmapKernel<ChannelType> << <numBlocks, maxThreadsPerBlock >> > ( pPixels, pMeans, pDevs, pCounts, size );
+    /*for ( size_t index = 0; index < size; ++index )
+    {
+        auto& mean = pMeans[index];
+        auto& dev = pDevs[index];
+        auto& n = pCounts[index];
+        const auto& channel = pPixels[index];
+
+        const auto sigma = sqrt( dev );
+        constexpr auto kappa = 3.0;
+
+        if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
+        {
+            dev = n * ( dev + ( channel - mean ) * ( channel - mean ) / ( n + 1 ) ) / ( n + 1 );
+            mean = Clamp( ( n * mean + channel ) / ( n + 1 ), 0.0f, float( MaxValue<ChannelType>() ) );
+            ++n;
+        }
+    }*/
 };
 
 template void AddBitmapHelper<>( const uint8_t*, float*, float*, uint16_t*, size_t );

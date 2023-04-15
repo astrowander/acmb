@@ -13,7 +13,11 @@ public:
     // malloc given size on GPU
     DynamicArray( size_t size );
     // copy given vector to GPU
-    DynamicArray( const std::vector<T>& vec );
+    template<typename U>
+    DynamicArray( const std::vector<U>& vec );
+
+    template<typename U>
+    DynamicArray( const std::vector<std::vector<U>>& vec );
     // free this array from GPU (if needed)
     ~DynamicArray();
 
@@ -21,25 +25,26 @@ public:
     DynamicArray( DynamicArray&& other )
     {
         data_ = other.data_;
-        other.data_ = nullptr;
         size_ = other.size_;
+        other.data_ = nullptr;
         other.size_ = 0;
     }
-
     DynamicArray& operator=( DynamicArray&& other )
     {
         data_ = other.data_;
-        other.data_ = nullptr;
         size_ = other.size_;
+        other.data_ = nullptr;
         other.size_ = 0;
         return *this;
     }
-
     DynamicArray& operator=( const DynamicArray& other ) = delete;
 
     // copy given vector to GPU (if this array was allocated with inconsistent size, free it and then malloc again)
     template <typename U>
     void fromVector( const std::vector<U>& vec );
+
+    template <typename U>
+    void fromVectors( const std::vector<std::vector<U>>& vec );
 
     // copy this GPU array to given vector
     template <typename U>

@@ -294,6 +294,8 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             std::shared_ptr<BaseStacker> pStacker;
             if ( values.empty() || values[0] == "light" )
                 pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::Light );
+            else if ( values[0] == "noalign" )
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::LightNoAlign );
             else if ( values[0] == "dark" || values[0] == "flat" )
                 pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::DarkOrFlat );
             else

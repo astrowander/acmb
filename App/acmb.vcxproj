@@ -116,7 +116,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_1)/lib/x64</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
     </Link>
     <ClCompile>
@@ -124,7 +124,11 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CliParser.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CliParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -51,7 +51,6 @@
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
-    <ClInclude Include="Tools\CliParser.h" />
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
     <ClInclude Include="Tools\SystemTools.h" />
@@ -96,7 +95,6 @@
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
-    <ClCompile Include="Tools\CliParser.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />
     <ClCompile Include="Tools\SystemTools.cpp" />
