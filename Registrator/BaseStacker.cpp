@@ -1,5 +1,6 @@
 #include "BaseStacker.h"
 #include "registrator.h"
+#include "StackEngineConstants.h"
 #include "../Core/log.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/DebayerTransform.h"
@@ -67,8 +68,8 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     _width = finalParams->GetWidth();
     _height = finalParams->GetHeight();
     _pixelFormat = finalParams->GetPixelFormat();
-    _gridWidth = _width / gridSize + ( ( _width % gridSize ) ? 1 : 0 );
-    _gridHeight = _height / gridSize + ( ( _height % gridSize ) ? 1 : 0 );
+    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
+    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
 
 void BaseStacker::Registrate()
@@ -124,10 +125,10 @@ void BaseStacker::CalculateAligningGrid( uint32_t bitmapIndex )
         {
             RectF cell =
             {
-                static_cast< double >( ( j % _gridWidth ) * gridSize ),
-                static_cast< double >( ( j / _gridWidth ) * gridSize ),
-                gridSize,
-                gridSize
+                static_cast< double >( ( j % _gridWidth ) * cGridPixelSize ),
+                static_cast< double >( ( j / _gridWidth ) * cGridPixelSize ),
+                cGridPixelSize,
+                cGridPixelSize
             };
 
             if ( refTriangle.GetBoundingBox().Overlaps( cell ) )

@@ -54,7 +54,7 @@ CliParser::CliParser( int argc, const char** argv )
         kv.values.push_back( argv[i] );
     }
 
-    _createStackerCallback = [] ( const std::vector<Pipeline>& pipelines, StackMode stackMode )
+    _createStackerCallback = [] ( const std::vector<Pipeline>& pipelines, StackMode stackMode, bool )
     {
         return std::make_shared<Stacker>( pipelines, stackMode );
     };
@@ -291,13 +291,17 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             isStackerFound = true;
 
+            bool enableCudaIfAvailable = false;
+            if ( values.size() >= 2 && values[1] == "usecuda" )
+                enableCudaIfAvailable = true;
+
             std::shared_ptr<BaseStacker> pStacker;
             if ( values.empty() || values[0] == "light" )
-                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::Light );
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::Light, enableCudaIfAvailable );
             else if ( values[0] == "noalign" )
-                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::LightNoAlign );
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::LightNoAlign, enableCudaIfAvailable );
             else if ( values[0] == "dark" || values[0] == "flat" )
-                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::DarkOrFlat );
+                pStacker = _createStackerCallback( _pipelinesBeforeStacker, StackMode::DarkOrFlat, enableCudaIfAvailable );
             else
                 return { 1, "invalid stack mode" };
 

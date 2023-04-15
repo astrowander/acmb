@@ -1,6 +1,7 @@
 #include "AddBitmapWithAlignment.h"
 #include "AddBitmapWithAlignment.cuh"
 #include "./../Core/bitmap.h"
+#include "./../Registrator/StackEngineConstants.h"
 
 ACMB_CUDA_NAMESPACE_BEGIN
 /*
@@ -97,14 +98,15 @@ float GetInterpolatedChannel( float x, float y, uint32_t ch,
     return Clamp<float>( QuadraticInterpolation( y - y0, yIn[0], yIn[1], yIn[2] ), 0, MaxValue<ChannelType>() );
 }
 */
-void AddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap, float* pMeans, float* pDevs, uint16_t* pCounts,
-                                   const BaseStacker::Grid& grid, const size_t gridPixelSize, const size_t gridWidth )
+template<typename ChannelType>
+void AddBitmapWithAlignmentHelper( const ChannelType* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
+                                   const BaseStacker::Grid& grid,
+                                   float* pMeans, float* pDevs, uint16_t* pCounts )
 {
-    const size_t gridSize = grid.size();
-    
+    const size_t gridSize = grid.size();    
     DynamicArray<TriangleTransformPair> cudaGrid( grid );
-    std::vector< TriangleTransformPair> cudaGridCopy;
-    cudaGrid.toVector( cudaGridCopy );
+    //std::vector< TriangleTransformPair> cudaGridCopy;
+    //cudaGrid.toVector( cudaGridCopy );
 
     std::vector<uint32_t> cellOffsets( gridSize + 1 );
 
@@ -115,55 +117,11 @@ void AddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap, float* pMea
 
     DynamicArrayU32 cudaCellOffsets( cellOffsets );
 
-    const uint32_t width = pBitmap->GetWidth();
-    const uint32_t height = pBitmap->GetHeight();
+    const size_t gridWidth = width / cGridPixelSize + ( ( width % cGridPixelSize ) ? 1 : 0 );
 
-    switch ( pBitmap->GetPixelFormat() )
-    {
-        case PixelFormat::Gray8:
-        {
-            const DynamicArrayU8 pixels( std::static_pointer_cast< Bitmap<PixelFormat::Gray8> >( pBitmap )->GetData() );
-            AddBitmapWithAlignmentKernel<uint8_t>( pixels.data(), width, height, 1,
-                                                   cudaGrid.data(), cudaCellOffsets.data(), gridWidth, gridPixelSize,
-                                                   pMeans, pDevs, pCounts );
-            break;
-        }
-        case PixelFormat::Gray16:
-        {
-            const DynamicArrayU16 pixels( std::static_pointer_cast< Bitmap<PixelFormat::Gray16> >( pBitmap )->GetData() );
-            AddBitmapWithAlignmentKernel<uint16_t>( pixels.data(), width, height, 1,
-                                                    cudaGrid.data(), cudaCellOffsets.data(), gridWidth, gridPixelSize,
-                                                    pMeans, pDevs, pCounts );
-            break;
-        }
-        case PixelFormat::RGB24:
-        {
-            const DynamicArrayU8 pixels( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( pBitmap )->GetData() );
-            AddBitmapWithAlignmentKernel<uint8_t>( pixels.data(), width, height, 3,
-                                                   cudaGrid.data(), cudaCellOffsets.data(), gridWidth, gridPixelSize,
-                                                   pMeans, pDevs, pCounts );
-            break;
-        }
-        case PixelFormat::RGB48:
-        {
-            DynamicArrayU16 pixels( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >( pBitmap )->GetData() );
-            AddBitmapWithAlignmentKernel<uint16_t>( pixels.data(), width, height, 3,
-                                                    cudaGrid.data(), cudaCellOffsets.data(), gridWidth, gridPixelSize,
-                                                    pMeans, pDevs, pCounts );
-            break;
-        }
-        case PixelFormat::Bayer16:
-        {
-            DynamicArrayU16 pixels( std::static_pointer_cast< Bitmap<PixelFormat::Bayer16> >( pBitmap )->GetData() );
-            AddBitmapWithAlignmentKernel<uint16_t>( pixels.data(), width, height, 1,
-                                                    cudaGrid.data(), cudaCellOffsets.data(), gridWidth, gridPixelSize,
-                                                    pMeans, pDevs, pCounts );
-            break;
-        }
-        default:
-            break;
-
-    }
+    AddBitmapWithAlignmentKernel<ChannelType>( pixels, width, height, channelCount,
+                                               cudaGrid.data(), cudaCellOffsets.data(), gridWidth, cGridPixelSize,
+                                               pMeans, pDevs, pCounts );
 
     /*const auto& pixels = std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >( pBitmap )->GetData();
     for ( size_t index = 0; index < width * height; ++index )
@@ -208,5 +166,11 @@ void AddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap, float* pMea
         }
     }*/
 }
+
+template void AddBitmapWithAlignmentHelper<>( const uint8_t* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
+                                     const BaseStacker::Grid& grid, float* pMeans, float* pDevs, uint16_t* pCounts );
+
+template void AddBitmapWithAlignmentHelper<>( const uint16_t* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
+                                     const BaseStacker::Grid& grid, float* pMeans, float* pDevs, uint16_t* pCounts );
 
 ACMB_CUDA_NAMESPACE_END

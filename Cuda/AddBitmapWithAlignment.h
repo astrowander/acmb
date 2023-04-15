@@ -7,7 +7,9 @@ ACMB_NAMESPACE_END
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
-void AddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap, float* pMeans, float* pDevs, uint16_t* pCounts,
-                                   const BaseStacker::Grid& grid, const size_t gridWidth, const size_t gridPixelSize );
+template<typename ChannelType>
+void AddBitmapWithAlignmentHelper( const ChannelType* pixels, const uint32_t width, const uint32_t height, const uint32_t channelCount,
+                                   const BaseStacker::Grid& grid,
+                                   float* pMeans, float* pDevs, uint16_t* pCounts );
 
 ACMB_CUDA_NAMESPACE_END

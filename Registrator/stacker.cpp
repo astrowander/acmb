@@ -1,6 +1,7 @@
 #define _USE_MATH_DEFINES
 
 #include "stacker.h"
+#include "StackEngineConstants.h"
 #include "registrator.h"
 #include "../Core/log.h"
 #include <tbb/blocked_range.h>
@@ -107,8 +108,8 @@ class AddingBitmapWithAlignmentHelper
         {
             PointF p{ static_cast< double >( x ), static_cast< double >( i ) };
 
-            size_t hGridIndex = x / _stacker.gridSize;
-            size_t vGridIndex = i / _stacker.gridSize;
+            size_t hGridIndex = x / cGridPixelSize;
+            size_t vGridIndex = i / cGridPixelSize;
 
             if ( !_stacker._grid.empty() )
             {

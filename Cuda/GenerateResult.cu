@@ -1,5 +1,4 @@
 #include "GenerateResult.h"
-#include "GenerateResult.cuh"
 #include "CudaUtils.cuh"
 #include "CudaBasic.h"
 #include "cuda_runtime.h"

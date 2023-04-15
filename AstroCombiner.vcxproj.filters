@@ -171,6 +171,9 @@
     <ClInclude Include="Core\log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registrator\StackEngineConstants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">

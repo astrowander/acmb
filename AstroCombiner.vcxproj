@@ -49,6 +49,7 @@
     <ClInclude Include="Registrator\BaseStacker.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
+    <ClInclude Include="Registrator\StackEngineConstants.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
     <ClInclude Include="Tools\mathtools.h" />

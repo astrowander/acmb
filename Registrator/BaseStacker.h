@@ -33,7 +33,6 @@ protected:
     Grid _grid;
     std::vector<StackingDatum> _stackingData;
 
-    static const size_t gridSize = 100;
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 

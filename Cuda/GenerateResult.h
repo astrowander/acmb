@@ -11,7 +11,7 @@ ACMB_NAMESPACE_END
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
-template<PixelFormat pixelFormat>
-std::shared_ptr<Bitmap<pixelFormat>> GeneratingResultHelper( const float* pMeans, uint32_t width, uint32_t height );
+template<typename ChannelType>
+void GeneratingResultKernel( const float* pMeans, ChannelType* pOutput, const size_t size );
 
 ACMB_CUDA_NAMESPACE_END

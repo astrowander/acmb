@@ -13,6 +13,10 @@ class Stacker : public BaseStacker
 
     std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
 
+    void CallAddBitmapHelper( IBitmapPtr pBitmap );
+    void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap, const Grid& grid );
+    IBitmapPtr CallGeneratingResultHelper();
+
 public:
     Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
 

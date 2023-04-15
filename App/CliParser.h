@@ -32,7 +32,7 @@ class CliParser
 
     CliParser( int argc, const char** argv );
     std::tuple<int, std::string> Parse( bool testMode = false );
-    using CreateStackerCallback = std::function<std::shared_ptr<BaseStacker>( const std::vector<Pipeline>&, StackMode )>;
+    using CreateStackerCallback = std::function<std::shared_ptr<BaseStacker>( const std::vector<Pipeline>&, StackMode, bool )>;
     CreateStackerCallback _createStackerCallback;
 
 public:
