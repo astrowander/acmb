@@ -1,6 +1,7 @@
 #pragma once
 #include "./../Registrator/BaseStacker.h"
 #include "CudaBasic.h"
+#include "AddBitmapWithAlignment.h"
 #include <variant>
 
 ACMB_CUDA_NAMESPACE_BEGIN
@@ -9,9 +10,10 @@ class Stacker : public BaseStacker
 {
     DynamicArrayF _means;
     DynamicArrayF _devs;
-    DynamicArrayU16  _counts;
+    DynamicArrayU16 _counts;
 
     std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
+    std::variant< AddBitmapWithAlignmentHelperU8, AddBitmapWithAlignmentHelperU16> _helper;
 
     void CallAddBitmapHelper( IBitmapPtr pBitmap );
     void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap, const Grid& grid );
