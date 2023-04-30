@@ -1,5 +1,5 @@
 #include "AddBitmapWithAlignment.cuh"
-
+#include <float.h>
 ACMB_CUDA_NAMESPACE_BEGIN
 
 __device__ inline double Sqr( double d )

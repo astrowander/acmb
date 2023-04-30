@@ -19,7 +19,6 @@ SOURCES += \
     TestBitmapDivisor.cpp \
     TestBitmapSubtractor.cpp \
     TestChannelEqualizer.cpp \
-    TestCliParser.cpp \
     TestConverter.cpp \
     TestCropTransform.cpp \
     TestDeaberrateTransform.cpp \

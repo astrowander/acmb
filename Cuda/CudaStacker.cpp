@@ -82,13 +82,13 @@ Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
     {
         case PixelFormat::Gray8:
         case PixelFormat::RGB24:
-            _cudaBitmap =  std::move( DynamicArrayU8(size) );
+        _cudaBitmap =   DynamicArrayU8(size) ;
             _helper = AddBitmapWithAlignmentHelperU8();
             break;
         case PixelFormat::Gray16:
         case PixelFormat::Bayer16:
         case PixelFormat::RGB48:
-            _cudaBitmap = std::move( DynamicArrayU16( size ) );
+        _cudaBitmap =  DynamicArrayU16( size ) ;
             _helper = AddBitmapWithAlignmentHelperU16();
             break;
         default:
@@ -195,7 +195,6 @@ std::shared_ptr<IBitmap> Stacker::RegistrateAndStack()
     if ( cudaDeviceSynchronize() != cudaSuccess )
         throw std::runtime_error( "error in CUDA kernel occured" );
 #endif
-    const size_t size = _width * _height * ChannelCount( _pixelFormat );
     CallAddBitmapHelper( pRefBitmap );
 #ifdef CUDA_SYNCHRONIZE
     if ( cudaDeviceSynchronize() != cudaSuccess )

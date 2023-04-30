@@ -1,6 +1,6 @@
 #include "CliParser.h"
 #include "../Cuda/CudaStacker.h"
-#include "../Registrator/Stacker.h"
+#include "../Registrator/stacker.h"
 #include <chrono>
 
 int main(int argc, const char** argv)

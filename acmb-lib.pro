@@ -26,13 +26,14 @@ SOURCES += \
     Core/bitmap.cpp \
     Core/enums.cpp \
     Core/imageparams.cpp \
+    Core/log.cpp \
     Core/pipeline.cpp \
     Geometry/startrektransform.cpp \
     Geometry/triangle.cpp \
+    Registrator/BaseStacker.cpp \
     Registrator/FastAligner.cpp \
     Registrator/registrator.cpp \
     Registrator/stacker.cpp \
-    Tools/CliParser.cpp \
     Tools/SystemTools.cpp \
     Tools/mathtools.cpp \
     Tools/Newton2D.cpp \
@@ -68,6 +69,7 @@ HEADERS += \
     Core/camerasettings.h \
     Core/enums.h \
     Core/imageparams.h \
+    Core/log.h \
     Core/macros.h \
     Core/pipeline.h \
     Core/versioning.h \
@@ -77,11 +79,12 @@ HEADERS += \
     Geometry/size.h \
     Geometry/startrektransform.h \
     Geometry/triangle.h \
+    Registrator/BaseStacker.h \
     Registrator/FastAligner.h \
+    Registrator/StackEngineConstants.h \
     Registrator/registrator.h \
     Registrator/stacker.h \
     Registrator/star.h \
-    Tools/CliParser.h \
     Tools/SystemTools.h \
     Tools/mathtools.h \
     Tools/Newton2D.h \

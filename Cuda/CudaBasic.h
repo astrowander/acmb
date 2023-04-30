@@ -1,6 +1,9 @@
 #pragma once
 #include "./../Core/macros.h"
 #include <vector>
+#include <cstdint>
+
+using std::size_t;
 
 ACMB_CUDA_NAMESPACE_BEGIN
 

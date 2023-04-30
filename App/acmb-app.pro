@@ -7,16 +7,23 @@ LIBS += -L/usr/local/lib/ -lraw
 LIBS += -llensfun
 LIBS += -lTinyTIFFShared_Release
 LIBS += -ltbb
+LIBS += -lcudart
 
 SOURCES += \
+    CliParser.cpp \
     main.cpp \
 
 LIBS += -L$$OUT_PWD/../ -lacmb-lib
+LIBS += -L$$OUT_PWD/../Cuda/ -lacmb-cuda
 
 INCLUDEPATH += $$PWD/../
 DEPENDPATH += $$PWD/../
 
 PRE_TARGETDEPS += $$OUT_PWD/../libacmb-lib.a
+PRE_TARGETDEPS += $$OUT_PWD/../Cuda/libacmb-cuda.a
 
 INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/include
+
+HEADERS += \
+    CliParser.h
