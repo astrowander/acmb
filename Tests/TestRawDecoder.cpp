@@ -2,6 +2,7 @@
 #include "testtools.h"
 #include "./../Codecs/Raw/RawDecoder.h"
 #include "./../Codecs/PPM/ppmencoder.h"
+#include <fstream>
 
 ACMB_TESTS_NAMESPACE_BEGIN
 
@@ -122,6 +123,16 @@ pDecoder->Attach( GetPathToTestFile( "RAW/TestLensInfo/Samyang_85_mm.CR2" ) );
 EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensMakerName );
 EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensModelName );
 
+
+END_TEST
+
+BEGIN_TEST (TestReadingFromStream)
+
+auto pDecoder = std::make_unique<RawDecoder>( PixelFormat::RGB48 );
+pDecoder->Attach( std::make_shared<std::ifstream>( GetPathToTestFile( "RAW/TestLensInfo/Canon_200_mm.CR2" ), std::ios_base::in | std::ios_base::binary ) );
+EXPECT_EQ( PixelFormat::RGB48, pDecoder->GetPixelFormat() );
+EXPECT_EQ( 5496, pDecoder->GetWidth() );
+EXPECT_EQ( 3670, pDecoder->GetHeight() );
 
 END_TEST
 

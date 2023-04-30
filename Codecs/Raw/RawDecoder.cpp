@@ -96,21 +96,16 @@ const SizeF sensorSizes[9] =
 	{17.3, 13.0} // 4/3
 };
 
-void RawDecoder::Attach(const std::string& fileName)
+void RawDecoder::Attach()
 {
-	_lastFileName = fileName;
-
-	if (_pLibRaw->open_file(fileName.data()))
-		throw std::runtime_error("unable to read the file");
-
 	_decodedFormat = PixelFormat::Bayer16;
-	
+
 	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _pixelFormat );
-    _pLibRaw->imgdata.params.no_interpolation = 1;
-    _pLibRaw->imgdata.params.fbdd_noiserd = 0;
-    _pLibRaw->imgdata.params.med_passes = 0;
+	_pLibRaw->imgdata.params.no_interpolation = 1;
+	_pLibRaw->imgdata.params.fbdd_noiserd = 0;
+	_pLibRaw->imgdata.params.med_passes = 0;
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
-    _pLibRaw->imgdata.params.half_size = 0;
+	_pLibRaw->imgdata.params.half_size = 0;
 	_pLibRaw->imgdata.params.user_qual = 0;
 
 	_pLibRaw->raw2image_start();
@@ -121,15 +116,15 @@ void RawDecoder::Attach(const std::string& fileName)
 	_pCameraSettings->sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
 	_pCameraSettings->cropFactor = cropFactors[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
 	_pCameraSettings->focalLength = _pLibRaw->imgdata.other.focal_len;
-	_pCameraSettings->radiansPerPixel = 2 * atan(_pCameraSettings->sensorSizeMm.height / (2 * _pCameraSettings->focalLength)) / _height;	
+	_pCameraSettings->radiansPerPixel = 2 * atan( _pCameraSettings->sensorSizeMm.height / ( 2 * _pCameraSettings->focalLength ) ) / _height;
 	_pCameraSettings->aperture = _pLibRaw->imgdata.other.aperture;
 
 	_pCameraSettings->cameraMakerName = _pLibRaw->imgdata.idata.make;
 	_pCameraSettings->cameraModelName = _pCameraSettings->cameraMakerName;
-	_pCameraSettings->cameraModelName.push_back(' ');
-	_pCameraSettings->cameraModelName.append(_pLibRaw->imgdata.idata.model);
+	_pCameraSettings->cameraModelName.push_back( ' ' );
+	_pCameraSettings->cameraModelName.append( _pLibRaw->imgdata.idata.model );
 
-	_pCameraSettings->maxChannel = _pLibRaw->imgdata.color.maximum;	
+	_pCameraSettings->maxChannel = _pLibRaw->imgdata.color.maximum;
 	for ( int i = 0; i < 4; ++i )
 	{
 		_pCameraSettings->channelPremultipiers[i] = _pLibRaw->imgdata.color.pre_mul[i];
@@ -153,14 +148,38 @@ void RawDecoder::Attach(const std::string& fileName)
 		_pixelFormat = _decodedFormat;
 }
 
-void RawDecoder::Attach(std::shared_ptr<std::istream>)
+void RawDecoder::Attach(const std::string& fileName)
 {
-	throw std::runtime_error("not implemented");		
+	_lastFileName = fileName;
+
+	if (_pLibRaw->open_file(fileName.data()))
+		throw std::runtime_error("unable to read the file");
+
+	Attach();
+}
+
+void RawDecoder::Attach(std::shared_ptr<std::istream> is)
+{
+	std::vector<char> buf;
+	is->seekg( 0, is->end );
+	size_t length = is->tellg();
+	is->seekg( 0, is->beg );
+
+	buf.resize( length );
+	is->read( buf.data(), length );
+
+	if ( !is )
+		throw std::runtime_error( "unable to read the stream" );
+
+	if ( _pLibRaw->open_buffer( buf.data(), buf.size() ) )
+		throw std::runtime_error( "unable to read the file" );
+
+	Attach();	
 }
 
 void RawDecoder::Detach()
 {
-	_pLibRaw->recycle();
+	_pLibRaw->recycle();	
 }
 
 std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()

@@ -27,6 +27,8 @@ class RawDecoder : public ImageDecoder
     inline static LensDB lensDB = LoadLensDB();
 	LibRaw* _pLibRaw;
 
+    void Attach();
+
 public:
     /// Creates riader with given settings
     RawDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
