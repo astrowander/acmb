@@ -217,7 +217,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.21.1/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>
     </ClCompile>
     <Link>
@@ -228,7 +228,7 @@
       <StackReserveSize>4194304</StackReserveSize>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/buildfiles/debug-x86_64;./Libs/lensfun/build/libs/lensfun/Debug; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/; ./Libs/TinyTIFF/build/src/Debug;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/debug-x86_64;./Libs/lensfun/build/libs/lensfun/Debug; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/; ./Libs/TinyTIFF/build/src/Debug;</AdditionalLibraryDirectories>
       <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Debug.lib;lensfun.lib;libraw.lib;</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
@@ -241,7 +241,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Libs/LibRaw-0.20.2/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Libs/LibRaw-0.21.1/; ./Libs/lensfun/install/include/; ./Libs/oneTBB/include; ./Libs/TinyTIFF/src;./Libs/TinyTIFF/build/src;./Libs/avir;./Libs/parallel-hashmap;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <DisableSpecificWarnings>4251;4244</DisableSpecificWarnings>
@@ -255,8 +255,8 @@
       <AdditionalDependencies>TinyTIFFShared_Release.lib;TinyTIFF_Release.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Release.lib;lensfun.lib;libraw_static.lib;libraw.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/release-x86_64;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Release.lib;lensfun.lib;libraw.lib;</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
