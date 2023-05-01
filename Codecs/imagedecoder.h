@@ -51,7 +51,9 @@ public:
     /// reads and returns bitmap, needed for the compatibility with pipelines
     virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
     /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
-    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
+    static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );    
+    /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
+    static std::shared_ptr<ImageDecoder> Create( std::shared_ptr<std::istream> pStream, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// returns name of the last attached file, if no file was attached returns empty string
     const std::string& GetLastFileName() const;
 

@@ -13,10 +13,9 @@ class Server
     boost::asio::io_context context_;
 
     Server() = default;
-    void Listen();
-
+    void ListenHelloPort();
+    void ListenClientPort( uint16_t port );
 public:
-
     static void Launch();
 
 };

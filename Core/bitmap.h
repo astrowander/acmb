@@ -35,6 +35,8 @@ public:
     virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) = 0;
     /// creates bitmap from a given file
     static std::shared_ptr<IBitmap> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
+    /// creates bitmap from a given file
+    static std::shared_ptr<IBitmap> Create( const std::shared_ptr<std::istream> pStream, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     /// saves given bitmap to a file

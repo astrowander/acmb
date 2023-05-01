@@ -12,6 +12,12 @@ std::string GetDirectory( const std::string& fileName )
     return ( std::string::npos == pos ) ? "" : fileName.substr( 0, pos );
 }
 
+std::shared_ptr<IBitmap> IBitmap::Create(std::shared_ptr<std::istream> pStream, PixelFormat outputFormat )
+{
+    auto pDecoder = ImageDecoder::Create( pStream, outputFormat );
+    return pDecoder->ReadBitmap();
+}
+
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, PixelFormat outputFormat )
 {
     auto pDecoder = ImageDecoder::Create( fileName, outputFormat );

@@ -101,6 +101,24 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     return pDecoder;
 }
 
+std::shared_ptr<ImageDecoder> ImageDecoder::Create( std::shared_ptr<std::istream> pStream, PixelFormat outputFormat )
+{
+    if ( !pStream )
+        throw std::invalid_argument("pStream");
+
+    std::shared_ptr<ImageDecoder> pDecoder;
+    const char ch = pStream->peek();
+    if ( ch == 'P' )
+        pDecoder = std::make_shared<PpmDecoder>( outputFormat );
+    else if ( ch == 'I' )
+        pDecoder = std::make_shared<TiffDecoder>( outputFormat );
+    else
+        pDecoder = std::make_shared<RawDecoder>( outputFormat );
+
+    pDecoder->Attach(pStream);
+    return pDecoder;
+}
+
 const std::string& ImageDecoder::GetLastFileName() const
 {
     return _lastFileName;
