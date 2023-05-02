@@ -6,18 +6,10 @@
 
 #include <boost/array.hpp>
 #include <thread>
-#include <vector>
+
 using boost::asio::ip::tcp;
 
 ACMB_SERVER_NAMESPACE_BEGIN
-
-struct membuf : std::streambuf
-{
-    membuf(char* begin, char* end)
-    {
-        this->setg(begin, begin, end);
-    }
-};
 
 void Server::ListenClientPort(uint16_t port)
 {
@@ -41,16 +33,12 @@ void Server::ListenClientPort(uint16_t port)
     auto pBitmap = IBitmap::Create( pStream );
     pBitmap = ResizeTransform::Resize(pBitmap, { pBitmap->GetWidth() / 2, pBitmap->GetHeight() / 2 } );
 
-    data.clear();
-//    data.resize( pBitmap->GetByteSize() );
-
     std::shared_ptr<PpmEncoder> pEncoder = std::make_shared<PpmEncoder>( PpmMode::Binary );
     auto pOutputStream = std::make_shared<std::ostringstream>();
     pEncoder->Attach( pOutputStream );
     pEncoder->WriteBitmap(pBitmap);
 
     const auto str = pOutputStream->str();
-    const char ch = str[0x10000];
     size[0] = pBitmap->GetByteSize();
     boost::asio::read(socket, boost::asio::buffer( ready ), ignored_error);
     boost::asio::write(socket, boost::asio::buffer( size ));
@@ -69,9 +57,10 @@ void Server::ListenHelloPort()
       boost::system::error_code ignored_error;
       boost::array<int, 2> command = { 0 };
       boost::array<int, 1> answer = { -1 };
+      boost::array<char,1> ready = {};
 
       boost::asio::read(socket, boost::asio::buffer( command ), ignored_error);
-
+      //boost::asio::read( socket, boost::asio::buffer(ready), ignored_error );
       switch ( command[0] )
       {
       case 1:
@@ -88,7 +77,7 @@ void Server::ListenHelloPort()
                       break;
                   }
               }
-          }
+          }          
           boost::asio::write(socket, boost::asio::buffer( answer ), ignored_error);
           break;
       case 2:

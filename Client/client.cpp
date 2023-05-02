@@ -1,6 +1,7 @@
 #include "client.h"
 #include <boost/array.hpp>
 #include <fstream>
+#include <iostream>
 
 using boost::asio::ip::tcp;
 
@@ -23,20 +24,14 @@ void Client::Connect()
     boost::array<int, 1> answer = {};
 
     boost::system::error_code error;
-    for (;;)
-    {
-        socket_.write_some(boost::asio::buffer(command), error);
-        socket_.read_some(boost::asio::buffer(answer), error);
-        if (error == boost::asio::error::eof)
-          break; // Connection closed cleanly by peer.
-        else if (error)
-          throw boost::system::system_error(error); // Some other error.
 
-        if ( answer[0] == -1)
-            throw std::runtime_error("Unable to connect");
+    boost::asio::write( socket_, boost::asio::buffer(command), error);
+    boost::asio::read( socket_, boost::asio::buffer(answer), error);
 
-        portNumber_ = answer[0];
-    }
+    if ( answer[0] == -1)
+        throw std::runtime_error("Unable to connect");
+
+    portNumber_ = answer[0];
 }
 
 void Client::Process(const std::string& inputFileName, const std::string& outputFileName)
@@ -68,19 +63,17 @@ void Client::Process(const std::string& inputFileName, const std::string& output
     boost::array<char, 1> ready = {};
 
     boost::system::error_code error;
-    socket.write_some(boost::asio::buffer(size), error);
+    boost::asio::write( socket, boost::asio::buffer(size), error );
 
-    socket.read_some(boost::asio::buffer(ready), error);
-    socket.write_some(boost::asio::buffer(buf.data(), buf.size()), error);
+    boost::asio::read( socket, boost::asio::buffer(ready), error );
+    boost::asio::write( socket, boost::asio::buffer(buf.data(), buf.size()), error );
 
-    socket.write_some(boost::asio::buffer(ready), error);
-    socket.read_some( boost::asio::buffer(size), error );
-    buf.clear();
+    boost::asio::write( socket, boost::asio::buffer(ready), error );
+    boost::asio::read( socket, boost::asio::buffer(size), error );
     buf.resize(size[0]);
 
-    socket.write_some(boost::asio::buffer(ready), error);
+    boost::asio::write(socket, boost::asio::buffer(ready), error);
     boost::asio::read(socket, boost::asio::buffer(buf.data(), buf.size()), error);
-    //socket.read_some(boost::asio::buffer(buf.data(), buf.size()), error);
 
     std::ofstream os( outputFileName, std::ios_base::out | std::ios_base::binary );
     if ( !os.is_open() )
@@ -104,18 +97,12 @@ void Client::Disconnect()
     boost::array<int, 1> answer = {};
 
     boost::system::error_code error;
-    for (;;)
-    {
-        socket_.write_some(boost::asio::buffer(command), error);
-        socket_.read_some(boost::asio::buffer(answer), error);
-        if (error == boost::asio::error::eof)
-          break; // Connection closed cleanly by peer.
-        else if (error)
-          throw boost::system::system_error(error); // Some other error.
+    socket_.write_some(boost::asio::buffer(command), error);
+    socket_.read_some(boost::asio::buffer(answer), error);
 
-        if ( answer[0] == -1)
-            throw std::runtime_error("Unable to disconnect");
-    }
+    if ( answer[0] == -1)
+        throw std::runtime_error("Unable to disconnect");
+
     portNumber_ = -1;
 }
 
