@@ -15,16 +15,15 @@ class Stacker : public BaseStacker
     std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
     std::variant< AddBitmapWithAlignmentHelperU8, AddBitmapWithAlignmentHelperU16> _helper;
 
-    void CallAddBitmapHelper( IBitmapPtr pBitmap );
-    void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap, const Grid& grid );
-    IBitmapPtr CallGeneratingResultHelper();
+    virtual void CallAddBitmapHelper( IBitmapPtr pBitmap ) override;
+    virtual void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap ) override;
+    virtual IBitmapPtr CallGeneratingResultHelper() override;
+
+    void Init();
 
 public:
     Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
-
-    virtual std::shared_ptr<IBitmap> RegistrateAndStack() override;
-    /// stacks registered images
-    virtual std::shared_ptr<IBitmap> Stack() override;
+    Stacker( const ImageParams& imageParams, StackMode stackMode );
 };
 
 ACMB_CUDA_NAMESPACE_END

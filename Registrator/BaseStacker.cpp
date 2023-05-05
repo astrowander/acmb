@@ -11,33 +11,32 @@ ACMB_NAMESPACE_BEGIN
 
 class AlignmentHelper
 {
-    BaseStacker& _stacker;
-    size_t _alignerIndex;
+    std::vector<std::shared_ptr<FastAligner>>& aligners_;
+    const std::vector<std::vector<Star>>& stars_;
+    MatchMap& matches_;
     std::mutex _mutex;
 
-    AlignmentHelper( BaseStacker& stacker, size_t alignerIndex )
-        : _stacker( stacker )
-        , _alignerIndex( alignerIndex )
-    {
-        if ( _stacker._stackingData.size() <= _alignerIndex )
-            throw std::invalid_argument( "aligner index exceeds tile count" );
+    AlignmentHelper( std::vector<std::shared_ptr<FastAligner>>& aligners, const std::vector<std::vector<Star>>& stars, MatchMap& matches )
+        : aligners_( aligners )
+        , stars_( stars )
+        , matches_( matches )
+    {        
     }
 
     void Job( uint32_t i )
     {
-        _stacker._aligners[i]->Align( _stacker._stackingData[_alignerIndex].stars[i] );
-        auto tileMatches = _stacker._aligners[i]->GetMatches();
+        aligners_[i]->Align( stars_[i] );
+        auto tileMatches = aligners_[i]->GetMatches();
 
-        _mutex.lock();
-        _stacker._matches.insert( tileMatches.begin(), tileMatches.end() );
-        _mutex.unlock();
+        std::lock_guard<std::mutex> lock( _mutex );
+        matches_.insert( tileMatches.begin(), tileMatches.end() );
     }
 
 public:
-    static void Run( BaseStacker& stacker, size_t alignerIndex )
+    static void Run( std::vector<std::shared_ptr<FastAligner>>& aligners, const std::vector<std::vector<Star>>& stars, MatchMap& matches, uint32_t width, uint32_t height )
     {
-        AlignmentHelper helper( stacker, alignerIndex );
-        auto [hTileCount, vTileCount] = GetTileCounts( stacker._width, stacker._height );
+        AlignmentHelper helper( aligners, stars, matches );
+        auto [hTileCount, vTileCount] = GetTileCounts( width, height );
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, hTileCount * vTileCount ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
         {
             for ( int i = range.begin(); i < range.end(); ++i )
@@ -72,6 +71,16 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
 
+BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
+: _stackMode(stackMode)
+{
+    _width = imageParams.GetWidth();
+    _height = imageParams.GetHeight();
+    _pixelFormat = imageParams.GetPixelFormat();
+    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
+    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
+}
+
 void BaseStacker::Registrate()
 {
     auto pRegistrator = std::make_unique<Registrator>( _threshold, _minStarSize, _maxStarSize );
@@ -94,10 +103,10 @@ void BaseStacker::Registrate()
     //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
-void BaseStacker::CalculateAligningGrid( uint32_t bitmapIndex )
+void BaseStacker::CalculateAligningGrid( const std::vector<std::vector<Star>>& stars )
 {
     _matches.clear();
-    AlignmentHelper::Run( *this, bitmapIndex );
+    AlignmentHelper::Run( _aligners, stars, _matches, _width, _height );
 
     Log( std::to_string( _matches.size() ) + " matching stars" );
 
@@ -137,6 +146,144 @@ void BaseStacker::CalculateAligningGrid( uint32_t bitmapIndex )
             }
         }
     }
+}
+
+std::shared_ptr<IBitmap> BaseStacker::Stack()
+{
+    if (_stackingData.size() == 0)
+        return nullptr;
+
+    Log(_stackingData[0].pipeline.GetFileName() + " in process");
+
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
+
+    Log( _stackingData[0].pipeline.GetFileName() + " is read" );
+
+    if (_stackingData.size() == 1)
+        return pRefBitmap;
+
+    const auto& refStars = _stackingData[0].stars;
+
+    if ( _stackMode == StackMode::Light )
+    {
+        _aligners.clear();
+
+        for (const auto& refStarVector : refStars)
+            _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
+    }
+
+    CallAddBitmapHelper( pRefBitmap );
+
+    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
+
+    for (uint32_t i = 1; i < _stackingData.size(); ++i)
+    {
+        StackWithAlignment( _stackingData[i] );
+    }
+
+    return CallGeneratingResultHelper();
+}
+
+void BaseStacker::StackWithAlignment( StackingDatum& sd, std::shared_ptr<Registrator> pRegistrator )
+{
+    Log( sd.pipeline.GetFileName() + " in process" );
+    auto pTargetBitmap = sd.pipeline.RunAndGetBitmap();
+    Log( sd.pipeline.GetFileName() + " is read" );
+
+    if ( pRegistrator )
+    {
+        pRegistrator->Registrate( pTargetBitmap );
+        sd.stars = pRegistrator->GetStars();
+    }
+
+    CalculateAligningGrid( sd.stars );
+    Log( sd.pipeline.GetFileName() + " grid is calculated" );
+    //if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
+      //  throw std::runtime_error("bitmaps in stack should have the same pixel format");
+
+    if ( _stackMode != StackMode::Light )
+    {
+        CallAddBitmapHelper( pTargetBitmap );
+        Log( sd.pipeline.GetFileName() + " is stacked" );
+        return;
+    }
+
+    CallAddBitmapWithAlignmentHelper( pTargetBitmap );
+
+    Log( sd.pipeline.GetFileName() + " is stacked" );
+}
+
+void BaseStacker::AddBitmap(Pipeline pipeline)
+{
+    Log( pipeline.GetFileName() + " in process" );
+    if ( ( _stackMode == StackMode::Light || _stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
+        _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
+
+    auto pBitmap = pipeline.RunAndGetBitmap();
+    Log( pipeline.GetFileName() + " is read" );
+    if ( _stackMode != StackMode::Light )
+    {
+        CallAddBitmapHelper( pBitmap );
+        return;
+    }
+
+    auto pRegistrator = std::make_shared<Registrator>(_threshold, _minStarSize, _maxStarSize);
+    pRegistrator->Registrate( pBitmap );
+    const auto& stars = pRegistrator->GetStars();
+
+    if ( _aligners.empty() )
+    {
+        for (const auto& starVector : stars)
+                 _aligners.push_back(std::make_shared<FastAligner>(starVector));
+
+        CallAddBitmapHelper( pBitmap );
+        Log( pipeline.GetFileName() + " is stacked" );
+        return;
+    }
+
+    CalculateAligningGrid( stars );
+    Log( pipeline.GetFileName() + " grid is calculated" );
+    CallAddBitmapWithAlignmentHelper( pBitmap );
+    Log( pipeline.GetFileName() + " is stacked" );
+}
+
+IBitmapPtr BaseStacker::GetResult()
+{
+    return CallGeneratingResultHelper();
+}
+
+std::shared_ptr<IBitmap>  BaseStacker::RegistrateAndStack()
+{
+    if (_stackingData.size() == 0)
+        return nullptr;
+
+    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
+
+    if (_stackingData.size() == 1)
+        return pRefBitmap;
+
+    auto pRegistrator = std::make_shared<Registrator>(_threshold, _minStarSize, _maxStarSize);
+
+    pRegistrator->Registrate(pRefBitmap);
+    _stackingData[0].stars = pRegistrator->GetStars();
+
+    const auto& refStars = _stackingData[0].stars;
+
+     _aligners.clear();
+     for (const auto& refStarVector : refStars)
+         _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
+
+    CallAddBitmapHelper( pRefBitmap );
+
+    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
+
+    for (uint32_t i = 1; i < _stackingData.size(); ++i)
+    {
+        StackWithAlignment( _stackingData[i], pRegistrator );
+    }
+
+    //auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());
+    return CallGeneratingResultHelper();
 }
 
 IBitmapPtr BaseStacker::ProcessBitmap( IBitmapPtr )
