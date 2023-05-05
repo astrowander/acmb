@@ -60,19 +60,15 @@ void Client::Process(const std::string& inputFileName, const std::string& output
     boost::asio::connect(socket, endpoints );
 
     boost::array<size_t, 1> size = { length };
-    boost::array<char, 1> ready = {};
 
     boost::system::error_code error;
     boost::asio::write( socket, boost::asio::buffer(size), error );
 
-    boost::asio::read( socket, boost::asio::buffer(ready), error );
     boost::asio::write( socket, boost::asio::buffer(buf.data(), buf.size()), error );
 
-    boost::asio::write( socket, boost::asio::buffer(ready), error );
     boost::asio::read( socket, boost::asio::buffer(size), error );
     buf.resize(size[0]);
 
-    boost::asio::write(socket, boost::asio::buffer(ready), error);
     boost::asio::read(socket, boost::asio::buffer(buf.data(), buf.size()), error);
 
     std::ofstream os( outputFileName, std::ios_base::out | std::ios_base::binary );

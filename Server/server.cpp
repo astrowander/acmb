@@ -18,12 +18,9 @@ void Server::ListenClientPort(uint16_t port)
     tcp::socket socket(context_);
     acceptor.accept(socket);
 
-    boost::array<char, 1> ready = {};
-
     boost::system::error_code ignored_error;
     boost::array<size_t, 1> size = {};
     boost::asio::read(socket, boost::asio::buffer( size ), ignored_error);
-    boost::asio::write(socket, boost::asio::buffer(ready), ignored_error);
 
     std::string data;
     data.resize(size[0]);
@@ -40,9 +37,7 @@ void Server::ListenClientPort(uint16_t port)
 
     const auto str = pOutputStream->str();
     size[0] = pBitmap->GetByteSize();
-    boost::asio::read(socket, boost::asio::buffer( ready ), ignored_error);
     boost::asio::write(socket, boost::asio::buffer( size ));
-    boost::asio::read(socket, boost::asio::buffer( ready ), ignored_error);
     boost::asio::write(socket, boost::asio::buffer( str.data(), str.size() ), ignored_error);
 }
 
@@ -57,10 +52,8 @@ void Server::ListenHelloPort()
       boost::system::error_code ignored_error;
       boost::array<int, 2> command = { 0 };
       boost::array<int, 1> answer = { -1 };
-      boost::array<char,1> ready = {};
 
-      boost::asio::read(socket, boost::asio::buffer( command ), ignored_error);
-      //boost::asio::read( socket, boost::asio::buffer(ready), ignored_error );
+      boost::asio::read(socket, boost::asio::buffer( command ), ignored_error);      
       switch ( command[0] )
       {
       case 1:
