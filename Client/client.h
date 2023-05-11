@@ -15,7 +15,7 @@ class Client
 public:
     Client(const std::string& serverAddress);
     void Connect();
-    void Process(const std::string& inputFileName, const std::string& outputFileName);
+    void Process( const std::vector<std::string>& args );
     void Disconnect();
     int portNumber() { return portNumber_; }
 };

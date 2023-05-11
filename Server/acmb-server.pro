@@ -13,6 +13,7 @@ LIBS += -lboost_system
 SOURCES += \
     main.cpp \
     server.cpp \
+    tools.cpp
 
 LIBS += -L$$OUT_PWD/../ -lacmb-lib
 LIBS += -L$$OUT_PWD/../Cuda/ -lacmb-cuda
@@ -27,4 +28,5 @@ INCLUDEPATH += /usr/local/include
 DEPENDPATH += /usr/local/include
 
 HEADERS += \
-    server.h
+    server.h \
+    tools.h

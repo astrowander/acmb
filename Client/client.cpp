@@ -1,11 +1,114 @@
 #include "client.h"
+#include "tools.h"
+#include "enums.h"
+#include "CliParser.h"
+
+#include "./../Core/enums.h"
 #include <boost/array.hpp>
-#include <fstream>
 #include <iostream>
+#include <filesystem>
+#include <set>
+#include <algorithm>
+#include <unordered_map>
 
 using boost::asio::ip::tcp;
 
 ACMB_CLIENT_NAMESPACE_BEGIN
+
+static const std::unordered_map<std::string, PixelFormat> stringToPixelFormat =
+{
+    {"gray8", PixelFormat::Gray8},
+    {"gray16", PixelFormat::Gray16},
+    {"rgb24", PixelFormat::RGB24},
+    {"rgb48", PixelFormat::RGB48}
+};
+
+std::string IntToString( size_t num, size_t minDigitCount )
+{
+    auto res = std::to_string( num );
+    if ( res.size() < minDigitCount )
+    {
+        res.insert( 0, std::string( minDigitCount - res.size(), '0' ) );
+    }
+
+    return res;
+}
+
+std::string ToLower(const std::string& str)
+{
+    std::string res;
+    res.resize( str.size() );
+    std::transform( str.begin(), str.end(), res.begin(), [](char ch) {return std::tolower(ch);} );
+    return res;
+}
+
+std::vector<std::string> GetFileNamesFromDir( const std::string& path )
+{
+    if ( !std::filesystem::is_directory( path ) )
+        return {};
+
+    std::set<std::string> sortedNames;
+    for ( const auto& entry : std::filesystem::directory_iterator( path) )
+    {
+        if ( std::filesystem::is_directory( entry ) )
+            continue;
+
+        sortedNames.insert( entry.path().string() );
+    }
+
+    return std::vector<std::string>( sortedNames.begin(), sortedNames.end() );
+}
+
+std::vector<std::string> GetFileNamesFromMask( const std::string& mask )
+{
+    size_t start = 0;
+    std::vector<std::string> res;
+
+    while ( start < mask.size() )
+    {
+        auto end = mask.find_first_of( ';', start );
+        std::string fileName = mask.substr( start, end - start );
+        size_t separatorPos = fileName.find_first_of( '#' );
+
+        if ( std::filesystem::exists( fileName ) )
+        {
+            if ( std::filesystem::is_directory( fileName ) )
+            {
+                auto fileNames = GetFileNamesFromDir( fileName );
+                res.insert( res.end(), fileNames.begin(), fileNames.end() );
+            }
+            else
+            {
+                res.push_back( fileName );
+            }
+        }
+        else if ( separatorPos != std::string::npos )
+        {
+            size_t pointPos = fileName.find_first_of( '.', separatorPos );
+            auto varDigitCount = pointPos - separatorPos - 1;
+            if ( varDigitCount != 0 )
+            {
+
+                int minNum = std::stoi( fileName.substr( separatorPos - varDigitCount, varDigitCount ) );
+                int maxNum = std::stoi( fileName.substr( separatorPos + 1, varDigitCount ) );
+
+                for ( int j = minNum; j <= maxNum; ++j )
+                {
+                    auto tempName = fileName.substr( 0, separatorPos - varDigitCount ) + IntToString( j, varDigitCount ) + fileName.substr( pointPos );
+                    if ( std::filesystem::exists( tempName ) )
+                        res.push_back( tempName );
+                }
+            }
+        }
+
+        if ( end == std::string::npos )
+            break;
+
+        start = end + 1;
+    }
+
+    return res;
+}
 
 Client::Client(const std::string& serverAddress)
 :serverAddress_(serverAddress)
@@ -20,65 +123,198 @@ void Client::Connect()
     tcp::socket socket_( context_ );
     boost::asio::connect(socket_, endpoints );
 
-    boost::array<int, 2> command = { 1, 0 };
-    boost::array<int, 1> answer = {};
-
-    boost::system::error_code error;
-
-    boost::asio::write( socket_, boost::asio::buffer(command), error);
-    boost::asio::read( socket_, boost::asio::buffer(answer), error);
-
-    if ( answer[0] == -1)
+    UploadSingleObject<int>(socket_, 1);
+    UploadSingleObject<int>(socket_, 0);
+    portNumber_ = DownloadSingleObject<int>( socket_ );
+    if ( portNumber_ == -1)
         throw std::runtime_error("Unable to connect");
-
-    portNumber_ = answer[0];
 }
 
-void Client::Process(const std::string& inputFileName, const std::string& outputFileName)
+void Client::Process( const std::vector<std::string>& args )
 {
-    std::ifstream is( inputFileName, std::ios_base::in | std::ios_base::binary );
-    if ( !is.is_open() )
-        throw std::runtime_error( "unable to open input file" );
+    auto kvs = Parse( args );
 
-    std::vector<char> buf;
-    is.seekg( 0, is.end );
-    const size_t length = is.tellg();
-    is.seekg( 0, is.beg );
+    if ( kvs.size() < 2 ||
+         kvs.front().key != "--input" || kvs.front().values.empty() ||
+         kvs.back().key != "--output" || kvs.back().values.empty() )
+    {
+        throw std::runtime_error( "Invalid command line" );
+    }
 
-    buf.resize( length );
-    is.read( buf.data(), length );
+    const auto inputFiles = GetFileNamesFromMask( kvs.front().values[0] );
+    const auto outputPath = kvs.back().values[0];
 
-    if ( !is )
-        throw std::runtime_error( "unable to read the file" );
-
-    is.close();
+    bool isStackerFound = false;
 
     const auto ipAddr = boost::asio::ip::address::from_string( serverAddress_ );
-    boost::array< tcp::endpoint, 1> endpoints = { tcp::endpoint( ipAddr, portNumber_ ) };
-
+    const boost::array<tcp::endpoint, 1> endpoints = { tcp::endpoint( ipAddr, portNumber_ ) };
     tcp::socket socket( context_ );
-    boost::asio::connect(socket, endpoints );
+    boost::asio::connect(socket, endpoints );    
 
-    boost::array<size_t, 1> size = { length };
+    UploadSingleObject( socket, kvs.size() - 2 );
+    for (size_t i = 1; i < kvs.size() - 1; ++i )
+    {
+        const auto& kv = kvs[i];
 
-    boost::system::error_code error;
-    boost::asio::write( socket, boost::asio::buffer(size), error );
+        if ( kv.key == "--desiredFormat" )
+        {
+            if ( kv.values.empty() )
+                throw std::runtime_error("Wrong command args");
 
-    boost::asio::write( socket, boost::asio::buffer(buf.data(), buf.size()), error );
+            const auto it = stringToPixelFormat.find( ToLower( kv.values[0] ) );
+            if ( it == stringToPixelFormat.end() )
+                throw std::runtime_error("Wrong command args");
 
-    boost::asio::read( socket, boost::asio::buffer(size), error );
-    buf.resize(size[0]);
+            UploadSingleObject( socket, CommandCode::SetDesiredFormat );
+            UploadSingleObject( socket, it->second );
+        }
+        else if ( kv.key == "--binning" )
+        {
+            if ( kv.values.empty() )
+                throw std::runtime_error("Wrong command args");
 
-    boost::asio::read(socket, boost::asio::buffer(buf.data(), buf.size()), error);
+            if ( kv.values.size() != 2 )
+                throw std::runtime_error( "--binning requires exactly two arguments" );
 
-    std::ofstream os( outputFileName, std::ios_base::out | std::ios_base::binary );
-    if ( !os.is_open() )
-        throw std::runtime_error( "unable to open input file" );
+            const int width = std::stoi( kv.values[0] );
+            const int height = std::stoi( kv.values[1] );
+            if ( width <= 0 || height <= 0 )
+                throw std::runtime_error( "--binning requires strictly positive arguments" );
 
-    os.write(buf.data(), buf.size());
+            UploadSingleObject( socket, CommandCode::Binning );
+            UploadSingleObject( socket, width );
+            UploadSingleObject( socket, height );
+        }
+        else if ( kv.key == "--convert" )
+        {
+            if ( kv.values.empty() )
+                throw std::runtime_error("Wrong command args");
 
-    if ( !os )
-        throw std::runtime_error( "unable to write the file" );
+            const auto it = stringToPixelFormat.find( ToLower( kv.values[0] ) );
+            if ( it == stringToPixelFormat.end() )
+                throw std::runtime_error("Wrong command args");
+
+            UploadSingleObject( socket, CommandCode::Convert );
+            UploadSingleObject( socket, it->second );
+        }
+        else if ( kv.key == "--subtract" )
+        {
+            if ( kv.values.size() != 1 )
+               throw std::runtime_error( "--subtract requires exactly one argument" );
+
+            UploadSingleObject( socket, CommandCode::Subtract );
+            UploadFile( socket, kv.values[0] );
+        }
+        else if ( kv.key == "--divide" )
+        {
+            if ( kv.values.size() != 1 && kv.values.size() != 2 )
+               throw std::runtime_error( "--divide requires one or two arguments" );
+
+            float intensity = 100.0f;
+            if ( kv.values.size() == 2 )
+                intensity = std::stof( kv.values[1] );
+
+            UploadSingleObject( socket, CommandCode::Divide );
+            UploadSingleObject( socket, intensity );
+            UploadFile( socket, kv.values[0] );
+        }
+        else if ( kv.key == "--autowb" )
+        {
+            if ( !kv.values.empty() )
+               throw std::runtime_error( "--autowb requires zero arguments" );
+
+            UploadSingleObject( socket, CommandCode::AutoWB );
+        }
+        else if ( kv.key == "--deaberrate" )
+        {
+            if ( !kv.values.empty() )
+               throw std::runtime_error( "--deaberrate requires zero arguments" );
+
+            UploadSingleObject( socket, CommandCode::Deaberrate );
+        }
+        else if ( kv.key == "--resize" )
+        {
+            if ( kv.values.size() != 2 )
+               throw std::runtime_error( "--resize requires exactly two arguments" );
+
+            const auto width = uint32_t( std::stoi( kv.values[0] ) );
+            const auto height = uint32_t( std::stoi( kv.values[1] ) );
+
+            UploadSingleObject( socket, CommandCode::Resize );
+            UploadSingleObject( socket, width );
+            UploadSingleObject( socket, height );
+        }
+        else if ( kv.key == "--crop" )
+        {
+            if ( kv.values.size() != 4 )
+               throw std::runtime_error( "--crop requires exactly 4 arguments" );
+
+            const auto x = uint32_t( std::stoi( kv.values[0] ) );
+            const auto y = uint32_t( std::stoi( kv.values[1] ) );
+            const auto width = uint32_t( std::stoi( kv.values[2] ) );
+            const auto height = uint32_t( std::stoi( kv.values[3] ) );
+
+            UploadSingleObject( socket, CommandCode::Resize );
+            UploadSingleObject( socket, x );
+            UploadSingleObject( socket, y );
+            UploadSingleObject( socket, width );
+            UploadSingleObject( socket, height );
+        }
+        else if ( kv.key == "--debayer" )
+        {
+            if ( !kv.values.empty() )
+               throw std::runtime_error( "--debayer requires zero arguments" );
+
+            UploadSingleObject( socket, CommandCode::Debayer );
+        }
+        else if ( kv.key == "--stack" )
+        {
+            if ( isStackerFound )
+                throw std::runtime_error( "only one --stack is allowed" );
+
+            isStackerFound = true;
+
+            bool enableCudaIfAvailable = false;
+            if ( kv.values.size() >= 2 && kv.values[1] == "usecuda" )
+                enableCudaIfAvailable = true;
+
+            StackMode mode = StackMode::Light;
+            if ( !kv.values.empty() )
+            {
+                const auto strMode = ToLower( kv.values[0] );
+                if ( strMode == "dark" || strMode == "flat" )
+                    mode = StackMode::DarkOrFlat;
+                else if ( strMode == "noalign" )
+                    mode = StackMode::LightNoAlign;
+            }
+
+            UploadSingleObject( socket, CommandCode::Stack );
+            UploadSingleObject( socket, mode );
+            UploadSingleObject( socket, enableCudaIfAvailable );
+        }
+    }
+
+    std::string extension;
+    if (!isStackerFound && kvs.back().values.size() >= 2 )
+    {
+        extension = kvs.back().values[1];
+    }
+
+    UploadSingleObject( socket, inputFiles.size() );
+    for ( const auto& inputFile : inputFiles )
+    {
+        UploadFile(socket, inputFile);
+        if (!isStackerFound)
+        {
+            const auto lastSlashPos = inputFile.find_last_of("/\\");
+            const auto dotPos = inputFile.find_last_of( '.' );
+
+            DownloadFile(socket, outputPath + "/" + inputFile.substr(lastSlashPos + 1, dotPos - lastSlashPos - 1 ) + extension );
+        }
+    }
+
+    if ( isStackerFound )
+        DownloadFile( socket, outputPath );
 }
 
 void Client::Disconnect()
@@ -88,15 +324,10 @@ void Client::Disconnect()
 
     tcp::socket socket_( context_ );
     boost::asio::connect(socket_, endpoints );
-
-    boost::array<int, 2> command = { 2, portNumber_ };
-    boost::array<int, 1> answer = {};
-
-    boost::system::error_code error;
-    socket_.write_some(boost::asio::buffer(command), error);
-    socket_.read_some(boost::asio::buffer(answer), error);
-
-    if ( answer[0] == -1)
+    UploadSingleObject<int>( socket_, 2 );
+    UploadSingleObject<int>( socket_, portNumber_ );
+    const auto answer = DownloadSingleObject<int>( socket_ );
+    if ( answer == -1)
         throw std::runtime_error("Unable to disconnect");
 
     portNumber_ = -1;

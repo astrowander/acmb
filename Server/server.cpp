@@ -1,4 +1,5 @@
 #include "server.h"
+#include "tools.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Codecs/PPM/ppmencoder.h"
@@ -14,17 +15,10 @@ ACMB_SERVER_NAMESPACE_BEGIN
 void Server::ListenClientPort(uint16_t port)
 {
     tcp::acceptor acceptor( context_, tcp::endpoint(tcp::v4(), port ) );
-
     tcp::socket socket(context_);
-    acceptor.accept(socket);
+    acceptor.accept(socket);    
 
-    boost::system::error_code ignored_error;
-    boost::array<size_t, 1> size = {};
-    boost::asio::read(socket, boost::asio::buffer( size ), ignored_error);
-
-    std::string data;
-    data.resize(size[0]);
-    boost::asio::read(socket, boost::asio::buffer( data.data(), data.size() ), ignored_error);
+    std::string data = ReceiveData(socket);
 
     auto pStream = std::make_shared<std::istringstream>( data );
     auto pBitmap = IBitmap::Create( pStream );
@@ -35,10 +29,7 @@ void Server::ListenClientPort(uint16_t port)
     pEncoder->Attach( pOutputStream );
     pEncoder->WriteBitmap(pBitmap);
 
-    const auto str = pOutputStream->str();
-    size[0] = pBitmap->GetByteSize();
-    boost::asio::write(socket, boost::asio::buffer( size ));
-    boost::asio::write(socket, boost::asio::buffer( str.data(), str.size() ), ignored_error);
+    SendData(socket, pOutputStream->str());
 }
 
 void Server::ListenHelloPort()
@@ -49,12 +40,10 @@ void Server::ListenHelloPort()
       tcp::socket socket(context_);
       acceptor.accept(socket);
 
-      boost::system::error_code ignored_error;
-      boost::array<int, 2> command = { 0 };
-      boost::array<int, 1> answer = { -1 };
-
-      boost::asio::read(socket, boost::asio::buffer( command ), ignored_error);      
-      switch ( command[0] )
+      int command = ReceiveSingleObject<int>( socket );
+      int portNumber = ReceiveSingleObject<int>( socket );
+      int answer = -1;
+      switch ( command )
       {
       case 1:
           if ( !_activeConnections.all() )
@@ -64,29 +53,30 @@ void Server::ListenHelloPort()
                   if ( !_activeConnections.test(i) )
                   {
                       _activeConnections.set(i, true);
-                      answer[0] = cHelloPort + i + 1;
-                      std::thread thread( [this, answer]{this->ListenClientPort(answer[0]);});
+                      answer = cHelloPort + i + 1;
+                      std::thread thread( [this, answer]{this->ListenClientPort(answer);});
                       thread.detach();
                       break;
                   }
               }
-          }          
-          boost::asio::write(socket, boost::asio::buffer( answer ), ignored_error);
+          }
+
           break;
       case 2:
       {
-          const size_t pos = command[1] - cHelloPort - 1;
+          const size_t pos = portNumber - cHelloPort - 1;
           if (_activeConnections.test( pos ))
           {
               _activeConnections.set(pos, false);
-              answer[0] = 0;
-          }
-          boost::asio::write(socket, boost::asio::buffer( answer ), ignored_error);
+              answer = 0;
+          }       
           break;
       }
       default:
           break;
       }
+
+      SendSingleObject<int>( socket, answer );
     }
 }
 

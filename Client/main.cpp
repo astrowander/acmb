@@ -1,19 +1,29 @@
 #include "client.h"
 #include <iostream>
-#include <chrono>
-#include <thread>
+#include <sstream>
 
 int main( int argc, const char** argv )
 {
     try
     {
-        if ( argc < 3 )
+        if ( argc < 3 ||
+             std::string(argv[1]) != "--host" ||
+             std::string(argv[2]).substr(0, 2) == "--" )
+        {
+            std::cout << "Invalid command line" << std::endl;
             return 0;
+        }
 
-        acmb::client::Client client("127.0.0.1");
+        acmb::client::Client client( argv[2] );
         client.Connect();
         std::cout << client.portNumber() << std::endl;
-        client.Process( argv[1], argv[2] );        
+
+        std::vector<std::string> args;
+        for ( int i = 3; i < argc; ++i )
+            args.emplace_back( argv[i] );
+
+        client.Process( args );
+
         client.Disconnect();
         std::cout << client.portNumber() << std::endl;
     }

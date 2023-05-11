@@ -15,13 +15,6 @@ struct StackingDatum
     uint64_t totalStarCount;
 };
 
-enum class StackMode
-{
-    Light,
-    LightNoAlign,
-    DarkOrFlat
-};
-
 class BaseStacker : public IPipelineFirstElement
 {
     friend class AlignmentHelper;

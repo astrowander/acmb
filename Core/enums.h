@@ -134,4 +134,11 @@ enum class PpmMode
     Binary
 };
 
+enum class StackMode
+{
+    Light,
+    LightNoAlign,
+    DarkOrFlat
+};
+
 ACMB_NAMESPACE_END

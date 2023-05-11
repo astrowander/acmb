@@ -18,18 +18,17 @@
 #include <filesystem>
 
 
-using phmap::parallel_flat_hash_map;
+using phmap::flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
-static const parallel_flat_hash_map<std::string, PixelFormat> stringToPixelFormat =
+static const flat_hash_map<std::string, PixelFormat> stringToPixelFormat =
 {
     {"gray8", PixelFormat::Gray8},
     {"gray16", PixelFormat::Gray16},
     {"rgb24", PixelFormat::RGB24},
     {"rgb48", PixelFormat::RGB48}
 };
-
 
 CliParser::CliParser( int argc, const char** argv )
 {
