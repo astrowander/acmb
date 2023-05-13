@@ -4,8 +4,7 @@
 #include "CliParser.h"
 
 #include "./../Core/enums.h"
-#include <boost/array.hpp>
-#include <iostream>
+#include "./../Codecs/imagedecoder.h"
 #include <filesystem>
 #include <set>
 #include <algorithm>
@@ -21,6 +20,17 @@ static const std::unordered_map<std::string, PixelFormat> stringToPixelFormat =
     {"gray16", PixelFormat::Gray16},
     {"rgb24", PixelFormat::RGB24},
     {"rgb48", PixelFormat::RGB48}
+};
+
+static const std::unordered_map<std::string, ExtensionCode> stringToExtensionCode =
+{
+    {".tif", ExtensionCode::Tiff},
+    {".tiff", ExtensionCode::Tiff},
+    {".ppm", ExtensionCode::Ppm},
+    {".pgm", ExtensionCode::Ppm},
+    {".jpg", ExtensionCode::Jpeg},
+    {".jpeg", ExtensionCode::Jpeg},
+    {".jfif", ExtensionCode::Jpeg}
 };
 
 std::string IntToString( size_t num, size_t minDigitCount )
@@ -142,6 +152,11 @@ void Client::Process( const std::vector<std::string>& args )
     }
 
     const auto inputFiles = GetFileNamesFromMask( kvs.front().values[0] );
+    if ( inputFiles.empty() )
+        throw std::runtime_error( "No input files" );
+
+    //auto pFirstDecoder = ImageDecoder::Create( inputFiles[0] );
+    //const auto inputPixelFormat = pFirstDecoder->GetPixelFormat();
     const auto outputPath = kvs.back().values[0];
 
     bool isStackerFound = false;
@@ -150,6 +165,11 @@ void Client::Process( const std::vector<std::string>& args )
     const boost::array<tcp::endpoint, 1> endpoints = { tcp::endpoint( ipAddr, portNumber_ ) };
     tcp::socket socket( context_ );
     boost::asio::connect(socket, endpoints );    
+
+    //UploadSingleObject( socket, pFirstDecoder->GetWidth() );
+    //UploadSingleObject( socket, pFirstDecoder->GetHeight() );
+    //UploadSingleObject( socket, inputPixelFormat );
+    UploadFile( socket, inputFiles[0] );
 
     UploadSingleObject( socket, kvs.size() - 2 );
     for (size_t i = 1; i < kvs.size() - 1; ++i )
@@ -176,8 +196,8 @@ void Client::Process( const std::vector<std::string>& args )
             if ( kv.values.size() != 2 )
                 throw std::runtime_error( "--binning requires exactly two arguments" );
 
-            const int width = std::stoi( kv.values[0] );
-            const int height = std::stoi( kv.values[1] );
+            const uint32_t width = std::stoi( kv.values[0] );
+            const uint32_t height = std::stoi( kv.values[1] );
             if ( width <= 0 || height <= 0 )
                 throw std::runtime_error( "--binning requires strictly positive arguments" );
 
@@ -231,6 +251,18 @@ void Client::Process( const std::vector<std::string>& args )
                throw std::runtime_error( "--deaberrate requires zero arguments" );
 
             UploadSingleObject( socket, CommandCode::Deaberrate );
+        }
+        else if (kv.key == "--removehalo")
+        {
+            if ( kv.values.size() > 1 )
+                throw std::runtime_error( "--removehalo requires zero or one arguments" );
+
+            float intensity = 100.0f;
+            if ( kv.values.size() == 1 )
+                intensity = std::stof( kv.values[0] );
+
+            UploadSingleObject( socket, CommandCode::RemoveHalo );
+            UploadSingleObject( socket, intensity );
         }
         else if ( kv.key == "--resize" )
         {
@@ -299,7 +331,19 @@ void Client::Process( const std::vector<std::string>& args )
     {
         extension = kvs.back().values[1];
     }
+    else
+    {
+        const auto dotPos = outputPath.find_last_of( '.' );
+        extension = outputPath.substr( dotPos );
+    }
 
+    auto extensionIt = stringToExtensionCode.find( extension );
+    if ( extensionIt == stringToExtensionCode.end() )
+        throw std::runtime_error( "Unsupported extension ");
+
+    ExtensionCode exCode = extensionIt->second;
+
+    UploadSingleObject( socket, exCode );
     UploadSingleObject( socket, inputFiles.size() );
     for ( const auto& inputFile : inputFiles )
     {

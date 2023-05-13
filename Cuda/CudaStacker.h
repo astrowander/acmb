@@ -4,6 +4,10 @@
 #include "AddBitmapWithAlignment.h"
 #include <variant>
 
+ACMB_NAMESPACE_BEGIN
+class IBitmap;
+ACMB_NAMESPACE_END
+
 ACMB_CUDA_NAMESPACE_BEGIN
 
 class Stacker : public BaseStacker
@@ -15,9 +19,9 @@ class Stacker : public BaseStacker
     std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
     std::variant< AddBitmapWithAlignmentHelperU8, AddBitmapWithAlignmentHelperU16> _helper;
 
-    virtual void CallAddBitmapHelper( IBitmapPtr pBitmap ) override;
-    virtual void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap ) override;
-    virtual IBitmapPtr CallGeneratingResultHelper() override;
+    virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) override;
+    virtual void CallAddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap ) override;
+    virtual std::shared_ptr<IBitmap> CallGeneratingResultHelper() override;
 
     void Init();
 

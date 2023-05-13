@@ -24,4 +24,11 @@ enum class CommandCode : uint8_t
     Stack = 127
 };
 
+enum class ExtensionCode : uint8_t
+{
+    Ppm,
+    Tiff,
+    Jpeg
+};
+
 ACMB_NAMESPACE_END

@@ -213,7 +213,7 @@ void BaseStacker::StackWithAlignment( StackingDatum& sd, std::shared_ptr<Registr
     Log( sd.pipeline.GetFileName() + " is stacked" );
 }
 
-void BaseStacker::AddBitmap(Pipeline pipeline)
+void BaseStacker::AddBitmap(Pipeline& pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );
     if ( ( _stackMode == StackMode::Light || _stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )

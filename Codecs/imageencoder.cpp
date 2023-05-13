@@ -1,4 +1,5 @@
 #include "imageencoder.h"
+#include "./../Core/bitmap.h"
 #include <fstream>
 #include <filesystem>
 #include "PPM/ppmencoder.h"

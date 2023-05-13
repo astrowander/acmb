@@ -49,7 +49,7 @@ public:
     /// returns beginning of the next stripe, throws exception "not implemented, override this if the image format allows to read file partially.
     virtual uint32_t GetCurrentScanline() const;
     /// reads and returns bitmap, needed for the compatibility with pipelines
-    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap = nullptr ) override;
+    virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pBitmap = nullptr ) override;
     /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
     static std::shared_ptr<ImageDecoder> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );    
     /// needed for the compatibility with pipelines, if opening file is RAW, rawSettings will be applied
@@ -69,7 +69,7 @@ public:
 protected:
     static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
     
-    IBitmapPtr ToOutputFormat( IBitmapPtr pSrcBitmap );
+    std::shared_ptr<IBitmap> ToOutputFormat( std::shared_ptr<IBitmap> pSrcBitmap );
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());

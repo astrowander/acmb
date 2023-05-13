@@ -225,7 +225,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         {
             float intensity = 75.0f;
             if ( values.size() > 1 )
-                return { 1, "--subtract requires 0 or 1 argument" };
+                return { 1, "--removehalo requires 0 or 1 argument" };
             else if ( values.size() == 1 )
                 intensity = std::stof( values[0] );
 
@@ -319,7 +319,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+                    pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
                 }
             }
         }

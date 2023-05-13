@@ -57,12 +57,12 @@ public:
     /// stacks registered images
     std::shared_ptr<IBitmap> Stack();
 
-    void AddBitmap( Pipeline pipeline );
+    void AddBitmap( Pipeline& pipeline );
     std::shared_ptr<IBitmap> GetResult();
 
-    virtual void CallAddBitmapHelper( IBitmapPtr pBitmap ) = 0;
-    virtual void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap ) = 0;
-    virtual IBitmapPtr CallGeneratingResultHelper() = 0;
+    virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
+    virtual void CallAddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
+    virtual std::shared_ptr<IBitmap> CallGeneratingResultHelper() = 0;
 
     double GetThreshold() const { return _threshold; }
     void SetThreshold( double threshold ) { _threshold = threshold; };
@@ -72,7 +72,7 @@ public:
     void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
 
     /// needed for compatibility with pipeline API
-    IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr );
+    std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr );
 };
 
 ACMB_NAMESPACE_END

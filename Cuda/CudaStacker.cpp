@@ -1,6 +1,7 @@
 #include "CudaStacker.h"
 #include "AddBitmap.h"
 #include "GenerateResult.h"
+#include "./../Core/bitmap.h"
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
