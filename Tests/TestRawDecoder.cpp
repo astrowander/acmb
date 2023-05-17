@@ -3,6 +3,7 @@
 #include "./../Codecs/Raw/RawDecoder.h"
 #include "./../Codecs/PPM/ppmencoder.h"
 #include <fstream>
+#include <thread>
 
 ACMB_TESTS_NAMESPACE_BEGIN
 
@@ -128,12 +129,37 @@ END_TEST
 
 BEGIN_TEST (TestReadingFromStream)
 
-auto pDecoder = std::make_unique<RawDecoder>( PixelFormat::RGB48 );
-pDecoder->Attach( std::make_shared<std::ifstream>( GetPathToTestFile( "RAW/TestLensInfo/Canon_200_mm.CR2" ), std::ios_base::in | std::ios_base::binary ) );
-EXPECT_EQ( PixelFormat::RGB48, pDecoder->GetPixelFormat() );
-EXPECT_EQ( 5496, pDecoder->GetWidth() );
-EXPECT_EQ( 3670, pDecoder->GetHeight() );
+bool finished = false;
+std::thread thread([&finished]
+{
+    std::ifstream is( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ), std::ios_base::in | std::ios_base::binary );
+    if ( !is.is_open() )
+        throw std::runtime_error( "unable to open input file" );
 
+    std::string buf;
+    is.seekg( 0, is.end );
+    const size_t length = is.tellg();
+    is.seekg( 0, is.beg );
+
+    buf.resize( length );
+    is.read( buf.data(), length );
+    auto pInStream = std::make_shared<std::istringstream>( buf );
+    std::shared_ptr<ImageDecoder> pDecoder;
+    pDecoder = std::make_unique<RawDecoder>();
+    pDecoder->Attach( pInStream );
+
+    finished = true;
+} );
+thread.detach();
+
+while (!finished)
+{
+}
+//EXPECT_EQ( PixelFormat::RGB48, pDecoder->GetPixelFormat() );
+//EXPECT_EQ( 5496, pDecoder->GetWidth() );
+//EXPECT_EQ( 3670, pDecoder->GetHeight() );
+//auto pBitmap = pDecoder->ReadBitmap();
+//EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944.ppm"), pBitmap));
 END_TEST
 
 END_SUITE

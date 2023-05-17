@@ -160,18 +160,18 @@ void RawDecoder::Attach(const std::string& fileName)
 
 void RawDecoder::Attach(std::shared_ptr<std::istream> is)
 {
-	std::vector<char> buf;
+    //std::vector<char> buf;
 	is->seekg( 0, is->end );
 	size_t length = is->tellg();
 	is->seekg( 0, is->beg );
 
-	buf.resize( length );
-	is->read( buf.data(), length );
+    _buf.resize( length );
+    is->read( _buf.data(), length );
 
 	if ( !is )
 		throw std::runtime_error( "unable to read the stream" );
 
-	if ( _pLibRaw->open_buffer( buf.data(), buf.size() ) )
+    if ( _pLibRaw->open_buffer( _buf.data(), _buf.size() ) )
 		throw std::runtime_error( "unable to read the file" );
 
 	Attach();	
@@ -179,7 +179,8 @@ void RawDecoder::Attach(std::shared_ptr<std::istream> is)
 
 void RawDecoder::Detach()
 {
-	_pLibRaw->recycle();	
+    _pLibRaw->recycle();
+    _buf.clear();
 }
 
 std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()

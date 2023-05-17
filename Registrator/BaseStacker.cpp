@@ -76,7 +76,11 @@ BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
 {
     _width = imageParams.GetWidth();
     _height = imageParams.GetHeight();
-    _pixelFormat = imageParams.GetPixelFormat();
+
+    _pixelFormat = PixelFormat::RGB48;
+    if ( _stackMode != StackMode::Light || imageParams.GetPixelFormat() != PixelFormat::Bayer16 )
+        _pixelFormat = imageParams.GetPixelFormat();
+
     _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
     _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
@@ -217,7 +221,7 @@ void BaseStacker::AddBitmap(Pipeline& pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );
     if ( ( _stackMode == StackMode::Light || _stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
-        _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
+        pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
 
     auto pBitmap = pipeline.RunAndGetBitmap();
     Log( pipeline.GetFileName() + " is read" );

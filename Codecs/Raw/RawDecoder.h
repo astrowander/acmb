@@ -25,7 +25,8 @@ class RawDecoder : public ImageDecoder
     using LensDB = parallel_flat_hash_map<uint16_t, std::vector<LensInfo>>;
     static LensDB LoadLensDB();
     inline static LensDB lensDB = LoadLensDB();
-	LibRaw* _pLibRaw;
+    std::vector<char> _buf;
+	LibRaw* _pLibRaw;    
 
     void Attach();
 

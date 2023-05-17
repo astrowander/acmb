@@ -4,7 +4,6 @@
 #include "CliParser.h"
 
 #include "./../Core/enums.h"
-#include "./../Codecs/imagedecoder.h"
 #include <filesystem>
 #include <set>
 #include <algorithm>
@@ -20,17 +19,6 @@ static const std::unordered_map<std::string, PixelFormat> stringToPixelFormat =
     {"gray16", PixelFormat::Gray16},
     {"rgb24", PixelFormat::RGB24},
     {"rgb48", PixelFormat::RGB48}
-};
-
-static const std::unordered_map<std::string, ExtensionCode> stringToExtensionCode =
-{
-    {".tif", ExtensionCode::Tiff},
-    {".tiff", ExtensionCode::Tiff},
-    {".ppm", ExtensionCode::Ppm},
-    {".pgm", ExtensionCode::Ppm},
-    {".jpg", ExtensionCode::Jpeg},
-    {".jpeg", ExtensionCode::Jpeg},
-    {".jfif", ExtensionCode::Jpeg}
 };
 
 std::string IntToString( size_t num, size_t minDigitCount )
@@ -166,10 +154,9 @@ void Client::Process( const std::vector<std::string>& args )
     tcp::socket socket( context_ );
     boost::asio::connect(socket, endpoints );    
 
-    //UploadSingleObject( socket, pFirstDecoder->GetWidth() );
-    //UploadSingleObject( socket, pFirstDecoder->GetHeight() );
-    //UploadSingleObject( socket, inputPixelFormat );
     UploadFile( socket, inputFiles[0] );
+    std::string inputExtension = inputFiles[0].substr( inputFiles[0].find_last_of('.') );
+    UploadData( socket, std::move(inputExtension ) );
 
     UploadSingleObject( socket, kvs.size() - 2 );
     for (size_t i = 1; i < kvs.size() - 1; ++i )
@@ -326,34 +313,39 @@ void Client::Process( const std::vector<std::string>& args )
         }
     }
 
-    std::string extension;
+    std::string outputExtension;
+
     if (!isStackerFound && kvs.back().values.size() >= 2 )
     {
-        extension = kvs.back().values[1];
+        outputExtension = kvs.back().values[1];
     }
     else
     {
         const auto dotPos = outputPath.find_last_of( '.' );
-        extension = outputPath.substr( dotPos );
+        outputExtension = outputPath.substr( dotPos );
     }
 
-    auto extensionIt = stringToExtensionCode.find( extension );
-    if ( extensionIt == stringToExtensionCode.end() )
-        throw std::runtime_error( "Unsupported extension ");
-
-    ExtensionCode exCode = extensionIt->second;
-
-    UploadSingleObject( socket, exCode );
+    UploadData(socket, outputExtension );
     UploadSingleObject( socket, inputFiles.size() );
-    for ( const auto& inputFile : inputFiles )
+    if ( !isStackerFound )
     {
-        UploadFile(socket, inputFile);
+        const auto lastSlashPos = inputFiles[0].find_last_of("/\\");
+        const auto dotPos = inputFiles[0].find_last_of( '.' );
+        DownloadFile(socket, outputPath + "/" + inputFiles[0].substr(lastSlashPos + 1, dotPos - lastSlashPos - 1 ) + outputExtension );
+    }
+
+    for ( size_t i = 1; i < inputFiles.size(); ++i )
+    {
+        const auto& inputFile = inputFiles[i];
+        inputExtension = inputFile.substr( inputFile.find_last_of('.') );
+
+        UploadFile( socket, inputFile );
+        UploadData( socket, std::move( inputExtension ) );
         if (!isStackerFound)
         {
             const auto lastSlashPos = inputFile.find_last_of("/\\");
             const auto dotPos = inputFile.find_last_of( '.' );
-
-            DownloadFile(socket, outputPath + "/" + inputFile.substr(lastSlashPos + 1, dotPos - lastSlashPos - 1 ) + extension );
+            DownloadFile(socket, outputPath + "/" + inputFile.substr(lastSlashPos + 1, dotPos - lastSlashPos - 1 ) + outputExtension );
         }
     }
 

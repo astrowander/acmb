@@ -7,6 +7,10 @@
 #include "./../Codecs/Tiff/TiffEncoder.h"
 #include "./../Codecs/JPEG/JpegEncoder.h"
 
+#include "./../Codecs/PPM/ppmdecoder.h"
+#include "./../Codecs/Raw/RawDecoder.h"
+#include "./../Codecs/Tiff/TiffDecoder.h"
+
 #include "./../Transforms/binningtransform.h"
 #include "./../Transforms/converter.h"
 #include "./../Transforms/BitmapSubtractor.h"
@@ -28,17 +32,45 @@ using boost::asio::ip::tcp;
 
 ACMB_SERVER_NAMESPACE_BEGIN
 
-std::shared_ptr<ImageEncoder> CreateEncoder( ExtensionCode exCode )
+std::string ToLower(const std::string& str)
 {
-    switch ( exCode )
-    {
-    case ExtensionCode::Ppm:
-        return std::make_shared<PpmEncoder>( PpmMode::Binary );
-    case ExtensionCode::Tiff:
-        return std::make_shared<TiffEncoder>();
-    case ExtensionCode::Jpeg:
-        return std::make_shared<JpegEncoder>();
-    }
+    std::string res;
+    res.resize( str.size() );
+    std::transform( str.begin(), str.end(), res.begin(), [](char ch) {return std::tolower(ch);} );
+    return res;
+}
+
+IBitmapPtr ReadBitmap( std::shared_ptr<std::istringstream> pStream, const std::string& extension )
+{
+    std::shared_ptr<ImageDecoder> pDecoder;
+    if ( TiffDecoder::GetExtensions().contains(extension) )
+        pDecoder = std::make_shared<TiffDecoder>();
+    else if ( PpmDecoder::GetExtensions().contains(extension) )
+        pDecoder = std::make_shared<PpmDecoder>();
+    else if ( RawDecoder::GetExtensions().contains(extension) )
+        pDecoder = std::make_shared<RawDecoder>();
+    else
+        throw std::runtime_error( "Unsupported extension" );
+
+    pDecoder->Attach( pStream );
+    auto res = pDecoder->ReadBitmap();
+    return res;
+}
+
+void WriteBitmap( tcp::socket& socket, IBitmapPtr pBitmap, const std::string& extension )
+{
+    std::shared_ptr<ImageEncoder> pEncoder;
+    if ( TiffEncoder::GetExtensions().contains(extension) )
+        pEncoder = std::make_shared<TiffEncoder>();
+    else if ( PpmEncoder::GetExtensions().contains(extension) )
+        pEncoder = std::make_shared<PpmEncoder>( PpmMode::Binary );
+    else if ( JpegEncoder::GetExtensions().contains(extension) )
+        pEncoder = std::make_shared<JpegEncoder>();
+
+    auto pOutputStream = std::make_shared<std::ostringstream>();
+    pEncoder->Attach( pOutputStream );
+    pEncoder->WriteBitmap( pBitmap );
+    SendData(socket, pOutputStream->str());
 }
 
 void Server::ListenClientPort(uint16_t port)
@@ -48,13 +80,14 @@ void Server::ListenClientPort(uint16_t port)
     acceptor.accept(socket);
 
     std::string str = ReceiveData(socket);
-    auto pInStream = std::make_shared<std::istringstream>( str );
+    std::string inputExtension = ToLower( ReceiveData(socket) );
+    auto pInStream = std::make_shared<std::istringstream>( str );    
 
     const size_t commandCount = ReceiveSingleObject<size_t>( socket );
     std::vector<CommandCode> commands( commandCount );
 
     std::shared_ptr<Stacker> pStacker;
-    Pipeline beforeStacker( IBitmap::Create( pInStream ) );
+    Pipeline beforeStacker( ReadBitmap( pInStream, inputExtension ) );
     Pipeline afterStacker;
     Pipeline* activePipeline = &beforeStacker;
 
@@ -147,35 +180,32 @@ void Server::ListenClientPort(uint16_t port)
         }
     }
 
-    const ExtensionCode exCode = ReceiveSingleObject<ExtensionCode>( socket );
+    const std::string outputExtension = ToLower( ReceiveData( socket ) );
     const size_t fileCount = ReceiveSingleObject<size_t>( socket );
-    for ( size_t i = 0; i < fileCount; ++i )
-    {
-        std::string str = ReceiveData(socket);
-        auto pStream = std::make_shared<std::istringstream>( str );
-        beforeStacker.ReplaceFirstElement(IBitmap::Create(pStream));
-        if ( pStacker )
-        {
-            pStacker->AddBitmap( beforeStacker );
-            continue;
-        }
 
-        auto pEncoder = CreateEncoder( exCode );
-        auto pOutputStream = std::make_shared<std::ostringstream>();
-        pEncoder->Attach( pOutputStream );
-        pEncoder->WriteBitmap( beforeStacker.RunAndGetBitmap() );
-        SendData(socket, pOutputStream->str());
+    if ( pStacker)
+        pStacker->AddBitmap( beforeStacker );
+    else
+        WriteBitmap( socket, beforeStacker.RunAndGetBitmap(), outputExtension );
+
+    for ( size_t i = 1; i < fileCount; ++i )
+    {
+        std::string str = ReceiveData( socket );
+        inputExtension = ToLower( ReceiveData( socket ) );
+
+        auto pStream = std::make_shared<std::istringstream>( str );
+        beforeStacker.ReplaceFirstElement(ReadBitmap(pStream, inputExtension));
+        if ( pStacker)
+            pStacker->AddBitmap( beforeStacker );
+        else
+            WriteBitmap( socket, beforeStacker.RunAndGetBitmap(), outputExtension );
     }
 
     if ( pStacker )
     {
         pStackedBitmap = pStacker->GetResult();
         afterStacker.ReplaceFirstElement( pStackedBitmap );
-        auto pEncoder = CreateEncoder( exCode );
-        auto pOutputStream = std::make_shared<std::ostringstream>();
-        pEncoder->Attach( pOutputStream );
-        pEncoder->WriteBitmap( afterStacker.RunAndGetBitmap() );
-        SendData(socket, pOutputStream->str());
+        WriteBitmap(socket, afterStacker.RunAndGetBitmap(), outputExtension );
     }
 }
 
