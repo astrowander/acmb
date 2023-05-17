@@ -21,6 +21,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acmb-cuda", "Cuda\acmb-cuda
 		{0CD2FB18-3636-4742-BABA-810DCB9CDD49} = {0CD2FB18-3636-4742-BABA-810DCB9CDD49}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acmb-client", "Client\acmb-client.vcxproj", "{FADC3F89-7B55-47AE-A3EF-F565944FB723}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D} = {D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acmb-server", "Server\acmb-server.vcxproj", "{464A9C23-0EE4-4FA3-9176-BFC5A62CF90A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D} = {D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
