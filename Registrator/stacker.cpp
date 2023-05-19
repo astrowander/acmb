@@ -196,7 +196,7 @@ public:
     static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>>& pBitmap )
     {
         GeneratingResultHelper helper( stacker );
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, helper._pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
         {
             for ( int i = range.begin(); i < range.end(); ++i )
             {
@@ -235,9 +235,41 @@ void Stacker::CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap )
 
 IBitmapPtr Stacker::CallGeneratingResultHelper()
 {
-    IBitmapPtr pBitmap;
-    CALL_HELPER( GeneratingResultHelper, pBitmap );
-    return pBitmap;
+    switch ( _pixelFormat )
+    {
+        case PixelFormat::Gray8:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::Gray8>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Gray8>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::Gray16:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::Gray16>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Gray16>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::RGB24:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::RGB24>> pBitmap;
+            GeneratingResultHelper<PixelFormat::RGB24>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::RGB48:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::RGB48>> pBitmap;
+            GeneratingResultHelper<PixelFormat::RGB48>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::Bayer16:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::Bayer16>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Bayer16>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        default:
+            throw std::runtime_error( "pixel format should be specified" );
+    }
 }
 
 void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const Stacker::GridCell& trianglePairs)

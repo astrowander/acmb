@@ -194,6 +194,9 @@ void Server::ListenClientPort(uint16_t port)
         inputExtension = ToLower( ReceiveData( socket ) );
 
         auto pStream = std::make_shared<std::istringstream>( str );
+        if ( !ImageDecoder::GetAllExtensions().contains( inputExtension ) )
+            continue;
+
         beforeStacker.ReplaceFirstElement(ReadBitmap(pStream, inputExtension));
         if ( pStacker)
             pStacker->AddBitmap( beforeStacker );
