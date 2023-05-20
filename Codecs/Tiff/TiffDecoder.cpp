@@ -1,7 +1,12 @@
 #include "TiffDecoder.h"
+#include "../../Tools/SystemTools.h"
+
 #include "tinytiffreader.hxx"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+
+#include <fstream>
+#include <filesystem>
 
 ACMB_NAMESPACE_BEGIN
 
@@ -36,6 +41,8 @@ TiffDecoder::TiffDecoder( PixelFormat outputFormat )
 
 void TiffDecoder::Attach( const std::string& fileName )
 {
+    _lastFileName = fileName;
+
     _pReader =  TinyTIFFReader_open( fileName.c_str() ) ;
     if ( !_pReader )
         throw std::runtime_error( "file is corrupted" );
@@ -54,14 +61,31 @@ void TiffDecoder::Attach( const std::string& fileName )
         _pixelFormat = _decodedFormat;
 }
 
-void TiffDecoder::Attach( std::shared_ptr<std::istream> )
+void TiffDecoder::Attach( std::shared_ptr<std::istream> pStream )
 {
-    throw std::runtime_error( "not implemented" );
+    if ( !pStream )
+        throw std::invalid_argument( "pStream" );
+    
+    _pStream = pStream;
+    RandomStringGenerator rsg;
+    const std::string fileName = std::filesystem::temp_directory_path().string() + "/tmp_" + rsg( 16 ) + ".tif";
+    std::ofstream out( fileName );
+    if ( !out )
+        throw std::runtime_error( "unable to open temporary file" );
+
+    out << pStream->rdbuf();
+    out.close();
+
+    Attach( fileName );
 }
 
 void TiffDecoder::Detach()
 {
     TinyTIFFReader_close( _pReader );
+    if ( _pStream )
+        std::filesystem::remove( _lastFileName );
+
+    _pStream.reset();
 }
 
 IBitmapPtr TiffDecoder::ReadBitmap()
