@@ -69,11 +69,19 @@ void TiffDecoder::Attach( std::shared_ptr<std::istream> pStream )
     _pStream = pStream;
     RandomStringGenerator rsg;
     const std::string fileName = std::filesystem::temp_directory_path().string() + "/tmp_" + rsg( 16 ) + ".tif";
-    std::ofstream out( fileName );
+    std::ofstream out( fileName, std::ios_base::out | std::ios_base::binary );
     if ( !out )
         throw std::runtime_error( "unable to open temporary file" );
 
-    out << pStream->rdbuf();
+    std::string buf;
+    pStream->seekg( 0, pStream->end );
+    const size_t length = pStream->tellg();
+    pStream->seekg( 0, pStream->beg );
+
+    buf.resize( length );
+    pStream->read( buf.data(), length );
+
+    out << buf;
     out.close();
 
     Attach( fileName );

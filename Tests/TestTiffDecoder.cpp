@@ -3,6 +3,8 @@
 #include "../Codecs/Tiff/TiffDecoder.h"
 #include "../Core/bitmap.h"
 
+#include <fstream>
+
 ACMB_TESTS_NAMESPACE_BEGIN
 
 BEGIN_SUITE( TiffDecoder )
@@ -77,6 +79,32 @@ pDecoder->Attach( GetPathToTestFile( "TIFF/RGB24.tiff" ) );
 auto pFirstBitmap = pDecoder->ReadBitmap();
 auto pSecondBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE( BitmapsAreEqual( pFirstBitmap, pSecondBitmap ) );
+
+END_TEST
+
+BEGIN_TEST( TestReadingFromStream )
+
+std::ifstream is( GetPathToTestFile( "TIFF/RGB48.tiff" ), std::ios_base::in | std::ios_base::binary );
+if ( !is.is_open() )
+throw std::runtime_error( "unable to open input file" );
+
+std::string buf;
+is.seekg( 0, is.end );
+const size_t length = is.tellg();
+is.seekg( 0, is.beg );
+
+buf.resize( length );
+is.read( buf.data(), length );
+auto pInStream = std::make_shared<std::istringstream>( buf );
+
+auto pDecoder = std::make_unique<TiffDecoder>();
+pDecoder->Attach( pInStream );
+
+EXPECT_EQ( PixelFormat::RGB48, pDecoder->GetPixelFormat() );
+EXPECT_EQ( 1280, pDecoder->GetWidth() );
+EXPECT_EQ( 960, pDecoder->GetHeight() );
+auto pBitmap = pDecoder->ReadBitmap();
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "TiffDecoder/TestRGB48.ppm" ), pBitmap ) );
 
 END_TEST
 

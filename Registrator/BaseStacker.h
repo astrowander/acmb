@@ -41,7 +41,6 @@ protected:
     StackMode _stackMode;
 
     void CalculateAligningGrid( const std::vector<std::vector<Star>>& stars  );
-    void StackWithAlignment( StackingDatum& sd, std::shared_ptr<Registrator> pRegistrator = nullptr );
 
 public:
     /// creates an instance with the given images

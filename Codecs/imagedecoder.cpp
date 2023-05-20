@@ -59,6 +59,11 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
+ImageDecoder::~ImageDecoder()
+{
+    Detach();
+}
+
 std::shared_ptr<IBitmap> ImageDecoder::ReadStripe( uint32_t )
 {
     throw std::runtime_error( "not implemented" );

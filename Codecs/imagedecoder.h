@@ -40,7 +40,7 @@ public:
     virtual void Reattach();
     /// detach decoder
     virtual void Detach();
-    virtual ~ImageDecoder() = default;
+    virtual ~ImageDecoder();
     
     /// read whole bitmap, need to implement in the derived class
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;

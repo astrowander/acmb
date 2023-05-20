@@ -54,7 +54,15 @@ void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
         if ( !in )
             throw std::runtime_error( "unable to open temporary file" );
 
-        *_pStream << in.rdbuf();
+        std::string buf;
+        in.seekg( 0, in.end );
+        const size_t length = in.tellg();
+        in.seekg( 0, in.beg );
+
+        buf.resize( length );
+        in.read( buf.data(), length );
+
+        *_pStream << buf;
         in.close();
         std::filesystem::remove( _fileName );
     }

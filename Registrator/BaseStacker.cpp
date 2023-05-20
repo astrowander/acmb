@@ -182,39 +182,10 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
 
     for (uint32_t i = 1; i < _stackingData.size(); ++i)
     {
-        StackWithAlignment( _stackingData[i] );
+        AddBitmap( _stackingData[i].pipeline );
     }
 
     return CallGeneratingResultHelper();
-}
-
-void BaseStacker::StackWithAlignment( StackingDatum& sd, std::shared_ptr<Registrator> pRegistrator )
-{
-    Log( sd.pipeline.GetFileName() + " in process" );
-    auto pTargetBitmap = sd.pipeline.RunAndGetBitmap();
-    Log( sd.pipeline.GetFileName() + " is read" );
-
-    if ( pRegistrator )
-    {
-        pRegistrator->Registrate( pTargetBitmap );
-        sd.stars = pRegistrator->GetStars();
-    }
-
-    CalculateAligningGrid( sd.stars );
-    Log( sd.pipeline.GetFileName() + " grid is calculated" );
-    //if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
-      //  throw std::runtime_error("bitmaps in stack should have the same pixel format");
-
-    if ( _stackMode != StackMode::Light )
-    {
-        CallAddBitmapHelper( pTargetBitmap );
-        Log( sd.pipeline.GetFileName() + " is stacked" );
-        return;
-    }
-
-    CallAddBitmapWithAlignmentHelper( pTargetBitmap );
-
-    Log( sd.pipeline.GetFileName() + " is stacked" );
 }
 
 void BaseStacker::AddBitmap(Pipeline& pipeline)
@@ -261,32 +232,11 @@ std::shared_ptr<IBitmap>  BaseStacker::RegistrateAndStack()
     if (_stackingData.size() == 0)
         return nullptr;
 
-    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
-
-    if (_stackingData.size() == 1)
-        return pRefBitmap;
-
-    auto pRegistrator = std::make_shared<Registrator>(_threshold, _minStarSize, _maxStarSize);
-
-    pRegistrator->Registrate(pRefBitmap);
-    _stackingData[0].stars = pRegistrator->GetStars();
-
-    const auto& refStars = _stackingData[0].stars;
-
-     _aligners.clear();
-     for (const auto& refStarVector : refStars)
-         _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
-
-    CallAddBitmapHelper( pRefBitmap );
-
-    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
-
-    for (uint32_t i = 1; i < _stackingData.size(); ++i)
+    for ( uint32_t i = 0; i < _stackingData.size(); ++i )
     {
-        StackWithAlignment( _stackingData[i], pRegistrator );
+        AddBitmap( _stackingData[i].pipeline );
     }
 
-    //auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());
     return CallGeneratingResultHelper();
 }
 

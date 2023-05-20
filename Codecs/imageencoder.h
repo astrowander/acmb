@@ -26,7 +26,7 @@ public:
     /// detach decoder
     virtual void Detach();
 
-    virtual ~ImageEncoder() = default;
+    virtual ~ImageEncoder();
     /// write given bitmap
     virtual void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) = 0;
     /// needed for the compatibility with pipelines

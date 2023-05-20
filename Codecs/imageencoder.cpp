@@ -30,6 +30,11 @@ void ImageEncoder::Detach()
     _pStream.reset();
 }
 
+ImageEncoder::~ImageEncoder()
+{
+    Detach();
+}
+
 std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
 {
     auto path = std::filesystem::path(fileName);

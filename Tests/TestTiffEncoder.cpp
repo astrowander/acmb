@@ -4,6 +4,8 @@
 #include "../Codecs/PPM/ppmencoder.h"
 #include "../Core/bitmap.h"
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 #include "stdio.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN
@@ -67,6 +69,19 @@ auto f = [] ()
 };
 
 ASSERT_THROWS( f, std::invalid_argument );
+END_TEST
+
+BEGIN_TEST( TestWritingToStream )
+
+auto pStream = std::make_shared<std::ostringstream>();
+auto pRefBitmap = IBitmap::Create( GetPathToTestFile( std::string( "TIFF/RGB48.tiff" ) ) );
+
+TiffEncoder tiffEncoder;
+tiffEncoder.Attach( pStream );
+tiffEncoder.WriteBitmap( pRefBitmap );
+const auto str = pStream->str();
+EXPECT_EQ( 7374351, str.size() );
+
 END_TEST
 
 END_SUITE
