@@ -1,6 +1,6 @@
 #include "client.h"
 #include <iostream>
-#include <sstream>
+#include <chrono>
 
 int main( int argc, const char** argv )
 {
@@ -14,6 +14,8 @@ int main( int argc, const char** argv )
             return 0;
         }
 
+        const auto start = std::chrono::steady_clock::now();
+
         acmb::client::Client client( argv[2] );
         client.Connect();
         std::cout << client.portNumber() << std::endl;
@@ -26,6 +28,10 @@ int main( int argc, const char** argv )
 
         client.Disconnect();
         std::cout << client.portNumber() << std::endl;
+
+        const auto end = std::chrono::steady_clock::now();
+        const auto ms = std::chrono::duration_cast< std::chrono::milliseconds >( end - start ).count();
+        std::cout <<  ms / 1000 << "." << ms % 1000 << "s elapsed" << std::endl;
     }
     catch( std::exception& e )
     {

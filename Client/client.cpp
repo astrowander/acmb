@@ -155,6 +155,8 @@ void Client::Process( const std::vector<std::string>& args )
     boost::asio::connect(socket, endpoints );    
 
     UploadFile( socket, inputFiles[0] );
+    std::cout << "1 of " << inputFiles.size() << " is uploaded" << std::endl;
+
     std::string inputExtension = inputFiles[0].substr( inputFiles[0].find_last_of('.') );
     UploadData( socket, std::move(inputExtension ) );
 
@@ -340,6 +342,7 @@ void Client::Process( const std::vector<std::string>& args )
         inputExtension = inputFile.substr( inputFile.find_last_of('.') );
 
         UploadFile( socket, inputFile );
+        std::cout << i + 1 << " of " << inputFiles.size() << " are uploaded" << std::endl;
         UploadData( socket, std::move( inputExtension ) );
         if (!isStackerFound)
         {
@@ -351,6 +354,8 @@ void Client::Process( const std::vector<std::string>& args )
 
     if ( isStackerFound )
         DownloadFile( socket, outputPath );
+
+    std::cout << "Result is downloaded" << std::endl;
 }
 
 void Client::Disconnect()

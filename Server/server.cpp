@@ -23,6 +23,9 @@
 #include "./../Transforms/HaloRemovalTransform.h"
 
 #include "./../Registrator/stacker.h"
+#include "./../Cuda/CudaStacker.h"
+
+#include "./../Cuda/CudaInfo.h"
 
 #include <boost/array.hpp>
 #include <thread>
@@ -86,7 +89,7 @@ void Server::ListenClientPort(uint16_t port)
     const size_t commandCount = ReceiveSingleObject<size_t>( socket );
     std::vector<CommandCode> commands( commandCount );
 
-    std::shared_ptr<Stacker> pStacker;
+    std::shared_ptr<BaseStacker> pStacker;
     Pipeline beforeStacker( ReadBitmap( pInStream, inputExtension ) );
     Pipeline afterStacker;
     Pipeline* activePipeline = &beforeStacker;
@@ -170,7 +173,12 @@ void Server::ListenClientPort(uint16_t port)
             const StackMode stackMode = ReceiveSingleObject<StackMode>(socket );
             const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
             const auto finalParams = beforeStacker.GetFinalParams();
-            pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
+
+            if ( cuda::isCudaAvailable() )
+                pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
+            else
+                pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
+
             pStackedBitmap = IBitmap::Create(finalParams->GetWidth(), finalParams->GetHeight(), finalParams->GetPixelFormat() );
             afterStacker = Pipeline { pStackedBitmap };
             activePipeline = &afterStacker;

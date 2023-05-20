@@ -1,9 +1,18 @@
 #include "CudaStacker.h"
 #include "AddBitmap.h"
 #include "GenerateResult.h"
+#include "CudaBasic.h"
 #include "./../Core/bitmap.h"
 
 ACMB_CUDA_NAMESPACE_BEGIN
+
+struct StackData
+{
+    DynamicArrayF _means;
+    DynamicArrayF _devs;
+    DynamicArrayU16 _counts;
+    std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
+};
 
 Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
 : BaseStacker(pipelines, stackMode)
@@ -19,22 +28,24 @@ Stacker::Stacker( const ImageParams& imageParams, StackMode stackMode )
 
 void Stacker::Init()
 {
+    _stackData = std::make_shared<StackData>();
+
     const size_t size = _width * _height * ChannelCount( _pixelFormat );
-    _means.resize( size );
-    _devs.resize( size );
-    _counts.resize( size );
+    _stackData->_means.resize( size );
+    _stackData->_devs.resize( size );
+    _stackData->_counts.resize( size );
 
     switch ( _pixelFormat )
     {
         case PixelFormat::Gray8:
         case PixelFormat::RGB24:
-        _cudaBitmap =   DynamicArrayU8(size) ;
+            _stackData->_cudaBitmap =   DynamicArrayU8(size) ;
             _helper = AddBitmapWithAlignmentHelperU8();
             break;
         case PixelFormat::Gray16:
         case PixelFormat::Bayer16:
         case PixelFormat::RGB48:
-        _cudaBitmap =  DynamicArrayU16( size ) ;
+            _stackData->_cudaBitmap =  DynamicArrayU16( size ) ;
             _helper = AddBitmapWithAlignmentHelperU16();
             break;
         default:
@@ -54,9 +65,9 @@ void Stacker::CallAddBitmapHelper( IBitmapPtr pBitmap )
 #define TRY_ADD_BITMAP( format ) \
 if (_pixelFormat == format) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
-    auto& bitmap = std::get<DynamicArrayT>( _cudaBitmap );\
+    auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     bitmap.fromVector( std::static_pointer_cast< Bitmap<format> >( pBitmap )->GetData() );\
-    return AddBitmapHelper( bitmap.data(), _means.data(), _devs.data(), _counts.data(), size ); }
+    return AddBitmapHelper( bitmap.data(), _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data(), size ); }
 
     TRY_ADD_BITMAP( PixelFormat::Gray8 );
     TRY_ADD_BITMAP( PixelFormat::Gray16 );
@@ -81,10 +92,10 @@ void Stacker::CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap )
 if (_pixelFormat == format) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
     using HelperT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, AddBitmapWithAlignmentHelperU8, AddBitmapWithAlignmentHelperU16>;\
-    auto& bitmap = std::get<DynamicArrayT>( _cudaBitmap );\
+    auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     auto& helper = std::get<HelperT>( _helper );\
     bitmap.fromVector( std::static_pointer_cast< Bitmap<format> >( pBitmap )->GetData() );\
-    return helper.Run( bitmap.data(), _width, _height, PixelFormatTraits<format>::channelCount, _grid, _means.data(), _devs.data(), _counts.data() ); }
+    return helper.Run( bitmap.data(), _width, _height, PixelFormatTraits<format>::channelCount, _grid, _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data() ); }
 
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray8 );
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray16 );
@@ -109,8 +120,8 @@ IBitmapPtr Stacker::CallGeneratingResultHelper()
 #define TRY_GENERATE_RESULT( format ) \
 if (_pixelFormat == format ) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
-    auto& bitmap = std::get<DynamicArrayT>( _cudaBitmap );\
-    GeneratingResultKernel(_means.data(), bitmap.data(), size );\
+    auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
+    GeneratingResultKernel(_stackData->_means.data(), bitmap.data(), size );\
     IBitmapPtr res = IBitmap::Create( _width, _height, _pixelFormat );\
     bitmap.toVector(std::static_pointer_cast<Bitmap<format>>(res)->GetData());\
     return res; } \
