@@ -50,19 +50,11 @@ void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
 
     if ( _pStream )
     {
-        std::ifstream in( _fileName );
+        std::ifstream in( _fileName, std::ios_base::in | std::ios_base::binary );
         if ( !in )
             throw std::runtime_error( "unable to open temporary file" );
 
-        std::string buf;
-        in.seekg( 0, in.end );
-        const size_t length = in.tellg();
-        in.seekg( 0, in.beg );
-
-        buf.resize( length );
-        in.read( buf.data(), length );
-
-        *_pStream << buf;
+        *_pStream << in.rdbuf();
         in.close();
         std::filesystem::remove( _fileName );
     }

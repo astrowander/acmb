@@ -73,15 +73,7 @@ void TiffDecoder::Attach( std::shared_ptr<std::istream> pStream )
     if ( !out )
         throw std::runtime_error( "unable to open temporary file" );
 
-    std::string buf;
-    pStream->seekg( 0, pStream->end );
-    const size_t length = pStream->tellg();
-    pStream->seekg( 0, pStream->beg );
-
-    buf.resize( length );
-    pStream->read( buf.data(), length );
-
-    out << buf;
+    out << pStream->rdbuf();
     out.close();
 
     Attach( fileName );

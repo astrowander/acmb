@@ -120,7 +120,8 @@ void Server::ListenClientPort(uint16_t port)
         {
             std::string str = ReceiveData(socket);
             auto pStream = std::make_shared<std::istringstream>( str );
-            activePipeline->AddTransform<BitmapSubtractor>( IBitmap::Create( pStream ) );
+            const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
+            activePipeline->AddTransform<BitmapSubtractor>( IBitmap::Create( pStream, pixelFormat ) );
             break;
         }
         case CommandCode::Divide:
@@ -128,7 +129,8 @@ void Server::ListenClientPort(uint16_t port)
             const float intensity = ReceiveSingleObject<float>( socket );
             std::string str = ReceiveData(socket);
             auto pStream = std::make_shared<std::istringstream>( str );
-            auto pBitmapToDivide = IBitmap::Create( pStream );
+            const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
+            auto pBitmapToDivide = IBitmap::Create( pStream, pixelFormat );
             activePipeline->AddTransform<BitmapDivisor>(BitmapDivisor::Settings{ pBitmapToDivide, intensity } );
             break;
         }
@@ -174,9 +176,9 @@ void Server::ListenClientPort(uint16_t port)
             const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
             const auto finalParams = beforeStacker.GetFinalParams();
 
-            if ( cuda::isCudaAvailable() )
-                pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
-            else
+            //if ( cuda::isCudaAvailable() )
+              //  pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
+            //else
                 pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
 
             pStackedBitmap = IBitmap::Create(finalParams->GetWidth(), finalParams->GetHeight(), finalParams->GetPixelFormat() );
