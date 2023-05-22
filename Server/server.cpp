@@ -175,10 +175,9 @@ void Server::ListenClientPort(uint16_t port)
             const StackMode stackMode = ReceiveSingleObject<StackMode>(socket );
             const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
             const auto finalParams = beforeStacker.GetFinalParams();
-
-            //if ( cuda::isCudaAvailable() )
-              //  pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
-            //else
+            if ( cuda::isCudaAvailable() )
+                pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
+            else
                 pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
 
             pStackedBitmap = IBitmap::Create(finalParams->GetWidth(), finalParams->GetHeight(), finalParams->GetPixelFormat() );
