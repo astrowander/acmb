@@ -67,6 +67,9 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     _width = finalParams->GetWidth();
     _height = finalParams->GetHeight();
     _pixelFormat = finalParams->GetPixelFormat();
+    if ( _stackMode == StackMode::Light && _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
+
     _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
     _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
@@ -77,9 +80,9 @@ BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
     _width = imageParams.GetWidth();
     _height = imageParams.GetHeight();
 
-    _pixelFormat = PixelFormat::RGB48;
-    if ( _stackMode != StackMode::Light || imageParams.GetPixelFormat() != PixelFormat::Bayer16 )
-        _pixelFormat = imageParams.GetPixelFormat();
+    _pixelFormat = imageParams.GetPixelFormat();
+    if ( _stackMode == StackMode::Light && _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
 
     _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
     _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );

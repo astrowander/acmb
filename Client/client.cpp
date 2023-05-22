@@ -275,7 +275,7 @@ void Client::Process( const std::vector<std::string>& args )
             const auto width = uint32_t( std::stoi( kv.values[2] ) );
             const auto height = uint32_t( std::stoi( kv.values[3] ) );
 
-            UploadSingleObject( socket, CommandCode::Resize );
+            UploadSingleObject( socket, CommandCode::Crop );
             UploadSingleObject( socket, x );
             UploadSingleObject( socket, y );
             UploadSingleObject( socket, width );

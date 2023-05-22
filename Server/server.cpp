@@ -113,7 +113,8 @@ void Server::ListenClientPort(uint16_t port)
         case CommandCode::SetDesiredFormat:
         case CommandCode::Convert:
         {
-            activePipeline->AddTransform<Converter>(ReceiveSingleObject<PixelFormat>( socket ) );
+            const auto pixelFormat = ReceiveSingleObject<PixelFormat>( socket );
+            activePipeline->AddTransform<Converter>( pixelFormat );
             break;
         }
         case CommandCode::Subtract:
@@ -141,7 +142,7 @@ void Server::ListenClientPort(uint16_t port)
         }
         case CommandCode::Deaberrate:
         {
-            activePipeline->AddTransform<DeaberrateTransform>();
+            activePipeline->AddTransform<DeaberrateTransform>( activePipeline->GetCameraSettings() );
             break;
         }
         case CommandCode::Resize:
@@ -162,7 +163,7 @@ void Server::ListenClientPort(uint16_t port)
         }
         case CommandCode::Debayer:
         {
-            activePipeline->AddTransform<DebayerTransform>();
+            activePipeline->AddTransform<DebayerTransform>( activePipeline->GetCameraSettings() );
             break;
         }
         case CommandCode::RemoveHalo:
@@ -180,7 +181,7 @@ void Server::ListenClientPort(uint16_t port)
             else
                 pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
 
-            pStackedBitmap = IBitmap::Create(finalParams->GetWidth(), finalParams->GetHeight(), finalParams->GetPixelFormat() );
+            pStackedBitmap = IBitmap::Create(pStacker->GetWidth(), pStacker->GetHeight(), pStacker->GetPixelFormat() );
             afterStacker = Pipeline { pStackedBitmap };
             activePipeline = &afterStacker;
         }
