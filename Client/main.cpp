@@ -18,16 +18,24 @@ int main( int argc, const char** argv )
 
         acmb::client::Client client( argv[2] );
         client.Connect();
-        std::cout << client.portNumber() << std::endl;
+        std::cout << "Connection established on port " << client.portNumber() << std::endl;
 
         std::vector<std::string> args;
         for ( int i = 3; i < argc; ++i )
             args.emplace_back( argv[i] );
-
-        client.Process( args );
+        
+        try
+        {
+            client.Process( args );
+        }
+        catch ( std::exception& e )
+        {
+            std::cout << "Server error: " << e.what() << std::endl;
+        }
 
         client.Disconnect();
-        std::cout << client.portNumber() << std::endl;
+        if ( client.portNumber() == -1 )
+            std::cout << "Disconnected successfully" << std::endl;
 
         const auto end = std::chrono::steady_clock::now();
         const auto ms = std::chrono::duration_cast< std::chrono::milliseconds >( end - start ).count();

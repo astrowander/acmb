@@ -15,6 +15,7 @@ class Server
     Server() = default;
     void ListenHelloPort();
     void ListenClientPort( uint16_t port );
+    void WorkWithClient( boost::asio::ip::tcp::socket& socket );
 public:
     static void Launch();
 

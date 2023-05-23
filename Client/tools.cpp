@@ -5,6 +5,22 @@ using boost::asio::ip::tcp;
 
 ACMB_CLIENT_NAMESPACE_BEGIN
 
+void CheckServerError( boost::asio::ip::tcp::socket& socket )
+{
+    boost::system::error_code error;
+    
+    boost::array<size_t, 1> size = {};    
+    boost::asio::read( socket, boost::asio::buffer( size ), error );
+    if ( size[0] == 0 )
+        return;
+
+    std::string res;
+    res.resize( size[0] );
+    boost::asio::read( socket, boost::asio::buffer( res.data(), res.size() ), error );
+
+    throw std::runtime_error( res );
+}
+
 void UploadData( tcp::socket& socket, std::string data )
 {
     boost::system::error_code error;

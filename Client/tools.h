@@ -6,9 +6,13 @@
 
 ACMB_CLIENT_NAMESPACE_BEGIN
 
+void CheckServerError( boost::asio::ip::tcp::socket& socket );
+
 template <typename T>
 void UploadSingleObject( boost::asio::ip::tcp::socket& socket, T data )
 {
+    CheckServerError( socket );
+
     boost::system::error_code error;
     const boost::array<T, 1> arr = { std::move( data ) };
     boost::asio::write( socket, boost::asio::buffer( arr ), error );
@@ -17,6 +21,8 @@ void UploadSingleObject( boost::asio::ip::tcp::socket& socket, T data )
 template <typename T>
 T DownloadSingleObject( boost::asio::ip::tcp::socket& socket )
 {
+    CheckServerError( socket );
+
     boost::array<T, 1> arr = {};
     boost::system::error_code error;
     boost::asio::read( socket, boost::asio::buffer(arr), error );

@@ -76,15 +76,11 @@ void WriteBitmap( tcp::socket& socket, IBitmapPtr pBitmap, const std::string& ex
     SendData(socket, pOutputStream->str());
 }
 
-void Server::ListenClientPort(uint16_t port)
+void Server::WorkWithClient( tcp::socket& socket )
 {
-    tcp::acceptor acceptor( context_, tcp::endpoint(tcp::v4(), port ) );
-    tcp::socket socket(context_);
-    acceptor.accept(socket);
-
-    std::string str = ReceiveData(socket);
-    std::string inputExtension = ToLower( ReceiveData(socket) );
-    auto pInStream = std::make_shared<std::istringstream>( str );    
+    std::string str = ReceiveData( socket );
+    std::string inputExtension = ToLower( ReceiveData( socket ) );
+    auto pInStream = std::make_shared<std::istringstream>( str );
 
     const size_t commandCount = ReceiveSingleObject<size_t>( socket );
     std::vector<CommandCode> commands( commandCount );
@@ -102,98 +98,98 @@ void Server::ListenClientPort(uint16_t port)
         const auto commandCode = ReceiveSingleObject<CommandCode>( socket );
         switch ( commandCode )
         {
-        case CommandCode::Binning:
-        {
-            const uint32_t width = ReceiveSingleObject<int>( socket );
-            const uint32_t height = ReceiveSingleObject<int>( socket );
-            Size bin {width, height};
-            activePipeline->AddTransform<BinningTransform>( bin );
-            break;
-        }
-        case CommandCode::SetDesiredFormat:
-        case CommandCode::Convert:
-        {
-            const auto pixelFormat = ReceiveSingleObject<PixelFormat>( socket );
-            activePipeline->AddTransform<Converter>( pixelFormat );
-            break;
-        }
-        case CommandCode::Subtract:
-        {
-            std::string str = ReceiveData(socket);
-            auto pStream = std::make_shared<std::istringstream>( str );
-            const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
-            activePipeline->AddTransform<BitmapSubtractor>( IBitmap::Create( pStream, pixelFormat ) );
-            break;
-        }
-        case CommandCode::Divide:
-        {
-            const float intensity = ReceiveSingleObject<float>( socket );
-            std::string str = ReceiveData(socket);
-            auto pStream = std::make_shared<std::istringstream>( str );
-            const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
-            auto pBitmapToDivide = IBitmap::Create( pStream, pixelFormat );
-            activePipeline->AddTransform<BitmapDivisor>(BitmapDivisor::Settings{ pBitmapToDivide, intensity } );
-            break;
-        }
-        case CommandCode::AutoWB:
-        {
-            activePipeline->AddTransform<AutoChannelEqualizer>();
-            break;
-        }
-        case CommandCode::Deaberrate:
-        {
-            activePipeline->AddTransform<DeaberrateTransform>( activePipeline->GetCameraSettings() );
-            break;
-        }
-        case CommandCode::Resize:
-        {
-            const uint32_t width = ReceiveSingleObject<uint32_t>( socket );
-            const uint32_t height = ReceiveSingleObject<uint32_t>( socket );
-            activePipeline->AddTransform<ResizeTransform>( Size{width, height} );
-            break;
-        }
-        case CommandCode::Crop:
-        {
-            const int x = ReceiveSingleObject<uint32_t>( socket );
-            const int y = ReceiveSingleObject<uint32_t>( socket );
-            const int width = ReceiveSingleObject<uint32_t>( socket );
-            const int height = ReceiveSingleObject<uint32_t>( socket );
-            activePipeline->AddTransform<CropTransform>( Rect{x, y, width, height} );
-            break;
-        }
-        case CommandCode::Debayer:
-        {
-            activePipeline->AddTransform<DebayerTransform>( activePipeline->GetCameraSettings() );
-            break;
-        }
-        case CommandCode::RemoveHalo:
-        {
-            activePipeline->AddTransform<AutoHaloRemoval>(ReceiveSingleObject<float>( socket ));
-            break;
-        }
-        case CommandCode::Stack:
-        {
-            const StackMode stackMode = ReceiveSingleObject<StackMode>(socket );
-            const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
-            const auto finalParams = beforeStacker.GetFinalParams();
-            if ( cuda::isCudaAvailable() )
-                pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
-            else
-                pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
+            case CommandCode::Binning:
+            {
+                const uint32_t width = ReceiveSingleObject<int>( socket );
+                const uint32_t height = ReceiveSingleObject<int>( socket );
+                Size bin{ width, height };
+                activePipeline->AddTransform<BinningTransform>( bin );
+                break;
+            }
+            case CommandCode::SetDesiredFormat:
+            case CommandCode::Convert:
+            {
+                const auto pixelFormat = ReceiveSingleObject<PixelFormat>( socket );
+                activePipeline->AddTransform<Converter>( pixelFormat );
+                break;
+            }
+            case CommandCode::Subtract:
+            {
+                std::string str = ReceiveData( socket );
+                auto pStream = std::make_shared<std::istringstream>( str );
+                const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
+                activePipeline->AddTransform<BitmapSubtractor>( IBitmap::Create( pStream, pixelFormat ) );
+                break;
+            }
+            case CommandCode::Divide:
+            {
+                const float intensity = ReceiveSingleObject<float>( socket );
+                std::string str = ReceiveData( socket );
+                auto pStream = std::make_shared<std::istringstream>( str );
+                const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
+                auto pBitmapToDivide = IBitmap::Create( pStream, pixelFormat );
+                activePipeline->AddTransform<BitmapDivisor>( BitmapDivisor::Settings{ pBitmapToDivide, intensity } );
+                break;
+            }
+            case CommandCode::AutoWB:
+            {
+                activePipeline->AddTransform<AutoChannelEqualizer>();
+                break;
+            }
+            case CommandCode::Deaberrate:
+            {
+                activePipeline->AddTransform<DeaberrateTransform>( activePipeline->GetCameraSettings() );
+                break;
+            }
+            case CommandCode::Resize:
+            {
+                const uint32_t width = ReceiveSingleObject<uint32_t>( socket );
+                const uint32_t height = ReceiveSingleObject<uint32_t>( socket );
+                activePipeline->AddTransform<ResizeTransform>( Size{ width, height } );
+                break;
+            }
+            case CommandCode::Crop:
+            {
+                const int x = ReceiveSingleObject<uint32_t>( socket );
+                const int y = ReceiveSingleObject<uint32_t>( socket );
+                const int width = ReceiveSingleObject<uint32_t>( socket );
+                const int height = ReceiveSingleObject<uint32_t>( socket );
+                activePipeline->AddTransform<CropTransform>( Rect{ x, y, width, height } );
+                break;
+            }
+            case CommandCode::Debayer:
+            {
+                activePipeline->AddTransform<DebayerTransform>( activePipeline->GetCameraSettings() );
+                break;
+            }
+            case CommandCode::RemoveHalo:
+            {
+                activePipeline->AddTransform<AutoHaloRemoval>( ReceiveSingleObject<float>( socket ) );
+                break;
+            }
+            case CommandCode::Stack:
+            {
+                const StackMode stackMode = ReceiveSingleObject<StackMode>( socket );
+                const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
+                const auto finalParams = beforeStacker.GetFinalParams();
+                if ( cuda::isCudaAvailable() )
+                    pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
+                else
+                    pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
 
-            pStackedBitmap = IBitmap::Create(pStacker->GetWidth(), pStacker->GetHeight(), pStacker->GetPixelFormat() );
-            afterStacker = Pipeline { pStackedBitmap };
-            activePipeline = &afterStacker;
-        }
-        default:
-            break;
+                pStackedBitmap = IBitmap::Create( pStacker->GetWidth(), pStacker->GetHeight(), pStacker->GetPixelFormat() );
+                afterStacker = Pipeline{ pStackedBitmap };
+                activePipeline = &afterStacker;
+            }
+            default:
+                break;
         }
     }
 
     const std::string outputExtension = ToLower( ReceiveData( socket ) );
     const size_t fileCount = ReceiveSingleObject<size_t>( socket );
 
-    if ( pStacker)
+    if ( pStacker )
         pStacker->AddBitmap( beforeStacker );
     else
         WriteBitmap( socket, beforeStacker.RunAndGetBitmap(), outputExtension );
@@ -207,8 +203,8 @@ void Server::ListenClientPort(uint16_t port)
         if ( !ImageDecoder::GetAllExtensions().contains( inputExtension ) )
             continue;
 
-        beforeStacker.ReplaceFirstElement(ReadBitmap(pStream, inputExtension));
-        if ( pStacker)
+        beforeStacker.ReplaceFirstElement( ReadBitmap( pStream, inputExtension ) );
+        if ( pStacker )
             pStacker->AddBitmap( beforeStacker );
         else
             WriteBitmap( socket, beforeStacker.RunAndGetBitmap(), outputExtension );
@@ -218,7 +214,23 @@ void Server::ListenClientPort(uint16_t port)
     {
         pStackedBitmap = pStacker->GetResult();
         afterStacker.ReplaceFirstElement( pStackedBitmap );
-        WriteBitmap(socket, afterStacker.RunAndGetBitmap(), outputExtension );
+        WriteBitmap( socket, afterStacker.RunAndGetBitmap(), outputExtension );
+    }
+}
+
+void Server::ListenClientPort(uint16_t port)
+{    
+    tcp::acceptor acceptor( context_, tcp::endpoint(tcp::v4(), port ) );
+    tcp::socket socket(context_);
+    acceptor.accept(socket);
+
+    try
+    {
+        WorkWithClient( socket );
+    }
+    catch ( const std::exception& e )
+    {
+        SendError( socket, e.what() );
     }
 }
 
@@ -244,7 +256,10 @@ void Server::ListenHelloPort()
                   {
                       _activeConnections.set(i, true);
                       answer = cHelloPort + i + 1;
-                      std::thread thread( [this, answer]{this->ListenClientPort(answer);});
+                      std::thread thread( [this, answer]
+                      {
+                          this->ListenClientPort(answer);
+                      });
                       thread.detach();
                       break;
                   }
