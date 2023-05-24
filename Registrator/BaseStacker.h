@@ -6,18 +6,13 @@
 
 ACMB_NAMESPACE_BEGIN
 
+class Registrator;
+
 struct StackingDatum
 {
     Pipeline pipeline;
     std::vector<std::vector<Star>> stars;
     uint64_t totalStarCount;
-};
-
-enum class StackMode
-{
-    Light,
-    LightNoAlign,
-    DarkOrFlat
 };
 
 class BaseStacker : public IPipelineFirstElement
@@ -45,18 +40,28 @@ protected:
 
     StackMode _stackMode;
 
-    void CalculateAligningGrid( uint32_t bitmapIndex );
+    void CalculateAligningGrid( const std::vector<std::vector<Star>>& stars  );
 
 public:
     /// creates an instance with the given images
     BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
 
+    /// creates an instance with one image
+    BaseStacker( const ImageParams& imageParams, StackMode stackMode );
+
     /// detects stars in the images
     void Registrate();
     /// detects stars and stacks images in one time
-    virtual std::shared_ptr<IBitmap>  RegistrateAndStack() = 0;
+    std::shared_ptr<IBitmap>  RegistrateAndStack();
     /// stacks registered images
-    virtual std::shared_ptr<IBitmap> Stack() = 0;
+    std::shared_ptr<IBitmap> Stack();
+
+    void AddBitmap( Pipeline& pipeline );
+    std::shared_ptr<IBitmap> GetResult();
+
+    virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
+    virtual void CallAddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
+    virtual std::shared_ptr<IBitmap> CallGeneratingResultHelper() = 0;
 
     double GetThreshold() const { return _threshold; }
     void SetThreshold( double threshold ) { _threshold = threshold; };
@@ -66,7 +71,7 @@ public:
     void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
 
     /// needed for compatibility with pipeline API
-    IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr );
+    std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr );
 };
 
 ACMB_NAMESPACE_END

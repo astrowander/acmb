@@ -101,23 +101,23 @@ __global__ void kernel( const ChannelType* pixels, const uint32_t width, const u
 {
     const size_t size = width * height;
 
-    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    const size_t index = blockIdx.x * blockDim.x + threadIdx.x;
     if ( index >= size )
         return;
 
-    uint32_t x = index % width;
-    uint32_t y = index / width;
+    const uint32_t x = index % width;
+    const uint32_t y = index / width;
 
     double2 p{ double( x ), double( y ) };
 
-    size_t hGridIndex = x / gridPixelSize;
-    size_t vGridIndex = y / gridPixelSize;
+    const size_t hGridIndex = x / gridPixelSize;
+    const size_t vGridIndex = y / gridPixelSize;
 
     const size_t cellIndex = vGridIndex * gridWidth + hGridIndex;
     const size_t cellSize = cellOffsets[cellIndex + 1] - cellOffsets[cellIndex];
     if ( cellSize > 0 )
     {
-        auto pair = ChooseTriangle( p, &grid[cellOffsets[cellIndex]], cellSize );
+        const auto pair = ChooseTriangle( p, &grid[cellOffsets[cellIndex]], cellSize );
         Transform( pair.transform, &p.x, &p.y );
     }
 

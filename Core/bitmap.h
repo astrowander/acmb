@@ -1,14 +1,14 @@
 #pragma once
 #include "enums.h"
+#include "IPipelineElement.h"
+#include "../Tools/mathtools.h"
+#include "camerasettings.h"
 
 #include <vector>
 #include <memory>
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
-#include "imageparams.h"
-#include "../Tools/mathtools.h"
-#include "camerasettings.h"
 
 //#undef max
 
@@ -17,7 +17,7 @@ ACMB_NAMESPACE_BEGIN
 /// <summary>
 /// Abstract factory class for bitmap of any pixel format
 /// </summary>
-class IBitmap : public ImageParams
+class IBitmap : public IPipelineFirstElement
 {
 public:
 
@@ -31,10 +31,10 @@ public:
     /// returns count of allocated bytes
     virtual uint32_t GetByteSize() const = 0;
 
-    virtual std::shared_ptr<CameraSettings> GetCameraSettings() const = 0;
-    virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) = 0;
     /// creates bitmap from a given file
     static std::shared_ptr<IBitmap> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
+    /// creates bitmap from a given file
+    static std::shared_ptr<IBitmap> Create( const std::shared_ptr<std::istream> pStream, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// creates bitmap with given params
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
     /// saves given bitmap to a file
@@ -45,7 +45,7 @@ using IBitmapPtr = std::shared_ptr<IBitmap>;
 
 /// represents bitmap of a certain pixel format
 template<PixelFormat pixelFormat>
-class Bitmap : public IBitmap
+class Bitmap : public IBitmap, public std::enable_shared_from_this<Bitmap<pixelFormat>>
 {
     /// alias for channel type (uint8_t/uint16_t)
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
@@ -57,7 +57,6 @@ class Bitmap : public IBitmap
     static constexpr auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
     std::vector<ChannelType> _data;
-    std::shared_ptr<CameraSettings> _pCameraSettings;
 
     void Fill(ColorType fillColor)
     {
@@ -184,14 +183,9 @@ public:
         return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, std::numeric_limits<ChannelType>::max() );
     }
 
-    virtual std::shared_ptr<CameraSettings> GetCameraSettings() const override
+    virtual IBitmapPtr ProcessBitmap( std::shared_ptr<IBitmap> ) override
     {
-        return _pCameraSettings;
-    }
-
-    virtual void SetCameraSettings( std::shared_ptr<CameraSettings> pCameraSettings ) override
-    {
-        _pCameraSettings = pCameraSettings;
+        return this->shared_from_this();
     }
 };
 

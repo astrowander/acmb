@@ -3,6 +3,7 @@
 ACMB_NAMESPACE_BEGIN
 
 class BaseTransform;
+class IBitmap;
 /// <summary>
 /// represent pipeline api, when bitmap passes through several transforms in a row
 /// </summary>
@@ -29,7 +30,7 @@ public:
         _elements.push_back( pElement );        
     }
     /// runs pipeline and returns result
-    IBitmapPtr RunAndGetBitmap();
+    std::shared_ptr<IBitmap> RunAndGetBitmap();
     /// calculates parameters of resulting image without running
     std::shared_ptr<ImageParams> GetFinalParams() const;
     /// returns camera settings
@@ -43,6 +44,8 @@ public:
     {
         return _elements[i];
     }
+
+    void ReplaceFirstElement( IPipelineFirstElementPtr pElement );
 };
 
 ACMB_NAMESPACE_END

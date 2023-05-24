@@ -59,6 +59,11 @@ void ImageDecoder::Detach()
     _pStream.reset();
 }
 
+ImageDecoder::~ImageDecoder()
+{
+    Detach();
+}
+
 std::shared_ptr<IBitmap> ImageDecoder::ReadStripe( uint32_t )
 {
     throw std::runtime_error( "not implemented" );
@@ -98,6 +103,24 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
         throw std::runtime_error( std::string( "unable to open file" ) + fileName );
 
     pDecoder->Attach(fileName);
+    return pDecoder;
+}
+
+std::shared_ptr<ImageDecoder> ImageDecoder::Create( std::shared_ptr<std::istream> pStream, PixelFormat outputFormat )
+{
+    if ( !pStream )
+        throw std::invalid_argument("pStream");
+
+    std::shared_ptr<ImageDecoder> pDecoder;
+    const char ch = pStream->peek();
+    if ( ch == 'P' )
+        pDecoder = std::make_shared<PpmDecoder>( outputFormat );
+    else if ( ch == 'I' )
+        pDecoder = std::make_shared<TiffDecoder>( outputFormat );
+    else
+        pDecoder = std::make_shared<RawDecoder>( outputFormat );
+
+    pDecoder->Attach(pStream);
     return pDecoder;
 }
 
@@ -191,7 +214,7 @@ IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
     if ( _pixelFormat == PixelFormat::Unspecified || _pixelFormat == pSrcBitmap->GetPixelFormat() )
         return pSrcBitmap;
 
-    IBitmapPtr pRes;
+    IBitmapPtr pRes = pSrcBitmap;
 
     if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
         pRes = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );

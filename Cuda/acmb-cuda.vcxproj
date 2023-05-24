@@ -104,13 +104,14 @@
     <ClInclude Include="AddBitmapWithAlignment.h" />
     <ClInclude Include="CudaBasic.h" />
     <ClInclude Include="CudaBasic.hpp" />
+    <ClInclude Include="CudaInfo.h" />
     <ClInclude Include="CudaStacker.h" />
     <ClInclude Include="CudaUtils.cuh" />
     <ClInclude Include="GenerateResult.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AddBitmapWithAlignment.cpp" />
-    <ClCompile Include="CudaBasic.cpp" />
+    <ClCompile Include="CudaInfo.cpp" />
     <ClCompile Include="CudaStacker.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

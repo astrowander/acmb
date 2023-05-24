@@ -1,5 +1,6 @@
 #include "pipeline.h"
 #include "./../Codecs/imagedecoder.h"
+#include "bitmap.h"
 
 ACMB_NAMESPACE_BEGIN
 
@@ -73,6 +74,16 @@ std::string Pipeline::GetFileName() const
 size_t Pipeline::GetSize() const
 {
     return _elements.size();
+}
+
+void Pipeline::ReplaceFirstElement(IPipelineFirstElementPtr pElement)
+{
+    if ( _elements.empty() )
+        return _elements.push_back( pElement );
+
+    _elements[0] = pElement;
+    for (size_t i = 1; i < _elements.size(); ++i)
+        _elements[i]->CalcParams(_elements[i - 1]);
 }
 
 ACMB_NAMESPACE_END

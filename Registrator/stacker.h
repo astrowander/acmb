@@ -9,6 +9,7 @@ class TestStacker;
 ACMB_TESTS_NAMESPACE_END
 
 ACMB_NAMESPACE_BEGIN
+class Registrator;
 
 class ImageDecoder;
 
@@ -26,16 +27,16 @@ class Stacker : public BaseStacker
     std::vector<uint16_t> _counts;
 
     void ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const GridCell& trianglePairs);
-    void StackWithAlignment(IBitmapPtr pTargetBitmap, uint32_t i);
 
 public:
     /// creates an instance with the given images
     Stacker(const std::vector<Pipeline>& pipelines, StackMode stackMode);
 
-    /// detects stars and stacks images in one time
-    virtual std::shared_ptr<IBitmap>  RegistrateAndStack() override;
-    /// stacks registered images
-    virtual std::shared_ptr<IBitmap> Stack() override;
+    Stacker( const ImageParams& imageParams, StackMode stackMode );
+
+    virtual void CallAddBitmapHelper( IBitmapPtr pBitmap ) override;
+    virtual void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap ) override;
+    virtual IBitmapPtr CallGeneratingResultHelper() override;
         
     TEST_ACCESS(Stacker);
 };

@@ -8,7 +8,6 @@ using Triangle = double2[3];
 
 struct TransAffine
 {
-    static const TransAffine identity;
     double sx = 1.0;
     double shy = 0.0;
     double shx = 0.0;

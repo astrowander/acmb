@@ -18,18 +18,17 @@
 #include <filesystem>
 
 
-using phmap::parallel_flat_hash_map;
+using phmap::flat_hash_map;
 
 ACMB_NAMESPACE_BEGIN
 
-static const parallel_flat_hash_map<std::string, PixelFormat> stringToPixelFormat =
+static const flat_hash_map<std::string, PixelFormat> stringToPixelFormat =
 {
     {"gray8", PixelFormat::Gray8},
     {"gray16", PixelFormat::Gray16},
     {"rgb24", PixelFormat::RGB24},
     {"rgb48", PixelFormat::RGB48}
 };
-
 
 CliParser::CliParser( int argc, const char** argv )
 {
@@ -226,7 +225,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
         {
             float intensity = 75.0f;
             if ( values.size() > 1 )
-                return { 1, "--subtract requires 0 or 1 argument" };
+                return { 1, "--removehalo requires 0 or 1 argument" };
             else if ( values.size() == 1 )
                 intensity = std::stof( values[0] );
 
@@ -320,7 +319,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.AddTransform<DebayerTransform>( _pipelineAfterStacker.GetCameraSettings() );
+                    pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
                 }
             }
         }

@@ -1,30 +1,31 @@
 #pragma once
 #include "./../Registrator/BaseStacker.h"
-#include "CudaBasic.h"
 #include "AddBitmapWithAlignment.h"
 #include <variant>
 
+ACMB_NAMESPACE_BEGIN
+class IBitmap;
+ACMB_NAMESPACE_END
+
 ACMB_CUDA_NAMESPACE_BEGIN
+
+struct StackData;
 
 class Stacker : public BaseStacker
 {
-    DynamicArrayF _means;
-    DynamicArrayF _devs;
-    DynamicArrayU16 _counts;
+    std::shared_ptr<StackData> _stackData;
 
-    std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
     std::variant< AddBitmapWithAlignmentHelperU8, AddBitmapWithAlignmentHelperU16> _helper;
 
-    void CallAddBitmapHelper( IBitmapPtr pBitmap );
-    void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap, const Grid& grid );
-    IBitmapPtr CallGeneratingResultHelper();
+    virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) override;
+    virtual void CallAddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap ) override;
+    virtual std::shared_ptr<IBitmap> CallGeneratingResultHelper() override;
+
+    void Init();
 
 public:
     Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
-
-    virtual std::shared_ptr<IBitmap> RegistrateAndStack() override;
-    /// stacks registered images
-    virtual std::shared_ptr<IBitmap> Stack() override;
+    Stacker( const ImageParams& imageParams, StackMode stackMode );
 };
 
 ACMB_CUDA_NAMESPACE_END

@@ -31,4 +31,21 @@ std::string ToLower( const std::string& val )
 	return res;
 }
 
+RandomStringGenerator::RandomStringGenerator( const std::string& characters )
+: generator( rd() ), dist( 0, characters.size() - 1 ), charset( characters )
+{
+}
+
+std::string RandomStringGenerator::operator()( size_t length )
+{
+	std::lock_guard<std::mutex> lock( mtx );  // Make sure this function is thread safe.
+
+	std::string result( length, '\0' );
+	for ( std::size_t i = 0; i < length; ++i )
+	{
+		result[i] = charset[dist( generator )];
+	}
+	return result;
+}
+
 ACMB_NAMESPACE_END

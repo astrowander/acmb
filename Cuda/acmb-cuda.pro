@@ -21,12 +21,13 @@ HEADERS += \
     CudaBasic.h \
     CudaBasic.hpp \
     CudaStacker.h \
-    GenerateResult.h
+    GenerateResult.h\
+    CudaInfo.h
 
 SOURCES += \
     AddBitmapWithAlignment.cpp \
-    CudaBasic.cpp \
-    CudaStacker.cpp
+    CudaStacker.cpp\
+    CudaInfo.cpp
 
 CUDA_SOURCES += \
     AddBitmap.cu\

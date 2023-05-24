@@ -2,29 +2,32 @@
 
 #include "stacker.h"
 #include "StackEngineConstants.h"
-#include "registrator.h"
-#include "../Core/log.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
 #define CALL_HELPER(Helper, pBitmap) \
     switch (pBitmap->GetPixelFormat()) \
     { \
-        case PixelFormat::Gray8: \
-            Helper<PixelFormat::Gray8>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pBitmap)); \
-            break; \
-        case PixelFormat::Gray16:\
-             Helper<PixelFormat::Gray16>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap)); \
-            break; \
-        case PixelFormat::RGB24:\
-             Helper<PixelFormat::RGB24>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pBitmap)); \
-            break; \
-        case PixelFormat::RGB48:\
-              Helper<PixelFormat::RGB48>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pBitmap)); \
-            break; \
-        case PixelFormat::Bayer16:\
-              Helper<PixelFormat::Bayer16>::Run(*this, std::static_pointer_cast<Bitmap<PixelFormat::Bayer16>>(pBitmap)); \
-            break; \
+        case PixelFormat::Gray8: {\
+            auto pGray8Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::Gray8>>(pBitmap);\
+            Helper<PixelFormat::Gray8>::Run(*this, pGray8Bitmap); \
+            break; }\
+        case PixelFormat::Gray16:{\
+            auto pGray16Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap);\
+            Helper<PixelFormat::Gray16>::Run(*this, pGray16Bitmap); \
+            break; }\
+        case PixelFormat::RGB24:{\
+            auto pRGB24Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::RGB24>>(pBitmap);\
+            Helper<PixelFormat::RGB24>::Run(*this, pRGB24Bitmap); \
+            break; }\
+        case PixelFormat::RGB48:{\
+            auto pRGB48Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::RGB48>>(pBitmap);\
+            Helper<PixelFormat::RGB48>::Run(*this, pRGB48Bitmap); \
+            break; }\
+        case PixelFormat::Bayer16:{\
+            auto pBayer16Bitmap = std::static_pointer_cast<Bitmap<PixelFormat::Bayer16>>(pBitmap);\
+            Helper<PixelFormat::Bayer16>::Run(*this, pBayer16Bitmap); \
+            break; }\
         default:\
             throw std::runtime_error("pixel format should be known");}
 
@@ -190,143 +193,83 @@ class GeneratingResultHelper
     }
 
 public:
-    static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
+    static void Run( Stacker& stacker, std::shared_ptr<Bitmap<pixelFormat>>& pBitmap )
     {
         GeneratingResultHelper helper( stacker );
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, helper._pBitmap->GetHeight() ), [&helper] ( const oneapi::tbb::blocked_range<int>& range )
         {
             for ( int i = range.begin(); i < range.end(); ++i )
             {
                 helper.Job( i );
             }
         } );
-        pBitmap->SetData( helper._pBitmap->GetData() );
+        pBitmap = helper._pBitmap;
     }
 };
 
 Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
 : BaseStacker( pipelines, stackMode )
-{}
-
-std::shared_ptr<IBitmap> Stacker::Stack()
 {
-    if (_stackingData.size() == 0)
-        return nullptr;
-    
-    Log(_stackingData[0].pipeline.GetFileName() + " in process");
+    _means.resize(_width * _height * ChannelCount(_pixelFormat));
+    _devs.resize(_width * _height * ChannelCount(_pixelFormat));
+    _counts.resize(_width * _height * ChannelCount(_pixelFormat));
+}
 
-    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();  
+Stacker::Stacker( const ImageParams& imageParams, StackMode stackMode )
+:BaseStacker(imageParams, stackMode)
+{
+    _means.resize(_width * _height * ChannelCount(_pixelFormat));
+    _devs.resize(_width * _height * ChannelCount(_pixelFormat));
+    _counts.resize(_width * _height * ChannelCount(_pixelFormat));
+}
 
-    Log( _stackingData[0].pipeline.GetFileName() + " is read" );   
+void Stacker::CallAddBitmapHelper( IBitmapPtr pBitmap )
+{
+    CALL_HELPER( AddingBitmapHelper, pBitmap);
+}
 
-    if (_stackingData.size() == 1)
-        return pRefBitmap;
+void Stacker::CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap )
+{
+    CALL_HELPER( AddingBitmapWithAlignmentHelper, pBitmap );
+}
 
-    const auto& refStars = _stackingData[0].stars;
-
-    if ( _stackMode == StackMode::Light )
+IBitmapPtr Stacker::CallGeneratingResultHelper()
+{
+    switch ( _pixelFormat )
     {
-        _aligners.clear();
-
-        for (const auto& refStarVector : refStars)
-            _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
-    }
-    
-    _means.resize(_width  * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-    _devs.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-    _counts.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-
-    CALL_HELPER(AddingBitmapHelper, pRefBitmap);
-
-    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
-
-    for (uint32_t i = 1; i < _stackingData.size(); ++i)
-    {
-        Log( _stackingData[i].pipeline.GetFileName() + " in process" );
-        auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
-        Log( _stackingData[i].pipeline.GetFileName() + " is read" );
-       
-        if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
-            throw std::runtime_error("bitmaps in stack should have the same pixel format");      
-
-        if ( _stackMode != StackMode::Light )
+        case PixelFormat::Gray8:
         {
-            CALL_HELPER(AddingBitmapHelper, pTargetBitmap);
-            Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
-            continue;
+            std::shared_ptr<Bitmap<PixelFormat::Gray8>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Gray8>::Run( *this, pBitmap );
+            return pBitmap;
         }
-
-        
-        StackWithAlignment(pTargetBitmap, i);
-        Log( _stackingData[i].pipeline.GetFileName() + " is stacked" );
+        case PixelFormat::Gray16:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::Gray16>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Gray16>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::RGB24:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::RGB24>> pBitmap;
+            GeneratingResultHelper<PixelFormat::RGB24>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::RGB48:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::RGB48>> pBitmap;
+            GeneratingResultHelper<PixelFormat::RGB48>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        case PixelFormat::Bayer16:
+        {
+            std::shared_ptr<Bitmap<PixelFormat::Bayer16>> pBitmap;
+            GeneratingResultHelper<PixelFormat::Bayer16>::Run( *this, pBitmap );
+            return pBitmap;
+        }
+        default:
+            throw std::runtime_error( "pixel format should be specified" );
     }
-    
-    auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());
-
-    CALL_HELPER(GeneratingResultHelper, pRes);
-
-    return pRes;
-}
-
-void Stacker::StackWithAlignment( IBitmapPtr pTargetBitmap, uint32_t bitmapIndex )
-{
-    CalculateAligningGrid( bitmapIndex );    
-
-    Log( _stackingData[bitmapIndex].pipeline.GetFileName() + " grid is calculated" );
-
-    CALL_HELPER(AddingBitmapWithAlignmentHelper, pTargetBitmap);
-
-    Log( _stackingData[bitmapIndex].pipeline.GetFileName() + " is stacked" );
-}
-
-std::shared_ptr<IBitmap>  Stacker::RegistrateAndStack()
-{
-    if (_stackingData.size() == 0)
-        return nullptr;   
-
-    auto pRefBitmap = _stackingData[0].pipeline.RunAndGetBitmap();
-   
-    if (_stackingData.size() == 1)
-        return pRefBitmap;
-
-    auto pRegistrator = std::make_unique<Registrator>(_threshold, _minStarSize, _maxStarSize);
-
-    pRegistrator->Registrate(pRefBitmap);
-    _stackingData[0].stars = pRegistrator->GetStars();
-
-    const auto& refStars = _stackingData[0].stars;
-
-     _aligners.clear();
-     for (const auto& refStarVector : refStars)
-         _aligners.push_back(std::make_shared<FastAligner>(refStarVector));    
-
-     _means.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-     _devs.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-     _counts.resize(_width * _height * ChannelCount(pRefBitmap->GetPixelFormat()));
-
-    CALL_HELPER(AddingBitmapHelper, pRefBitmap);
-
-    Log( _stackingData[0].pipeline.GetFileName() + " is stacked" );
-
-    for (uint32_t i = 1; i < _stackingData.size(); ++i)
-    {
-        Log( _stackingData[i].pipeline.GetFileName() + " in process" );
-        auto pTargetBitmap = _stackingData[i].pipeline.RunAndGetBitmap();
-        Log( _stackingData[i].pipeline.GetFileName() + " bitmap is read" );
-       
-        if (pRefBitmap->GetPixelFormat() != pTargetBitmap->GetPixelFormat())
-            throw std::runtime_error("bitmaps in stack should have the same pixel format");       
-
-        pRegistrator->Registrate(pTargetBitmap);
-        _stackingData[i].stars = pRegistrator->GetStars();
-
-        StackWithAlignment(pTargetBitmap, i);
-    }
-
-    auto pRes = IBitmap::Create(_width, _height, pRefBitmap->GetPixelFormat());
-    CALL_HELPER(GeneratingResultHelper, pRes);    
-
-    return pRes;    
 }
 
 void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const Stacker::GridCell& trianglePairs)

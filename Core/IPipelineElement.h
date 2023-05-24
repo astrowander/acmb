@@ -1,11 +1,12 @@
 #pragma once
 #include "macros.h"
-#include "bitmap.h"
+#include "imageparams.h"
 #include <vector>
-
+#include <memory>
 ACMB_NAMESPACE_BEGIN
 
 struct CameraSettings;
+class IBitmap;
 /// <summary>
 /// Abstract class for pipeline element
 /// </summary>
@@ -20,7 +21,7 @@ public:
     /// override this if derived class changes size or pixel format of the image
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams );
     /// abstract fuction where the given bitmap is processed
-    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pSrcBitmap = nullptr ) = 0;
+    virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr ) = 0;
     virtual ~IPipelineElement() = default;
     /// returns camera settings
     std::shared_ptr<CameraSettings> GetCameraSettings() const;

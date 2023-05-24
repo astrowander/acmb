@@ -1,4 +1,5 @@
 #include "imageencoder.h"
+#include "./../Core/bitmap.h"
 #include <fstream>
 #include <filesystem>
 #include "PPM/ppmencoder.h"
@@ -27,6 +28,11 @@ void ImageEncoder::Attach(const std::string &fileName)
 void ImageEncoder::Detach()
 {
     _pStream.reset();
+}
+
+ImageEncoder::~ImageEncoder()
+{
+    Detach();
 }
 
 std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)

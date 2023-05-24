@@ -26,7 +26,7 @@ public:
     /// detach decoder
     virtual void Detach();
 
-    virtual ~ImageEncoder() = default;
+    virtual ~ImageEncoder();
     /// write given bitmap
     virtual void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) = 0;
     /// needed for the compatibility with pipelines
@@ -34,7 +34,7 @@ public:
     /// returns all supported extensions by all encoders
     static const std::unordered_set<std::string>& GetAllExtensions();
     /// needed for the compatibility with pipelines
-    virtual IBitmapPtr ProcessBitmap( IBitmapPtr pBitmap ) override;
+    virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
 
 protected:
     static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );

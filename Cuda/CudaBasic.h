@@ -83,13 +83,12 @@ using DynamicArrayU32 = DynamicArray<uint32_t>;
 using DynamicArrayF = DynamicArray<float>;
 
 // Sets all float values of GPU array to zero
-void setToZero( DynamicArrayF& devArray );
+inline void setToZero( DynamicArrayF& devArray )
+{
+    if ( devArray.size() == 0 )
+        return;
+}
 
-// Returns true if Cuda is present on this GPU
-bool isCudaAvailable();
-
-// Returns available GPU memory in bytes
-size_t getCudaAvailableMemory();
 
 ACMB_CUDA_NAMESPACE_END
 

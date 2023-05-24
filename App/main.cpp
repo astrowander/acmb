@@ -1,5 +1,6 @@
 #include "CliParser.h"
 #include "../Cuda/CudaStacker.h"
+#include "../Cuda/CudaInfo.h"
 #include "../Registrator/stacker.h"
 #include <chrono>
 
