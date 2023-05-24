@@ -1,5 +1,6 @@
 #pragma once
 #include "./../Core/macros.h"
+#include <cstddef>
 
 ACMB_CUDA_NAMESPACE_BEGIN
 
