@@ -214,7 +214,7 @@ IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
     if ( _pixelFormat == PixelFormat::Unspecified || _pixelFormat == pSrcBitmap->GetPixelFormat() )
         return pSrcBitmap;
 
-    IBitmapPtr pRes;
+    IBitmapPtr pRes = pSrcBitmap;
 
     if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
         pRes = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );
