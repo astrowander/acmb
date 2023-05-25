@@ -54,7 +54,7 @@ for (auto& tileStars : stars)
 {
 	sum += tileStars.size();
 }
-EXPECT_EQ(19164, sum);
+EXPECT_EQ(15544, sum);
 END_TEST
 
 BEGIN_TEST(Test1x1Bitmap)

@@ -7,7 +7,7 @@ void SendOKCode( tcp::socket& socket )
 {
     boost::system::error_code ignored_error;
     boost::array<size_t, 1> size = { 0 };
-    boost::asio::write( socket, boost::asio::buffer( size ) );
+    boost::asio::write( socket, boost::asio::buffer( size ), ignored_error );
 }
 
 void SendError( boost::asio::ip::tcp::socket& socket, const std::string& errMsg )

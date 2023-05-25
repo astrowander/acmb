@@ -127,7 +127,7 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0], 1.0);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(69, matches.size());
+EXPECT_EQ(75, matches.size());
 
 
 END_TEST
@@ -148,7 +148,7 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0]);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(45, matches.size());
+EXPECT_EQ(15, matches.size());
 
 
 END_TEST
@@ -169,7 +169,7 @@ pTargetBitmap.reset();
 FastAligner fastAligner(refStars[0]);
 fastAligner.Align(targetStars[0]);
 const auto& matches = fastAligner.GetMatches();
-EXPECT_EQ(125, matches.size());
+EXPECT_EQ(134, matches.size());
 
 END_TEST
 

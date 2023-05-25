@@ -106,7 +106,8 @@ void RawDecoder::Attach()
 	_pLibRaw->imgdata.params.med_passes = 0;
 	_pLibRaw->imgdata.params.no_auto_bright = 1;
 	_pLibRaw->imgdata.params.half_size = 0;
-	_pLibRaw->imgdata.params.user_qual = 0;
+    _pLibRaw->imgdata.params.user_qual = 0;
+    _pLibRaw->imgdata.rawparams.use_rawspeed = 1;
 
 	_pLibRaw->raw2image_start();
 	_width = _pLibRaw->imgdata.sizes.iwidth;

@@ -172,7 +172,7 @@ void Server::WorkWithClient( tcp::socket& socket )
                 const StackMode stackMode = ReceiveSingleObject<StackMode>( socket );
                 const auto enableCudaIfAvailable = ReceiveSingleObject<bool>( socket );
                 const auto finalParams = beforeStacker.GetFinalParams();
-                if ( cuda::isCudaAvailable() )
+                if ( enableCudaIfAvailable && cuda::isCudaAvailable() )
                     pStacker = std::make_shared<cuda::Stacker>( *finalParams, stackMode );
                 else
                     pStacker = std::make_shared<Stacker>( *finalParams, stackMode );
