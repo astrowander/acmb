@@ -31,6 +31,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acmb-server", "Server\acmb-
 		{D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D} = {D5865A38-EAC3-4BC9-9E4B-E52B2A2E950D}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "acmb-gui", "GUI\acmb-gui.vcxproj", "{9D800BCA-167C-4B35-94E9-2196BC4C3D1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
