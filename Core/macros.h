@@ -9,3 +9,8 @@
 #define ACMB_SERVER_NAMESPACE_END }}
 #define ACMB_CLIENT_NAMESPACE_BEGIN namespace acmb { namespace client {
 #define ACMB_CLIENT_NAMESPACE_END }}
+#define ACMB_GUI_NAMESPACE_BEGIN namespace acmb { namespace gui {
+#define ACMB_GUI_NAMESPACE_END }}
+
+#undef max
+#undef min

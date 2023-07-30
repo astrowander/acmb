@@ -8,6 +8,8 @@
 #include <d3d11.h>
 #include <tchar.h>
 
+#include "MainWindow.h"
+
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -79,6 +81,8 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    auto pMainWindow = acmb::gui::MainWindow::Create();
+
     // Main loop
     bool done = false;
     while (!done)
@@ -110,8 +114,10 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        pMainWindow->Show( ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus );
+        
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
+        /*if ( show_demo_window )
             ImGui::ShowDemoWindow(&show_demo_window);
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
@@ -145,7 +151,7 @@ int main(int, char**)
             if (ImGui::Button("Close Me"))
                 show_another_window = false;
             ImGui::End();
-        }
+        }*/
 
         // Rendering
         ImGui::Render();
