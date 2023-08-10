@@ -6,28 +6,28 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-Window::Window( const std::string& name, const ImVec2& pos, const ImVec2& size, std::shared_ptr<Window> pParent )
+Window::Window( const std::string& name,  const ImVec2& size )
 : _name( name )
-, _pos( pos )
 , _size( size )
-, _pParent( pParent )
 {
 
 }
 
-void Window::Show( ImGuiWindowFlags flags )
+void Window::Show()
 {
-    ImGui::SetNextWindowPos( _pos, ImGuiCond_Appearing );
-    ImGui::SetNextWindowSize( _size, ImGuiCond_Appearing );
+    ImGui::SetNextWindowPos( _pos, ImGuiCond_Always );
+    ImGui::SetNextWindowSize( _size, ImGuiCond_Always );
 
-    if ( !ImGui::Begin( _name.c_str(), &_isOpen, flags ) )
+    if ( !ImGui::Begin( _name.c_str(), &_isOpen, flags() ) )
         return ImGui::End();
 
     DrawDialog();
     ImGui::End();
+}
 
-    for ( auto child : _children )
-        child->Show();
+void Window::SetPos( const ImVec2& pos )
+{
+    _pos = pos;
 }
 
 float Window::GetMenuScaling()

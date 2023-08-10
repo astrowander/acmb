@@ -13,7 +13,7 @@ class ImageReaderWindow : public PipelineElementWindow
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
 
 public:
-    ImageReaderWindow( const ImVec2& pos, std::shared_ptr<Window> pParent );    
+    ImageReaderWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
 };
 

@@ -1,4 +1,5 @@
 #include "converter.h"
+#include "DebayerTransform.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -231,6 +232,9 @@ std::shared_ptr<Converter> Converter::Create( PixelFormat srcPixelFormat, PixelF
 
 IBitmapPtr Converter::Convert(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat)
 {
+    if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSrcBitmap = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );
+    
     return Create(pSrcBitmap, dstPixelFormat)->RunAndGetBitmap();
 }
 

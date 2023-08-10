@@ -3,61 +3,89 @@
 
 #include "./../Core/IPipelineElement.h"
 #include "./../Core/bitmap.h"
+#include "./../Geometry/point.h"
 
 #include <expected>
-#include <functional>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
 class PipelineElementWindow : public Window
 {
-    IPipelineElementPtr _pElement;
-    
+public:
+    enum RequiredInOutFlags
+    {
+        NoOutput = 1,
+        StrictlyOneOutput = 2,
+        // gap for possible StrictlyTwoOutputs
+        NoInput = 8,
+        StrictlyOneInput = 16,
+        StrictlyTwoInputs = 32
+    };
+
+    static constexpr int cElementWidth = 150;
+    static constexpr int cElementHeight = 250;
 
 protected:
+
+    float _itemWidth = 0.0f;
+
     size_t _taskCount = 0;
     size_t _completedTaskCount = 0;
 
-    std::weak_ptr<PipelineElementWindow> _pPrimaryInput;
-    std::weak_ptr<PipelineElementWindow> _pSecondaryInput;
+    std::weak_ptr<PipelineElementWindow> _pLeftInput;
+    std::weak_ptr<PipelineElementWindow> _pBottomInput;
 
-    PipelineElementWindow( IPipelineElementPtr pElement, const std::string& name, const ImVec2& pos, const ImVec2& size, std::shared_ptr<Window> pParent )
-        : Window( name, pos, size, pParent )
-        , _pElement( pElement )
+    int _inOutFlags;
+
+    Point _gridPos;
+
+    PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
+    : Window( name + "##R" + std::to_string(gridPos.y) + "C" + std::to_string(gridPos.x), {cElementWidth, cElementHeight})
+    , _inOutFlags( inOutFlags )
+    , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
     {
     }
 
     virtual void DrawPipelineElementControls() = 0;
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) = 0;
 
+    virtual ImGuiWindowFlags flags() override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing; }
+
 public:
 
     std::expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
 
-    auto GetPrimaryInput()
+    auto GetLeftInput()
     {
-        return _pPrimaryInput.lock();
+        return _pLeftInput.lock();
     }
-    auto GetSecondaryInput()
+    auto GetBottomInput()
     {
-        return _pSecondaryInput.lock();
+        return _pBottomInput.lock();
     }
-    void SetPrimaryInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput )
+    void SetLeftInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput )
     {
-        _pPrimaryInput = pPrimaryInput;
+        _pLeftInput = pPrimaryInput;
     }
-    void SetSecondaryInput( std::shared_ptr<PipelineElementWindow> pSecondaryInput )
+    void SetBottomInput( std::shared_ptr<PipelineElementWindow> pSecondaryInput )
     {
-        _pSecondaryInput = pSecondaryInput;
+        _pBottomInput = pSecondaryInput;
     }
 
-    auto GetTaskCount()
+    size_t GetTaskCount()
     {
+        if ( _taskCount == 0 )
+        {
+            auto pPrimaryInput = GetLeftInput();
+            if ( pPrimaryInput )
+                _taskCount = pPrimaryInput->GetTaskCount();
+        }
+
         return _taskCount;
     }
-    auto GetElement()
+    auto GetInOutFlags()
     {
-        return _pElement;
+        return _inOutFlags;
     }
 
 protected:

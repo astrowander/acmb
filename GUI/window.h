@@ -20,21 +20,19 @@ protected:
     ImVec2 _pos;
     ImVec2 _size;
 
-    std::vector<std::shared_ptr<Window>> _children;
-    std::weak_ptr<Window> _pParent;
-
     bool _isOpen = false;
-
-    float menuScaling = 1.0f;
+    virtual ImGuiWindowFlags flags() { return ImGuiWindowFlags( 0 ); }
 
 public:
     inline static const float cMenuScaling = GetMenuScaling();
 
-    Window( const std::string& name, const ImVec2& pos, const ImVec2& size, std::shared_ptr<Window> pParent = nullptr );
+    Window( const std::string& name, const ImVec2& size );
     virtual ~Window() = default;
 
-    void Show( ImGuiWindowFlags flags = 0 );
+    virtual void Show();
     virtual void DrawDialog() = 0;
+
+    void SetPos( const ImVec2& pos );
 };
 
 ACMB_GUI_NAMESPACE_END

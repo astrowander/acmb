@@ -57,6 +57,12 @@
     <ClCompile Include="ImageWriterWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ConverterWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FontRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -99,6 +105,12 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageWriterWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConverterWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FontRegistry.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

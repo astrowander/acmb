@@ -19,30 +19,37 @@ std::string GetFilters()
     return ss.str();
 }
 
-ImageReaderWindow::ImageReaderWindow( const ImVec2& pos, std::shared_ptr<Window> pParent )
-: PipelineElementWindow( nullptr, "Image Reader", pos, { 300, -1 }, pParent )
+ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
+: PipelineElementWindow( "Image Reader", gridPos, PipelineElementWindow::RequiredInOutFlags::NoInput | PipelineElementWindow::RequiredInOutFlags::StrictlyOneOutput )
 , _workingDirectory( "." )
 {
 }
 
 void ImageReaderWindow::DrawPipelineElementControls()
 {
-    ImGui::BeginListBox( "Image List" );
-    for ( int i = 0; i < _fileNames.size(); ++i )
-    {
-        const bool is_selected = ( _selectedItemIdx == i );
-        if ( ImGui::Selectable( _fileNames[i].c_str(), is_selected) )
-            _selectedItemIdx = i;
+    ImGui::Text( "%s", "Image List" );
 
-        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-        if ( is_selected )
-            ImGui::SetItemDefaultFocus();
+    const auto& style = ImGui::GetStyle();
+    const float itemWidth = cElementWidth - 2.0f * style.FramePadding.x;    
+
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 0 } ) )
+    {
+        for ( int i = 0; i < _fileNames.size(); ++i )
+        {
+            const bool is_selected = ( _selectedItemIdx == i );
+            if ( ImGui::Selectable( _fileNames[i].c_str(), is_selected ) )
+                _selectedItemIdx = i;
+
+            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+            if ( is_selected )
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndListBox();
     }
-    ImGui::EndListBox();
 
     auto pFileDialog = ImGuiFileDialog::Instance();
 
-    if ( ImGui::Button( "Select Images" ) )
+    if ( ImGui::Button( "Select Images", { itemWidth, 0 } ) )
     {
         static auto filters = GetFilters();
         pFileDialog->OpenDialog( "SelectImagesDialog", "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);

@@ -6,8 +6,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-ImageWriterWindow::ImageWriterWindow( const ImVec2& pos, std::shared_ptr<Window> pParent )
-: PipelineElementWindow( nullptr, "Image Writer", pos, { 300, -1 }, pParent )
+ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
+: PipelineElementWindow( "Image Writer", gridPos, PipelineElementWindow::RequiredInOutFlags::StrictlyOneInput | PipelineElementWindow::RequiredInOutFlags::NoOutput )
 {
 }
 
@@ -48,7 +48,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
 std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
 {
-    auto pPrimaryInput = GetPrimaryInput();
+    auto pPrimaryInput = GetLeftInput();
     if ( !pPrimaryInput )
         return std::unexpected( "No input element" );
 
@@ -69,7 +69,7 @@ std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
 
 std::vector<std::string> ImageWriterWindow::RunAllTasks()
 {
-    auto pPrimaryInput = GetPrimaryInput();
+    auto pPrimaryInput = GetLeftInput();
     if ( !pPrimaryInput )
         return { "No input element" };    
 

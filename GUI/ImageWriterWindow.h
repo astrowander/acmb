@@ -19,7 +19,7 @@ class ImageWriterWindow : public PipelineElementWindow
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     
 public:
-    ImageWriterWindow( const ImVec2& pos, std::shared_ptr<Window> pParent );
+    ImageWriterWindow( const Point& gridPos );
 
     virtual void DrawPipelineElementControls() override;
 

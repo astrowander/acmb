@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConverterWindow.cpp" />
+    <ClCompile Include="FontRegistry.cpp" />
     <ClCompile Include="ImageReaderWindow.cpp" />
     <ClCompile Include="ImageWriterWindow.cpp" />
     <ClCompile Include="ImGuiFileDialog\ImGuiFileDialog.cpp" />
@@ -151,6 +153,8 @@
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConverterWindow.h" />
+    <ClInclude Include="FontRegistry.h" />
     <ClInclude Include="ImageReaderWindow.h" />
     <ClInclude Include="ImageWriterWindow.h" />
     <ClInclude Include="ImGuiFileDialog\ImGuiFileDialog.h" />
