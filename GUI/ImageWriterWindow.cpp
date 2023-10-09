@@ -1,4 +1,5 @@
 #include "ImageWriterWindow.h"
+#include "MainWindow.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 #include "./../Core/bitmap.h"
@@ -7,7 +8,7 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
-: PipelineElementWindow( "Image Writer", gridPos, PipelineElementWindow::RequiredInOutFlags::StrictlyOneInput | PipelineElementWindow::RequiredInOutFlags::NoOutput )
+: PipelineElementWindow( "Image Writer", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
 {
 }
 
@@ -33,7 +34,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
         pFileDialog->OpenDialog( "SelectOutputDirectory", "Select Directory", nullptr, _workingDirectory.c_str(), 0);
     }
 
-    if ( pFileDialog->Display( "SelectOutputDirectory" ) )
+    if ( pFileDialog->Display( "SelectOutputDirectory", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
         if ( pFileDialog->IsOk() )
@@ -93,5 +94,7 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
     
     return res;
 }
+
+REGISTER_TOOLS_ITEM( ImageWriterWindow )
 
 ACMB_GUI_NAMESPACE_END

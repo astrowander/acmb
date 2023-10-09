@@ -2,8 +2,15 @@
 #include "ImageReaderWindow.h"
 #include "ImageWriterWindow.h"
 #include "ConverterWindow.h"
+#include "ResizeWindow.h"
+#include "StackerWindow.h"
+#include "CropWindow.h"
+#include "SubtractImageWindow.h"
+#include "FlatFieldWindow.h"
 #include "FontRegistry.h"
 
+#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include <fstream>
 #include <thread>
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -18,12 +25,65 @@ static constexpr int cGridLeft = 30;
 static constexpr int cGridCellWidth = PipelineElementWindow::cElementWidth + 50;
 static constexpr int cGridCellHeight = PipelineElementWindow::cElementHeight + 50;
 
+static void SetTooltipIfHovered( const std::string& text, float scaling )
+{
+    if ( !ImGui::IsItemHovered() || ImGui::IsItemActive() )
+        return;
+    
+    assert( scaling > 0.f );
+
+    constexpr float cMaxWidth = 400.f;
+    const auto& style = ImGui::GetStyle();
+    auto textSize = ImGui::CalcTextSize( text.c_str(), nullptr, false, cMaxWidth * scaling - style.WindowPadding.x * 2 );
+    ImGui::SetNextWindowSize( ImVec2{ textSize.x + style.WindowPadding.x * 2, 0 } );
+
+    ImGui::BeginTooltip();
+    ImGui::TextWrapped( "%s", text.c_str() );
+    ImGui::EndTooltip();
+}
+
 MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry )
 : Window( "acmb", size )
 , _fontRegistry( fontRegistry )
 {
     SetPos( pos );
     _viewportSize = { ( windowWidth - cGridLeft ) / cGridCellWidth, ( windowHeight - cGridTop ) / cGridCellHeight };
+
+    MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", [this] ( Point )
+    {
+        _errors.clear();
+        _isBusy = true;
+        std::thread process( [&]
+        {
+            if ( _writers.empty() )
+                _errors.emplace_back( "No writers" );
+
+            for ( auto pWriter : _writers )
+            {
+                const auto errors = pWriter.second.lock()->RunAllTasks();
+                _errors.insert( _errors.end(), errors.begin(), errors.end() );
+            }
+
+            _isBusy = false;
+            _finished = true;
+        } );
+        process.detach();
+    } );
+
+    MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x95\xad", "Save table", [this]( Point )
+    {
+        auto pFileDialog = ImGuiFileDialog::Instance();
+        pFileDialog->OpenDialog( "SaveTableDialog", "Save Table", ".acmb", "", 1 );
+        
+    } );
+
+    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x81\xbc", "Load table", [this] ( Point )
+    {
+        auto pFileDialog = ImGuiFileDialog::Instance();
+        pFileDialog->OpenDialog( "LoadTableDialog", "Load Table", ".acmb", "", 1 );
+    } );
+
+
 }
 
 constexpr uint32_t U32Color( uint8_t r, uint8_t g, uint32_t b, uint32_t a )
@@ -68,10 +128,10 @@ void MainWindow::ProcessKeyboardEvents()
             _viewportStart.y = _activeCell.y - _viewportSize.height + 1;
     }
 
-    const size_t gridIdx = _activeCell.y * cGridCellWidth + _activeCell.x;
+    const size_t gridIdx = _activeCell.y * cGridSize.width + _activeCell.x;
     if ( ImGui::IsKeyPressed( ImGuiKey_Delete ) )
     {
-        if ( _activeCell.x < cGridCellWidth - 1 && _grid[gridIdx + 1] )
+        if ( _activeCell.x < cGridSize.width - 1 && _grid[gridIdx + 1] )
             _grid[gridIdx + 1]->SetLeftInput( nullptr );
 
         if ( _writers.contains( gridIdx ) )
@@ -81,50 +141,169 @@ void MainWindow::ProcessKeyboardEvents()
     }
 }
 
+void MainWindow::DrawMenu()
+{
+    float shift = 0;
+
+    for ( const auto& it : MenuItemsHolder::GetInstance().GetItems() )
+    {
+        const auto& category = it.first;
+        const auto& items = it.second;
+
+        const auto itemCount = items.size();
+        const float menuWidth = itemCount * 50 + ( itemCount - 1 ) * ImGui::GetStyle().ItemSpacing.x;
+
+        ImGui::BeginChild( category.c_str(), { menuWidth, 0});
+
+        ImGui::PushFont( _fontRegistry.bold );
+        ImGui::SeparatorText( category.c_str() );
+        ImGui::PopFont();        
+
+        for ( auto& item : items )
+        {
+            ImGui::PushFont( _fontRegistry.icons );
+
+            if ( ImGui::Button( item.second->icon.c_str(), { 50, 50 } ) )
+                item.second->action( _activeCell );
+
+            ImGui::PopFont();
+            
+            SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
+            ImGui::SameLine();
+        }
+
+        ImGui::EndChild();
+        
+        ImGui::SameLine();
+        ImGui::Dummy( { 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 } );
+        ImGui::SameLine();               
+    }
+
+    //ImGui::BeginChild( "EmptyMenuSpace", { -1, 0} );
+    ImGui::PushFont( _fontRegistry.bold );
+    ImGui::SeparatorText( "##EmptyMenuSpace");
+    //ImGui::NewLine();
+    //ImGui::Text( "BottomLine" );
+    ImGui::PopFont();
+    //ImGui::EndChild();
+
+
+    auto pFileDialog = ImGuiFileDialog::Instance();
+    if ( pFileDialog->Display( "LoadTableDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    {
+        // action if OK
+        if ( pFileDialog->IsOk() )
+        {
+            auto reportError = [this]( const std::string msg )
+            {
+                _errors.push_back( msg );
+                ImGui::OpenPopup( "ResultsPopup" );
+                return ImGuiFileDialog::Instance()->Close();
+            };
+            std::string filePath = pFileDialog->GetFilePathName();
+            std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
+
+            _errors.clear();
+            if ( !fin )
+                return reportError( "Unable to open file" );
+
+            fin.seekg( 0, std::ios_base::end );
+            size_t streamSize = fin.tellg();
+            if ( streamSize < 6 )
+                return reportError( "File is too small" );
+
+            fin.seekg( 0 );
+
+            std::string header( 4, '\0' );
+            fin.read( &header[0], 4 );
+            if ( header != "ACMB" )
+                return reportError( "File is corrupted" );
+
+            Size actualGridSize;
+            actualGridSize.width = fin.get();
+            actualGridSize.height = fin.get();
+
+            if ( actualGridSize.width > cGridSize.width || actualGridSize.height > cGridSize.height )
+                return reportError( "Table is too large" );
+
+            int charCount = actualGridSize.width * actualGridSize.height;
+            if ( streamSize != charCount + 6 )
+                return reportError( "File is corrupted" );
+
+            std::vector<char> chars( charCount );
+            fin.read( chars.data(), charCount );
+
+            for ( size_t i = 0; i < actualGridSize.height; ++i )
+            for ( size_t j = 0; j < actualGridSize.width; ++j )
+            {
+                if ( uint8_t menuOrder = chars[ i * actualGridSize.width + j] )
+                    MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
+            }
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+
+    }
+
+    if ( pFileDialog->Display( "SaveTableDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    {
+        // action if OK
+        if ( pFileDialog->IsOk() )
+        {
+            std::string filePath = pFileDialog->GetFilePathName();
+            std::ofstream fout( filePath, std::ios_base::out | std::ios_base::binary );
+
+            _errors.clear();
+            if ( !fout )
+            {
+                _errors.push_back( "Unable to save file" ); 
+                ImGui::OpenPopup( "ResultsPopup" );
+                return ImGuiFileDialog::Instance()->Close();
+            }
+
+            fout.write( "ACMB", 4 );
+            
+            Size actualGridSize;
+
+            for ( int i = 0; i < cGridSize.height; ++i )
+            for ( int j = 0; j < cGridSize.width; ++j )
+            {
+                if ( _grid[i * cGridSize.width + j] )
+                {
+                    if ( i >= actualGridSize.height )
+                        actualGridSize.height = i + 1;
+
+                    if ( j >= actualGridSize.width )
+                        actualGridSize.width = j + 1;
+                }
+            }
+
+            fout.put( char( actualGridSize.width ) );
+            fout.put( char( actualGridSize.height ) );
+
+            std::vector<char> chars( actualGridSize.width * actualGridSize.height );
+
+            for ( size_t i = 0; i < actualGridSize.height; ++i )
+            for ( size_t j = 0; j < actualGridSize.width; ++j )
+            {
+               chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
+            }
+
+            fout.write( chars.data(), chars.size() );
+        }
+
+        // close
+        ImGuiFileDialog::Instance()->Close();
+    }
+}
+
 void MainWindow::DrawDialog()
 {
     ProcessKeyboardEvents();
-    ImGui::NewLine();
-    ImGui::SetCursorPosX( cGridLeft );
+    DrawMenu();
 
-    ImGui::PushFont( _fontRegistry.iconsFont );
-    if ( ImGui::Button( "\xef\x87\x85", {50, 50}) )
-    {
-        AddElementToGrid<ImageReaderWindow>( _activeCell );
-    }
-    ImGui::SameLine();
-    if ( ImGui::Button( "\xef\x86\xb8", { 50, 50 } ) )
-    {
-        AddElementToGrid<ConverterWindow>( _activeCell );
-    }
-    ImGui::SameLine();
-    if ( ImGui::Button( "\xef\x83\x87", { 50, 50 } ) )
-    {
-        AddElementToGrid<ImageWriterWindow>( _activeCell );
-    }
-
-    ImGui::PopFont();
-
-    if ( ImGui::Button( "Run" ) )
-    {
-        _errors.clear();
-        _isBusy = true;
-        std::thread process( [&]
-        {
-            if ( _writers.empty() )
-                _errors.emplace_back( "No writers" );
-
-            for ( auto pWriter : _writers )
-            {
-                const auto errors = pWriter.second.lock()->RunAllTasks();
-                _errors.insert( _errors.end(), errors.begin(), errors.end() );
-            }
-
-            _isBusy = false;
-            _finished = true;
-        } );
-        process.detach();
-    }
+    ImGui::PushFont( _fontRegistry.byDefault );
 
     ImGui::SetCursorPos( { 0, cGridTop - cHeadRowHeight } );
     if ( ImGui::Button( "##ClearTable", { cGridLeft, cHeadRowHeight } ) )
@@ -135,6 +314,8 @@ void MainWindow::DrawDialog()
 
     //ImGui::BeginChild( "GridWindow" );
     auto drawList = ImGui::GetWindowDrawList();
+    
+    drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32( ImGui::GetStyleColorVec4( ImGuiCol_Separator ) ), 3.0f );
 
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 1 }, { _size.x, cGridTop - cHeadRowHeight - 1 }, ImU32( UIColor::TableBorders ) );
     drawList->AddLine( { 1, cGridTop - cHeadRowHeight - 1 }, { 1, _size.y }, ImU32( UIColor::TableBorders ), 2.0f );
@@ -203,9 +384,20 @@ void MainWindow::DrawDialog()
                 );
             }
 
-            if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] )
+            if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
             {
-                //draw arrow to the up
+                drawList->AddRectFilled( { topLeft.x + cGridCellWidth * 0.5f - 25.0f, bottomRight.y - 25.0f },
+                                         { topLeft.x + cGridCellWidth * 0.5f + 25.0f, bottomRight.y  },
+                                         ImU32( UIColor::Arrow ) );
+            }
+
+            if ( gridPos.y > 0 && _grid[gridIdx - cGridSize.width] && _grid[gridIdx]->GetTopInput() == _grid[gridIdx - cGridSize.width] )
+            {
+                drawList->AddTriangleFilled( { topLeft.x + cGridCellWidth * 0.5f - 50.0f, topLeft.y },
+                                             { topLeft.x + cGridCellWidth * 0.5f, topLeft.y + 25.0f },
+                                             { topLeft.x + cGridCellWidth * 0.5f + 50.0f, topLeft.y },
+                                             ImU32( UIColor::Arrow )
+                );
             }
 
             if ( _activeCell == gridPos )
@@ -214,7 +406,8 @@ void MainWindow::DrawDialog()
             ImGui::PopClipRect();
         }
     }
-    
+
+    ImGui::PopFont();
     //ImGui::EndChild();
 
     if ( _finished )
@@ -240,98 +433,13 @@ void MainWindow::DrawDialog()
     }
 }
 
-std::shared_ptr<MainWindow> MainWindow::Create( const FontRegistry& fontRegistry )
+MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
 {
-
-    //const auto viewport = ImGui::GetMainViewport();
-    //ImGui::GetIO().Fonts->AddFontFromFileTTF( "Fonts/fa-solid-900.ttf", 32 );
-    return std::shared_ptr<MainWindow>( new MainWindow( { 0, 0 }, { windowWidth, windowHeight }, fontRegistry ) );
+    static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( ImVec2{ 0, 0 }, ImVec2{ windowWidth, windowHeight }, fontRegistry ) );
+    return *pInstance;
 }
 
-template<class ElementType>
-std::string MainWindow::AddElementToGrid( const Point& pos )
-{
-    auto pElement = std::make_shared<ElementType>( pos );
 
-    assert( pos.x < cGridSize.width && pos.y < cGridSize.height );
-
-    const size_t ind = pos.y * cGridSize.width + pos.x;
-
-    const auto pLeft = pos.x > 0 ? _grid[ind - 1] : nullptr;
-    const auto pTop = pos.y > 0 ? _grid[ind - cGridSize.width] : nullptr;
-    const auto pRight = pos.x < cGridSize.width - 1 ? _grid[ind + 1] : nullptr;
-    const auto pBottom = pos.y < cGridSize.width - 1 ? _grid[ind + cGridSize.width] : nullptr;
-
-    const auto pBottomRight = ( pos.y < cGridSize.height - 1 ) && ( pos.x < cGridSize.width - 1 ) ? _grid[ind + cGridSize.width + 1] : nullptr;
-    const auto pBottomLeft = ( pos.y < cGridSize.height - 1 ) && ( pos.x > 0 ) ? _grid[ind + cGridSize.width - 1] : nullptr;
-    const auto pTopLeft = ( pos.y > 0 ) && ( pos.x > 0 ) ? _grid[ind - cGridSize.width - 1] : nullptr;
-
-    const auto flags = pElement->GetInOutFlags();
-
-    using PEFlags = PipelineElementWindow::RequiredInOutFlags;
-    if ( ( flags & PEFlags::NoInput ) && ( pLeft || pBottom ) )
-        return "This element cannot have inputs";
-
-    if ( ( flags & PEFlags::StrictlyOneInput ) && pLeft && pBottom )
-        return "This element can have strictly one input";
-
-    if ( pLeft )
-    {
-        if ( pLeft->GetInOutFlags() & PEFlags::NoOutput )
-            return "Left element cannot have outputs";
-
-        if ( pBottomLeft )
-            return "Left element already have an output";
-    }
-
-    if ( pBottom )
-    {
-        if ( pBottom->GetInOutFlags() & PEFlags::NoOutput )
-            return "Bottom element cannot have outputs";
-
-        if ( pBottomRight )
-            return "Bottom element already have an output";
-    }
-
-    if ( pTop )
-    {
-        const auto topFlags = pTop->GetInOutFlags();
-        if ( ( topFlags & PEFlags::NoInput ) )
-            return "Top element cannot have inputs";
-
-        if ( ( topFlags & PEFlags::StrictlyOneInput ) && pTopLeft )
-            return "Top element can have strictly one input";
-    }
-
-    if ( pRight )
-    {
-        const auto rightFlags = pRight->GetInOutFlags();
-        if ( ( rightFlags & PEFlags::NoInput ) )
-            return "Right element cannot have inputs";
-
-        if ( ( rightFlags & PEFlags::StrictlyOneInput ) && pBottomRight )
-            return "Right element can have strictly one input";
-    }
-
-    if ( pLeft )
-        pElement->SetLeftInput( pLeft );
-
-    if ( pBottom )
-        pElement->SetBottomInput( pBottom );
-
-    if ( pRight )
-        pRight->SetLeftInput( pElement );
-
-    if ( pTop )
-        pTop->SetBottomInput( pElement );
-
-    _grid[ind] = pElement;
-
-    if constexpr ( std::is_same_v<ElementType, ImageWriterWindow> )
-        _writers.insert_or_assign( ind, std::static_pointer_cast< ImageWriterWindow >( pElement ) );
-
-    return {};
-}
 
 void MainWindow::Show()
 {

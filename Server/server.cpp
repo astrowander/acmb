@@ -100,8 +100,8 @@ void Server::WorkWithClient( tcp::socket& socket )
         {
             case CommandCode::Binning:
             {
-                const uint32_t width = ReceiveSingleObject<int>( socket );
-                const uint32_t height = ReceiveSingleObject<int>( socket );
+                const int width = ReceiveSingleObject<int>( socket );
+                const int height = ReceiveSingleObject<int>( socket );
                 Size bin{ width, height };
                 activePipeline->AddTransform<BinningTransform>( bin );
                 break;
@@ -143,8 +143,8 @@ void Server::WorkWithClient( tcp::socket& socket )
             }
             case CommandCode::Resize:
             {
-                const uint32_t width = ReceiveSingleObject<uint32_t>( socket );
-                const uint32_t height = ReceiveSingleObject<uint32_t>( socket );
+                const int width = ReceiveSingleObject<int>( socket );
+                const int height = ReceiveSingleObject<int>( socket );
                 activePipeline->AddTransform<ResizeTransform>( Size{ width, height } );
                 break;
             }

@@ -24,6 +24,15 @@ public:
     virtual void DrawPipelineElementControls() override;
 
     std::vector<std::string> RunAllTasks();
+
+    inline static const std::string icon = "\xef\x83\x87";
+    inline static const std::string tooltip = "Save image";
+    inline static constexpr uint8_t order = 2;
+
+    virtual uint8_t GetMenuOrder() override
+    {
+        return order;
+    }
 };
 
 ACMB_GUI_NAMESPACE_END

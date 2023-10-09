@@ -49,8 +49,8 @@ private:
         for ( uint32_t ch = 0; ch < channelCount; ++ch )
         {
             double sum = 0.0;
-            for ( uint32_t i = 0; i < _bin.height; ++i )
-                for ( uint32_t j = 0; j < _bin.width; ++j )
+            for ( int i = 0; i < _bin.height; ++i )
+                for ( int j = 0; j < _bin.width; ++j )
                 {
                     sum += pSrcPixel[( this->_pSrcBitmap->GetWidth() * i + j ) * channelCount + ch];
                 }

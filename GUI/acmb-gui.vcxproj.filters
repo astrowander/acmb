@@ -63,6 +63,27 @@
     <ClCompile Include="FontRegistry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ResizeWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CropWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StackerWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SubtractImageWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FlatFieldWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MenuItemsHolder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -111,6 +132,27 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="FontRegistry.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResizeWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CropWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StackerWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SubtractImageWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FlatFieldWindow.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItem.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MenuItemsHolder.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

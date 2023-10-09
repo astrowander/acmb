@@ -110,7 +110,7 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             {
                 return { 1, "--binning requires strictly positive arguments" };
             }
-            Size bin{ uint32_t( width ), uint32_t( height ) };
+            Size bin{ width, height };
             if ( isStackerFound )
             {
                 _pipelineAfterStacker.AddTransform<BinningTransform>( bin );
@@ -246,8 +246,8 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
             if ( values.size() != 2 )
                 return { 1, "--resize requires exactly 2 arguments" };
 
-            const auto width = uint32_t( std::stoi( values[0] ) );
-            const auto height = uint32_t( std::stoi( values[1] ) );
+            const auto width = std::stoi( values[0] );
+            const auto height = std::stoi( values[1] );
 
             if ( isStackerFound )
             {

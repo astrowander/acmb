@@ -57,6 +57,7 @@ public:
     std::shared_ptr<IBitmap> Stack();
 
     void AddBitmap( Pipeline& pipeline );
+    void AddBitmap( std::shared_ptr<IBitmap> pBitmap );
     std::shared_ptr<IBitmap> GetResult();
 
     virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;

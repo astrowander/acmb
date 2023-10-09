@@ -1,4 +1,5 @@
 #include "ImageReaderWindow.h"
+#include "MainWindow.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 #include "./../Codecs/imagedecoder.h"
@@ -20,24 +21,23 @@ std::string GetFilters()
 }
 
 ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
-: PipelineElementWindow( "Image Reader", gridPos, PipelineElementWindow::RequiredInOutFlags::NoInput | PipelineElementWindow::RequiredInOutFlags::StrictlyOneOutput )
+: PipelineElementWindow( "Image Reader", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
 , _workingDirectory( "." )
 {
 }
 
 void ImageReaderWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "%s", "Image List" );
-
     const auto& style = ImGui::GetStyle();
-    const float itemWidth = cElementWidth - 2.0f * style.FramePadding.x;    
+    const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;    
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 0 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 85 * cMenuScaling } ) )
     {
         for ( int i = 0; i < _fileNames.size(); ++i )
         {
             const bool is_selected = ( _selectedItemIdx == i );
-            if ( ImGui::Selectable( _fileNames[i].c_str(), is_selected ) )
+            const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
+            if ( ImGui::Selectable( shortName.c_str(), is_selected ) )
                 _selectedItemIdx = i;
 
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -48,14 +48,15 @@ void ImageReaderWindow::DrawPipelineElementControls()
     }
 
     auto pFileDialog = ImGuiFileDialog::Instance();
+    const auto openDialogName = "SelectImagesDialog##" + _name;
 
     if ( ImGui::Button( "Select Images", { itemWidth, 0 } ) )
     {
         static auto filters = GetFilters();
-        pFileDialog->OpenDialog( "SelectImagesDialog", "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
+        pFileDialog->OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
     }
 
-    if ( pFileDialog->Display( "SelectImagesDialog" ) )
+    if ( pFileDialog->Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
         if ( pFileDialog->IsOk() )
@@ -85,5 +86,7 @@ std::expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
         return std::unexpected( e.what() );
     }
 }
+
+REGISTER_TOOLS_ITEM( ImageReaderWindow )
 
 ACMB_GUI_NAMESPACE_END

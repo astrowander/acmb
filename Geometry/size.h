@@ -8,8 +8,8 @@ ACMB_NAMESPACE_BEGIN
 template <typename T>
 struct SizeT
 {
-	T width;
-	T height;
+	T width = 0;
+	T height = 0;
 
 	bool operator==(const SizeT& rhs) const
 	{
@@ -26,7 +26,7 @@ std::ostream& operator<<(std::ostream& out, const SizeT<T>& size)
     return out << size.width << " " << size.height;
 }
 /// size with integer params
-using Size = SizeT<uint32_t>;
+using Size = SizeT<int>;
 /// size with fractional params
 using SizeF = SizeT<double>;
 

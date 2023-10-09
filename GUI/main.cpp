@@ -83,7 +83,7 @@ int main(int, char**)
     bool show_another_window = false;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    auto pMainWindow = acmb::gui::MainWindow::Create( acmb::gui::FontRegistry::Instance() );
+    auto& mainWindow = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() );
 
     // Main loop
     bool done = false;
@@ -116,7 +116,7 @@ int main(int, char**)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        pMainWindow->Show();
+        mainWindow.Show();
         
         // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         /*if ( show_demo_window )
