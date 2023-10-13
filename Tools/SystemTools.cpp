@@ -32,7 +32,7 @@ std::string ToLower( const std::string& val )
 }
 
 RandomStringGenerator::RandomStringGenerator( const std::string& characters )
-: generator( rd() ), dist( 0, characters.size() - 1 ), charset( characters )
+: generator( rd() ), dist( 0, int( characters.size() ) - 1), charset(characters)
 {
 }
 

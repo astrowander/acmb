@@ -6,6 +6,7 @@ PipelineElementWindow::PipelineElementWindow( const std::string& name, const Poi
 : Window( name + "##R" + std::to_string( gridPos.y ) + "C" + std::to_string( gridPos.x ), { cElementWidth, cElementHeight } )
 , _inOutFlags( inOutFlags )
 , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
+, _gridPos( gridPos )
 {
 }
 
@@ -122,6 +123,40 @@ void PipelineElementWindow::DrawDialog()
     ImGui::SetCursorPosY( cElementHeight - ImGui::GetStyle().WindowPadding.y - ImGui::GetTextLineHeight() - 2 * ImGui::GetStyle().FramePadding.y );
     ImGui::ProgressBar( _taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( _taskCount ) : 0.0f, { _itemWidth, 0 } );
     ImGui::Dummy( { -1, 0 } );
+
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    {
+        auto mousePos = ImGui::GetMousePos();
+        const auto windowPos = ImGui::GetWindowPos();
+        mousePos.x -= windowPos.x;
+        mousePos.y -= windowPos.y;
+
+        const auto& style = ImGui::GetStyle();
+        const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
+
+        if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
+        {
+            _openRenamePopup = true;
+        }       
+    }
+
+    if (_openRenamePopup)
+    {
+        ImGui::OpenPopup("RenameElement");
+    }
+
+    if (ImGui::BeginPopup("RenameElement"))
+    {
+        ImGui::InputText("New name", _renameBuf.data(), _renameBuf.size());
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+        {
+            _name = std::string(_renameBuf.data(), strlen(_renameBuf.data())) + "##R" + std::to_string(_gridPos.y) + "C" + std::to_string(_gridPos.x);
+            _openRenamePopup = false;
+        }
+
+        ImGui::EndPopup();
+    }
 }
 
 ACMB_GUI_NAMESPACE_END

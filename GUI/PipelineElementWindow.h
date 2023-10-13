@@ -24,6 +24,9 @@ enum PEFlags : int
 
 class PipelineElementWindow : public Window
 {
+    bool _openRenamePopup = false;
+    std::array<char, 256> _renameBuf = {};
+
 public:    
 
     static constexpr int cElementWidth = 150;
