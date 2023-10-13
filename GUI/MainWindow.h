@@ -5,6 +5,11 @@
 #include <array>
 #include<unordered_map>
 
+namespace IGFD
+{
+    class FileDialog;
+}
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 class PipelineElementWindow;
@@ -42,6 +47,12 @@ class MainWindow : public Window
     virtual ImGuiWindowFlags flags() override { return  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration; }
 
     const FontRegistry& _fontRegistry;
+    
+    void OpenProject( IGFD::FileDialog* pFileDialog );
+    void DeserializeProject( const std::string& serialized, const Size& actualGridSize );
+    void SaveProject( IGFD::FileDialog* pFileDialog );
+
+   // std::pair<std::string, Size>
 
 public:
 

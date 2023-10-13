@@ -191,6 +191,12 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
     return CallGeneratingResultHelper();
 }
 
+void BaseStacker::AddBitmap( IBitmapPtr pBitmap )
+{
+    Pipeline pipeline{ pBitmap };
+    return AddBitmap( pipeline );
+}
+
 void BaseStacker::AddBitmap(Pipeline& pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );

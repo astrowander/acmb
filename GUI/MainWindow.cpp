@@ -70,17 +70,17 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x95\xad", "Save table", [this]( Point )
+    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x95\xad", "Save Project", [this]( Point )
     {
         auto pFileDialog = ImGuiFileDialog::Instance();
-        pFileDialog->OpenDialog( "SaveTableDialog", "Save Table", ".acmb", "", 1 );
+        pFileDialog->OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
         
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x81\xbc", "Load table", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x81\xbc", "Open Project", [this] ( Point )
     {
         auto pFileDialog = ImGuiFileDialog::Instance();
-        pFileDialog->OpenDialog( "LoadTableDialog", "Load Table", ".acmb", "", 1 );
+        pFileDialog->OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "", 1 );
     } );
 
 
@@ -141,6 +141,103 @@ void MainWindow::ProcessKeyboardEvents()
     }
 }
 
+void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
+{
+    auto reportError = [this] ( const std::string msg )
+    {
+        _errors.push_back( msg );
+        ImGui::OpenPopup( "ResultsPopup" );
+        return ImGuiFileDialog::Instance()->Close();
+    };
+    std::string filePath = pFileDialog->GetFilePathName();
+    std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
+
+    _errors.clear();
+    if ( !fin )
+        return reportError( "Unable to open file" );
+
+    fin.seekg( 0, std::ios_base::end );
+    size_t streamSize = fin.tellg();
+    if ( streamSize < 6 )
+        return reportError( "File is too small" );
+
+    fin.seekg( 0 );
+
+    std::string header( 4, '\0' );
+    fin.read( &header[0], 4 );
+    if ( header != "ACMB" )
+        return reportError( "File is corrupted" );
+
+    Size actualGridSize;
+    actualGridSize.width = fin.get();
+    actualGridSize.height = fin.get();
+
+    if ( actualGridSize.width > cGridSize.width || actualGridSize.height > cGridSize.height )
+        return reportError( "Table is too large" );
+
+    int charCount = actualGridSize.width * actualGridSize.height;
+    if ( streamSize != charCount + 6 )
+        return reportError( "File is corrupted" );
+
+    std::string serialized( charCount, '\0' );
+    fin.read( serialized.data(), charCount );
+    DeserializeProject( serialized, actualGridSize );
+}
+
+void MainWindow::DeserializeProject( const std::string& serialized,  const Size& actualGridSize )
+{
+    for ( size_t i = 0; i < actualGridSize.height; ++i )
+    for ( size_t j = 0; j < actualGridSize.width; ++j )
+    {
+        if ( uint8_t menuOrder = serialized[i * actualGridSize.width + j] )
+            MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
+    }
+}
+
+void MainWindow::SaveProject( IGFD::FileDialog* pFileDialog )
+{
+    std::string filePath = pFileDialog->GetFilePathName();
+    std::ofstream fout( filePath, std::ios_base::out | std::ios_base::binary );
+
+    _errors.clear();
+    if ( !fout )
+    {
+        _errors.push_back( "Unable to save file" );
+        ImGui::OpenPopup( "ResultsPopup" );
+        return ImGuiFileDialog::Instance()->Close();
+    }
+
+    fout.write( "ACMB", 4 );
+
+    Size actualGridSize;
+
+    for ( int i = 0; i < cGridSize.height; ++i )
+        for ( int j = 0; j < cGridSize.width; ++j )
+        {
+            if ( _grid[i * cGridSize.width + j] )
+            {
+                if ( i >= actualGridSize.height )
+                    actualGridSize.height = i + 1;
+
+                if ( j >= actualGridSize.width )
+                    actualGridSize.width = j + 1;
+            }
+        }
+
+    fout.put( char( actualGridSize.width ) );
+    fout.put( char( actualGridSize.height ) );
+
+    std::string chars( actualGridSize.width * actualGridSize.height, '\0' );
+
+    for ( size_t i = 0; i < actualGridSize.height; ++i )
+        for ( size_t j = 0; j < actualGridSize.width; ++j )
+        {
+            chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
+        }
+
+    fout.write( chars.data(), chars.size() );
+}
+
 void MainWindow::DrawMenu()
 {
     float shift = 0;
@@ -189,111 +286,19 @@ void MainWindow::DrawMenu()
 
 
     auto pFileDialog = ImGuiFileDialog::Instance();
-    if ( pFileDialog->Display( "LoadTableDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( pFileDialog->Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        // action if OK
         if ( pFileDialog->IsOk() )
-        {
-            auto reportError = [this]( const std::string msg )
-            {
-                _errors.push_back( msg );
-                ImGui::OpenPopup( "ResultsPopup" );
-                return ImGuiFileDialog::Instance()->Close();
-            };
-            std::string filePath = pFileDialog->GetFilePathName();
-            std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
+            OpenProject( pFileDialog );
 
-            _errors.clear();
-            if ( !fin )
-                return reportError( "Unable to open file" );
-
-            fin.seekg( 0, std::ios_base::end );
-            size_t streamSize = fin.tellg();
-            if ( streamSize < 6 )
-                return reportError( "File is too small" );
-
-            fin.seekg( 0 );
-
-            std::string header( 4, '\0' );
-            fin.read( &header[0], 4 );
-            if ( header != "ACMB" )
-                return reportError( "File is corrupted" );
-
-            Size actualGridSize;
-            actualGridSize.width = fin.get();
-            actualGridSize.height = fin.get();
-
-            if ( actualGridSize.width > cGridSize.width || actualGridSize.height > cGridSize.height )
-                return reportError( "Table is too large" );
-
-            int charCount = actualGridSize.width * actualGridSize.height;
-            if ( streamSize != charCount + 6 )
-                return reportError( "File is corrupted" );
-
-            std::vector<char> chars( charCount );
-            fin.read( chars.data(), charCount );
-
-            for ( size_t i = 0; i < actualGridSize.height; ++i )
-            for ( size_t j = 0; j < actualGridSize.width; ++j )
-            {
-                if ( uint8_t menuOrder = chars[ i * actualGridSize.width + j] )
-                    MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
-            }
-        }
-
-        // close
         ImGuiFileDialog::Instance()->Close();
-
     }
 
-    if ( pFileDialog->Display( "SaveTableDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( pFileDialog->Display( "SaveProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        // action if OK
         if ( pFileDialog->IsOk() )
-        {
-            std::string filePath = pFileDialog->GetFilePathName();
-            std::ofstream fout( filePath, std::ios_base::out | std::ios_base::binary );
+            SaveProject( pFileDialog );
 
-            _errors.clear();
-            if ( !fout )
-            {
-                _errors.push_back( "Unable to save file" ); 
-                ImGui::OpenPopup( "ResultsPopup" );
-                return ImGuiFileDialog::Instance()->Close();
-            }
-
-            fout.write( "ACMB", 4 );
-            
-            Size actualGridSize;
-
-            for ( int i = 0; i < cGridSize.height; ++i )
-            for ( int j = 0; j < cGridSize.width; ++j )
-            {
-                if ( _grid[i * cGridSize.width + j] )
-                {
-                    if ( i >= actualGridSize.height )
-                        actualGridSize.height = i + 1;
-
-                    if ( j >= actualGridSize.width )
-                        actualGridSize.width = j + 1;
-                }
-            }
-
-            fout.put( char( actualGridSize.width ) );
-            fout.put( char( actualGridSize.height ) );
-
-            std::vector<char> chars( actualGridSize.width * actualGridSize.height );
-
-            for ( size_t i = 0; i < actualGridSize.height; ++i )
-            for ( size_t j = 0; j < actualGridSize.width; ++j )
-            {
-               chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
-            }
-
-            fout.write( chars.data(), chars.size() );
-        }
-
-        // close
         ImGuiFileDialog::Instance()->Close();
     }
 }
@@ -450,8 +455,8 @@ void MainWindow::Show()
         const size_t x = i % cGridSize.width;
         const size_t y = i / cGridSize.width;
 
-        if ( x < _viewportStart.x || x > _viewportStart.x + _viewportSize.width ||
-             y < _viewportStart.y || y > _viewportStart.y + _viewportSize.height )
+        if ( x < _viewportStart.x || x >= _viewportStart.x + _viewportSize.width ||
+             y < _viewportStart.y || y >= _viewportStart.y + _viewportSize.height )
         {
             continue;
         }

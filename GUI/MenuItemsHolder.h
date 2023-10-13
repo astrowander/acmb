@@ -2,13 +2,11 @@
 #include "MenuItem.h"
 #include "FontRegistry.h"
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
 #include <memory>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-using Items = std::unordered_map<std::string, std::map<int, std::unique_ptr<MenuItem>>>;
+using Items = std::map<std::string, std::map<int, std::unique_ptr<MenuItem>>>;
 
 class MenuItemsHolder
 {    
