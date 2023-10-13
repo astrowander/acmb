@@ -24,9 +24,20 @@ RawDecoder::RawDecoder( PixelFormat outputFormat )
 RawDecoder::LensDB RawDecoder::LoadLensDB()
 {
 	LensDB res;
+	std::string acmbPath;
+	
+	try
+	{
+		acmbPath = GetEnv("ACMB_PATH");
+	}
+	catch (std::runtime_error& e)
+	{
+		std::cerr << e.what() << std::endl;
+		return res;
+	}
 
-	std::ifstream in( GetEnv( "ACMB_PATH" ) + "/Codecs/Raw/lensdb.txt" );
-	if ( !in.is_open() )
+	std::ifstream in(acmbPath + "/Codecs/Raw/lensdb.txt");
+	if (!in.is_open())
 		return res;
 
 	while ( !in.eof() )
