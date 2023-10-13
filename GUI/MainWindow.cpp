@@ -176,21 +176,21 @@ void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
         return reportError( "Table is too large" );
 
     int charCount = actualGridSize.width * actualGridSize.height;
-    if ( streamSize != charCount + 6 )
+    if ( streamSize < charCount + 6 )
         return reportError( "File is corrupted" );
 
     std::string serialized( charCount, '\0' );
     fin.read( serialized.data(), charCount );
-    DeserializeProject( serialized, actualGridSize );
-}
-
-void MainWindow::DeserializeProject( const std::string& serialized,  const Size& actualGridSize )
-{
-    for ( size_t i = 0; i < actualGridSize.height; ++i )
-    for ( size_t j = 0; j < actualGridSize.width; ++j )
+    
+    for (size_t i = 0; i < actualGridSize.height; ++i)
+    for (size_t j = 0; j < actualGridSize.width; ++j)
     {
-        if ( uint8_t menuOrder = serialized[i * actualGridSize.width + j] )
-            MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
+        if (uint8_t menuOrder = serialized[i * actualGridSize.width + j])
+        {
+            MenuItemsHolder::GetInstance().GetItems().at("Tools").at(menuOrder)->action(Point{ .x = int(j), .y = int(i) });
+            if (streamSize > charCount + 6)
+                _grid[i * cGridSize.height + j]->Deserialize(fin);
+        }
     }
 }
 
@@ -230,12 +230,19 @@ void MainWindow::SaveProject( IGFD::FileDialog* pFileDialog )
     std::string chars( actualGridSize.width * actualGridSize.height, '\0' );
 
     for ( size_t i = 0; i < actualGridSize.height; ++i )
-        for ( size_t j = 0; j < actualGridSize.width; ++j )
-        {
-            chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
-        }
+    for ( size_t j = 0; j < actualGridSize.width; ++j )
+    {
+        chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
+    }
 
     fout.write( chars.data(), chars.size() );
+
+    for (size_t i = 0; i < actualGridSize.height; ++i)
+    for (size_t j = 0; j < actualGridSize.width; ++j)
+    {
+        if (_grid[i * cGridSize.height + j])
+            _grid[i * cGridSize.height + j]->Serialize(fout);
+    }
 }
 
 void MainWindow::DrawMenu()
@@ -413,7 +420,6 @@ void MainWindow::DrawDialog()
     }
 
     ImGui::PopFont();
-    //ImGui::EndChild();
 
     if ( _finished )
     {

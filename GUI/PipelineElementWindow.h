@@ -81,8 +81,10 @@ public:
     virtual void ResetTasks();
 
     virtual uint8_t GetMenuOrder() = 0;
-protected:
 
+    virtual void Serialize(std::ostream& out);
+    virtual void Deserialize(std::istream& in);
+protected:
     virtual void DrawDialog() override;
 };
 

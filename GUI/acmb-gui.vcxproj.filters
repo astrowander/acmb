@@ -155,6 +155,9 @@
     <ClInclude Include="MenuItemsHolder.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Serializer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter" />

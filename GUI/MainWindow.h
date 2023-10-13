@@ -49,7 +49,6 @@ class MainWindow : public Window
     const FontRegistry& _fontRegistry;
     
     void OpenProject( IGFD::FileDialog* pFileDialog );
-    void DeserializeProject( const std::string& serialized, const Size& actualGridSize );
     void SaveProject( IGFD::FileDialog* pFileDialog );
 
    // std::pair<std::string, Size>

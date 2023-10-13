@@ -181,6 +181,7 @@
     <ClInclude Include="MenuItemsHolder.h" />
     <ClInclude Include="PipelineElementWindow.h" />
     <ClInclude Include="ResizeWindow.h" />
+    <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="SubtractImageWindow.h" />
     <ClInclude Include="window.h" />

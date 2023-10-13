@@ -1,4 +1,5 @@
 #include "PipelineElementWindow.h"
+#include "Serializer.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -157,6 +158,16 @@ void PipelineElementWindow::DrawDialog()
 
         ImGui::EndPopup();
     }
+}
+
+void PipelineElementWindow::Serialize(std::ostream& out)
+{
+    acmb::gui::Serialize(_name, out);
+}
+
+void PipelineElementWindow::Deserialize(std::istream& in)
+{
+    _name = acmb::gui::Deserialize<std::string>( in );
 }
 
 ACMB_GUI_NAMESPACE_END
