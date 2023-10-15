@@ -1,5 +1,6 @@
 #include "SubtractImageWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "../Transforms/BitmapSubtractor.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -45,6 +46,18 @@ std::expected<IBitmapPtr, std::string> SubtractImageWindow::RunTask( size_t i )
         return std::unexpected( taskRes.error() );
 
     return BitmapSubtractor::Subtract( *taskRes, _pBitmapToSubtract );
+}
+
+void SubtractImageWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize(_darkFrameIsOnTop, out);
+}
+
+void SubtractImageWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _darkFrameIsOnTop = gui::Deserialize<int>(in);
 }
 
 REGISTER_TOOLS_ITEM( SubtractImageWindow )

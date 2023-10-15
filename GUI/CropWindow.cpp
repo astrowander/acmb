@@ -1,5 +1,6 @@
 #include "CropWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "./../Transforms/CropTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -43,6 +44,18 @@ std::expected<IBitmapPtr, std::string> CropWindow::RunTask( size_t i )
     {
         return std::unexpected( e.what() );
     }
+}
+
+void CropWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize(_dstRect, out);
+}
+
+void CropWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _dstRect = gui::Deserialize<Rect>(in);
 }
 
 REGISTER_TOOLS_ITEM( CropWindow );

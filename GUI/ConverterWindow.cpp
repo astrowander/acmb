@@ -1,5 +1,6 @@
 #include "ConverterWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "./../Transforms/converter.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -45,6 +46,18 @@ std::expected<IBitmapPtr, std::string> ConverterWindow::RunTask( size_t i )
     {
         return std::unexpected( e.what() );
     }
+}
+
+void ConverterWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    acmb::gui::Serialize(_dstPixelFormat, out);
+}
+
+void ConverterWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _dstPixelFormat = acmb::gui::Deserialize<PixelFormat>( in );
 }
 
 REGISTER_TOOLS_ITEM( ConverterWindow );

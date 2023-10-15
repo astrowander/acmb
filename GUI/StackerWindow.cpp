@@ -1,6 +1,8 @@
 #include "StackerWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "./../Registrator/stacker.h"
+#include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -17,7 +19,7 @@ void StackerWindow::DrawPipelineElementControls()
     ImGui::RadioButton( "Light Frames", ( int* ) ( &_stackMode ), int( StackMode::Light ) );
     ImGui::RadioButton( "Dark/Flat Frames", ( int* ) ( &_stackMode ), int( StackMode::DarkOrFlat ) );
     
-    ImGui::Checkbox( "Enable CUDA", &_enableCuda );
+    //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
 
 std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
@@ -41,7 +43,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
         if ( !pBitmap )
             return std::unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = _enableCuda ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, _stackMode ) ) :
+        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
 
         pStacker->AddBitmap( *pBitmap );
@@ -67,6 +69,18 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
     {
         return std::unexpected( e.what() );
     }
+}
+
+void StackerWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize(_stackMode, out);
+}
+
+void StackerWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _stackMode = gui::Deserialize<StackMode>(in);
 }
 
 REGISTER_TOOLS_ITEM( StackerWindow )

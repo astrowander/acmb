@@ -1,5 +1,6 @@
 #include "ResizeWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "./../Transforms/ResizeTransform.h"
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -41,6 +42,18 @@ std::expected<IBitmapPtr, std::string> ResizeWindow::RunTask( size_t i )
     {
         return std::unexpected( e.what() );
     }
+}
+
+void ResizeWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize(_dstSize, out);
+}
+
+void ResizeWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _dstSize = gui::Deserialize<Size>(in);
 }
 
 REGISTER_TOOLS_ITEM( ResizeWindow )

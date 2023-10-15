@@ -15,31 +15,21 @@ ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
 void ImageWriterWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Choose output file format:", "" );
-    ImGui::RadioButton( ".ppm", ( int* ) &_fileFormat, int( FileFormat::Ppm ) );
-    ImGui::RadioButton( ".tif", ( int* ) &_fileFormat, int( FileFormat::Tiff ) );
-    ImGui::RadioButton( ".jpg", ( int* ) &_fileFormat, int( FileFormat::Jpeg ) );
-
-    ImGui::InputText( "Working Directory", ( char* ) _workingDirectory.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
-    
-    static char buf[1024] = {};
-    if ( ImGui::InputText( "Output File Name", buf, 1024 ) )
-    {
-        const size_t length = strlen( buf );
-        _fileName = std::string( buf );
-    }
+    ImGui::InputText( "File Name", ( char* ) _fileName.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 
     auto pFileDialog = ImGuiFileDialog::Instance();
-    if ( ImGui::Button( "Select Directory" ) )
+    if ( ImGui::Button( "Select File" ) )
     {
-        pFileDialog->OpenDialog( "SelectOutputDirectory", "Select Directory", nullptr, _workingDirectory.c_str(), 0);
+        pFileDialog->OpenDialog( "SelectOutputFile", "Select File", nullptr, _workingDirectory.c_str(), 0);
     }
 
-    if ( pFileDialog->Display( "SelectOutputDirectory", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( pFileDialog->Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
         if ( pFileDialog->IsOk() )
         {
             _workingDirectory = pFileDialog->GetCurrentPath();
+            _fileName = pFileDialog->GetFilePathName();
         }
 
         // close
@@ -58,14 +48,9 @@ std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
     if ( !taskRes.has_value() )
         return std::unexpected( taskRes.error() );
 
-    const std::string extension = ( _fileFormat == FileFormat::Ppm ) ? ".ppm" :
-                                    ( _fileFormat == FileFormat::Tiff ) ? ".tif" : ".jpg";
-
-    std::ostringstream ss;
-    ss << _workingDirectory << "/" << _fileName << "_" << i << extension;
-    IBitmap::Save( taskRes.value(), ss.str() );
-    return nullptr;
-    
+    const size_t dotPos = _fileName.find_last_of('.');
+    IBitmap::Save(taskRes.value(), (i == 0) ? _fileName : ( _fileName.substr(0, dotPos) + "_" + std::to_string(i) + _fileName.substr( dotPos ) ) );
+    return nullptr;    
 }
 
 std::vector<std::string> ImageWriterWindow::RunAllTasks()

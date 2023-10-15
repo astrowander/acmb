@@ -20,8 +20,8 @@ void Serialize(T&& val, std::ostream& out)
     if constexpr (std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>>)
     {
         Serialize(int( val.size() ), out);
-        for (auto& str : val)
-            Serialize(str);
+        for (auto& str: val)
+            Serialize(std::move( str ), out);
         return;
     }
 

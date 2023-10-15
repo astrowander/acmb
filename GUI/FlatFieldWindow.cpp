@@ -1,5 +1,6 @@
 #include "FlatFieldWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "./../Transforms/BitmapDivisor.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -46,6 +47,20 @@ std::expected<IBitmapPtr, std::string> DivideImageWindow::RunTask( size_t i )
         return std::unexpected( taskRes.error() );
 
     return BitmapDivisor::Divide( *taskRes, { .pDivisor = _pFlatField, .intensity = _intensity } );
+}
+
+void DivideImageWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize(_intensity, out);
+    gui::Serialize(_flatFieldIsOnTop, out);
+}
+
+void DivideImageWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _intensity = gui::Deserialize<float>(in);
+    _flatFieldIsOnTop = gui::Deserialize<int>(in);
 }
 
 REGISTER_TOOLS_ITEM( DivideImageWindow );

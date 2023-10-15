@@ -1,5 +1,6 @@
 #include "ImageReaderWindow.h"
 #include "MainWindow.h"
+#include "Serializer.h"
 #include "ImGuiFileDialog/ImGuiFileDialog.h"
 
 #include "./../Codecs/imagedecoder.h"
@@ -85,6 +86,22 @@ std::expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     {
         return std::unexpected( e.what() );
     }
+}
+
+void ImageReaderWindow::Serialize(std::ostream& out)
+{
+    PipelineElementWindow::Serialize(out);
+    gui::Serialize( _workingDirectory, out);
+    gui::Serialize( std::move( _fileNames ), out);
+    gui::Serialize(_selectedItemIdx, out);
+}
+
+void ImageReaderWindow::Deserialize(std::istream& in)
+{
+    PipelineElementWindow::Deserialize(in);
+    _workingDirectory = gui::Deserialize<std::string>(in);
+    _fileNames = gui::Deserialize<std::vector<std::string>>(in);
+    _selectedItemIdx = gui::Deserialize<int>(in);
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )
