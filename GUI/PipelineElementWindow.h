@@ -46,7 +46,8 @@ protected:
     std::weak_ptr<PipelineElementWindow> _pRightOutput;
     std::weak_ptr<PipelineElementWindow> _pBottomOutput;
 
-    int _inOutFlags;
+    int _inOutFlags = {};
+    char _actualInputs = {};
 
     Point _gridPos;
 
@@ -84,6 +85,9 @@ public:
 
     virtual void Serialize(std::ostream& out);
     virtual void Deserialize(std::istream& in);
+
+    char GetActualInputs() { return _actualInputs; }
+
 protected:
     virtual void DrawDialog() override;
 };

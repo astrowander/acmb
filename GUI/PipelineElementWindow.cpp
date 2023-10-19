@@ -4,10 +4,10 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 PipelineElementWindow::PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
-: Window( name + "##R" + std::to_string( gridPos.y ) + "C" + std::to_string( gridPos.x ), { cElementWidth, cElementHeight } )
-, _inOutFlags( inOutFlags )
-, _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
-, _gridPos( gridPos )
+    : Window( name + "##R" + std::to_string( gridPos.y ) + "C" + std::to_string( gridPos.x ), { cElementWidth, cElementHeight } )
+    , _inOutFlags( inOutFlags )
+    , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
+    , _gridPos( gridPos )
 {
 }
 
@@ -16,11 +16,11 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportPr
     std::expected<IBitmapPtr, std::string> res;
     try
     {
-        res =  RunTask( i );
+        res = RunTask( i );
     }
     catch ( std::exception& e )
     {
-        res  = std::unexpected( e.what() );
+        res = std::unexpected( e.what() );
     }
 
     _completedTaskCount = i + 1;
@@ -40,11 +40,13 @@ std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput()
 void PipelineElementWindow::SetLeftInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput )
 {
     _pLeftInput = pPrimaryInput;
+    pPrimaryInput ? ( _actualInputs |= 1 ) : ( _actualInputs &= 2 );
 }
 
 void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> pSecondaryInput )
 {
     _pTopInput = pSecondaryInput;
+    pSecondaryInput ? ( _actualInputs |= 2 ) : ( _actualInputs &= 1 );
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput()
@@ -125,7 +127,7 @@ void PipelineElementWindow::DrawDialog()
     ImGui::ProgressBar( _taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( _taskCount ) : 0.0f, { _itemWidth, 0 } );
     ImGui::Dummy( { -1, 0 } );
 
-    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+    if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
     {
         auto mousePos = ImGui::GetMousePos();
         const auto windowPos = ImGui::GetWindowPos();
@@ -138,21 +140,21 @@ void PipelineElementWindow::DrawDialog()
         if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
         {
             _openRenamePopup = true;
-        }       
+        }
     }
 
-    if (_openRenamePopup)
+    if ( _openRenamePopup )
     {
-        ImGui::OpenPopup("RenameElement");
+        ImGui::OpenPopup( "RenameElement" );
     }
 
-    if (ImGui::BeginPopup("RenameElement"))
+    if ( ImGui::BeginPopup( "RenameElement" ) )
     {
-        ImGui::InputText("New name", _renameBuf.data(), _renameBuf.size());
+        ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
 
-        if (ImGui::IsKeyPressed(ImGuiKey_Enter))
+        if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
         {
-            _name = std::string(_renameBuf.data(), strlen(_renameBuf.data())) + "##R" + std::to_string(_gridPos.y) + "C" + std::to_string(_gridPos.x);
+            _name = std::string( _renameBuf.data(), strlen( _renameBuf.data() ) ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
             _openRenamePopup = false;
         }
 
@@ -160,14 +162,16 @@ void PipelineElementWindow::DrawDialog()
     }
 }
 
-void PipelineElementWindow::Serialize(std::ostream& out)
+void PipelineElementWindow::Serialize( std::ostream& out )
 {
-    acmb::gui::Serialize(_name, out);
+    gui::Serialize( _name, out );
+    gui::Serialize( _actualInputs, out );
 }
 
-void PipelineElementWindow::Deserialize(std::istream& in)
+void PipelineElementWindow::Deserialize( std::istream& in )
 {
     _name = acmb::gui::Deserialize<std::string>( in );
+    _actualInputs = gui::Deserialize<char>( in );
 }
 
 ACMB_GUI_NAMESPACE_END

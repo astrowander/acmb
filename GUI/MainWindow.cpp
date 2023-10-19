@@ -29,7 +29,7 @@ static void SetTooltipIfHovered( const std::string& text, float scaling )
 {
     if ( !ImGui::IsItemHovered() || ImGui::IsItemActive() )
         return;
-    
+
     assert( scaling > 0.f );
 
     constexpr float cMaxWidth = 400.f;
@@ -43,8 +43,8 @@ static void SetTooltipIfHovered( const std::string& text, float scaling )
 }
 
 MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry )
-: Window( "acmb", size )
-, _fontRegistry( fontRegistry )
+    : Window( "acmb", size )
+    , _fontRegistry( fontRegistry )
 {
     SetPos( pos );
     _viewportSize = { ( windowWidth - cGridLeft ) / cGridCellWidth, ( windowHeight - cGridTop ) / cGridCellHeight };
@@ -70,11 +70,11 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x95\xad", "Save Project", [this]( Point )
+    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x95\xad", "Save Project", [this] ( Point )
     {
         auto pFileDialog = ImGuiFileDialog::Instance();
         pFileDialog->OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
-        
+
     } );
 
     MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x81\xbc", "Open Project", [this] ( Point )
@@ -94,7 +94,7 @@ enum class UIColor : ImU32
 {
     Arrow = U32Color( 0, 255, 0, 255 ),
     EmptyCell = U32Color( 32, 32, 32, 255 ),
-    ActiveCellBorder = U32Color( 255, 0, 0, 255),
+    ActiveCellBorder = U32Color( 255, 0, 0, 255 ),
     TableBorders = U32Color( 64, 64, 64, 255 )
 };
 
@@ -143,6 +143,9 @@ void MainWindow::ProcessKeyboardEvents()
 
 void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
 {
+    for ( auto& pElement : _grid )
+        pElement.reset();
+
     auto reportError = [this] ( const std::string msg )
     {
         _errors.push_back( msg );
@@ -181,15 +184,42 @@ void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
 
     std::string serialized( charCount, '\0' );
     fin.read( serialized.data(), charCount );
-    
-    for (size_t i = 0; i < actualGridSize.height; ++i)
-    for (size_t j = 0; j < actualGridSize.width; ++j)
+
+    for ( size_t i = 0; i < actualGridSize.height; ++i )
+    for ( size_t j = 0; j < actualGridSize.width; ++j )
     {
-        if (uint8_t menuOrder = serialized[i * actualGridSize.width + j])
+        if ( uint8_t menuOrder = serialized[i * actualGridSize.width + j] )
         {
-            MenuItemsHolder::GetInstance().GetItems().at("Tools").at(menuOrder)->action(Point{ .x = int(j), .y = int(i) });
-            if (streamSize > charCount + 6)
-                _grid[i * cGridSize.height + j]->Deserialize(fin);
+            MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
+            if ( streamSize > charCount + 6 )
+            {
+                _grid[i * cGridSize.height + j]->Deserialize( fin );
+                const char actualInputs = _grid[i * cGridSize.height + j]->GetActualInputs();
+
+                if ( actualInputs & 1 )
+                {
+                    _grid[i * cGridSize.height + j]->SetLeftInput( _grid[i * cGridSize.height + j - 1] );
+                    _grid[i * cGridSize.height + j - 1]->SetRightOutput( _grid[i * cGridSize.height + j] );
+                }
+                else if ( j > 0 )
+                {
+                    _grid[i * cGridSize.height + j]->SetLeftInput( nullptr );
+                    if ( _grid[i * cGridSize.height + j - 1] )
+                        _grid[i * cGridSize.height + j - 1]->SetRightOutput( nullptr );
+                }
+
+                if ( actualInputs & 2 )
+                {
+                    _grid[i * cGridSize.height + j]->SetTopInput( _grid[( i - 1 ) * cGridSize.height + j] );
+                    _grid[( i - 1 ) * cGridSize.height + j]->SetBottomOutput( _grid[i * cGridSize.height + j] );
+                }
+                else if ( i > 0 )
+                {
+                    _grid[i * cGridSize.height + j]->SetTopInput( nullptr );
+                    if ( _grid[( i - 1 ) * cGridSize.height + j] )
+                        _grid[( i - 1 ) * cGridSize.height + j]->SetBottomOutput( nullptr );
+                }
+            }
         }
     }
 }
@@ -230,19 +260,19 @@ void MainWindow::SaveProject( IGFD::FileDialog* pFileDialog )
     std::string chars( actualGridSize.width * actualGridSize.height, '\0' );
 
     for ( size_t i = 0; i < actualGridSize.height; ++i )
-    for ( size_t j = 0; j < actualGridSize.width; ++j )
-    {
-        chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
-    }
+        for ( size_t j = 0; j < actualGridSize.width; ++j )
+        {
+            chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
+        }
 
     fout.write( chars.data(), chars.size() );
 
-    for (size_t i = 0; i < actualGridSize.height; ++i)
-    for (size_t j = 0; j < actualGridSize.width; ++j)
-    {
-        if (_grid[i * cGridSize.height + j])
-            _grid[i * cGridSize.height + j]->Serialize(fout);
-    }
+    for ( size_t i = 0; i < actualGridSize.height; ++i )
+        for ( size_t j = 0; j < actualGridSize.width; ++j )
+        {
+            if ( _grid[i * cGridSize.height + j] )
+                _grid[i * cGridSize.height + j]->Serialize( fout );
+        }
 }
 
 void MainWindow::DrawMenu()
@@ -257,11 +287,11 @@ void MainWindow::DrawMenu()
         const auto itemCount = items.size();
         const float menuWidth = itemCount * 50 + ( itemCount - 1 ) * ImGui::GetStyle().ItemSpacing.x;
 
-        ImGui::BeginChild( category.c_str(), { menuWidth, 0});
+        ImGui::BeginChild( category.c_str(), { menuWidth, 0 } );
 
         ImGui::PushFont( _fontRegistry.bold );
         ImGui::SeparatorText( category.c_str() );
-        ImGui::PopFont();        
+        ImGui::PopFont();
 
         for ( auto& item : items )
         {
@@ -271,21 +301,21 @@ void MainWindow::DrawMenu()
                 item.second->action( _activeCell );
 
             ImGui::PopFont();
-            
+
             SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
             ImGui::SameLine();
         }
 
         ImGui::EndChild();
-        
+
         ImGui::SameLine();
         ImGui::Dummy( { 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 } );
-        ImGui::SameLine();               
+        ImGui::SameLine();
     }
 
     //ImGui::BeginChild( "EmptyMenuSpace", { -1, 0} );
     ImGui::PushFont( _fontRegistry.bold );
-    ImGui::SeparatorText( "##EmptyMenuSpace");
+    ImGui::SeparatorText( "##EmptyMenuSpace" );
     //ImGui::NewLine();
     //ImGui::Text( "BottomLine" );
     ImGui::PopFont();
@@ -326,7 +356,7 @@ void MainWindow::DrawDialog()
 
     //ImGui::BeginChild( "GridWindow" );
     auto drawList = ImGui::GetWindowDrawList();
-    
+
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32( ImGui::GetStyleColorVec4( ImGuiCol_Separator ) ), 3.0f );
 
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 1 }, { _size.x, cGridTop - cHeadRowHeight - 1 }, ImU32( UIColor::TableBorders ) );
@@ -339,17 +369,20 @@ void MainWindow::DrawDialog()
     {
         topLeft.x = float( cGridLeft + x * cGridCellWidth );
         drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, _size.y }, ImU32( UIColor::TableBorders ) );
-        ImGui::SetCursorPos( { topLeft.x + cGridCellWidth * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f });
+        ImGui::SetCursorPos( { topLeft.x + cGridCellWidth * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f } );
 
         std::string columnHeader( 1, 'A' + x + _viewportStart.x );
         ImGui::Text( "%s", columnHeader.c_str() );
     }
 
+    topLeft.x = float( cGridLeft + _viewportSize.width * cGridCellWidth );
+    drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, _size.y }, ImU32( UIColor::TableBorders ) );
+
     for ( int y = 0; y < int( _viewportSize.height ); ++y )
     {
         topLeft.y = float( cGridTop + y * cGridCellHeight );
         bottomRight.y = topLeft.y + cGridCellHeight;
-        
+
         drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
         ImGui::SetCursorPos( { cGridLeft * 0.5f, topLeft.y + cGridCellHeight * 0.5f - ImGui::GetTextLineHeightWithSpacing() * 0.5f } );
         std::string rowHeader = std::to_string( y + _viewportStart.y + 1 );
@@ -399,7 +432,7 @@ void MainWindow::DrawDialog()
             if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
             {
                 drawList->AddRectFilled( { topLeft.x + cGridCellWidth * 0.5f - 25.0f, bottomRight.y - 25.0f },
-                                         { topLeft.x + cGridCellWidth * 0.5f + 25.0f, bottomRight.y  },
+                                         { topLeft.x + cGridCellWidth * 0.5f + 25.0f, bottomRight.y },
                                          ImU32( UIColor::Arrow ) );
             }
 
@@ -418,6 +451,9 @@ void MainWindow::DrawDialog()
             ImGui::PopClipRect();
         }
     }
+
+    topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
+    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
 
     ImGui::PopFont();
 
