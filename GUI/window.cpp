@@ -18,7 +18,7 @@ void Window::Show()
     ImGui::SetNextWindowPos( _pos, ImGuiCond_Always );
     ImGui::SetNextWindowSize( _size, ImGuiCond_Always );
 
-    if ( !ImGui::Begin( _name.c_str(), &_isOpen, flags() ) )
+    if ( !ImGui::Begin( _name.c_str(), nullptr, flags() ) )
         return ImGui::End();
 
     DrawDialog();
