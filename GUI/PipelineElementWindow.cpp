@@ -122,10 +122,12 @@ void PipelineElementWindow::ResetTasks()
 
 void PipelineElementWindow::DrawDialog()
 {
+    ImGui::PushItemWidth( 50.0f * cMenuScaling );
     DrawPipelineElementControls();
+    ImGui::PopItemWidth();
+
     ImGui::SetCursorPosY( cElementHeight - ImGui::GetStyle().WindowPadding.y - ImGui::GetTextLineHeight() - 2 * ImGui::GetStyle().FramePadding.y );
     ImGui::ProgressBar( _taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( _taskCount ) : 0.0f, { _itemWidth, 0 } );
-    ImGui::Dummy( { -1, 0 } );
 
     if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
     {
