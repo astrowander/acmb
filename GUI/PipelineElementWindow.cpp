@@ -29,44 +29,44 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportPr
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetLeftInput()
 {
-    return _pLeftInput.lock();
+    return _leftInput.pElement.lock();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput()
 {
-    return _pTopInput.lock();
+    return _topInput.pElement.lock();
 }
 
 void PipelineElementWindow::SetLeftInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput )
 {
-    _pLeftInput = pPrimaryInput;
+    _leftInput.pElement = pPrimaryInput;
     pPrimaryInput ? ( _actualInputs |= 1 ) : ( _actualInputs &= 2 );
 }
 
 void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> pSecondaryInput )
 {
-    _pTopInput = pSecondaryInput;
+    _topInput.pElement = pSecondaryInput;
     pSecondaryInput ? ( _actualInputs |= 2 ) : ( _actualInputs &= 1 );
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput()
 {
-    return _pRightOutput.lock();
+    return _rightOutput.pElement.lock();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetBottomOutput()
 {
-    return _pBottomOutput.lock();
+    return _bottomOutput.pElement.lock();
 }
 
 void PipelineElementWindow::SetRightOutput( std::shared_ptr<PipelineElementWindow> pElement )
 {
-    _pRightOutput = pElement;
+    _rightOutput.pElement = pElement;
 }
 
 void PipelineElementWindow::SetBottomOutput( std::shared_ptr<PipelineElementWindow> pElement )
 {
-    _pBottomOutput = pElement;
+    _bottomOutput.pElement = pElement;
 }
 
 int PipelineElementWindow::GetInOutFlags()

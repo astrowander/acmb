@@ -43,6 +43,7 @@ class MainWindow : public Window
     //void DrawRunMenu();
 
     void ProcessKeyboardEvents();
+    void ProcessMouseEvents();
 
     virtual ImGuiWindowFlags flags() override { return  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration; }
 
@@ -78,24 +79,28 @@ public:
         {
             pLeft->SetRightOutput( pElement );
             pElement->SetLeftInput( pLeft );
+            pElement->SetLeftRelationType( pLeft->GetRightRelationType() );
         }
 
         if ( pElement->HasFreeOutputs() && pRight && pRight->HasFreeInputs() )
         {
             pRight->SetLeftInput( pElement );
             pElement->SetRightOutput( pRight );
+            pElement->SetRightRelationType( pLeft->GetLeftRelationType() );
         }
 
         if ( pElement->HasFreeInputs() && pTop && pTop->HasFreeOutputs() )
         {
             pTop->SetBottomOutput( pElement );
             pElement->SetTopInput( pTop );
+            pElement->SetTopRelationType( pTop->GetBottomRelationType() );
         }
 
         if ( pElement->HasFreeOutputs() && pBottom && pBottom->HasFreeInputs() )
         {
             pBottom->SetTopInput( pElement );
             pElement->SetBottomOutput( pBottom );
+            pElement->SetBottomRelationType( pBottom->GetTopRelationType() );
         }
 
         _grid[ind] = pElement;

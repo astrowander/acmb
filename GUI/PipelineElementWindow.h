@@ -30,7 +30,19 @@ class PipelineElementWindow : public Window
 public:    
 
     static constexpr int cElementWidth = 150;
-    static constexpr int cElementHeight = 250;    
+    static constexpr int cElementHeight = 250;
+
+    enum class RelationType
+    {
+        Batch,
+        Join
+    };
+
+    struct Relation
+    {
+        std::weak_ptr<PipelineElementWindow> pElement;
+        RelationType relationType = RelationType::Batch;
+    };
 
 protected:
 
@@ -40,11 +52,11 @@ protected:
     size_t _completedTaskCount = 0;
     float _taskReadiness = 0.0f;
 
-    std::weak_ptr<PipelineElementWindow> _pLeftInput;
-    std::weak_ptr<PipelineElementWindow> _pTopInput;
+    Relation _leftInput;
+    Relation _topInput;
 
-    std::weak_ptr<PipelineElementWindow> _pRightOutput;
-    std::weak_ptr<PipelineElementWindow> _pBottomOutput;
+    Relation _rightOutput;
+    Relation _bottomOutput;
 
     int _inOutFlags = {};
     char _actualInputs = {};
@@ -72,6 +84,17 @@ public:
 
     void SetRightOutput( std::shared_ptr<PipelineElementWindow> pElement );
     void SetBottomOutput( std::shared_ptr<PipelineElementWindow> pElement );
+
+
+    RelationType GetLeftRelationType() { return _leftInput.relationType; }
+    RelationType GetTopRelationType() { return _topInput.relationType; }
+    RelationType GetRightRelationType() { return _rightOutput.relationType; }
+    RelationType GetBottomRelationType() { return _bottomOutput.relationType; }
+
+    void SetLeftRelationType( RelationType val ) { _leftInput.relationType = val; }
+    void SetTopRelationType( RelationType val )  { _topInput.relationType = val; }
+    void SetRightRelationType( RelationType val ) { _rightOutput.relationType = val; }
+    void SetBottomRelationType( RelationType val ) { _bottomOutput.relationType = val; }
 
     int GetInOutFlags();
 
