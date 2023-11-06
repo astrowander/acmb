@@ -18,7 +18,10 @@ void StackerWindow::DrawPipelineElementControls()
     ImGui::Text( "Stack Mode" );
     ImGui::RadioButton( "Light Frames", ( int* ) ( &_stackMode ), int( StackMode::Light ) );
     ImGui::RadioButton( "Dark/Flat Frames", ( int* ) ( &_stackMode ), int( StackMode::DarkOrFlat ) );
-    
+
+    if ( _stackMode == StackMode::Light )
+        ImGui::DragFloat( "Star Detection Threshold", &_threshold, 0.1f, 0.0f, 100.0f );
+
     //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
 
@@ -46,6 +49,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
         std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
 
+        pStacker->SetThreshold( _threshold );
         pStacker->AddBitmap( *pBitmap );
         _taskReadiness = 1.0f / ( inputTaskCount + 1 );
 

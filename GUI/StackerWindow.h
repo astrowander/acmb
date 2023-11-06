@@ -6,7 +6,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 class StackerWindow : public PipelineElementWindow
 {
     StackMode _stackMode = StackMode::Light;
-    //bool _enableCuda = false;
+    float _threshold = 25.0f;
 
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
 
