@@ -53,18 +53,20 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
 std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
 {
-    auto pPrimaryInput = GetLeftInput();
-    if ( !pPrimaryInput )
-        return std::unexpected( "No input element" );
+    auto pInput = GetLeftInput();
+    if ( !pInput )
+        pInput = GetTopInput();
 
+    if ( !pInput )
+        return std::unexpected( "No input element" );
    
-    const auto taskRes = pPrimaryInput->RunTaskAndReportProgress( i );
+    const auto taskRes = pInput->RunTaskAndReportProgress( i );
     if ( !taskRes.has_value() )
         return std::unexpected( taskRes.error() );
 
     const size_t dotPos = _fileName.find_last_of('.');
     IBitmap::Save(taskRes.value(), (i == 0) ? _fileName : ( _fileName.substr(0, dotPos) + "_" + std::to_string(i) + _fileName.substr( dotPos ) ) );
-    return nullptr;    
+    return nullptr;
 }
 
 std::vector<std::string> ImageWriterWindow::RunAllTasks()
