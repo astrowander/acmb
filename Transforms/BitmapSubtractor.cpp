@@ -44,7 +44,7 @@ public:
 
     virtual void ValidateSettings() override
     {
-        if ( _pSrcBitmap->GetPixelFormat() != _pBitmapToSubtract->GetPixelFormat() )
+        if ( !ArePixelFormatsCompatible( _pSrcBitmap->GetPixelFormat(), _pBitmapToSubtract->GetPixelFormat() ) )
             throw std::invalid_argument( "bitmaps should have the same pixel format" );
 
         if ( _pSrcBitmap->GetWidth() != _pBitmapToSubtract->GetWidth() || _pSrcBitmap->GetHeight() != _pBitmapToSubtract->GetHeight() )
@@ -66,7 +66,7 @@ std::shared_ptr<BitmapSubtractor> BitmapSubtractor::Create( IBitmapPtr pSrcBitma
     if ( !pBitmapToSubtract )
         throw std::invalid_argument( "pBitmapToSubtract is null" );
 
-    if ( pSrcBitmap->GetPixelFormat() != pBitmapToSubtract->GetPixelFormat() )
+    if ( !ArePixelFormatsCompatible( pSrcBitmap->GetPixelFormat(), pBitmapToSubtract->GetPixelFormat() ) )
         throw std::invalid_argument( "bitmaps should have the same pixel format" );
 
     if ( pSrcBitmap->GetWidth() != pBitmapToSubtract->GetWidth() || pSrcBitmap->GetHeight() != pBitmapToSubtract->GetHeight() )

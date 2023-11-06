@@ -127,6 +127,18 @@ struct PixelFormatTraits
 /// creates pixel format from number of bits per channel and number of channels
 PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerPixel );
 
+constexpr bool ArePixelFormatsCompatible( PixelFormat f1, PixelFormat f2 )
+{
+    if ( f1 == f2 ||
+         (f1 == PixelFormat::Gray16 && f2 == PixelFormat::Bayer16) ||
+         (f1 == PixelFormat::Bayer16 && f2 == PixelFormat::Gray16) )
+    {
+        return true;
+    }
+
+    return false;
+}
+
 /// mode of ppm file format: text or binary
 enum class PpmMode
 {

@@ -77,7 +77,7 @@ public:
 
     virtual void ValidateSettings() override
     {
-        if ( _pSrcBitmap->GetPixelFormat() != _settings.pDivisor->GetPixelFormat() )
+        if ( !ArePixelFormatsCompatible( _pSrcBitmap->GetPixelFormat(), _settings.pDivisor->GetPixelFormat() ) )
             throw std::invalid_argument( "bitmaps should have the same pixel format" );
 
         if ( _pSrcBitmap->GetWidth() != _settings.pDivisor->GetWidth() || _pSrcBitmap->GetHeight() != _settings.pDivisor->GetHeight() )
@@ -99,7 +99,7 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, con
     if ( !settings.pDivisor )
         throw std::invalid_argument( "pDivisor is null" );
 
-    if ( pSrcBitmap->GetPixelFormat() != settings.pDivisor->GetPixelFormat() )
+    if ( !ArePixelFormatsCompatible( pSrcBitmap->GetPixelFormat(), settings.pDivisor->GetPixelFormat() ) )
         throw std::invalid_argument( "bitmaps should have the same pixel format" );
 
     if ( pSrcBitmap->GetWidth() != settings.pDivisor->GetWidth() || pSrcBitmap->GetHeight() != settings.pDivisor->GetHeight() )
@@ -112,7 +112,7 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, con
         case PixelFormat::Gray16:
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
         case PixelFormat::Bayer16:
-            return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
+            return std::make_shared<BitmapDivisor_<PixelFormat::Bayer16>>( pSrcBitmap, settings );
         default:
             throw std::runtime_error( "only grayscale bitmaps can be divided" );
     }
