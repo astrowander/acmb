@@ -84,6 +84,9 @@
     <ClCompile Include="MenuItemsHolder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -156,6 +159,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Serializer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

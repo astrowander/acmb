@@ -5,16 +5,12 @@
 #include <array>
 #include<unordered_map>
 
-namespace IGFD
-{
-    class FileDialog;
-}
-
 ACMB_GUI_NAMESPACE_BEGIN
 
 class PipelineElementWindow;
 class ImageWriterWindow;
 struct FontRegistry;
+class FileDialog;
 
 class MainWindow : public Window
 {
@@ -28,10 +24,11 @@ class MainWindow : public Window
     Size _viewportSize;
     Point _viewportStart;
     Point _activeCell;
-    
 
     bool _isBusy = false;
     bool _finished = false;
+
+    bool _lockInterface = false;
 
     MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry );
     MainWindow( const MainWindow& ) = delete;
@@ -49,8 +46,8 @@ class MainWindow : public Window
 
     const FontRegistry& _fontRegistry;
     
-    void OpenProject( IGFD::FileDialog* pFileDialog );
-    void SaveProject( IGFD::FileDialog* pFileDialog );
+    void OpenProject();
+    void SaveProject();
 
    // std::pair<std::string, Size>
 
@@ -86,7 +83,7 @@ public:
         {
             pRight->SetLeftInput( pElement );
             pElement->SetRightOutput( pRight );
-            pElement->SetRightRelationType( pLeft->GetLeftRelationType() );
+            pElement->SetRightRelationType( pRight->GetLeftRelationType() );
         }
 
         if ( pElement->HasFreeInputs() && pTop && pTop->HasFreeOutputs() )
@@ -108,6 +105,35 @@ public:
         if constexpr ( std::is_same_v<ElementType, ImageWriterWindow> )
             _writers.insert_or_assign( ind, std::static_pointer_cast< ImageWriterWindow >( pElement ) );
     }
+
+    void LockInterface() {
+        _lockInterface = true;
+    }
+    void UnlockInterface() {
+        _lockInterface = false;
+    }
+
+    friend class MainWindowInterfaceLock;
+};
+
+class MainWindowInterfaceLock
+{
+public:
+
+    MainWindowInterfaceLock()
+    {
+        MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
+    }
+
+    ~MainWindowInterfaceLock()
+    {
+        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
+    }
+
+    MainWindowInterfaceLock( const MainWindowInterfaceLock& ) = delete;
+    MainWindowInterfaceLock( MainWindowInterfaceLock&& ) = delete;
+    MainWindowInterfaceLock& operator=( const MainWindowInterfaceLock& ) = delete;
+    MainWindowInterfaceLock& operator=( MainWindowInterfaceLock&& ) = delete;
 };
 
 ACMB_GUI_NAMESPACE_END

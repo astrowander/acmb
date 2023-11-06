@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="ConverterWindow.cpp" />
     <ClCompile Include="CropWindow.cpp" />
+    <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="FlatFieldWindow.cpp" />
     <ClCompile Include="FontRegistry.cpp" />
     <ClCompile Include="ImageReaderWindow.cpp" />
@@ -163,6 +164,7 @@
   <ItemGroup>
     <ClInclude Include="ConverterWindow.h" />
     <ClInclude Include="CropWindow.h" />
+    <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FlatFieldWindow.h" />
     <ClInclude Include="FontRegistry.h" />
     <ClInclude Include="ImageReaderWindow.h" />

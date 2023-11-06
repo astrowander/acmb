@@ -1,7 +1,7 @@
 #include "ImageReaderWindow.h"
 #include "MainWindow.h"
 #include "Serializer.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "FileDialog.h"
 
 #include "./../Codecs/imagedecoder.h"
 
@@ -48,23 +48,29 @@ void ImageReaderWindow::DrawPipelineElementControls()
         ImGui::EndListBox();
     }
 
-    auto pFileDialog = ImGuiFileDialog::Instance();
+    auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
 
     if ( ImGui::Button( "Select Images", { itemWidth, 0 } ) )
     {
         static auto filters = GetFilters();
-        pFileDialog->OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
+        fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
     }
 
-    if ( pFileDialog->Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( ImGui::Button( "Clear List", { itemWidth, 0 } ) )
+    {
+        _fileNames.clear();
+        _selectedItemIdx = 0;
+    }
+
+    if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
-        if ( pFileDialog->IsOk() )
+        if ( fileDialog.IsOk() )
         {
-            _workingDirectory = pFileDialog->GetCurrentPath();
+            _workingDirectory = fileDialog.GetCurrentPath();
 
-            const auto selection = pFileDialog->GetSelection();
+            const auto selection = fileDialog.GetSelection();
             for ( const auto& it : selection )
                 _fileNames.push_back( _workingDirectory + "/" + it.first);
 
@@ -72,7 +78,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
         }
 
         // close
-        ImGuiFileDialog::Instance()->Close();
+        fileDialog.Close();
     }
 }
 

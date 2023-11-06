@@ -1,11 +1,24 @@
 #include "ImageWriterWindow.h"
 #include "MainWindow.h"
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "FileDialog.h"
 
 #include "./../Core/bitmap.h"
+#include "./../Codecs/imageencoder.h"
 #include <sstream>
 
 ACMB_GUI_NAMESPACE_BEGIN
+
+static std::string GetFilters()
+{
+    const auto extensions = ImageEncoder::GetAllExtensions();
+    std::ostringstream ss;
+    ss << ".*";
+    for ( const auto& extension : extensions )
+    {
+        ss << "," << extension;
+    }
+    return ss.str();
+}
 
 ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
 : PipelineElementWindow( "Image Writer", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
@@ -17,23 +30,24 @@ void ImageWriterWindow::DrawPipelineElementControls()
     ImGui::Text( "Choose output file format:", "" );
     ImGui::InputText( "File Name", ( char* ) _fileName.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 
-    auto pFileDialog = ImGuiFileDialog::Instance();
+    auto fileDialog = FileDialog::Instance();
     if ( ImGui::Button( "Select File" ) )
     {
-        pFileDialog->OpenDialog( "SelectOutputFile", "Select File", nullptr, _workingDirectory.c_str(), 0);
+        static auto filters = GetFilters();
+        fileDialog.OpenDialog( "SelectOutputFile", "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
     }
 
-    if ( pFileDialog->Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
-        if ( pFileDialog->IsOk() )
+        if ( fileDialog.IsOk() )
         {
-            _workingDirectory = pFileDialog->GetCurrentPath();
-            _fileName = pFileDialog->GetFilePathName();
+            _workingDirectory = fileDialog.GetCurrentPath();
+            _fileName = fileDialog.GetFilePathName();
         }
 
         // close
-        ImGuiFileDialog::Instance()->Close();
+        fileDialog.Close();
     }
 }
 
@@ -57,7 +71,7 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
 {
     auto pPrimaryInput = GetLeftInput();
     if ( !pPrimaryInput )
-        return { "No input element" };    
+        return { "No input element" };
 
     _taskCount = pPrimaryInput->GetTaskCount();
     if ( _taskCount == 0 )

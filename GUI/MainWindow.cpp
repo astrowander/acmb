@@ -8,8 +8,8 @@
 #include "SubtractImageWindow.h"
 #include "FlatFieldWindow.h"
 #include "FontRegistry.h"
-
-#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "FileDialog.h"
+//#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include <fstream>
 #include <thread>
 
@@ -74,18 +74,13 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
     MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x95\xad", "Save Project", [this] ( Point )
     {
-        auto pFileDialog = ImGuiFileDialog::Instance();
-        pFileDialog->OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
-
+        FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
     } );
 
     MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x81\xbc", "Open Project", [this] ( Point )
     {
-        auto pFileDialog = ImGuiFileDialog::Instance();
-        pFileDialog->OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "", 1 );
+        FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "", 1 );
     } );
-
-
 }
 
 constexpr uint32_t U32Color( uint8_t r, uint8_t g, uint32_t b, uint32_t a )
@@ -194,7 +189,7 @@ void MainWindow::ProcessMouseEvents()
     }
 }
 
-void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
+void MainWindow::OpenProject()
 {
     for ( auto& pElement : _grid )
         pElement.reset();
@@ -203,9 +198,9 @@ void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
     {
         _errors.push_back( msg );
         ImGui::OpenPopup( "ResultsPopup" );
-        return ImGuiFileDialog::Instance()->Close();
+        return FileDialog::Instance().Close();
     };
-    std::string filePath = pFileDialog->GetFilePathName();
+    std::string filePath = FileDialog::Instance().GetFilePathName();
     std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
 
     _errors.clear();
@@ -277,9 +272,9 @@ void MainWindow::OpenProject( IGFD::FileDialog* pFileDialog )
     }
 }
 
-void MainWindow::SaveProject( IGFD::FileDialog* pFileDialog )
+void MainWindow::SaveProject()
 {
-    std::string filePath = pFileDialog->GetFilePathName();
+    std::string filePath = FileDialog::Instance().GetFilePathName();
     std::ofstream fout( filePath, std::ios_base::out | std::ios_base::binary );
 
     _errors.clear();
@@ -287,7 +282,7 @@ void MainWindow::SaveProject( IGFD::FileDialog* pFileDialog )
     {
         _errors.push_back( "Unable to save file" );
         ImGui::OpenPopup( "ResultsPopup" );
-        return ImGuiFileDialog::Instance()->Close();
+        return FileDialog::Instance().Close();
     }
 
     fout.write( "ACMB", 4 );
@@ -375,28 +370,35 @@ void MainWindow::DrawMenu()
     //ImGui::EndChild();
 
 
-    auto pFileDialog = ImGuiFileDialog::Instance();
-    if ( pFileDialog->Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    auto fileDialog = FileDialog::Instance();
+    if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        if ( pFileDialog->IsOk() )
-            OpenProject( pFileDialog );
+        //MainWindowInterfaceLock lock;
 
-        ImGuiFileDialog::Instance()->Close();
+        if ( fileDialog.IsOk() )
+            OpenProject();
+
+        fileDialog.Close();
     }
 
-    if ( pFileDialog->Display( "SaveProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+    if ( fileDialog.Display( "SaveProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        if ( pFileDialog->IsOk() )
-            SaveProject( pFileDialog );
+        //MainWindowInterfaceLock lock;
 
-        ImGuiFileDialog::Instance()->Close();
+        if ( fileDialog.IsOk() )
+            SaveProject();
+
+        fileDialog.Close();
     }
 }
 
 void MainWindow::DrawDialog()
 {
-    ProcessKeyboardEvents();
-    ProcessMouseEvents();
+    if ( !_lockInterface )
+    {
+        ProcessKeyboardEvents();
+        ProcessMouseEvents();
+    }
 
     DrawMenu();
 
@@ -579,8 +581,6 @@ MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
     static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( ImVec2{ 0, 0 }, ImVec2{ windowWidth, windowHeight }, fontRegistry ) );
     return *pInstance;
 }
-
-
 
 void MainWindow::Show()
 {
