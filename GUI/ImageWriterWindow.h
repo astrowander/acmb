@@ -8,8 +8,8 @@ class ImageWriterWindow : public PipelineElementWindow
     std::string _workingDirectory;
     std::string _fileName;
 
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
-    
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
+
 public:
     ImageWriterWindow( const Point& gridPos );
 

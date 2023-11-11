@@ -17,7 +17,7 @@ void SubtractImageWindow::DrawPipelineElementControls()
     ImGui::RadioButton( "Left", &_darkFrameIsOnTop, 0 );
 }
 
-std::expected<IBitmapPtr, std::string> SubtractImageWindow::RunTask( size_t i )
+/*std::expected<IBitmapPtr, std::string> SubtractImageWindow::RunTask(size_t i)
 {
     if ( _completedTaskCount == 0 )
     {
@@ -46,6 +46,11 @@ std::expected<IBitmapPtr, std::string> SubtractImageWindow::RunTask( size_t i )
         return std::unexpected( taskRes.error() );
 
     return BitmapSubtractor::Subtract( *taskRes, _pBitmapToSubtract );
+}*/
+
+IBitmapPtr SubtractImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
+{
+    return BitmapSubtractor::Subtract( pSource, _pBitmapToSubtract );
 }
 
 void SubtractImageWindow::Serialize(std::ostream& out)

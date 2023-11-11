@@ -1,6 +1,10 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 
+#include "./../Registrator/stacker.h"
+#include "./../Cuda/CudaInfo.h"
+#include "./../Cuda/CudaStacker.h"
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 PipelineElementWindow::PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
@@ -24,6 +28,77 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportPr
     }
 
     _completedTaskCount = i + 1;
+    return res;
+}
+
+std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
+{
+    if ( _completedTaskCount == 0 && (_inOutFlags & PEFlags_StrictlyTwoInputs) )
+        ProcessSecondaryInput();
+
+    const auto pPrimaryInput = GetPrimaryInput();
+    if ( !pPrimaryInput )
+        return std::unexpected( "No input " );
+
+    auto relationType = (pPrimaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
+    if ( relationType == RelationType::Join )
+    {
+        auto pBitmap = pPrimaryInput->RunTaskAndReportProgress( 0 );
+        if ( !pBitmap )
+            return std::unexpected( pBitmap.error() );
+
+        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
+            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
+
+        const size_t inputTaskCount = pPrimaryInput->GetTaskCount();
+        if ( inputTaskCount == 0 )
+            return std::unexpected( "No input frames" );
+
+        try
+        {
+            for ( size_t i = 1; i < inputTaskCount; ++i )
+            {
+                pBitmap = pPrimaryInput->RunTaskAndReportProgress( i );
+                if ( !pBitmap )
+                    return std::unexpected( pBitmap.error() );
+
+                pStacker->AddBitmap( *pBitmap );
+
+                _taskReadiness = float( i ) / (inputTaskCount + 1);
+            }
+
+            const auto res = ProcessBitmapFromPrimaryInput( pStacker->GetResult() );
+            _completedTaskCount = 1;
+            _taskReadiness = 0.0f;
+            return res;
+        }
+        catch ( std::exception& e )
+        {
+            return std::unexpected( e.what() );
+        }
+    }
+
+    const auto taskRes = pPrimaryInput->RunTaskAndReportProgress( i );
+    if ( !taskRes.has_value() )
+        return std::unexpected( taskRes.error() );
+
+    try
+    {
+        return ProcessBitmapFromPrimaryInput( taskRes.value(), i );
+    }
+    catch ( std::exception& e )
+    {
+        return std::unexpected( e.what() );
+    }
+
+}
+
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput()
+{
+    std::shared_ptr<PipelineElementWindow> res = GetLeftInput();
+    if ( !res )
+        res = GetTopInput();
+
     return res;
 }
 
@@ -105,7 +180,7 @@ size_t PipelineElementWindow::GetTaskCount()
 {
     if ( _taskCount == 0 )
     {
-        auto pPrimaryInput = GetLeftInput();
+        auto pPrimaryInput = GetPrimaryInput();
         if ( pPrimaryInput )
             _taskCount = pPrimaryInput->GetTaskCount();
     }

@@ -16,32 +16,9 @@ void ResizeWindow::DrawPipelineElementControls()
     ImGui::DragInt( "Height", &_dstSize.height, 1.0f, 1, 65535 );
 }
 
-std::expected<IBitmapPtr, std::string> ResizeWindow::RunTask( size_t i )
+IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
-    try
-    {
-        auto pPrimaryInput = GetLeftInput();
-        if ( !pPrimaryInput )
-            pPrimaryInput = GetTopInput();
-
-        if ( !pPrimaryInput )
-            return std::unexpected( "No input element" );
-
-        if ( _taskCount == 0 )
-        {
-            _taskCount = pPrimaryInput->GetTaskCount();
-        }
-
-        const auto taskRes = pPrimaryInput->RunTaskAndReportProgress( i );
-        if ( !taskRes.has_value() )
-            return std::unexpected( taskRes.error() );
-
-        return ResizeTransform::Resize( *taskRes, _dstSize );
-    }
-    catch ( std::exception& e )
-    {
-        return std::unexpected( e.what() );
-    }
+    return ResizeTransform::Resize( pSource, _dstSize );
 }
 
 void ResizeWindow::Serialize(std::ostream& out)

@@ -7,7 +7,7 @@ class CropWindow : public PipelineElementWindow
 {
     Rect _dstRect = { 0, 0, 1000, 1000 };
 
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
 
 public:
 

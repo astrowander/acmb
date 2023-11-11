@@ -18,7 +18,7 @@ void DivideImageWindow::DrawPipelineElementControls()
     ImGui::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 100.0f );
 }
 
-std::expected<IBitmapPtr, std::string> DivideImageWindow::RunTask( size_t i )
+/*std::expected<IBitmapPtr, std::string> DivideImageWindow::RunTask(size_t i)
 {
     if ( _completedTaskCount == 0 )
     {
@@ -47,6 +47,11 @@ std::expected<IBitmapPtr, std::string> DivideImageWindow::RunTask( size_t i )
         return std::unexpected( taskRes.error() );
 
     return BitmapDivisor::Divide( *taskRes, { .pDivisor = _pFlatField, .intensity = _intensity } );
+}*/
+
+IBitmapPtr DivideImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
+{
+    return BitmapDivisor::Divide( pSource, { .pDivisor = _pFlatField, .intensity = _intensity } );
 }
 
 void DivideImageWindow::Serialize(std::ostream& out)

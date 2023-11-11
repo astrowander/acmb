@@ -20,32 +20,9 @@ void ConverterWindow::DrawPipelineElementControls()
     ImGui::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ) );
 }
 
-std::expected<IBitmapPtr, std::string> ConverterWindow::RunTask( size_t i )
+IBitmapPtr ConverterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
-    try
-    {
-        auto pInput = GetLeftInput();
-        if ( !pInput )
-            pInput = GetTopInput();
-
-        if ( !pInput )
-            return std::unexpected( "No input element" );
-
-        if ( _taskCount == 0 )
-        {
-            _taskCount = pInput->GetTaskCount();
-        }
-
-        const auto taskRes = pInput->RunTaskAndReportProgress( i );
-        if ( !taskRes.has_value() )
-            return std::unexpected( taskRes.error() );
-
-        return Converter::Convert( taskRes.value(), _dstPixelFormat );
-    }
-    catch ( std::exception& e )
-    {
-        return std::unexpected( e.what() );
-    }
+    return Converter::Convert( pSource, _dstPixelFormat );
 }
 
 void ConverterWindow::Serialize(std::ostream& out)

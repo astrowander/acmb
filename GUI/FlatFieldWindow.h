@@ -9,8 +9,8 @@ class DivideImageWindow : public PipelineElementWindow
     float _intensity = 100.0f;
     int _flatFieldIsOnTop = 1;
 
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
-
+    //virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 public:
 
     DivideImageWindow( const Point& gridPos );
@@ -23,6 +23,8 @@ public:
     virtual uint8_t GetMenuOrder() override { return order; }
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    virtual std::shared_ptr<PipelineElementWindow> GetPrimaryInput() override { return _flatFieldIsOnTop ? GetLeftInput() : GetTopInput(); }
 };
 
 ACMB_GUI_NAMESPACE_END

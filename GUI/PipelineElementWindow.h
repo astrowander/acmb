@@ -66,13 +66,19 @@ protected:
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
     virtual void DrawPipelineElementControls() = 0;
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) = 0;
+    
+    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i );
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
 
+    virtual void ProcessSecondaryInput() {};
     virtual ImGuiWindowFlags flags() override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing; }
 
 public:
 
     std::expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
+
+
+    virtual std::shared_ptr<PipelineElementWindow> GetPrimaryInput();
 
     std::shared_ptr<PipelineElementWindow> GetLeftInput();
     std::shared_ptr<PipelineElementWindow> GetTopInput();
@@ -84,7 +90,6 @@ public:
 
     void SetRightOutput( std::shared_ptr<PipelineElementWindow> pElement );
     void SetBottomOutput( std::shared_ptr<PipelineElementWindow> pElement );
-
 
     RelationType GetLeftRelationType() { return _leftInput.relationType; }
     RelationType GetTopRelationType() { return _topInput.relationType; }

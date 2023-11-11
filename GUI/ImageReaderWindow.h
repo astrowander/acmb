@@ -11,6 +11,7 @@ class ImageReaderWindow : public PipelineElementWindow
     int _selectedItemIdx = 0;
 
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override { return nullptr; }
 
 public:
     ImageReaderWindow( const Point& gridPos );

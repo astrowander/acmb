@@ -8,7 +8,7 @@ class ConverterWindow : public PipelineElementWindow
 {
     PixelFormat _dstPixelFormat = PixelFormat::RGB24;
 
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
 
 public:
 

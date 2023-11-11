@@ -51,7 +51,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
     }
 }
 
-std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
+/*std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask(size_t i)
 {
     auto pInput = GetLeftInput();
     if ( !pInput )
@@ -66,6 +66,13 @@ std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask( size_t i )
 
     const size_t dotPos = _fileName.find_last_of('.');
     IBitmap::Save(taskRes.value(), (i == 0) ? _fileName : ( _fileName.substr(0, dotPos) + "_" + std::to_string(i) + _fileName.substr( dotPos ) ) );
+    return nullptr;
+}*/
+
+IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
+{
+    const size_t dotPos = _fileName.find_last_of( '.' );
+    IBitmap::Save( pSource, (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + std::to_string( taskNumber ) + _fileName.substr( dotPos )) );
     return nullptr;
 }
 

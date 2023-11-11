@@ -9,7 +9,8 @@ class StackerWindow : public PipelineElementWindow
     float _threshold = 25.0f;
 
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
-
+    virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t ) override { return nullptr; }
+    
 public:
 
     StackerWindow( const Point& gridPos );
