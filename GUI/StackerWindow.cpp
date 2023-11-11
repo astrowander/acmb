@@ -19,8 +19,9 @@ void StackerWindow::DrawPipelineElementControls()
     ImGui::RadioButton( "Light Frames", ( int* ) ( &_stackMode ), int( StackMode::Light ) );
     ImGui::RadioButton( "Dark/Flat Frames", ( int* ) ( &_stackMode ), int( StackMode::DarkOrFlat ) );
 
+    ImGui::Text( "Star Detection Threshold" );
     if ( _stackMode == StackMode::Light )
-        ImGui::DragFloat( "Star Detection Threshold", &_threshold, 0.1f, 0.0f, 100.0f );
+        ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f);
 
     //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
@@ -79,12 +80,14 @@ void StackerWindow::Serialize(std::ostream& out)
 {
     PipelineElementWindow::Serialize(out);
     gui::Serialize(_stackMode, out);
+    gui::Serialize( _threshold, out );
 }
 
 void StackerWindow::Deserialize(std::istream& in)
 {
     PipelineElementWindow::Deserialize(in);
     _stackMode = gui::Deserialize<StackMode>(in);
+    _threshold = gui::Deserialize<float>( in );
 }
 
 REGISTER_TOOLS_ITEM( StackerWindow )
