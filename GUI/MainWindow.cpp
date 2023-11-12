@@ -489,20 +489,24 @@ void MainWindow::DrawDialog()
 
                 if ( _grid[gridIdx]->GetLeftRelationType() == PipelineElementWindow::RelationType::Batch )
                 {
-                    drawList->AddLine( { topLeft.x, topArrowY }, { tipEnd, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    const float lineEnd = tipEnd - 3.0f * cMenuScaling;
+
+                    drawList->AddLine( { topLeft.x, topArrowY }, { lineEnd, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { tipStart, topArrowY - 10.0f }, { tipEnd, topArrowY }, { tipStart, topArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
 
-                    drawList->AddLine( { topLeft.x, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { topLeft.x, centerArrowY }, { lineEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { tipStart, centerArrowY - 10.0f }, { tipEnd, centerArrowY }, { tipStart, centerArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
 
-                    drawList->AddLine( { topLeft.x, bottomArrowY }, { tipEnd, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { topLeft.x, bottomArrowY }, { lineEnd, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { tipStart, bottomArrowY - 10.0f }, { tipEnd, bottomArrowY }, { tipStart, bottomArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
                 }
                 else
                 {
-                    drawList->AddLine( { topLeft.x, topArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { topLeft.x, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { topLeft.x, bottomArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    const float startX = topLeft.x - 2.0f * cMenuScaling;
+
+                    drawList->AddLine( { startX, topArrowY - 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+                    drawList->AddLine( { startX, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { startX, bottomArrowY + 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
                 }
             }
 
@@ -525,21 +529,24 @@ void MainWindow::DrawDialog()
 
                 if ( _grid[gridIdx]->GetTopRelationType() == PipelineElementWindow::RelationType::Batch )
                 {
-                    const float yStart = topLeft.y - 1.0f;
-                    drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    const float yStart = topLeft.y - 1.0f * cMenuScaling;
+                    const float lineEnd = tipEnd - 3.0f * cMenuScaling;
+
+                    drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { leftArrowX - 10.0f, tipStart }, { leftArrowX, tipEnd }, { leftArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
 
-                    drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { centerArrowX - 10.0f, tipStart }, { centerArrowX, tipEnd }, { centerArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
 
-                    drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                     drawList->AddTriangleFilled( { rightArrowX - 10.0f, tipStart }, { rightArrowX, tipEnd }, { rightArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
                 }
                 else
                 {
-                    drawList->AddLine( { leftArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { centerArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { rightArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    const float yStart = topLeft.y - 2.0f * cMenuScaling;
+                    drawList->AddLine( { leftArrowX - 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+                    drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { rightArrowX + 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
                 }
             }
 
