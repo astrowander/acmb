@@ -30,10 +30,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
 {
     _completedTaskCount = 0;
 
-    auto pInput = GetLeftInput();
-    if ( !pInput )
-        pInput = GetTopInput();
-
+    auto pInput = GetPrimaryInput();
     if ( !pInput )
         return std::unexpected( "No input element" );
 

@@ -506,9 +506,9 @@ void MainWindow::DrawDialog()
                 }
             }
 
-            const float leftArrowX = topLeft.x + cGridCellWidth * 0.5f - 50.0f;
+            const float leftArrowX = topLeft.x + cGridCellWidth * 0.5f - 2.0f * cGridCellPadding;
             const float centerArrowX = topLeft.x + cGridCellWidth * 0.5f;
-            const float rightArrowX = topLeft.x + cGridCellWidth * 0.5f + 50.0f;
+            const float rightArrowX = topLeft.x + cGridCellWidth * 0.5f + 2.0f * cGridCellPadding;
 
             if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
             {
@@ -537,7 +537,9 @@ void MainWindow::DrawDialog()
                 }
                 else
                 {
-
+                    drawList->AddLine( { leftArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { centerArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                    drawList->AddLine( { rightArrowX, topLeft.y }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
                 }
             }
 

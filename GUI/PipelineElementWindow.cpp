@@ -34,7 +34,13 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportPr
 std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 {
     if ( _completedTaskCount == 0 && (_inOutFlags & PEFlags_StrictlyTwoInputs) )
-        ProcessSecondaryInput();
+    {
+        auto temp = ProcessSecondaryInput();
+        if ( !temp.has_value() )
+            return std::unexpected( temp.error() );
+
+        _pSecondaryInputResult = temp.value();
+    }
 
     const auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
@@ -93,13 +99,83 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
 
 }
 
+std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
+{
+    if ( !(_inOutFlags & PEFlags_StrictlyTwoInputs) )
+        return nullptr;
+
+    auto pSecondaryInput = GetSecondaryInput();
+    if ( !pSecondaryInput )
+        return std::unexpected( "No secondary input" );
+
+    auto relationType = (pSecondaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
+    if ( relationType == RelationType::Join )
+    {
+        auto pBitmap = pSecondaryInput->RunTaskAndReportProgress( 0 );
+        if ( !pBitmap )
+            return std::unexpected( pBitmap.error() );
+
+        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
+            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
+
+        const size_t inputTaskCount = pSecondaryInput->GetTaskCount();
+        if ( inputTaskCount == 0 )
+            return std::unexpected( "No input frames" );
+
+        try
+        {
+            for ( size_t i = 1; i < inputTaskCount; ++i )
+            {
+                pBitmap = pSecondaryInput->RunTaskAndReportProgress( i );
+                if ( !pBitmap )
+                    return std::unexpected( pBitmap.error() );
+
+                pStacker->AddBitmap( *pBitmap );
+
+                _taskReadiness = float( i ) / (inputTaskCount + 1);
+            }
+
+            const auto res = pStacker->GetResult();
+            _completedTaskCount = 1;
+            _taskReadiness = 0.0f;
+            return res;
+        }
+        catch ( std::exception& e )
+        {
+            return std::unexpected( e.what() );
+        }
+    }
+
+    const auto taskRes = pSecondaryInput->RunTaskAndReportProgress( 0 );
+    if ( !taskRes.has_value() )
+        return std::unexpected( taskRes.error() );
+
+    return taskRes.value();
+}
+
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput()
 {
-    std::shared_ptr<PipelineElementWindow> res = GetLeftInput();
-    if ( !res )
-        res = GetTopInput();
+    if ( _inOutFlags & PEFlags_NoInput )
+        return nullptr;
 
-    return res;
+    if ( _inOutFlags & PEFlags_StrictlyOneInput )
+    {
+        std::shared_ptr<PipelineElementWindow> res = GetLeftInput();
+        if ( !res )
+            res = GetTopInput();
+
+        return res;
+    }
+
+    return _primaryInputIsOnLeft ? GetLeftInput() : GetTopInput();
+}
+
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetSecondaryInput()
+{
+    if ( ! (_inOutFlags & PEFlags_StrictlyTwoInputs ) )
+        return nullptr;
+
+    return _primaryInputIsOnLeft ? GetTopInput() : GetLeftInput();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetLeftInput()
@@ -243,12 +319,16 @@ void PipelineElementWindow::Serialize( std::ostream& out )
 {
     gui::Serialize( _name, out );
     gui::Serialize( _actualInputs, out );
+    if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
+        gui::Serialize( _primaryInputIsOnLeft, out );
 }
 
 void PipelineElementWindow::Deserialize( std::istream& in )
 {
     _name = acmb::gui::Deserialize<std::string>( in );
     _actualInputs = gui::Deserialize<char>( in );
+    if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
+        _primaryInputIsOnLeft = gui::Deserialize<int>( in );
 }
 
 ACMB_GUI_NAMESPACE_END

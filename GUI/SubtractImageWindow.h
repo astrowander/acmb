@@ -5,9 +5,6 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class SubtractImageWindow : public PipelineElementWindow
 {
-    IBitmapPtr _pBitmapToSubtract;
-    int _darkFrameIsOnTop = 1;
-
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
 public:
@@ -23,11 +20,6 @@ public:
     {
         return order;
     }
-
-    virtual void Serialize(std::ostream& out) override;
-    virtual void Deserialize(std::istream& in) override;
-
-    virtual std::shared_ptr<PipelineElementWindow> GetPrimaryInput() override { return _darkFrameIsOnTop ? GetLeftInput() : GetTopInput(); }
 };
 
 ACMB_GUI_NAMESPACE_END

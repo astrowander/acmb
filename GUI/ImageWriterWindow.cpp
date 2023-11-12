@@ -78,7 +78,7 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
 
 std::vector<std::string> ImageWriterWindow::RunAllTasks()
 {
-    auto pPrimaryInput = GetLeftInput();
+    auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
         return { "No input element" };
 

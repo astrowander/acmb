@@ -63,14 +63,17 @@ protected:
 
     Point _gridPos;
 
+    int _primaryInputIsOnLeft = 1;
+    IBitmapPtr _pSecondaryInputResult;
+
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
     virtual void DrawPipelineElementControls() = 0;
     
     virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i );
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
-
-    virtual void ProcessSecondaryInput() {};
+ 
+    std::expected<IBitmapPtr, std::string> ProcessSecondaryInput();
     virtual ImGuiWindowFlags flags() override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing; }
 
 public:
@@ -78,7 +81,8 @@ public:
     std::expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
 
 
-    virtual std::shared_ptr<PipelineElementWindow> GetPrimaryInput();
+    std::shared_ptr<PipelineElementWindow> GetPrimaryInput();
+    std::shared_ptr<PipelineElementWindow> GetSecondaryInput();
 
     std::shared_ptr<PipelineElementWindow> GetLeftInput();
     std::shared_ptr<PipelineElementWindow> GetTopInput();
