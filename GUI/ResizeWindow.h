@@ -13,15 +13,10 @@ public:
 
     ResizeWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x90\xa4";
-    inline static const std::string tooltip = "Resize image";
-    inline static constexpr uint8_t order = 6;
-
-    virtual uint8_t GetMenuOrder() override { return order; }
-
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x90\xa4", "Resize", "Choose image to arbitrary size", 6 );
 };
 
 ACMB_GUI_NAMESPACE_END

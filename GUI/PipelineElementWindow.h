@@ -124,6 +124,11 @@ protected:
     virtual void DrawDialog() override;
 };
 
-
+#define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \
+inline static const std::string icon = ICON;\
+inline static const std::string caption = CAPTION;\
+inline static const std::string tooltip = TOOLTIP;\
+inline static const int order = ORDER;\
+virtual uint8_t GetMenuOrder() override { return order; }
 
 ACMB_GUI_NAMESPACE_END

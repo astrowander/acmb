@@ -12,14 +12,10 @@ public:
 
     DivideImageWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x94\xa9";
-    inline static const std::string tooltip = "Apply flat field";
-    inline static constexpr uint8_t order = 5;
-
-    virtual uint8_t GetMenuOrder() override { return order; }
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x94\xa9", "Flat field", "Divide images on a flat field. By default the flat field is on the top of the tool, and the target images are on the left", 5 );
 };
 
 ACMB_GUI_NAMESPACE_END

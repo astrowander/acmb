@@ -12,14 +12,7 @@ public:
     SubtractImageWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
 
-    inline static const std::string icon = "\xef\x81\xa8";
-    inline static const std::string tooltip = "Subtract dark frame";
-    inline static constexpr uint8_t order = 4;
-
-    virtual uint8_t GetMenuOrder() override
-    {
-        return order;
-    }
+    SET_MENU_PARAMS( "\xef\x81\xa8", "Dark frame", "Subtract a dark frame from the target images. By default the dark frame is on the top of the tool, and the target images are on the left", 4 );
 };
 
 ACMB_GUI_NAMESPACE_END

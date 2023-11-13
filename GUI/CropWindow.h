@@ -13,15 +13,10 @@ public:
 
     CropWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x84\xa5";
-    inline static const std::string tooltip = "Crop image";
-    inline static constexpr uint8_t order = 7;
-
-    virtual uint8_t GetMenuOrder() override { return order; }
-
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x84\xa5", "Crop", "Crop image to an arbitrary rectangle", 7 );
 };
 
 ACMB_GUI_NAMESPACE_END

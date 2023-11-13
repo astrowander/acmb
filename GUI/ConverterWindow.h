@@ -14,15 +14,10 @@ public:
 
     ConverterWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x86\xb8";
-    inline static const std::string tooltip = "Converter";
-    inline static constexpr uint8_t order = 8;
-
-    virtual uint8_t GetMenuOrder() override { return order; }
-
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x86\xb8", "Converter", "Convert image to another pixel format", 8 );
 };
 
 ACMB_GUI_NAMESPACE_END

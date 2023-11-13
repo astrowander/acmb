@@ -15,15 +15,10 @@ public:
 
     StackerWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x97\xbd";
-    inline static const std::string tooltip = "Stack images";
-    inline static constexpr uint8_t order = 3;
-
-    virtual uint8_t GetMenuOrder() override { return order; }
-
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x97\xbd", "Stack", "Sum up a group of frames to one image", 3 );
 };
 
 ACMB_GUI_NAMESPACE_END

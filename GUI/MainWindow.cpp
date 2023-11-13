@@ -18,14 +18,17 @@ ACMB_GUI_NAMESPACE_BEGIN
 static constexpr int windowWidth = 1920;
 static constexpr int windowHeight = 1080;
 
-static constexpr int cHeadRowHeight = 25;
-static constexpr int cGridTop = 150;
-static constexpr int cGridLeft = 30;
+static constexpr float cMenuButtonSize = 50.0f;
 
-static constexpr int cGridCellWidth = PipelineElementWindow::cElementWidth + 50;
-static constexpr int cGridCellHeight = PipelineElementWindow::cElementHeight + 50;
+static constexpr float cHeadRowHeight = 25;
+static constexpr float cGridTop = cMenuButtonSize + 105.0f;
 
+static constexpr float cGridLeft = 30;
 static constexpr float cGridCellPadding = 25.0f;
+
+static constexpr float cGridCellWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
+static constexpr float cGridCellHeight = PipelineElementWindow::cElementHeight + 2.0f * cGridCellPadding;
+
 
 static void SetTooltipIfHovered( const std::string& text, float scaling )
 {
@@ -49,9 +52,9 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     , _fontRegistry( fontRegistry )
 {
     SetPos( pos );
-    _viewportSize = { ( windowWidth - cGridLeft ) / cGridCellWidth, ( windowHeight - cGridTop ) / cGridCellHeight };
+    _viewportSize = { (  windowWidth - int( cGridLeft ) ) / int( cGridCellWidth ), ( windowHeight - int( cGridTop ) ) / int( cGridCellHeight ) };
 
-    MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (Point)
     {
         _errors.clear();
         _isBusy = true;
@@ -72,12 +75,12 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "File", 2, "\xef\x95\xad", "Save Project", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x95\xad", "Save", "Write the project to an .acmb file", [this] (Point)
     {
         FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "File", 1, "\xef\x81\xbc", "Open Project", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [this] ( Point )
     {
         FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "", 1 );
     } );
@@ -140,24 +143,34 @@ void MainWindow::ProcessKeyboardEvents()
 
 void MainWindow::ProcessMouseEvents()
 {
-    if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-    {
-        auto mousePos = ImGui::GetMousePos();
-        mousePos.x -= cGridLeft;
-        mousePos.y -= cGridTop;
+    const bool isMouseDoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
+    const bool isMouseClicked = ImGui::IsMouseClicked( ImGuiMouseButton_Left );
 
-        if ( mousePos.x < 0 || mousePos.y < 0 )
-            return;
+    if ( !isMouseClicked && !isMouseDoubleClicked )
+        return;
 
-        int col = int( mousePos.x ) / cGridCellWidth;
-        int row = int( mousePos.y ) / cGridCellHeight;
-        const auto gridIdx = row * cGridSize.width + col;
-        const auto pElement = _grid[gridIdx];
+    auto mousePos = ImGui::GetMousePos();
+    mousePos.x -= cGridLeft;
+    mousePos.y -= cGridTop;
+
+    if ( mousePos.x < 0 || mousePos.y < 0 )
+        return;
+
+    int col = int( mousePos.x ) / int( cGridCellWidth ) + _viewportStart.x;
+    int row = int( mousePos.y ) / int( cGridCellHeight ) + _viewportStart.y;
+
+    const auto gridIdx = row * cGridSize.width + col;
+    std::shared_ptr<PipelineElementWindow> pElement;
+    if (gridIdx >=0 && gridIdx < cGridSize.width * cGridSize.height )
+        pElement = _grid[gridIdx];
+    
+    mousePos.x -= ( col - _viewportStart.x ) * cGridCellWidth;
+    mousePos.y -= ( row - _viewportStart.y ) * cGridCellHeight;
+
+    if ( isMouseDoubleClicked  )
+    { 
         if ( !pElement )
             return;
-
-        mousePos.x -= col * cGridCellWidth;
-        mousePos.y -= row * cGridCellHeight;
 
         if ( auto pLeft = ( ( col > 0 ) ? _grid[gridIdx - 1] : nullptr ); pLeft && pElement->GetLeftInput() == pLeft && mousePos.x < cGridCellPadding )
         {
@@ -186,6 +199,16 @@ void MainWindow::ProcessMouseEvents()
             pElement->SetBottomRelationType( newRelationType );
             pBottom->SetTopRelationType( newRelationType );
         }
+    }
+    else if ( isMouseClicked )
+    {
+        if ( col < 0 || col >= cGridSize.width || row < 0 || row >= cGridSize.height )
+            return;
+
+        if ( mousePos.x < cGridCellPadding || mousePos.y < cGridCellPadding || mousePos.x > cGridCellWidth - cGridCellPadding || mousePos.y > cGridCellHeight - cGridCellPadding )
+            return;
+
+        _activeCell = { .x = col, .y = row };
     }
 }
 
@@ -333,7 +356,7 @@ void MainWindow::DrawMenu()
         const auto& items = it.second;
 
         const auto itemCount = items.size();
-        const float menuWidth = itemCount * 50 + ( itemCount - 1 ) * ImGui::GetStyle().ItemSpacing.x;
+        const float menuWidth = itemCount * cMenuButtonSize + ( itemCount - 1 ) * ImGui::GetStyle().ItemSpacing.x;
 
         ImGui::BeginChild( category.c_str(), { menuWidth, 0 } );
 
@@ -345,13 +368,19 @@ void MainWindow::DrawMenu()
         {
             ImGui::PushFont( _fontRegistry.icons );
 
-            if ( ImGui::Button( item.second->icon.c_str(), { 50, 50 } ) )
+            const auto oldPos = ImGui::GetCursorPos();
+            if ( ImGui::Button( item.second->icon.c_str(), { cMenuButtonSize, cMenuButtonSize } ) )
                 item.second->action( _activeCell );
 
             ImGui::PopFont();
-
             SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
-            ImGui::SameLine();
+
+            //ImGui::PushFont( _fontRegistry.big );
+            const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
+            ImGui::SetCursorPos( { oldPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, oldPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
+            ImGui::Text( "%s", item.second->caption.c_str() );
+            ImGui::SetCursorPos( { oldPos.x + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.x, oldPos.y});
+            //ImGui::PopFont();
         }
 
         ImGui::EndChild();

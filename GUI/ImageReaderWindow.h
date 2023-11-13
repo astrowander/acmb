@@ -16,18 +16,10 @@ class ImageReaderWindow : public PipelineElementWindow
 public:
     ImageReaderWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
-
-    inline static const std::string icon = "\xef\x87\x85";
-    inline static const std::string tooltip = "Load image";
-    inline static constexpr uint8_t order = 1;
-
-    virtual uint8_t GetMenuOrder() override
-    {
-        return order;
-    }
-
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+
+    SET_MENU_PARAMS( "\xef\x87\x85", "Import", "Choose images to import and pass them to another tools", 1 );
 };
 
 ACMB_GUI_NAMESPACE_END

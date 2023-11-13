@@ -9,7 +9,8 @@ FontRegistry::FontRegistry( float scaling )
     ImGuiIO& io = ImGui::GetIO();
     byDefault = io.Fonts->AddFontFromFileTTF( "Fonts/NotoSans-Regular.ttf", 10 * scaling );
     bold = io.Fonts->AddFontFromFileTTF( "Fonts/NotoSans-Bold.ttf", 10 * scaling );
-
+    big = io.Fonts->AddFontFromFileTTF( "Fonts/NotoSans-Regular.ttf", 13 * scaling );
+    bigBold = io.Fonts->AddFontFromFileTTF( "Fonts/NotoSans-Bold.ttf", 13 * scaling );
 
     ImFontConfig iconsConfig;
     iconsConfig.GlyphMinAdvanceX = 32;

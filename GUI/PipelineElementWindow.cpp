@@ -307,7 +307,15 @@ void PipelineElementWindow::DrawDialog()
 
         if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
         {
-            _name = std::string( _renameBuf.data(), strlen( _renameBuf.data() ) ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+            const size_t length = strlen( _renameBuf.data() );
+            if ( length > 0 )
+                _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+
+            _openRenamePopup = false;
+        }
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
             _openRenamePopup = false;
         }
 

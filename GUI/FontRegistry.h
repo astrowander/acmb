@@ -10,6 +10,8 @@ struct FontRegistry
     ImFont* byDefault;
     ImFont* icons;
     ImFont* bold;
+    ImFont* big;
+    ImFont* bigBold;
 
 private:
     FontRegistry( float scaling );
