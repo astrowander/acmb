@@ -13,6 +13,9 @@ class ImageWriterWindow : public PipelineElementWindow
 public:
     ImageWriterWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
+    virtual void Serialize( std::ostream& out ) override;
+    virtual void Deserialize( std::istream& in ) override;
+
     std::vector<std::string> RunAllTasks();
 
     SET_MENU_PARAMS( "\xef\x83\x87", "Export", "Choose a file or a directory where to save the results", 2 );

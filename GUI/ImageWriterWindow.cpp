@@ -1,6 +1,7 @@
 #include "ImageWriterWindow.h"
 #include "MainWindow.h"
 #include "FileDialog.h"
+#include "Serializer.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Codecs/imageencoder.h"
@@ -49,6 +50,20 @@ void ImageWriterWindow::DrawPipelineElementControls()
         // close
         fileDialog.Close();
     }
+}
+
+void ImageWriterWindow::Serialize( std::ostream& out )
+{
+    PipelineElementWindow::Serialize( out );
+    acmb::gui::Serialize( _workingDirectory, out );
+    acmb::gui::Serialize( _fileName, out );
+}
+
+void ImageWriterWindow::Deserialize( std::istream& in )
+{
+    PipelineElementWindow::Deserialize( in );
+    _workingDirectory = acmb::gui::Deserialize<std::string>( in );
+    _fileName = acmb::gui::Deserialize<std::string>( in );
 }
 
 /*std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask(size_t i)
