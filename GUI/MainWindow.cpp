@@ -265,12 +265,14 @@ void MainWindow::OpenProject()
             if ( streamSize > charCount + 6 )
             {
                 _grid[i * cGridSize.height + j]->Deserialize( fin );
-                const char actualInputs = _grid[i * cGridSize.height + j]->GetActualInputs();
+                const auto serializedInputs = _grid[i * cGridSize.height + j]->GetActualInputs();
 
-                if ( actualInputs & 1 )
+                if ( serializedInputs.left != PipelineElementWindow::RelationType::None )
                 {
                     _grid[i * cGridSize.height + j]->SetLeftInput( _grid[i * cGridSize.height + j - 1] );
+                    _grid[i * cGridSize.height + j]->SetLeftRelationType( serializedInputs.left );
                     _grid[i * cGridSize.height + j - 1]->SetRightOutput( _grid[i * cGridSize.height + j] );
+                    _grid[i * cGridSize.height + j - 1]->SetRightRelationType( serializedInputs.left );
                 }
                 else if ( j > 0 )
                 {
@@ -279,10 +281,12 @@ void MainWindow::OpenProject()
                         _grid[i * cGridSize.height + j - 1]->SetRightOutput( nullptr );
                 }
 
-                if ( actualInputs & 2 )
+                if ( serializedInputs.top != PipelineElementWindow::RelationType::None )
                 {
                     _grid[i * cGridSize.height + j]->SetTopInput( _grid[( i - 1 ) * cGridSize.height + j] );
+                    _grid[i * cGridSize.height + j]->SetTopRelationType( serializedInputs.top );
                     _grid[( i - 1 ) * cGridSize.height + j]->SetBottomOutput( _grid[i * cGridSize.height + j] );
+                    _grid[(i - 1) * cGridSize.height + j]->SetBottomRelationType( serializedInputs.top );
                 }
                 else if ( i > 0 )
                 {

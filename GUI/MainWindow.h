@@ -33,11 +33,12 @@ class MainWindow : public Window
     MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry );
     MainWindow( const MainWindow& ) = delete;
     MainWindow( MainWindow&& ) = delete;
+    MainWindow& operator=( const MainWindow& ) = delete;
+    MainWindow& operator=( MainWindow&& ) = delete;
 
     virtual void DrawDialog() override;
 
     void DrawMenu();
-    //void DrawRunMenu();
 
     void ProcessKeyboardEvents();
     void ProcessMouseEvents();
@@ -48,8 +49,6 @@ class MainWindow : public Window
     
     void OpenProject();
     void SaveProject();
-
-   // std::pair<std::string, Size>
 
 public:
 
@@ -109,31 +108,10 @@ public:
     void LockInterface() {
         _lockInterface = true;
     }
+
     void UnlockInterface() {
         _lockInterface = false;
     }
-
-    friend class MainWindowInterfaceLock;
-};
-
-class MainWindowInterfaceLock
-{
-public:
-
-    MainWindowInterfaceLock()
-    {
-        MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
-    }
-
-    ~MainWindowInterfaceLock()
-    {
-        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
-    }
-
-    MainWindowInterfaceLock( const MainWindowInterfaceLock& ) = delete;
-    MainWindowInterfaceLock( MainWindowInterfaceLock&& ) = delete;
-    MainWindowInterfaceLock& operator=( const MainWindowInterfaceLock& ) = delete;
-    MainWindowInterfaceLock& operator=( MainWindowInterfaceLock&& ) = delete;
 };
 
 ACMB_GUI_NAMESPACE_END

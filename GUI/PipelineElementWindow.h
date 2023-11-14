@@ -34,6 +34,7 @@ public:
 
     enum class RelationType
     {
+        None,
         Batch,
         Join
     };
@@ -42,6 +43,12 @@ public:
     {
         std::weak_ptr<PipelineElementWindow> pElement;
         RelationType relationType = RelationType::Batch;
+    };
+
+    struct SerializedInputs
+    {
+        RelationType left = RelationType::None;
+        RelationType top = RelationType::None;
     };
 
 protected:
@@ -59,7 +66,7 @@ protected:
     Relation _bottomOutput;
 
     int _inOutFlags = {};
-    char _actualInputs = {};
+    SerializedInputs _serializedInputs;
 
     Point _gridPos;
 
@@ -100,8 +107,8 @@ public:
     RelationType GetRightRelationType() { return _rightOutput.relationType; }
     RelationType GetBottomRelationType() { return _bottomOutput.relationType; }
 
-    void SetLeftRelationType( RelationType val ) { _leftInput.relationType = val; }
-    void SetTopRelationType( RelationType val )  { _topInput.relationType = val; }
+    void SetLeftRelationType( RelationType val ) { _leftInput.relationType = val; _serializedInputs.left = val; }
+    void SetTopRelationType( RelationType val ) { _topInput.relationType = val; _serializedInputs.top = val; }
     void SetRightRelationType( RelationType val ) { _rightOutput.relationType = val; }
     void SetBottomRelationType( RelationType val ) { _bottomOutput.relationType = val; }
 
@@ -118,7 +125,7 @@ public:
     virtual void Serialize(std::ostream& out);
     virtual void Deserialize(std::istream& in);
 
-    char GetActualInputs() { return _actualInputs; }
+    SerializedInputs GetActualInputs() { return _serializedInputs; }
 
 protected:
     virtual void DrawDialog() override;

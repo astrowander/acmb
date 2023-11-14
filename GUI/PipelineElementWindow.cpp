@@ -1,5 +1,6 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
+#include "MainWindow.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -188,16 +189,16 @@ std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput()
     return _topInput.pElement.lock();
 }
 
-void PipelineElementWindow::SetLeftInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput )
+void PipelineElementWindow::SetLeftInput( std::shared_ptr<PipelineElementWindow> pLeftInput )
 {
-    _leftInput.pElement = pPrimaryInput;
-    pPrimaryInput ? ( _actualInputs |= 1 ) : ( _actualInputs &= 2 );
+    _leftInput.pElement = pLeftInput;
+    _serializedInputs.left = pLeftInput ? _leftInput.relationType : RelationType::None;
 }
 
-void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> pSecondaryInput )
+void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> pTopInput )
 {
-    _topInput.pElement = pSecondaryInput;
-    pSecondaryInput ? ( _actualInputs |= 2 ) : ( _actualInputs &= 1 );
+    _topInput.pElement = pTopInput;
+    _serializedInputs.top = pTopInput ? _topInput.relationType : RelationType::None;
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput()
@@ -299,6 +300,7 @@ void PipelineElementWindow::DrawDialog()
     if ( _openRenamePopup )
     {
         ImGui::OpenPopup( "RenameElement" );
+        MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
     }
 
     if ( ImGui::BeginPopup( "RenameElement" ) )
@@ -311,11 +313,13 @@ void PipelineElementWindow::DrawDialog()
             if ( length > 0 )
                 _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
 
+            MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
             _openRenamePopup = false;
         }
 
         if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
         {
+            MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
             _openRenamePopup = false;
         }
 
@@ -326,7 +330,7 @@ void PipelineElementWindow::DrawDialog()
 void PipelineElementWindow::Serialize( std::ostream& out )
 {
     gui::Serialize( _name, out );
-    gui::Serialize( _actualInputs, out );
+    gui::Serialize( _serializedInputs, out );
     if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
         gui::Serialize( _primaryInputIsOnLeft, out );
 }
@@ -334,7 +338,7 @@ void PipelineElementWindow::Serialize( std::ostream& out )
 void PipelineElementWindow::Deserialize( std::istream& in )
 {
     _name = acmb::gui::Deserialize<std::string>( in );
-    _actualInputs = gui::Deserialize<char>( in );
+    _serializedInputs = gui::Deserialize<SerializedInputs>( in );
     if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
         _primaryInputIsOnLeft = gui::Deserialize<int>( in );
 }
