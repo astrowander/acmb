@@ -32,7 +32,12 @@ void DivideImageWindow::Serialize(std::ostream& out)
 void DivideImageWindow::Deserialize(std::istream& in)
 {
     PipelineElementWindow::Deserialize(in);
-    _intensity = gui::Deserialize<float>(in);
+    _intensity = gui::Deserialize<float>(in, _remainingBytes);
+}
+
+int DivideImageWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _intensity );
 }
 
 REGISTER_TOOLS_ITEM( DivideImageWindow );

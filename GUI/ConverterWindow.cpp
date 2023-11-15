@@ -34,7 +34,12 @@ void ConverterWindow::Serialize(std::ostream& out)
 void ConverterWindow::Deserialize(std::istream& in)
 {
     PipelineElementWindow::Deserialize(in);
-    _dstPixelFormat = acmb::gui::Deserialize<PixelFormat>( in );
+    _dstPixelFormat = acmb::gui::Deserialize<PixelFormat>( in, _remainingBytes );
+}
+
+int ConverterWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
 }
 
 REGISTER_TOOLS_ITEM( ConverterWindow );

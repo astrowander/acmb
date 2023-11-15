@@ -8,49 +8,93 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 template<typename T>
-void Serialize(T&& val, std::ostream& out)
+int GetSerializedStringSize( const T& val )
 {
-    if constexpr (std::is_same_v<std::remove_reference_t<T>, std::string>)
+    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::string> )
+        return int( val.size() ) + sizeof( int );
+
+    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>> )
     {
-        Serialize( int( val.size() ), out);
-        out.write(val.data(), val.size());
-        return;
+        int res = sizeof( int );
+        for ( const auto& str : val )
+            res += GetSerializedStringSize( str );
+        return res;
     }
 
-    if constexpr (std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>>)
-    {
-        Serialize(int( val.size() ), out);
-        for (auto& str: val)
-            Serialize(std::move( str ), out);
-        return;
-    }
-
-    out.write((char*)(&val), sizeof(T));   
+    return sizeof( T );
 }
 
 template<typename T>
-T Deserialize(std::istream& in)
+void Serialize( T&& val, std::ostream& out )
 {
-    if constexpr (std::is_same_v<T, std::string>)
+    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::string> )
     {
-        size_t size = size_t( Deserialize<int>( in ) );
-        std::string str(size, '\0');
-        in.read(&str[0], size);
+        Serialize( int( val.size() ), out );
+        out.write( val.data(), val.size() );
+        return;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>> )
+    {
+        Serialize( int( val.size() ), out );
+        for ( auto& str : val )
+            Serialize( std::move( str ), out );
+        return;
+    }
+
+    out.write( ( char* ) (&val), sizeof( T ) );
+}
+
+template<typename T>
+T Deserialize( std::istream& in, int& remainingBytes )
+{
+    if constexpr ( std::is_same_v<T, std::string> )
+    {
+        if ( remainingBytes < sizeof( int ) )
+        {
+            in.seekg( remainingBytes, std::ios_base::cur );
+            remainingBytes = 0;
+            return {};
+        }
+
+        int cachedRemainingBytes = remainingBytes;
+        int size = std::min( Deserialize<int>( in, remainingBytes ), cachedRemainingBytes );
+        if ( remainingBytes == 0 )
+            return {};
+
+        std::string str( size, '\0' );
+        in.read( &str[0], size );
+        remainingBytes -= size;
         return str;
     }
 
-    if constexpr (std::is_same_v<T, std::vector<std::string>>)
+    if constexpr ( std::is_same_v<T, std::vector<std::string>> )
     {
-        size_t size = size_t(Deserialize<int>(in));
+        if ( remainingBytes < sizeof( int ) )
+        {
+            in.seekg( remainingBytes, std::ios_base::cur );
+            remainingBytes = 0;
+            return {};
+        }
+
+        int size = Deserialize<int>( in, remainingBytes );
         std::vector<std::string> vec( size );
-        for (size_t i = 0; i < size; ++i)
-            vec[i] = Deserialize<std::string>(in);
+        for ( size_t i = 0; i < size; ++i )
+            vec[i] = Deserialize<std::string>( in, remainingBytes );
 
         return vec;
     }
 
+    if ( remainingBytes < sizeof( T ) )
+    {
+        in.seekg( remainingBytes, std::ios_base::cur );
+        remainingBytes = 0;
+        return {};
+    }
+
     T res;
-    in.read((char*)(&res), sizeof(T));
+    in.read( ( char* ) (&res), sizeof( T ) );
+    remainingBytes -= sizeof( T );
     return res;
 }
 

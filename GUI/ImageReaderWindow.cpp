@@ -105,9 +105,17 @@ void ImageReaderWindow::Serialize(std::ostream& out)
 void ImageReaderWindow::Deserialize(std::istream& in)
 {
     PipelineElementWindow::Deserialize(in);
-    _workingDirectory = gui::Deserialize<std::string>(in);
-    _fileNames = gui::Deserialize<std::vector<std::string>>(in);
-    _selectedItemIdx = gui::Deserialize<int>(in);
+    _workingDirectory = gui::Deserialize<std::string>(in, _remainingBytes);
+    _fileNames = gui::Deserialize<std::vector<std::string>>(in, _remainingBytes);
+    _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
+}
+
+int ImageReaderWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() 
+        + gui::GetSerializedStringSize( _workingDirectory )
+        + gui::GetSerializedStringSize( _fileNames )
+        + gui::GetSerializedStringSize( _selectedItemIdx );
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )

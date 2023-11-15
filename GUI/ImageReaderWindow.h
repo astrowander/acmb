@@ -18,6 +18,7 @@ public:
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+    virtual int GetSerializedStringSize() override;
 
     SET_MENU_PARAMS( "\xef\x87\x85", "Import", "Choose images to import and pass them to another tools", 1 );
 };

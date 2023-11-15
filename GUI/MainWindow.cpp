@@ -75,7 +75,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x95\xad", "Save", "Write the project to an .acmb file", [this] (Point)
+    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [this] (Point)
     {
         FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
     } );

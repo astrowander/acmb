@@ -65,13 +65,15 @@ protected:
     Relation _rightOutput;
     Relation _bottomOutput;
 
-    int _inOutFlags = {};
+    int _inOutFlags{};
     SerializedInputs _serializedInputs;
 
     Point _gridPos;
 
     int _primaryInputIsOnLeft = 1;
     IBitmapPtr _pSecondaryInputResult;
+
+    int _remainingBytes{};
 
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
@@ -124,6 +126,7 @@ public:
 
     virtual void Serialize(std::ostream& out);
     virtual void Deserialize(std::istream& in);
+    virtual int GetSerializedStringSize();
 
     SerializedInputs GetActualInputs() { return _serializedInputs; }
 

@@ -5,7 +5,7 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 ResizeWindow::ResizeWindow( const Point& gridPos )
-: PipelineElementWindow( "Resize", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+    : PipelineElementWindow( "Resize", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
 {
 }
 
@@ -21,16 +21,21 @@ IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size
     return ResizeTransform::Resize( pSource, _dstSize );
 }
 
-void ResizeWindow::Serialize(std::ostream& out)
+void ResizeWindow::Serialize( std::ostream& out )
 {
-    PipelineElementWindow::Serialize(out);
-    gui::Serialize(_dstSize, out);
+    PipelineElementWindow::Serialize( out );
+    gui::Serialize( _dstSize, out );
 }
 
-void ResizeWindow::Deserialize(std::istream& in)
+void ResizeWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize(in);
-    _dstSize = gui::Deserialize<Size>(in);
+    PipelineElementWindow::Deserialize( in );
+    _dstSize = gui::Deserialize<Size>( in, _remainingBytes );
+}
+
+int ResizeWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize );
 }
 
 REGISTER_TOOLS_ITEM( ResizeWindow )

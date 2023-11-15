@@ -8,7 +8,7 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 StackerWindow::StackerWindow( const Point& gridPos )
-: PipelineElementWindow( "Stacker", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+    : PipelineElementWindow( "Stacker", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
 {
     _taskCount = 1;
 }
@@ -16,12 +16,12 @@ StackerWindow::StackerWindow( const Point& gridPos )
 void StackerWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Stack Mode" );
-    ImGui::RadioButton( "Light Frames", ( int* ) ( &_stackMode ), int( StackMode::Light ) );
-    ImGui::RadioButton( "Dark/Flat Frames", ( int* ) ( &_stackMode ), int( StackMode::DarkOrFlat ) );
+    ImGui::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ) );
+    ImGui::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ) );
 
     ImGui::Text( "Star Detection Threshold" );
     if ( _stackMode == StackMode::Light )
-        ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f);
+        ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f );
 
     //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
@@ -44,12 +44,12 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
         if ( !pBitmap )
             return std::unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
+        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, _stackMode ) ) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
 
         pStacker->SetThreshold( _threshold );
         pStacker->AddBitmap( *pBitmap );
-        _taskReadiness = 1.0f / ( inputTaskCount + 1 );
+        _taskReadiness = 1.0f / (inputTaskCount + 1);
 
         for ( size_t i = 1; i < inputTaskCount; ++i )
         {
@@ -58,8 +58,8 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
                 return std::unexpected( pBitmap.error() );
 
             pStacker->AddBitmap( *pBitmap );
-            
-            _taskReadiness = float( i ) / ( inputTaskCount + 1 );
+
+            _taskReadiness = float( i ) / (inputTaskCount + 1);
         }
 
         auto res = pStacker->GetResult();
@@ -73,18 +73,25 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
     }
 }
 
-void StackerWindow::Serialize(std::ostream& out)
+void StackerWindow::Serialize( std::ostream& out )
 {
-    PipelineElementWindow::Serialize(out);
-    gui::Serialize(_stackMode, out);
+    PipelineElementWindow::Serialize( out );
+    gui::Serialize( _stackMode, out );
     gui::Serialize( _threshold, out );
 }
 
-void StackerWindow::Deserialize(std::istream& in)
+void StackerWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize(in);
-    _stackMode = gui::Deserialize<StackMode>(in);
-    _threshold = gui::Deserialize<float>( in );
+    PipelineElementWindow::Deserialize( in );
+    _stackMode = gui::Deserialize<StackMode>( in, _remainingBytes );
+    _threshold = gui::Deserialize<float>( in, _remainingBytes );
+}
+
+int StackerWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize()
+        + gui::GetSerializedStringSize( _stackMode )
+        + gui::GetSerializedStringSize( _threshold );
 }
 
 REGISTER_TOOLS_ITEM( StackerWindow )

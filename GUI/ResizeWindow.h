@@ -15,6 +15,7 @@ public:
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) override;
     virtual void Deserialize(std::istream& in) override;
+    virtual int GetSerializedStringSize() override;
 
     SET_MENU_PARAMS( "\xef\x90\xa4", "Resize", "Choose image to arbitrary size", 6 );
 };

@@ -6,7 +6,7 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 CropWindow::CropWindow( const Point& gridPos )
-: PipelineElementWindow( "Crop", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+    : PipelineElementWindow( "Crop", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
 {
 }
 
@@ -23,16 +23,21 @@ IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t
     return CropTransform::Crop( pSource, _dstRect );
 }
 
-void CropWindow::Serialize(std::ostream& out)
+void CropWindow::Serialize( std::ostream& out )
 {
-    PipelineElementWindow::Serialize(out);
-    gui::Serialize(_dstRect, out);
+    PipelineElementWindow::Serialize( out );
+    gui::Serialize( _dstRect, out );
 }
 
-void CropWindow::Deserialize(std::istream& in)
+void CropWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize(in);
-    _dstRect = gui::Deserialize<Rect>(in);
+    PipelineElementWindow::Deserialize( in );
+    _dstRect = gui::Deserialize<Rect>( in, _remainingBytes );
+}
+
+int CropWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstRect );
 }
 
 REGISTER_TOOLS_ITEM( CropWindow );

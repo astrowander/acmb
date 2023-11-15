@@ -62,8 +62,15 @@ void ImageWriterWindow::Serialize( std::ostream& out )
 void ImageWriterWindow::Deserialize( std::istream& in )
 {
     PipelineElementWindow::Deserialize( in );
-    _workingDirectory = acmb::gui::Deserialize<std::string>( in );
-    _fileName = acmb::gui::Deserialize<std::string>( in );
+    _workingDirectory = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
+    _fileName = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
+}
+
+int ImageWriterWindow::GetSerializedStringSize()
+{
+    return PipelineElementWindow::GetSerializedStringSize() 
+        + gui::GetSerializedStringSize( _workingDirectory )
+        + gui::GetSerializedStringSize( _fileName );
 }
 
 /*std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask(size_t i)

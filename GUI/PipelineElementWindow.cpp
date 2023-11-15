@@ -329,18 +329,26 @@ void PipelineElementWindow::DrawDialog()
 
 void PipelineElementWindow::Serialize( std::ostream& out )
 {
+    gui::Serialize( GetSerializedStringSize(), out );
     gui::Serialize( _name, out );
     gui::Serialize( _serializedInputs, out );
-    if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
-        gui::Serialize( _primaryInputIsOnLeft, out );
+    gui::Serialize( _primaryInputIsOnLeft, out );
 }
 
 void PipelineElementWindow::Deserialize( std::istream& in )
 {
-    _name = acmb::gui::Deserialize<std::string>( in );
-    _serializedInputs = gui::Deserialize<SerializedInputs>( in );
-    if ( _inOutFlags & PEFlags_StrictlyTwoInputs )
-        _primaryInputIsOnLeft = gui::Deserialize<int>( in );
+    _remainingBytes = sizeof( int );
+    _remainingBytes = gui::Deserialize<int>( in, _remainingBytes );
+
+    _name = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
+    _serializedInputs = gui::Deserialize<SerializedInputs>( in, _remainingBytes );
+    _primaryInputIsOnLeft = gui::Deserialize<int>( in, _remainingBytes );
 }
+
+int PipelineElementWindow::GetSerializedStringSize()
+{
+    return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnLeft );
+}
+
 
 ACMB_GUI_NAMESPACE_END
