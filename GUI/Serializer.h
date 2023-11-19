@@ -10,10 +10,10 @@ ACMB_GUI_NAMESPACE_BEGIN
 template<typename T>
 int GetSerializedStringSize( const T& val )
 {
-    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::string> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
         return int( val.size() ) + sizeof( int );
 
-    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
     {
         int res = sizeof( int );
         for ( const auto& str : val )
@@ -27,14 +27,14 @@ int GetSerializedStringSize( const T& val )
 template<typename T>
 void Serialize( T&& val, std::ostream& out )
 {
-    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::string> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
     {
         Serialize( int( val.size() ), out );
         out.write( val.data(), val.size() );
         return;
     }
 
-    if constexpr ( std::is_same_v<std::remove_reference_t<T>, std::vector<std::string>> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
     {
         Serialize( int( val.size() ), out );
         for ( auto& str : val )
@@ -48,7 +48,7 @@ void Serialize( T&& val, std::ostream& out )
 template<typename T>
 T Deserialize( std::istream& in, int& remainingBytes )
 {
-    if constexpr ( std::is_same_v<T, std::string> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
     {
         if ( remainingBytes < sizeof( int ) )
         {
@@ -68,7 +68,7 @@ T Deserialize( std::istream& in, int& remainingBytes )
         return str;
     }
 
-    if constexpr ( std::is_same_v<T, std::vector<std::string>> )
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
     {
         if ( remainingBytes < sizeof( int ) )
         {
