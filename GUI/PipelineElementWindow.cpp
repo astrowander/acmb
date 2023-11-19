@@ -154,7 +154,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryIn
     return taskRes.value();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput() const
 {
     if ( _inOutFlags & PEFlags_NoInput )
         return nullptr;
@@ -168,23 +168,23 @@ std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput()
         return res;
     }
 
-    return _primaryInputIsOnLeft ? GetLeftInput() : GetTopInput();
+    return _primaryInputIsOnTop ? GetTopInput() : GetLeftInput();    
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetSecondaryInput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetSecondaryInput() const
 {
     if ( ! (_inOutFlags & PEFlags_StrictlyTwoInputs ) )
         return nullptr;
 
-    return _primaryInputIsOnLeft ? GetTopInput() : GetLeftInput();
+    return _primaryInputIsOnTop ? GetLeftInput() : GetTopInput();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetLeftInput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetLeftInput() const
 {
     return _leftInput.pElement.lock();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput() const
 {
     return _topInput.pElement.lock();
 }
@@ -201,12 +201,12 @@ void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> 
     _serializedInputs.top = pTopInput ? _topInput.relationType : RelationType::None;
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput() const
 {
     return _rightOutput.pElement.lock();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetBottomOutput()
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetBottomOutput() const
 {
     return _bottomOutput.pElement.lock();
 }
@@ -221,7 +221,7 @@ void PipelineElementWindow::SetBottomOutput( std::shared_ptr<PipelineElementWind
     _bottomOutput.pElement = pElement;
 }
 
-int PipelineElementWindow::GetInOutFlags()
+int PipelineElementWindow::GetInOutFlags() const
 {
     return _inOutFlags;
 }
@@ -327,12 +327,12 @@ void PipelineElementWindow::DrawDialog()
     }
 }
 
-void PipelineElementWindow::Serialize( std::ostream& out )
+void PipelineElementWindow::Serialize( std::ostream& out ) const
 {
     gui::Serialize( GetSerializedStringSize(), out );
     gui::Serialize( _name, out );
     gui::Serialize( _serializedInputs, out );
-    gui::Serialize( _primaryInputIsOnLeft, out );
+    gui::Serialize( _primaryInputIsOnTop, out );
 }
 
 void PipelineElementWindow::Deserialize( std::istream& in )
@@ -342,12 +342,12 @@ void PipelineElementWindow::Deserialize( std::istream& in )
 
     _name = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
     _serializedInputs = gui::Deserialize<SerializedInputs>( in, _remainingBytes );
-    _primaryInputIsOnLeft = gui::Deserialize<int>( in, _remainingBytes );
+    _primaryInputIsOnTop = gui::Deserialize<bool>( in, _remainingBytes );
 }
 
-int PipelineElementWindow::GetSerializedStringSize()
+int PipelineElementWindow::GetSerializedStringSize() const
 {
-    return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnLeft );
+    return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnTop );
 }
 
 

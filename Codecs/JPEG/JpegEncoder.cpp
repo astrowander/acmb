@@ -28,7 +28,7 @@ void JpegEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
          throw std::runtime_error("unable to write jpeg");
 }
 
-std::unordered_set<std::string> JpegEncoder::GetExtensions()
+std::set<std::string> JpegEncoder::GetExtensions()
 {
     return { ".jpg", ".jpeg", ".jfif" };
 }

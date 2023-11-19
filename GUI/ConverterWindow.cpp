@@ -13,7 +13,7 @@ ConverterWindow::ConverterWindow( const Point& gridPos )
 
 void ConverterWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "Pixel Format" );
+    ImGui::Text( "Convert to Pixel Format:" );
     ImGui::RadioButton( "Gray8", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray8 ) );
     ImGui::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ) );
     ImGui::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ) );
@@ -25,7 +25,7 @@ IBitmapPtr ConverterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, s
     return Converter::Convert( pSource, _dstPixelFormat );
 }
 
-void ConverterWindow::Serialize(std::ostream& out)
+void ConverterWindow::Serialize(std::ostream& out) const
 {
     PipelineElementWindow::Serialize(out);
     acmb::gui::Serialize(_dstPixelFormat, out);
@@ -37,7 +37,7 @@ void ConverterWindow::Deserialize(std::istream& in)
     _dstPixelFormat = acmb::gui::Deserialize<PixelFormat>( in, _remainingBytes );
 }
 
-int ConverterWindow::GetSerializedStringSize()
+int ConverterWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
 }

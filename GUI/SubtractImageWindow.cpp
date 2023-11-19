@@ -12,9 +12,7 @@ SubtractImageWindow::SubtractImageWindow( const Point& gridPos )
 
 void SubtractImageWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "Dark Frame Is on:" );
-    ImGui::RadioButton( "Top", &_primaryInputIsOnLeft, 1 );
-    ImGui::RadioButton( "Left", &_primaryInputIsOnLeft, 0 );
+    ImGui::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop );
 }
 
 IBitmapPtr SubtractImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

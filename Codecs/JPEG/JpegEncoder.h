@@ -17,7 +17,7 @@ public:
     /// Writes given bitmap
     void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
     /// Returns supported file extensions
-    static std::unordered_set<std::string> GetExtensions();
+    static std::set<std::string> GetExtensions();
 
     uint8_t GetQuality() const;
     bool GetDownsample() const;

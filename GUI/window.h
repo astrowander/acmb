@@ -21,7 +21,7 @@ protected:
     ImVec2 _size;
 
     bool _isOpen = false;
-    virtual ImGuiWindowFlags flags() { return ImGuiWindowFlags( 0 ); }
+    virtual ImGuiWindowFlags flags() const { return ImGuiWindowFlags( 0 ); }
 
 public:
     inline static const float cMenuScaling = GetMenuScaling();

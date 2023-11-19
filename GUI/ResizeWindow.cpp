@@ -21,7 +21,7 @@ IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size
     return ResizeTransform::Resize( pSource, _dstSize );
 }
 
-void ResizeWindow::Serialize( std::ostream& out )
+void ResizeWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _dstSize, out );
@@ -33,7 +33,7 @@ void ResizeWindow::Deserialize( std::istream& in )
     _dstSize = gui::Deserialize<Size>( in, _remainingBytes );
 }
 
-int ResizeWindow::GetSerializedStringSize()
+int ResizeWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize );
 }

@@ -21,21 +21,56 @@ static std::string GetFilters()
     return ss.str();
 }
 
-ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
-: PipelineElementWindow( "Image Writer", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
+static std::string GetFormatList()
 {
+    const auto extensions = ImageEncoder::GetAllExtensions();
+    std::ostringstream ss;
+    for ( const auto& extension : extensions )
+    {
+        ss << extension << '\0';
+    }
+
+    const auto res = ss.str();
+    return { res.begin(), std::prev( res.end() ) };
+}
+
+ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
+: PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
+{
+    _formatList = GetFormatList();
 }
 
 void ImageWriterWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "Choose output file format:", "" );
-    ImGui::InputText( "File Name", ( char* ) _fileName.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+    ImGui::Checkbox( "Keep Original Name", &_keepOriginalFileName );
+    ImGui::Separator();
 
+    const float itemWidth = 100.0f * cMenuScaling;
     auto fileDialog = FileDialog::Instance();
-    if ( ImGui::Button( "Select File" ) )
+
+    if ( _keepOriginalFileName )
     {
-        static auto filters = GetFilters();
-        fileDialog.OpenDialog( "SelectOutputFile", "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
+        ImGui::Text( "Directory Path" );
+        ImGui::SetNextItemWidth( itemWidth );
+        ImGui::InputText( "##Directory", ( char* ) _workingDirectory.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+        if ( ImGui::Button( "Select Directory", { itemWidth, 0 } ) )
+        {
+            fileDialog.OpenDialog( "SelectOutputFile", "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
+        }
+
+        ImGui::Combo( "Format", &_formatId, _formatList.c_str() );
+    }
+    else
+    {
+        ImGui::Text( "File Name" );
+        ImGui::SetNextItemWidth( itemWidth );
+        ImGui::InputText( "##File Name", ( char* ) _fileName.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+
+        if ( ImGui::Button( "Select File", { itemWidth, 0 } ) )
+        {
+            static auto filters = GetFilters();
+            fileDialog.OpenDialog( "SelectOutputFile", "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
+        }
     }
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -52,25 +87,31 @@ void ImageWriterWindow::DrawPipelineElementControls()
     }
 }
 
-void ImageWriterWindow::Serialize( std::ostream& out )
+void ImageWriterWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
-    acmb::gui::Serialize( _workingDirectory, out );
-    acmb::gui::Serialize( _fileName, out );
+    gui::Serialize( _workingDirectory, out );
+    gui::Serialize( _fileName, out );
+    gui::Serialize( _formatId, out );
+    gui::Serialize( _keepOriginalFileName, out );
 }
 
 void ImageWriterWindow::Deserialize( std::istream& in )
 {
     PipelineElementWindow::Deserialize( in );
-    _workingDirectory = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
-    _fileName = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
+    _workingDirectory = gui::Deserialize<std::string>( in, _remainingBytes );
+    _fileName = gui::Deserialize<std::string>( in, _remainingBytes );
+    _formatId = gui::Deserialize<int>( in, _remainingBytes );
+    _keepOriginalFileName = gui::Deserialize<bool>( in, _remainingBytes );
 }
 
-int ImageWriterWindow::GetSerializedStringSize()
+int ImageWriterWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() 
         + gui::GetSerializedStringSize( _workingDirectory )
-        + gui::GetSerializedStringSize( _fileName );
+        + gui::GetSerializedStringSize( _fileName )
+        + gui::GetSerializedStringSize( _formatId )
+        + gui::GetSerializedStringSize( _keepOriginalFileName );
 }
 
 /*std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask(size_t i)
@@ -93,8 +134,26 @@ int ImageWriterWindow::GetSerializedStringSize()
 
 IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
 {
-    const size_t dotPos = _fileName.find_last_of( '.' );
-    IBitmap::Save( pSource, (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + std::to_string( taskNumber ) + _fileName.substr( dotPos )) );
+    std::string finalName;
+    if ( _keepOriginalFileName )
+    {
+        auto taskName = GetTaskName( taskNumber );
+        const size_t lastSlashPos = taskName.find_last_of( "\\/" );
+        const size_t lastDotPos = taskName.find_last_of( '.' );
+
+        static const auto extensions = ImageEncoder::GetAllExtensions();
+        auto extensionIt = extensions.begin();
+        std::advance( extensionIt, _formatId );
+
+        finalName = _workingDirectory + "/" + taskName.substr( lastSlashPos + 1, lastDotPos - lastSlashPos - 1 ) + *extensionIt;
+    }
+    else
+    {
+        const size_t dotPos = _fileName.find_last_of( '.' );
+        finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + std::to_string( taskNumber ) + _fileName.substr( dotPos ) );
+    }
+
+    IBitmap::Save( pSource, finalName );
     return nullptr;
 }
 

@@ -22,7 +22,7 @@ std::string GetFilters()
 }
 
 ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
-: PipelineElementWindow( "Image Reader", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
+: PipelineElementWindow( "Import Images", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
 , _workingDirectory( "." )
 {
 }
@@ -30,7 +30,7 @@ ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
 void ImageReaderWindow::DrawPipelineElementControls()
 {
     const auto& style = ImGui::GetStyle();
-    const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;    
+    const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
     if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 85 * cMenuScaling } ) )
     {
@@ -94,7 +94,7 @@ std::expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     }
 }
 
-void ImageReaderWindow::Serialize(std::ostream& out)
+void ImageReaderWindow::Serialize(std::ostream& out) const
 {
     PipelineElementWindow::Serialize(out);
     gui::Serialize( _workingDirectory, out);
@@ -110,12 +110,17 @@ void ImageReaderWindow::Deserialize(std::istream& in)
     _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
 }
 
-int ImageReaderWindow::GetSerializedStringSize()
+int ImageReaderWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() 
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileNames )
         + gui::GetSerializedStringSize( _selectedItemIdx );
+}
+
+std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
+{
+    return (taskNumber < _fileNames.size()) ? _fileNames[taskNumber] : std::string{};
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )

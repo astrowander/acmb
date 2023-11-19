@@ -17,7 +17,7 @@ public:
     /// writes given bitmap
     void WriteBitmap(std::shared_ptr<IBitmap> pBitmap) override;
     /// returns supported extensions
-    static std::unordered_set<std::string> GetExtensions();
+    static std::set<std::string> GetExtensions();
 private:
     template<uint32_t bytes>
     void WriteBinary(std::shared_ptr<IBitmap> pBitmap);

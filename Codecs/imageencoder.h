@@ -4,7 +4,7 @@
 #include <string>
 #include <ostream>
 #include <memory>
-#include <unordered_set>
+#include <set>
 
 ACMB_NAMESPACE_BEGIN
 
@@ -16,7 +16,7 @@ class ImageEncoder: public IPipelineElement
 {
 protected:
     std::shared_ptr<std::ostream> _pStream;
-    inline static std::unordered_set<std::string> _allExtensions;
+    inline static std::set<std::string> _allExtensions;
 
 public:
     /// attach decoder to a stream
@@ -32,12 +32,12 @@ public:
     /// needed for the compatibility with pipelines
     static std::shared_ptr<ImageEncoder> Create(const std::string& fileName);
     /// returns all supported extensions by all encoders
-    static const std::unordered_set<std::string>& GetAllExtensions();
+    static const std::set<std::string>& GetAllExtensions();
     /// needed for the compatibility with pipelines
     virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
 
 protected:
-    static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
+    static bool AddCommonExtensions( const std::set<std::string>& extensions );
 };
 
 #define ADD_EXTENSIONS inline static bool handle = AddCommonExtensions(GetExtensions());

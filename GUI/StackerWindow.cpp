@@ -19,6 +19,7 @@ void StackerWindow::DrawPipelineElementControls()
     ImGui::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ) );
     ImGui::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ) );
 
+    ImGui::Separator();
     ImGui::Text( "Star Detection Threshold" );
     if ( _stackMode == StackMode::Light )
         ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f );
@@ -73,7 +74,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
     }
 }
 
-void StackerWindow::Serialize( std::ostream& out )
+void StackerWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _stackMode, out );
@@ -87,7 +88,7 @@ void StackerWindow::Deserialize( std::istream& in )
     _threshold = gui::Deserialize<float>( in, _remainingBytes );
 }
 
-int StackerWindow::GetSerializedStringSize()
+int StackerWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize()
         + gui::GetSerializedStringSize( _stackMode )

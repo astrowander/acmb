@@ -6,7 +6,7 @@ ACMB_NAMESPACE_BEGIN
 
 class ResizeTransformThreadPool : public avir::CImageResizerThreadPool
 {
-    inline static const int MaxThreadCount = std::thread::hardware_concurrency();    
+    inline static const int MaxThreadCount = std::thread::hardware_concurrency();
     std::vector<CWorkload*> workloads;
     uint64_t threadsRunningMask = 0;
 

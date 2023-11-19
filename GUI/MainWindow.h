@@ -43,7 +43,7 @@ class MainWindow : public Window
     void ProcessKeyboardEvents();
     void ProcessMouseEvents();
 
-    virtual ImGuiWindowFlags flags() override { return  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration; }
+    virtual ImGuiWindowFlags flags() const override { return  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration; }
 
     const FontRegistry& _fontRegistry;
     

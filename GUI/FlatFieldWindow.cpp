@@ -12,9 +12,7 @@ DivideImageWindow::DivideImageWindow( const Point& gridPos )
 
 void DivideImageWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "Dark Frame Is on:" );
-    ImGui::RadioButton( "Top", &_primaryInputIsOnLeft, 1 );
-    ImGui::RadioButton( "Left", &_primaryInputIsOnLeft, 0 );
+    ImGui::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop );
     ImGui::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 100.0f );
 }
 
@@ -23,7 +21,7 @@ IBitmapPtr DivideImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
     return BitmapDivisor::Divide( pSource, { .pDivisor = _pSecondaryInputResult, .intensity = _intensity } );
 }
 
-void DivideImageWindow::Serialize(std::ostream& out)
+void DivideImageWindow::Serialize(std::ostream& out) const
 {
     PipelineElementWindow::Serialize(out);
     gui::Serialize(_intensity, out);
@@ -35,7 +33,7 @@ void DivideImageWindow::Deserialize(std::istream& in)
     _intensity = gui::Deserialize<float>(in, _remainingBytes);
 }
 
-int DivideImageWindow::GetSerializedStringSize()
+int DivideImageWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _intensity );
 }

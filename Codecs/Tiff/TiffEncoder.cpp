@@ -60,7 +60,7 @@ void TiffEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     }
 }
 
-std::unordered_set<std::string> TiffEncoder::GetExtensions()
+std::set<std::string> TiffEncoder::GetExtensions()
 {
     return { ".tif", ".tiff" };
 }

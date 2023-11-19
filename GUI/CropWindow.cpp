@@ -12,6 +12,7 @@ CropWindow::CropWindow( const Point& gridPos )
 
 void CropWindow::DrawPipelineElementControls()
 {
+    ImGui::Text( "Destination Rect:" );
     ImGui::DragInt( "Left", &_dstRect.x, 1.0f, 1, 65535 );
     ImGui::DragInt( "Top", &_dstRect.y, 1.0f, 1, 65535 );
     ImGui::DragInt( "Width", &_dstRect.width, 1.0f, 1, 65535 );
@@ -23,7 +24,7 @@ IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t
     return CropTransform::Crop( pSource, _dstRect );
 }
 
-void CropWindow::Serialize( std::ostream& out )
+void CropWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _dstRect, out );
@@ -35,7 +36,7 @@ void CropWindow::Deserialize( std::istream& in )
     _dstRect = gui::Deserialize<Rect>( in, _remainingBytes );
 }
 
-int CropWindow::GetSerializedStringSize()
+int CropWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstRect );
 }
