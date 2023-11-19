@@ -9,14 +9,17 @@
 #include "FlatFieldWindow.h"
 #include "FontRegistry.h"
 #include "FileDialog.h"
+#include "ImGuiHelpers.h"
 //#include "ImGuiFileDialog/ImGuiFileDialog.h"
 #include <fstream>
 #include <thread>
 
-ACMB_GUI_NAMESPACE_BEGIN
+#ifdef _WIN32
+#include <atltypes.h>
+#include <WinUser.h>
+#endif
 
-static constexpr int windowWidth = 1920;
-static constexpr int windowHeight = 1080;
+ACMB_GUI_NAMESPACE_BEGIN
 
 static constexpr float cMenuButtonSize = 50.0f;
 
@@ -29,30 +32,12 @@ static constexpr float cGridCellPadding = 25.0f;
 static constexpr float cGridCellWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
 static constexpr float cGridCellHeight = PipelineElementWindow::cElementHeight + 2.0f * cGridCellPadding;
 
-
-static void SetTooltipIfHovered( const std::string& text, float scaling )
-{
-    if ( !ImGui::IsItemHovered() || ImGui::IsItemActive() )
-        return;
-
-    assert( scaling > 0.f );
-
-    constexpr float cMaxWidth = 400.f;
-    const auto& style = ImGui::GetStyle();
-    auto textSize = ImGui::CalcTextSize( text.c_str(), nullptr, false, cMaxWidth * scaling - style.WindowPadding.x * 2 );
-    ImGui::SetNextWindowSize( ImVec2{ textSize.x + style.WindowPadding.x * 2, 0 } );
-
-    ImGui::BeginTooltip();
-    ImGui::TextWrapped( "%s", text.c_str() );
-    ImGui::EndTooltip();
-}
-
 MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry )
     : Window( "acmb", size )
     , _fontRegistry( fontRegistry )
 {
     SetPos( pos );
-    _viewportSize = { (  windowWidth - int( cGridLeft ) ) / int( cGridCellWidth ), ( windowHeight - int( cGridTop ) ) / int( cGridCellHeight ) };
+    _viewportSize = { (  int( size.x ) - int( cGridLeft ) ) / int( cGridCellWidth ), ( int( size.y ) - int(cGridTop)) / int(cGridCellHeight)};
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (Point)
     {
@@ -77,12 +62,12 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
     MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [this] (Point)
     {
-        FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "", 1 );
+        FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "./presets/", 1 );
     } );
 
     MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [this] ( Point )
     {
-        FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "", 1 );
+        FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "./presets/", 1 );
     } );
 }
 
@@ -377,7 +362,7 @@ void MainWindow::DrawMenu()
                 item.second->action( _activeCell );
 
             ImGui::PopFont();
-            SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
+            ImGui::SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
 
             //ImGui::PushFont( _fontRegistry.big );
             const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
@@ -443,6 +428,7 @@ void MainWindow::DrawDialog()
         for ( auto& pElement : _grid )
             pElement.reset();
     }
+    ImGui::SetTooltipIfHovered( "Clear table", cMenuScaling );
 
     //ImGui::BeginChild( "GridWindow" );
     auto drawList = ImGui::GetWindowDrawList();
@@ -618,9 +604,19 @@ void MainWindow::DrawDialog()
     }
 }
 
+static CRect GetWorkingArea()
+{
+    CRect rcDesktop;
+    ::SystemParametersInfo( SPI_GETWORKAREA, NULL, &rcDesktop, NULL );
+    return rcDesktop;
+}
+
 MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
 {
-    static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( ImVec2{ 0, 0 }, ImVec2{ windowWidth, windowHeight }, fontRegistry ) );
+#ifdef _WIN32
+    static auto rcDesktop = GetWorkingArea();
+    static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( ImVec2{ float( rcDesktop.left ), float( rcDesktop.top ) }, ImVec2{ float( rcDesktop.Width() ), float( rcDesktop.Height() ) }, fontRegistry));
+#endif
     return *pInstance;
 }
 

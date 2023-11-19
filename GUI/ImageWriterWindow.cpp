@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "FileDialog.h"
 #include "Serializer.h"
+#include "ImGuiHelpers.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Codecs/imageencoder.h"
@@ -43,6 +44,7 @@ ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
 void ImageWriterWindow::DrawPipelineElementControls()
 {
     ImGui::Checkbox( "Keep Original Name", &_keepOriginalFileName );
+    ImGui::SetTooltipIfHovered( "If checked then the images will be saved with their original names. Otherwise the custom name will be used (with number postfixes for multiple images)", cMenuScaling );
     ImGui::Separator();
 
     const float itemWidth = 100.0f * cMenuScaling;

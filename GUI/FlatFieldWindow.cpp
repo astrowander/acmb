@@ -1,6 +1,8 @@
 #include "FlatFieldWindow.h"
 #include "MainWindow.h"
 #include "Serializer.h"
+#include "ImGuiHelpers.h"
+
 #include "./../Transforms/BitmapDivisor.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -13,7 +15,9 @@ DivideImageWindow::DivideImageWindow( const Point& gridPos )
 void DivideImageWindow::DrawPipelineElementControls()
 {
     ImGui::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop );
-    ImGui::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 100.0f );
+    ImGui::SetTooltipIfHovered( "By default the top image is considered as a flat field and applied to the left one. If checked, the left image is considered as a flat field", cMenuScaling );
+    ImGui::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 500.0f );
+    ImGui::SetTooltipIfHovered( "The effect of the instrument can be weakened or enhanced. The default value is 100 percent", cMenuScaling );
 }
 
 IBitmapPtr DivideImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

@@ -11,6 +11,8 @@
 #include "FontRegistry.h"
 #include "MainWindow.h"
 
+#include <atltypes.h>
+
 // Data
 static ID3D11Device*            g_pd3dDevice = nullptr;
 static ID3D11DeviceContext*     g_pd3dDeviceContext = nullptr;
@@ -30,9 +32,12 @@ int main(int, char**)
 {
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ImGui Example", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ACMB", nullptr };
     ::RegisterClassExW(&wc);
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear ImGui DirectX11 Example", WS_OVERLAPPEDWINDOW, 100, 100, 1920, 1080, nullptr, nullptr, wc.hInstance, nullptr);
+
+    CRect rcDesktop;
+    ::SystemParametersInfo( SPI_GETWORKAREA, NULL, &rcDesktop, NULL );
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"acmb", WS_OVERLAPPEDWINDOW, rcDesktop.left, rcDesktop.top, rcDesktop.Width(), rcDesktop.Height(), nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))

@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "Serializer.h"
 #include "../Transforms/BitmapSubtractor.h"
+#include "ImGuiHelpers.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -13,6 +14,7 @@ SubtractImageWindow::SubtractImageWindow( const Point& gridPos )
 void SubtractImageWindow::DrawPipelineElementControls()
 {
     ImGui::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop );
+    ImGui::SetTooltipIfHovered( "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one", cMenuScaling );
 }
 
 IBitmapPtr SubtractImageWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

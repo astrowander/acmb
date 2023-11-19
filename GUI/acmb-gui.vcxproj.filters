@@ -87,6 +87,9 @@
     <ClCompile Include="FileDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImGuiHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -163,6 +166,9 @@
     </ClInclude>
     <ClInclude Include="FileDialog.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGuiHelpers.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
