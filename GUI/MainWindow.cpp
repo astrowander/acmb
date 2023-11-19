@@ -45,8 +45,11 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         _isBusy = true;
         std::thread process( [&]
         {
+            _startTime = std::chrono::high_resolution_clock::now();
+            _durationString.clear();
+
             if ( _writers.empty() )
-                _errors.emplace_back( "No writers" );
+                _errors.emplace_back( "There are not 'Export' tools in the scheme" );
 
             for ( auto pWriter : _writers )
             {
@@ -55,7 +58,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
             }
 
             _isBusy = false;
-            _finished = true;
+            _showResultsPopup = true;
         } );
         process.detach();
     } );
@@ -68,6 +71,11 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [this] ( Point )
     {
         FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "./presets/", 1 );
+    } );
+
+    MenuItemsHolder::GetInstance().AddItem( "Help", 1, "\xef\x84\xa8", "Help", "Show modal window with instructions", [this] ( Point )
+    {
+        _showHelpPopup = true;
     } );
 }
 
@@ -205,7 +213,7 @@ void MainWindow::OpenProject()
     auto reportError = [this] ( const std::string msg )
     {
         _errors.push_back( msg );
-        ImGui::OpenPopup( "ResultsPopup" );
+        _showResultsPopup = true;
         return FileDialog::Instance().Close();
     };
     std::string filePath = FileDialog::Instance().GetFilePathName();
@@ -293,7 +301,7 @@ void MainWindow::SaveProject()
     if ( !fout )
     {
         _errors.push_back( "Unable to save file" );
-        ImGui::OpenPopup( "ResultsPopup" );
+        _showResultsPopup = true;
         return FileDialog::Instance().Close();
     }
 
@@ -364,12 +372,10 @@ void MainWindow::DrawMenu()
             ImGui::PopFont();
             ImGui::SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
 
-            //ImGui::PushFont( _fontRegistry.big );
             const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
             ImGui::SetCursorPos( { oldPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, oldPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
             ImGui::Text( "%s", item.second->caption.c_str() );
             ImGui::SetCursorPos( { oldPos.x + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.x, oldPos.y});
-            //ImGui::PopFont();
         }
 
         ImGui::EndChild();
@@ -379,20 +385,13 @@ void MainWindow::DrawMenu()
         ImGui::SameLine();
     }
 
-    //ImGui::BeginChild( "EmptyMenuSpace", { -1, 0} );
     ImGui::PushFont( _fontRegistry.bold );
     ImGui::SeparatorText( "##EmptyMenuSpace" );
-    //ImGui::NewLine();
-    //ImGui::Text( "BottomLine" );
     ImGui::PopFont();
-    //ImGui::EndChild();
-
 
     auto fileDialog = FileDialog::Instance();
     if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        //MainWindowInterfaceLock lock;
-
         if ( fileDialog.IsOk() )
             OpenProject();
 
@@ -401,8 +400,6 @@ void MainWindow::DrawMenu()
 
     if ( fileDialog.Display( "SaveProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        //MainWindowInterfaceLock lock;
-
         if ( fileDialog.IsOk() )
             SaveProject();
 
@@ -430,11 +427,8 @@ void MainWindow::DrawDialog()
     }
     ImGui::SetTooltipIfHovered( "Clear table", cMenuScaling );
 
-    //ImGui::BeginChild( "GridWindow" );
     auto drawList = ImGui::GetWindowDrawList();
-
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32( ImGui::GetStyleColorVec4( ImGuiCol_Separator ) ), 3.0f );
-
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 1 }, { _size.x, cGridTop - cHeadRowHeight - 1 }, ImU32( UIColor::TableBorders ) );
     drawList->AddLine( { 1, cGridTop - cHeadRowHeight - 1 }, { 1, _size.y }, ImU32( UIColor::TableBorders ), 2.0f );
 
@@ -581,26 +575,34 @@ void MainWindow::DrawDialog()
 
     ImGui::PopFont();
 
-    if ( _finished )
+    if ( _showResultsPopup )
     {
-        ImGui::OpenPopup( "ResultsPopup" );
-        _finished = false;
-    }
+        if ( _durationString.empty() )
+        {
+            const auto ms = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::high_resolution_clock::now() - _startTime).count();
+            _durationString = "Elapsed " + std::to_string( ms / 1000 ) + "s " + std::to_string( ms % 1000 ) + "ms";
+        }
 
-    if ( ImGui::BeginPopup( "ResultsPopup" ) )
-    {
         if ( _errors.empty() )
         {
-            ImGui::TextColored( { 0, 1, 0, 1 }, "Success!" );
-            return ImGui::EndPopup();
+            return ImGui::ShowModalMessage( { "Success!", _durationString }, ImGui::ModalMessageType::Success, _showResultsPopup);
         }
 
-        for ( const auto& error : _errors )
-        {
-            ImGui::TextColored( { 1, 0, 0, 1 }, "%s", error.c_str() );
-        }
+        return ImGui::ShowModalMessage( _errors, ImGui::ModalMessageType::Error, _showResultsPopup );
+    }
 
-        return ImGui::EndPopup();
+    if ( _showHelpPopup )
+    {
+        ImGui::ShowModalMessage( 
+            { "1. Each cell may contain a tool that imports, processes, or exports images to disk.\n"
+              "2. The schema must contain at least one 'Import' and 'Export' tool.\n"
+              "3. Tools (except for 'Import') accept images as input from the adjacent cell to the left or top of themselves.\n"
+              "4. Tools (except for 'Import') (except 'Export') transmit read/processed images to the adjacent right or bottom cell\n"
+              "5. Images between tools connected by three parallel arrows are transmitted one by one, in batch mode.\n"
+              "6. Images between instruments connected by converging lines are first summed up, and then processed by the receiving instrument.\n"
+              "7. The type of connection between the tools can be changed by double-clicking \n"
+              "8. To learn more, follow the link https://github.com/astrowander/acmb#readme" },
+            ImGui::ModalMessageType::Help, _showHelpPopup );
     }
 }
 

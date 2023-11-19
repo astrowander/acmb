@@ -163,17 +163,17 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
 {
     auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
-        return { "No input element" };
+        return { "No primary input for the'" + _name + "' element" };
 
     _taskCount = pPrimaryInput->GetTaskCount();
     if ( _taskCount == 0 )
-        return { "No tasks" };
+        return { "No input frames for the'" + _name + "' element" };
 
-    if ( _workingDirectory.empty() )
-        return { "Working directory is not specified" };
+    if ( _keepOriginalFileName && _workingDirectory.empty() )
+        return { "Working directory for the'" + _name + "' element is not specified" };
 
-    if ( _fileName.empty() )
-        return { "File name is not specified" };
+    if ( !_keepOriginalFileName && _fileName.empty() )
+        return { "File name for the'" + _name + "' element is not specified" };
 
     std::vector<std::string> res;
     for ( size_t i = 0; i < _taskCount; ++i )

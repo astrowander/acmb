@@ -45,7 +45,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
 
     const auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
-        return std::unexpected( "No input " );
+        return std::unexpected( "Primary input of the '" + _name + "' element is not set" );
 
     auto relationType = (pPrimaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
@@ -59,7 +59,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
 
         const size_t inputTaskCount = pPrimaryInput->GetTaskCount();
         if ( inputTaskCount == 0 )
-            return std::unexpected( "No input frames" );
+            return std::unexpected( "No input frames for the'" + _name + "' element");
 
         try
         {
@@ -107,7 +107,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryIn
 
     auto pSecondaryInput = GetSecondaryInput();
     if ( !pSecondaryInput )
-        return std::unexpected( "No secondary input" );
+        return std::unexpected( "Secondary input of the '" + _name + "' element is not set" );
 
     auto relationType = (pSecondaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
@@ -121,7 +121,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryIn
 
         const size_t inputTaskCount = pSecondaryInput->GetTaskCount();
         if ( inputTaskCount == 0 )
-            return std::unexpected( "No input frames" );
+            return std::unexpected( "No input frames for the'" + _name + "' element" );
 
         try
         {
@@ -168,7 +168,7 @@ std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput()
         return res;
     }
 
-    return _primaryInputIsOnTop ? GetTopInput() : GetLeftInput();    
+    return _primaryInputIsOnTop ? GetTopInput() : GetLeftInput();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetSecondaryInput() const

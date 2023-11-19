@@ -3,7 +3,8 @@
 #include "./../Geometry/size.h"
 #include "./../Geometry/point.h"
 #include <array>
-#include<unordered_map>
+#include <unordered_map>
+#include <chrono>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -26,9 +27,13 @@ class MainWindow : public Window
     Point _activeCell;
 
     bool _isBusy = false;
-    bool _finished = false;
+    bool _showResultsPopup = false;
+    bool _showHelpPopup = false;
 
     bool _lockInterface = false;
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
+    std::string _durationString;
 
     MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry );
     MainWindow( const MainWindow& ) = delete;
