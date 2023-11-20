@@ -32,9 +32,9 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 85 * cMenuScaling } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 128 } ) )
     {
-        for ( int i = 0; i < _fileNames.size(); ++i )
+        for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
             const bool is_selected = ( _selectedItemIdx == i );
             const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
@@ -82,7 +82,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     }
 }
 
-std::expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
+Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
 {
     try
     {
@@ -90,7 +90,7 @@ std::expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     }
     catch ( std::exception& e )
     {
-        return std::unexpected( e.what() );
+        return unexpected( e.what() );
     }
 }
 
@@ -99,7 +99,7 @@ void ImageReaderWindow::Serialize(std::ostream& out) const
     PipelineElementWindow::Serialize(out);
     gui::Serialize( _workingDirectory, out);
     gui::Serialize( std::move( _fileNames ), out);
-    gui::Serialize(_selectedItemIdx, out);
+    gui::Serialize(_selectedItemIdx, out);    
 }
 
 void ImageReaderWindow::Deserialize(std::istream& in)
@@ -108,6 +108,8 @@ void ImageReaderWindow::Deserialize(std::istream& in)
     _workingDirectory = gui::Deserialize<std::string>(in, _remainingBytes);
     _fileNames = gui::Deserialize<std::vector<std::string>>(in, _remainingBytes);
     _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
+
+    _taskCount = _fileNames.size();
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const

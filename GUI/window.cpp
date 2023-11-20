@@ -1,4 +1,5 @@
 #include "window.h"
+#include <GLFW/glfw3.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -51,8 +52,14 @@ float Window::GetMenuScaling()
 
     // Calculate the scaling factor
     return float( cxPhysical ) / cxLogical;
+#elif defined ( __linux__ )
+    static const auto glfwHandle = glfwInit();
+    float xscale, yscale;
+    glfwGetMonitorContentScale( glfwGetPrimaryMonitor(), &xscale, &yscale);
+    return xscale;
 #endif
 
+    return 1.0f;
 }
 
 ACMB_GUI_NAMESPACE_END

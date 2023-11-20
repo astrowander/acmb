@@ -31,23 +31,23 @@ void StackerWindow::DrawPipelineElementControls()
     //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
 
-std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
+Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
 {
     _completedTaskCount = 0;
 
     auto pInput = GetPrimaryInput();
     if ( !pInput )
-        return std::unexpected( "No primary input for the'" + _name + "' element" );
+        return unexpected( "No primary input for the'" + _name + "' element" );
 
     const size_t inputTaskCount = pInput->GetTaskCount();
     if ( inputTaskCount == 0 )
-        return std::unexpected( "No input frames for the'" + _name + "' element" );
+        return unexpected( "No input frames for the'" + _name + "' element" );
 
     try
     {
         auto pBitmap = pInput->RunTaskAndReportProgress( 0 );
         if ( !pBitmap )
-            return std::unexpected( pBitmap.error() );
+            return unexpected( pBitmap.error() );
 
         std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, _stackMode ) ) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
@@ -60,7 +60,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
         {
             pBitmap = pInput->RunTaskAndReportProgress( i );
             if ( !pBitmap )
-                return std::unexpected( pBitmap.error() );
+                return unexpected( pBitmap.error() );
 
             pStacker->AddBitmap( *pBitmap );
 
@@ -74,7 +74,7 @@ std::expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
     }
     catch ( std::exception& e )
     {
-        return std::unexpected( e.what() );
+        return unexpected( e.what() );
     }
 }
 

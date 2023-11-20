@@ -1,12 +1,5 @@
 #include "MainWindow.h"
-#include "ImageReaderWindow.h"
 #include "ImageWriterWindow.h"
-#include "ConverterWindow.h"
-#include "ResizeWindow.h"
-#include "StackerWindow.h"
-#include "CropWindow.h"
-#include "SubtractImageWindow.h"
-#include "FlatFieldWindow.h"
 #include "FontRegistry.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
@@ -17,6 +10,8 @@
 #ifdef _WIN32
 #include <atltypes.h>
 #include <WinUser.h>
+#elif defined ( __linux__ )
+#include <GLFW/glfw3.h>
 #endif
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -63,12 +58,12 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [this] (Point)
+    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [] (Point)
     {
         FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "./presets/", 1 );
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [] ( Point )
     {
         FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "./presets/", 1 );
     } );
@@ -224,7 +219,7 @@ void MainWindow::OpenProject()
         return reportError( "Unable to open file" );
 
     fin.seekg( 0, std::ios_base::end );
-    size_t streamSize = fin.tellg();
+    int streamSize = fin.tellg();
     if ( streamSize < 6 )
         return reportError( "File is too small" );
 
@@ -249,8 +244,8 @@ void MainWindow::OpenProject()
     std::string serialized( charCount, '\0' );
     fin.read( serialized.data(), charCount );
 
-    for ( size_t i = 0; i < actualGridSize.height; ++i )
-    for ( size_t j = 0; j < actualGridSize.width; ++j )
+    for ( int i = 0; i < actualGridSize.height; ++i )
+    for ( int j = 0; j < actualGridSize.width; ++j )
     {
         if ( uint8_t menuOrder = serialized[i * actualGridSize.width + j] )
         {
@@ -327,16 +322,16 @@ void MainWindow::SaveProject()
 
     std::string chars( actualGridSize.width * actualGridSize.height, '\0' );
 
-    for ( size_t i = 0; i < actualGridSize.height; ++i )
-        for ( size_t j = 0; j < actualGridSize.width; ++j )
+    for ( int i = 0; i < actualGridSize.height; ++i )
+        for ( int j = 0; j < actualGridSize.width; ++j )
         {
             chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
         }
 
     fout.write( chars.data(), chars.size() );
 
-    for ( size_t i = 0; i < actualGridSize.height; ++i )
-        for ( size_t j = 0; j < actualGridSize.width; ++j )
+    for ( int i = 0; i < actualGridSize.height; ++i )
+        for ( int j = 0; j < actualGridSize.width; ++j )
         {
             if ( _grid[i * cGridSize.height + j] )
                 _grid[i * cGridSize.height + j]->Serialize( fout );
@@ -345,8 +340,6 @@ void MainWindow::SaveProject()
 
 void MainWindow::DrawMenu()
 {
-    float shift = 0;
-
     for ( const auto& it : MenuItemsHolder::GetInstance().GetItems() )
     {
         const auto& category = it.first;
@@ -606,19 +599,30 @@ void MainWindow::DrawDialog()
     }
 }
 
+#ifdef _WIN32
 static CRect GetWorkingArea()
 {
     CRect rcDesktop;
     ::SystemParametersInfo( SPI_GETWORKAREA, NULL, &rcDesktop, NULL );
     return rcDesktop;
 }
+#endif
+
+static std::pair<ImVec2, ImVec2> GetWindowRect()
+{
+#ifdef _WIN32
+    const auto rcDesktop = GetWorkingArea();
+    return {{float( rcDesktop.left ), float( rcDesktop.top )}, {float( rcDesktop.Width() ), float( rcDesktop.Height() )} };
+#elif defined ( __linux__ )
+    const auto pVideoMode = glfwGetVideoMode( glfwGetPrimaryMonitor() );
+    return { { 0.0f, 0.0f}, {float( pVideoMode->width ), float( pVideoMode->height ) } };
+#endif
+}
 
 MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
 {
-#ifdef _WIN32
-    static auto rcDesktop = GetWorkingArea();
-    static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( ImVec2{ float( rcDesktop.left ), float( rcDesktop.top ) }, ImVec2{ float( rcDesktop.Width() ), float( rcDesktop.Height() ) }, fontRegistry));
-#endif
+    static const auto windowRect = GetWindowRect();
+    static auto pInstance = std::unique_ptr<MainWindow>( new MainWindow( windowRect.first, windowRect.second, fontRegistry));
     return *pInstance;
 }
 
@@ -628,8 +632,8 @@ void MainWindow::Show()
 
     for ( size_t i = 0; i < _grid.size(); ++i )
     {
-        const size_t x = i % cGridSize.width;
-        const size_t y = i / cGridSize.width;
+        const int x = i % cGridSize.width;
+        const int y = i / cGridSize.width;
 
         if ( x < _viewportStart.x || x >= _viewportStart.x + _viewportSize.width ||
              y < _viewportStart.y || y >= _viewportStart.y + _viewportSize.height )

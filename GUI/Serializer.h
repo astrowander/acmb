@@ -50,7 +50,7 @@ T Deserialize( std::istream& in, int& remainingBytes )
 {
     if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
     {
-        if ( remainingBytes < sizeof( int ) )
+        if ( remainingBytes < int( sizeof( int ) ) )
         {
             in.seekg( remainingBytes, std::ios_base::cur );
             remainingBytes = 0;
@@ -70,7 +70,7 @@ T Deserialize( std::istream& in, int& remainingBytes )
 
     if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
     {
-        if ( remainingBytes < sizeof( int ) )
+        if ( remainingBytes < int( sizeof( int ) ) )
         {
             in.seekg( remainingBytes, std::ios_base::cur );
             remainingBytes = 0;
@@ -79,13 +79,13 @@ T Deserialize( std::istream& in, int& remainingBytes )
 
         int size = Deserialize<int>( in, remainingBytes );
         std::vector<std::string> vec( size );
-        for ( size_t i = 0; i < size; ++i )
+        for ( int i = 0; i < size; ++i )
             vec[i] = Deserialize<std::string>( in, remainingBytes );
 
         return vec;
     }
 
-    if ( remainingBytes < sizeof( T ) )
+    if ( remainingBytes < int( sizeof( T )  ) )
     {
         in.seekg( remainingBytes, std::ios_base::cur );
         remainingBytes = 0;

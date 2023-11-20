@@ -5,6 +5,7 @@ SUBDIRS += \
     App/acmb-app.pro \
     Client/acmb-client.pro \
     Cuda/acmb-cuda.pro \
+    GUI/acmb-gui.pro \
     Server/acmb-server.pro \
     Tests/acmb-tests.pro
 

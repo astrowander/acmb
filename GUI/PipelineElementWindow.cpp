@@ -16,50 +16,51 @@ PipelineElementWindow::PipelineElementWindow( const std::string& name, const Poi
 {
 }
 
-std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgress( size_t i )
+Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgress( size_t i )
 {
-    std::expected<IBitmapPtr, std::string> res;
+    Expected<IBitmapPtr, std::string> res;
     try
     {
         res = RunTask( i );
     }
     catch ( std::exception& e )
     {
-        res = std::unexpected( e.what() );
+        _completedTaskCount = i + 1;
+        return unexpected( e.what() );
     }
 
     _completedTaskCount = i + 1;
     return res;
 }
 
-std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
+Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 {
     if ( _completedTaskCount == 0 && (_inOutFlags & PEFlags_StrictlyTwoInputs) )
     {
         auto temp = ProcessSecondaryInput();
         if ( !temp.has_value() )
-            return std::unexpected( temp.error() );
+            return unexpected( temp.error() );
 
         _pSecondaryInputResult = temp.value();
     }
 
     const auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
-        return std::unexpected( "Primary input of the '" + _name + "' element is not set" );
+        return unexpected( "Primary input of the '" + _name + "' element is not set" );
 
     auto relationType = (pPrimaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
     {
         auto pBitmap = pPrimaryInput->RunTaskAndReportProgress( 0 );
         if ( !pBitmap )
-            return std::unexpected( pBitmap.error() );
+            return unexpected( pBitmap.error() );
 
         std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
 
         const size_t inputTaskCount = pPrimaryInput->GetTaskCount();
         if ( inputTaskCount == 0 )
-            return std::unexpected( "No input frames for the'" + _name + "' element");
+            return unexpected( "No input frames for the'" + _name + "' element");
 
         try
         {
@@ -67,7 +68,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
             {
                 pBitmap = pPrimaryInput->RunTaskAndReportProgress( i );
                 if ( !pBitmap )
-                    return std::unexpected( pBitmap.error() );
+                    return unexpected( pBitmap.error() );
 
                 pStacker->AddBitmap( *pBitmap );
 
@@ -81,13 +82,13 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
         }
         catch ( std::exception& e )
         {
-            return std::unexpected( e.what() );
+            return unexpected( e.what() );
         }
     }
 
     const auto taskRes = pPrimaryInput->RunTaskAndReportProgress( i );
     if ( !taskRes.has_value() )
-        return std::unexpected( taskRes.error() );
+        return unexpected( taskRes.error() );
 
     try
     {
@@ -95,33 +96,33 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i 
     }
     catch ( std::exception& e )
     {
-        return std::unexpected( e.what() );
+        return unexpected( e.what() );
     }
 
 }
 
-std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
+Expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
 {
     if ( !(_inOutFlags & PEFlags_StrictlyTwoInputs) )
         return nullptr;
 
     auto pSecondaryInput = GetSecondaryInput();
     if ( !pSecondaryInput )
-        return std::unexpected( "Secondary input of the '" + _name + "' element is not set" );
+        return unexpected( "Secondary input of the '" + _name + "' element is not set" );
 
     auto relationType = (pSecondaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
     {
         auto pBitmap = pSecondaryInput->RunTaskAndReportProgress( 0 );
         if ( !pBitmap )
-            return std::unexpected( pBitmap.error() );
+            return unexpected( pBitmap.error() );
 
         std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
 
         const size_t inputTaskCount = pSecondaryInput->GetTaskCount();
         if ( inputTaskCount == 0 )
-            return std::unexpected( "No input frames for the'" + _name + "' element" );
+            return unexpected( "No input frames for the'" + _name + "' element" );
 
         try
         {
@@ -129,7 +130,7 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryIn
             {
                 pBitmap = pSecondaryInput->RunTaskAndReportProgress( i );
                 if ( !pBitmap )
-                    return std::unexpected( pBitmap.error() );
+                    return unexpected( pBitmap.error() );
 
                 pStacker->AddBitmap( *pBitmap );
 
@@ -143,13 +144,13 @@ std::expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryIn
         }
         catch ( std::exception& e )
         {
-            return std::unexpected( e.what() );
+            return unexpected( e.what() );
         }
     }
 
     const auto taskRes = pSecondaryInput->RunTaskAndReportProgress( 0 );
     if ( !taskRes.has_value() )
-        return std::unexpected( taskRes.error() );
+        return unexpected( taskRes.error() );
 
     return taskRes.value();
 }

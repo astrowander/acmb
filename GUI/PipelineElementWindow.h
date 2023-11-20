@@ -7,10 +7,19 @@
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
 
+#if __cplusplus > 202002L && __cpp_concepts >= 202002L
 #include <expected>
-
-ACMB_GUI_NAMESPACE_BEGIN
-
+template <class T, class U>
+using Expected = std::expected<T,U>;
+using std::unexpected;
+#else
+#include "tl/expected.hpp"
+template <class T, class U>
+using Expected = tl::expected<T,U>;
+using namespace tl;
+//#define make_unexpected unexpected
+#endif
+ACMB_GUI_NAMESPACE_BEGIN    
 
 enum PEFlags : int
 {
@@ -79,15 +88,15 @@ protected:
 
     virtual void DrawPipelineElementControls() = 0;
     
-    virtual std::expected<IBitmapPtr, std::string> RunTask( size_t i );
+    virtual Expected<IBitmapPtr, std::string> RunTask( size_t i );
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
  
-    std::expected<IBitmapPtr, std::string> ProcessSecondaryInput();
+    Expected<IBitmapPtr, std::string> ProcessSecondaryInput();
     virtual ImGuiWindowFlags flags() const override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing; }
 
 public:
 
-    std::expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
+    Expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
 
     std::shared_ptr<PipelineElementWindow> GetPrimaryInput() const;
     std::shared_ptr<PipelineElementWindow> GetSecondaryInput() const;

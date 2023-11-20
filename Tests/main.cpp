@@ -2,5 +2,5 @@
 
 int main()
 {
-    acmb::tests::TestRunner::RunTest( "RawDecoder", "TestReadingFromStream" );
+    acmb::tests::TestRunner::RunAllTests();
 }
