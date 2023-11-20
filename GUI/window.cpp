@@ -1,8 +1,9 @@
 #include "window.h"
-#include <GLFW/glfw3.h>
 
 #ifdef _WIN32
 #include <Windows.h>
+#elif defined ( __linux__ )
+#include <GLFW/glfw3.h>
 #endif
 
 ACMB_GUI_NAMESPACE_BEGIN

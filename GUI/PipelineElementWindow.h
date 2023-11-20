@@ -19,7 +19,8 @@ using Expected = tl::expected<T,U>;
 using namespace tl;
 //#define make_unexpected unexpected
 #endif
-ACMB_GUI_NAMESPACE_BEGIN    
+
+ACMB_GUI_NAMESPACE_BEGIN
 
 enum PEFlags : int
 {

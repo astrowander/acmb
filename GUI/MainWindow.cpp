@@ -221,7 +221,7 @@ void MainWindow::OpenProject()
         return reportError( "Unable to open file" );
 
     fin.seekg( 0, std::ios_base::end );
-    int streamSize = fin.tellg();
+    int streamSize = int( fin.tellg() );
     if ( streamSize < 6 )
         return reportError( "File is too small" );
 
@@ -632,7 +632,7 @@ void MainWindow::Show()
 {
     Window::Show();
 
-    for ( size_t i = 0; i < _grid.size(); ++i )
+    for ( int i = 0; i < _grid.size(); ++i )
     {
         const int x = i % cGridSize.width;
         const int y = i / cGridSize.width;

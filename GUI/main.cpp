@@ -389,7 +389,7 @@ int main(int, char**)
     {
         acmb::GetEnv("ACMB_PATH");
     }
-    catch ( std::exception& e)
+    catch ( std::exception& )
     {
         std::cerr << "Environment variable ACMB_PATH is necessary for this app. It must contain the full path to the program folder" << std::endl;
         return 1;
