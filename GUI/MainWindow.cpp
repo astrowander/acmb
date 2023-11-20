@@ -3,7 +3,7 @@
 #include "FontRegistry.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
-//#include "ImGuiFileDialog/ImGuiFileDialog.h"
+#include "./../Tools/SystemTools.h"
 #include <fstream>
 #include <thread>
 
@@ -58,14 +58,16 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [] (Point)
+    const auto acmbPath = GetEnv( "ACMB_PATH" );
+
+    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [acmbPath] (Point)
     {
-        FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", "./presets/", 1 );
+        FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", ( acmbPath + "/GUI/presets/" ).c_str(), 1 );
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [acmbPath] ( Point )
     {
-        FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", "./presets/", 1 );
+        FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", ( acmbPath + "/GUI/presets/" ).c_str(), 1 );
     } );
 
     MenuItemsHolder::GetInstance().AddItem( "Help", 1, "\xef\x84\xa8", "Help", "Show modal window with instructions", [this] ( Point )
