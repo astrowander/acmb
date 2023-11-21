@@ -10,6 +10,8 @@
 ACMB_NAMESPACE_BEGIN
 /// returns given system environment variable. Throws exception if it doesn't exist
 std::string GetEnv( const std::string& name );
+/// returns path to acmb folder
+std::string GetAcmbPath();
 /// Converts given string to lower
 std::string ToLower( const std::string& val );
 
@@ -23,7 +25,7 @@ class RandomStringGenerator
 
 public:
     RandomStringGenerator( const std::string& characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
-    std::string operator()( std::size_t length = 10 );   
+    std::string operator()( std::size_t length = 10 );
 };
 
 ACMB_NAMESPACE_END

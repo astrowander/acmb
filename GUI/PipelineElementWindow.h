@@ -7,7 +7,7 @@
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
 
-#if __cplusplus > 202002L && __cpp_concepts >= 202002L
+#if ( defined _MSC_VER && _MSC_VER > 1900 ) || ( __cplusplus > 202002L && __cpp_concepts >= 202002L )
 #include <expected>
 template <class T, class U>
 using Expected = std::expected<T,U>;
@@ -17,7 +17,6 @@ using std::unexpected;
 template <class T, class U>
 using Expected = tl::expected<T,U>;
 using namespace tl;
-//#define make_unexpected unexpected
 #endif
 
 ACMB_GUI_NAMESPACE_BEGIN

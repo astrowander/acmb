@@ -385,15 +385,6 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 // Main code
 int main(int, char**)
 {
-    try
-    {
-        acmb::GetEnv("ACMB_PATH");
-    }
-    catch ( std::exception& )
-    {
-        std::cerr << "Environment variable ACMB_PATH is necessary for this app. It must contain the full path to the program folder" << std::endl;
-        return 1;
-    }
 #ifdef _WIN32
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();

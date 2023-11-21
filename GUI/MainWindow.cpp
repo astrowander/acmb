@@ -58,7 +58,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    const auto acmbPath = GetEnv( "ACMB_PATH" );
+    const auto acmbPath = GetAcmbPath();
 
     MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [acmbPath] (Point)
     {

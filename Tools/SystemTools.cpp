@@ -1,4 +1,5 @@
 #include "SystemTools.h"
+#include <filesystem>
 
 ACMB_NAMESPACE_BEGIN
 
@@ -18,6 +19,18 @@ std::string GetEnv( const std::string& name )
 
 	return val;
 #endif
+}
+
+std::string GetAcmbPath()
+{
+	try
+	{
+		return GetEnv( "ACMB_PATH" );
+	}
+	catch ( std::exception& )
+	{
+		return std::filesystem::current_path().string();
+	}
 }
 
 std::string ToLower( const std::string& val )
