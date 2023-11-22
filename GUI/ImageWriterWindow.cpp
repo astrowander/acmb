@@ -66,7 +66,8 @@ void ImageWriterWindow::DrawPipelineElementControls()
     {
         ImGui::Text( "File Name" );
         ImGui::SetNextItemWidth( itemWidth );
-        ImGui::InputText( "##File Name", ( char* ) _fileName.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+        const size_t lastSlash = _fileName.find_last_of( "\\/" );
+        ImGui::InputText( "##File Name", ( char* ) _fileName.substr( lastSlash + 1).c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 
         if ( ImGui::Button( "Select File", { itemWidth, 0 } ) )
         {

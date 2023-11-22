@@ -3,7 +3,6 @@
 
 #include "MenuItemsHolder.h"
 
-#include "./../Core/IPipelineElement.h"
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
 

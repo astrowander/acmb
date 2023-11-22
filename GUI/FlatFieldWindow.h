@@ -3,14 +3,14 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-class DivideImageWindow : public PipelineElementWindow
+class FlatFieldWindow : public PipelineElementWindow
 {
     float _intensity = 100.0f;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 public:
 
-    DivideImageWindow( const Point& gridPos );
+    FlatFieldWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual void Deserialize(std::istream& in) override;

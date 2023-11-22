@@ -237,7 +237,7 @@ void MainWindow::OpenProject()
     actualGridSize.height = fin.get();
 
     if ( actualGridSize.width > cGridSize.width || actualGridSize.height > cGridSize.height )
-        return reportError( "Table is too large" );
+        return reportError( "Schema is too large" );
 
     int charCount = actualGridSize.width * actualGridSize.height;
     if ( streamSize < charCount + 6 )
@@ -404,7 +404,7 @@ void MainWindow::DrawMenu()
 
 void MainWindow::DrawDialog()
 {
-    if ( !_lockInterface )
+    if ( !_lockInterface && !_showHelpPopup )
     {
         ProcessKeyboardEvents();
         ProcessMouseEvents();
@@ -649,5 +649,3 @@ void MainWindow::Show()
 }
 
 ACMB_GUI_NAMESPACE_END
-
-

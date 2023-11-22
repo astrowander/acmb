@@ -159,7 +159,7 @@
     <ClCompile Include="PipelineElementWindow.cpp" />
     <ClCompile Include="ResizeWindow.cpp" />
     <ClCompile Include="StackerWindow.cpp" />
-    <ClCompile Include="SubtractImageWindow.cpp" />
+    <ClCompile Include="DarkFrameWindow.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -187,7 +187,8 @@
     <ClInclude Include="ResizeWindow.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
-    <ClInclude Include="SubtractImageWindow.h" />
+    <ClInclude Include="DarkFrameWindow.h" />
+    <ClInclude Include="tl\expected.hpp" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
