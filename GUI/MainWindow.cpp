@@ -4,6 +4,7 @@
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
 #include "./../Tools/SystemTools.h"
+#include "./../Cuda/CudaInfo.h"
 #include <fstream>
 #include <thread>
 
@@ -380,9 +381,19 @@ void MainWindow::DrawMenu()
         ImGui::SameLine();
     }
 
-    ImGui::PushFont( _fontRegistry.bold );
-    ImGui::SeparatorText( "##EmptyMenuSpace" );
-    ImGui::PopFont();
+    const auto cachedPos = ImGui::GetCursorPos();
+
+    if ( _fontRegistry.bold )
+        ImGui::PushFont( _fontRegistry.bold );
+
+    ImGui::SeparatorText( "General Settings" );
+
+    if ( _fontRegistry.bold )
+        ImGui::PopFont();
+
+    ImGui::SetCursorPos( { cachedPos.x, cachedPos.y + ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y } );
+    if ( cuda::isCudaAvailable() )
+        ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 
     auto fileDialog = FileDialog::Instance();
     if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )

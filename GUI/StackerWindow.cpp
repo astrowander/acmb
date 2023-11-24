@@ -27,8 +27,6 @@ void StackerWindow::DrawPipelineElementControls()
     ImGui::SetTooltipIfHovered( "A group of pixels will be recognized as a star only if their luminosity is greater than this threshold (in percents) above the median value", cMenuScaling );
     if ( _stackMode == StackMode::Light )
         ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f );
-
-    //ImGui::Checkbox( "Enable CUDA", &_enableCuda );
 }
 
 Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
@@ -49,7 +47,7 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
         if ( !pBitmap )
             return unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, _stackMode ) ) :
+        std::shared_ptr<BaseStacker> pStacker = MainWindow::GetInstance( FontRegistry::Instance() ).isCudaEnabled() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
 
         pStacker->SetThreshold( _threshold );

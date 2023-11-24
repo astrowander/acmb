@@ -31,6 +31,7 @@ class MainWindow : public Window
     bool _showHelpPopup = false;
 
     bool _lockInterface = false;
+    bool _enableCuda = false;
 
     std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
     std::string _durationString;
@@ -117,6 +118,8 @@ public:
     void UnlockInterface() {
         _lockInterface = false;
     }
+
+    bool isCudaEnabled() { return _enableCuda; }
 };
 
 ACMB_GUI_NAMESPACE_END
