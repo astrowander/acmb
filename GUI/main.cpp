@@ -6,6 +6,7 @@
 #include "FontRegistry.h"
 #include "MainWindow.h"
 #include "./../Tools/SystemTools.h"
+#include "./../Core/versioning.h"
 #include <filesystem>
 
 #ifdef _WIN32
@@ -393,7 +394,7 @@ int main(int, char**)
 
     CRect rcDesktop;
     ::SystemParametersInfo( SPI_GETWORKAREA, NULL, &rcDesktop, NULL );
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"acmb", WS_OVERLAPPEDWINDOW, rcDesktop.left, rcDesktop.top, rcDesktop.Width(), rcDesktop.Height(), nullptr, nullptr, wc.hInstance, nullptr);
+    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"acmb v" FULL_VERSION, WS_OVERLAPPEDWINDOW, rcDesktop.left, rcDesktop.top, rcDesktop.Width(), rcDesktop.Height(), nullptr, nullptr, wc.hInstance, nullptr);
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -508,7 +509,7 @@ int main(int, char**)
 
     // Create window with Vulkan context
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "acmb", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "acmb" FULL_VERSION, nullptr, nullptr);
     if (!glfwVulkanSupported())
     {
         printf("GLFW: Vulkan Not Supported\n");
