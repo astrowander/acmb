@@ -42,7 +42,7 @@ SOURCES += \
         PipelineElementWindow.cpp \
         ResizeWindow.cpp \
         StackerWindow.cpp \
-        SubtractImageWindow.cpp \
+        DarkFrameWindow.cpp \
         imgui/backends/imgui_impl_glfw.cpp \
         imgui/backends/imgui_impl_vulkan.cpp \
         imgui/imgui.cpp \
@@ -74,7 +74,7 @@ HEADERS += \
     ResizeWindow.h \
     Serializer.h \
     StackerWindow.h \
-    SubtractImageWindow.h \
+    DarkFrameWindow.h \
     imgui/backends/imgui_impl_glfw.h \
     imgui/backends/imgui_impl_vulkan.h \
     imgui/imconfig.h \
