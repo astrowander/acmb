@@ -25,11 +25,11 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
     }
     catch ( std::exception& e )
     {
-        _completedTaskCount = i + 1;
+        _completedTaskCount = 0;
         return unexpected( e.what() );
     }
 
-    _completedTaskCount = i + 1;
+    _completedTaskCount = res.has_value() ? i + 1 : 0;
     return res;
 }
 
