@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = acmb-gui2
+TARGET = acmb-gui
 CONFIG += console c++2a
 CONFIG -= app_bundle
 CONFIG -= qt
