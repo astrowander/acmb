@@ -64,11 +64,14 @@ public:
     template<class ElementType>
     void AddElementToGrid( const Point& pos )
     {
+        const size_t ind = pos.y * cGridSize.width + pos.x;
+
+        if ( _writers.contains( ind ) )
+            _writers.erase( ind );
+
         auto pElement = std::make_shared<ElementType>( pos );
 
-        assert( pos.x < cGridSize.width && pos.y < cGridSize.height );
-
-        const size_t ind = pos.y * cGridSize.width + pos.x;
+        assert( pos.x < cGridSize.width && pos.y < cGridSize.height );        
 
         const auto pLeft = pos.x > 0 ? _grid[ind - 1] : nullptr;
         const auto pTop = pos.y > 0 ? _grid[ind - cGridSize.width] : nullptr;

@@ -1123,7 +1123,7 @@ bool ImGui::Checkbox(const char* label, bool* v, bool isLocked )
         return false;
     }
 
-    bool hovered, held;
+    bool hovered = false, held = false;
     bool pressed = isLocked ? false : ButtonBehavior(total_bb, id, &hovered, &held);
     if (pressed)
     {
