@@ -28,6 +28,7 @@ Open the project file acmb.pro with QtCreator, and build it. Please note, that y
 You can also download binaries for x64 Windows and x64 Linux. Linux binary requires of installed third party libraries (please see above)
 
 ## How to use it
+![empty_table](https://github.com/astrowander/acmb/assets/7758781/1900d522-486e-4390-8ca3-0f311863d088)
 Starting from version 1.0, an GUI version of acmb is available. The principle of operation of this application is similar to Microsoft Excel, with the difference that the cells of the spreadsheet are not numbers and formulas, but images and tools for processing them.
 When you open the program, you will see an empty table and a row of buttons above it. To get acquainted with the application, consider as an example a typical astrophotography task. Let's say that we want to combine a set of images of one scene of the starry sky into a single image, optimize it for display on a 4K screen and save it in JPEG format. The original frames were taken with a Canon camera in CR2 format.
 
@@ -67,6 +68,7 @@ In order not to create a diagram from scratch every time, you can save it to dis
 
 ### Using the GPU
 If your computer has an Nvidia graphics adapter with support for CUDA technology, you can enable its support by checking the appropriate box. This can significantly speed up the work of acmb.
+![scheme](https://github.com/astrowander/acmb/assets/7758781/ea14bed1-b017-4712-82df-6ed6fd11f4a6)
 
 ### acmb in the console
 A console version of acmb is also available. You can see the description below.
