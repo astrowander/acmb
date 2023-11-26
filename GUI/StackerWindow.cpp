@@ -3,7 +3,6 @@
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
 #include "./../Registrator/stacker.h"
-#include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -27,7 +26,7 @@ void StackerWindow::DrawPipelineElementControls()
                        "A group of pixels will be recognized as a star only if their luminosity is greater than this threshold (in percents) above the median value" );
 }
 
-Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )
+Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
 {
     _completedTaskCount = 0;
 

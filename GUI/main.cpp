@@ -5,7 +5,6 @@
 #include "imgui.h"
 #include "FontRegistry.h"
 #include "MainWindow.h"
-#include "./../Tools/SystemTools.h"
 #include "./../Core/versioning.h"
 #include <filesystem>
 
@@ -47,7 +46,6 @@ static VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
 static VkDevice                 g_Device = VK_NULL_HANDLE;
 static uint32_t                 g_QueueFamily = (uint32_t)-1;
 static VkQueue                  g_Queue = VK_NULL_HANDLE;
-static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
 static VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
 static VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
 
