@@ -1,6 +1,7 @@
 #include "ResizeWindow.h"
 #include "MainWindow.h"
 #include "Serializer.h"
+#include "ImGuiHelpers.h"
 #include "./../Transforms/ResizeTransform.h"
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -12,8 +13,8 @@ ResizeWindow::ResizeWindow( const Point& gridPos )
 void ResizeWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Destination Size" );
-    ImGui::DragInt( "Width", &_dstSize.width, 1.0f, 1, 65535 );
-    ImGui::DragInt( "Height", &_dstSize.height, 1.0f, 1, 65535 );
+    UI::DragInt( "Width", &_dstSize.width, 1.0f, 1, 65535, "Width of the resized image" );
+    UI::DragInt( "Height", &_dstSize.height, 1.0f, 1, 65535, "Height of the resized image" );
 }
 
 IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

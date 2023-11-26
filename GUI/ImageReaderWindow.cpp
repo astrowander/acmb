@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "Serializer.h"
 #include "FileDialog.h"
+#include "ImGuiHelpers.h"
 
 #include "./../Codecs/imagedecoder.h"
 
@@ -51,17 +52,17 @@ void ImageReaderWindow::DrawPipelineElementControls()
     auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
 
-    if ( ImGui::Button( "Select Images", { itemWidth, 0 } ) )
+    UI::Button( "Select Images", { itemWidth, 0 }, [&]
     {
         static auto filters = GetFilters();
-        fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
-    }
+        fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0 );
+    }, "Add images to the importing list" );
 
-    if ( ImGui::Button( "Clear List", { itemWidth, 0 } ) )
+    UI::Button( "Clear List", { itemWidth, 0 }, [&]
     {
         _fileNames.clear();
         _selectedItemIdx = 0;
-    }
+    }, "Delete all images from the importing list" );
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {

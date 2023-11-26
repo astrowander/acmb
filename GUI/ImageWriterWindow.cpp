@@ -43,8 +43,8 @@ ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
 
 void ImageWriterWindow::DrawPipelineElementControls()
 {
-    ImGui::Checkbox( "Keep Original Name", &_keepOriginalFileName );
-    ImGui::SetTooltipIfHovered( "If checked then the images will be saved with their original names. Otherwise the custom name will be used (with number postfixes for multiple images)", cMenuScaling );
+    UI::Checkbox( "Keep Original Name", &_keepOriginalFileName,
+                  "If checked then the images will be saved with their original names. Otherwise the custom name will be used (with number postfixes for multiple images)" );
     ImGui::Separator();
 
     const float itemWidth = 100.0f * cMenuScaling;
@@ -55,12 +55,12 @@ void ImageWriterWindow::DrawPipelineElementControls()
         ImGui::Text( "Directory Path" );
         ImGui::SetNextItemWidth( itemWidth );
         ImGui::InputText( "##Directory", ( char* ) _workingDirectory.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
-        if ( ImGui::Button( "Select Directory", { itemWidth, 0 } ) )
+        UI::Button( "Select Directory", { itemWidth, 0 }, [&]
         {
             fileDialog.OpenDialog( "SelectOutputFile", "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
-        }
+        }, "Choose a directory to export the results" );
 
-        ImGui::Combo( "Format", &_formatId, _formatList.c_str() );
+        UI::Combo( "Format", &_formatId, _formatList.c_str(), "Choose a file format to export the results");
     }
     else
     {
@@ -69,11 +69,11 @@ void ImageWriterWindow::DrawPipelineElementControls()
         const size_t lastSlash = _fileName.find_last_of( "\\/" );
         ImGui::InputText( "##File Name", ( char* ) _fileName.substr( lastSlash + 1).c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 
-        if ( ImGui::Button( "Select File", { itemWidth, 0 } ) )
+        UI::Button( "Select File", { itemWidth, 0 }, [&]
         {
             static auto filters = GetFilters();
             fileDialog.OpenDialog( "SelectOutputFile", "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
-        }
+        }, "Choose a file format to export the results" );
     }
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -116,24 +116,6 @@ int ImageWriterWindow::GetSerializedStringSize() const
         + gui::GetSerializedStringSize( _formatId )
         + gui::GetSerializedStringSize( _keepOriginalFileName );
 }
-
-/*std::expected<IBitmapPtr, std::string> ImageWriterWindow::RunTask(size_t i)
-{
-    auto pInput = GetLeftInput();
-    if ( !pInput )
-        pInput = GetTopInput();
-
-    if ( !pInput )
-        return std::unexpected( "No input element" );
-   
-    const auto taskRes = pInput->RunTaskAndReportProgress( i );
-    if ( !taskRes.has_value() )
-        return std::unexpected( taskRes.error() );
-
-    const size_t dotPos = _fileName.find_last_of('.');
-    IBitmap::Save(taskRes.value(), (i == 0) ? _fileName : ( _fileName.substr(0, dotPos) + "_" + std::to_string(i) + _fileName.substr( dotPos ) ) );
-    return nullptr;
-}*/
 
 IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
 {

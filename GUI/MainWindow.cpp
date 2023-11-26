@@ -39,6 +39,8 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     {
         _errors.clear();
         _isBusy = true;
+        LockInterface();
+
         std::thread process( [&]
         {
             _startTime = std::chrono::high_resolution_clock::now();
@@ -55,6 +57,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
             _isBusy = false;
             _showResultsPopup = true;
+            UnlockInterface();
         } );
         process.detach();
     } );
@@ -362,11 +365,12 @@ void MainWindow::DrawMenu()
             ImGui::PushFont( _fontRegistry.icons );
 
             const auto oldPos = ImGui::GetCursorPos();
-            if ( ImGui::Button( item.second->icon.c_str(), { cMenuButtonSize, cMenuButtonSize } ) )
+            UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
+            {
                 item.second->action( _activeCell );
+            }, item.second->tooltip );
 
             ImGui::PopFont();
-            ImGui::SetTooltipIfHovered( item.second->tooltip, cMenuScaling );
 
             const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
             ImGui::SetCursorPos( { oldPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, oldPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
@@ -393,7 +397,7 @@ void MainWindow::DrawMenu()
 
     ImGui::SetCursorPos( { cachedPos.x, cachedPos.y + ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y } );
     if ( cuda::isCudaAvailable() )
-        ImGui::Checkbox( "Enable CUDA", &_enableCuda );
+        UI::Checkbox( "Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available" );
 
     auto fileDialog = FileDialog::Instance();
     if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -426,12 +430,11 @@ void MainWindow::DrawDialog()
     ImGui::PushFont( _fontRegistry.byDefault );
 
     ImGui::SetCursorPos( { 0, cGridTop - cHeadRowHeight } );
-    if ( ImGui::Button( "##ClearTable", { cGridLeft, cHeadRowHeight } ) )
+    UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [&]
     {
         for ( auto& pElement : _grid )
             pElement.reset();
-    }
-    ImGui::SetTooltipIfHovered( "Clear table", cMenuScaling );
+    }, "Clear table" );
 
     auto drawList = ImGui::GetWindowDrawList();
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32( ImGui::GetStyleColorVec4( ImGuiCol_Separator ) ), 3.0f );
@@ -591,15 +594,15 @@ void MainWindow::DrawDialog()
 
         if ( _errors.empty() )
         {
-            return ImGui::ShowModalMessage( { "Success!", _durationString }, ImGui::ModalMessageType::Success, _showResultsPopup);
+            return UI::ShowModalMessage( { "Success!", _durationString }, UI::ModalMessageType::Success, _showResultsPopup);
         }
 
-        return ImGui::ShowModalMessage( _errors, ImGui::ModalMessageType::Error, _showResultsPopup );
+        return UI::ShowModalMessage( _errors, UI::ModalMessageType::Error, _showResultsPopup );
     }
 
     if ( _showHelpPopup )
     {
-        ImGui::ShowModalMessage( 
+        UI::ShowModalMessage( 
             { "1. Each cell may contain a tool that imports, processes, or exports images to disk.\n"
               "2. The schema must contain at least one 'Import' and 'Export' tool.\n"
               "3. Tools (except for 'Import') accept images as input from the adjacent cell to the left or top of themselves.\n"
@@ -608,7 +611,7 @@ void MainWindow::DrawDialog()
               "6. Images between instruments connected by converging lines are first summed up, and then processed by the receiving instrument.\n"
               "7. The type of connection between the tools can be changed by double-clicking \n"
               "8. To learn more, follow the link https://github.com/astrowander/acmb#readme" },
-            ImGui::ModalMessageType::Help, _showHelpPopup );
+            UI::ModalMessageType::Help, _showHelpPopup );
     }
 }
 

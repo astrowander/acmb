@@ -13,8 +13,7 @@ DarkFrameWindow::DarkFrameWindow( const Point& gridPos )
 
 void DarkFrameWindow::DrawPipelineElementControls()
 {
-    ImGui::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop );
-    ImGui::SetTooltipIfHovered( "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one", cMenuScaling );
+    UI::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop, "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one" );
 }
 
 IBitmapPtr DarkFrameWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

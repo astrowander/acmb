@@ -17,16 +17,14 @@ StackerWindow::StackerWindow( const Point& gridPos )
 void StackerWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Stack Mode" );
-    ImGui::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ) );
-    ImGui::SetTooltipIfHovered( "Input images will be debayered and aligned by stars before stacking", cMenuScaling );
-    ImGui::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ) );
-    ImGui::SetTooltipIfHovered( "Input images will be stacked as-is, without alignment and debayerization", cMenuScaling );
+    UI::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ), "Input images will be debayered and aligned by stars before stacking" );
+    UI::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ), "Input images will be stacked as-is, without alignment and debayerization" );
 
     ImGui::Separator();
     ImGui::Text( "Star Detection Threshold" );
-    ImGui::SetTooltipIfHovered( "A group of pixels will be recognized as a star only if their luminosity is greater than this threshold (in percents) above the median value", cMenuScaling );
     if ( _stackMode == StackMode::Light )
-        ImGui::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f );
+        UI::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f, 
+                       "A group of pixels will be recognized as a star only if their luminosity is greater than this threshold (in percents) above the median value" );
 }
 
 Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i )

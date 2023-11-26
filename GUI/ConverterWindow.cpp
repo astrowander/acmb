@@ -1,6 +1,7 @@
 #include "ConverterWindow.h"
 #include "MainWindow.h"
 #include "Serializer.h"
+#include "ImGuiHelpers.h"
 #include "./../Transforms/converter.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -14,10 +15,10 @@ ConverterWindow::ConverterWindow( const Point& gridPos )
 void ConverterWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Convert to Pixel Format:" );
-    ImGui::RadioButton( "Gray8", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray8 ) );
-    ImGui::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ) );
-    ImGui::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ) );
-    ImGui::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ) );
+    UI::RadioButton( "Gray8", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray8 ), "Grayscale, 8 bits per channel");
+    UI::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ), "Grayscale, 16 bits per channel" );
+    UI::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ), "RGB colors, 8 bits per channel" );
+    UI::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ), "RGB colors, 16 bits per channel" );
 }
 
 IBitmapPtr ConverterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

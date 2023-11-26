@@ -1,8 +1,9 @@
 #include "ImGuiHelpers.h"
 #include "window.h"
 #include "FontRegistry.h"
+#include "MainWindow.h"
 
-namespace ImGui
+namespace UI
 {
     void SetTooltipIfHovered( const std::string& text, float scaling )
     {
@@ -10,14 +11,26 @@ namespace ImGui
             return;
 
         assert( scaling > 0.f );
+        ImGui::PushFont( acmb::gui::FontRegistry::Instance().byDefault );
 
         constexpr float cMaxWidth = 400.f;
         const auto& style = ImGui::GetStyle();
         auto textSize = ImGui::CalcTextSize( text.c_str(), nullptr, false, cMaxWidth * scaling - style.WindowPadding.x * 2 );
         ImGui::SetNextWindowSize( ImVec2{ textSize.x + style.WindowPadding.x * 2, 0 } );
 
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
         ImGui::BeginTooltip();
-        ImGui::TextWrapped( "%s", text.c_str() );
+
+
+        if ( isInterfaceLocked )
+            ImGui::PushStyleColor( ImGuiCol_Text, { 1.0f, 0.0f , 0.0f , 1.0f } );
+
+        ImGui::TextWrapped( "%s", isInterfaceLocked ? "All controls are locked because computations are going on or another window is opened" : text.c_str());
+
+        ImGui::PopFont();
+        if ( isInterfaceLocked )
+            ImGui::PopStyleColor();
+
         ImGui::EndTooltip();
     }
 
@@ -26,6 +39,7 @@ namespace ImGui
     static constexpr float cModalWindowPaddingY = 16.0f;
     static constexpr float cDefaultItemSpacing = 8.0f;
     static constexpr float cButtonPadding = 8.0f;
+    static constexpr ImGuiSliderFlags ImGuiSliderFlags_ReadOnly = 1 << 21;
 
     void ShowModalMessage( const std::vector<std::string>& msgs, ModalMessageType msgType, bool& isEnabled )
     {
@@ -104,5 +118,84 @@ namespace ImGui
 
         ImGui::PopStyleVar( 2 );
         ImGui::PopStyleColor();
+    }
+
+    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip )
+    {
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+        if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
+        {
+            action();
+        }
+
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
+    }
+
+    void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip )
+    {
+        const bool pressed = ImGui::RadioButton( label.c_str(), *v == v_button) && !acmb::gui::MainWindow::GetInstance(acmb::gui::FontRegistry::Instance()).IsInterfaceLocked();
+        if ( pressed )
+            *v = v_button;
+        
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
+    }
+
+    void Checkbox( const std::string& label, bool* v, const std::string& tooltip )
+    {
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+        ImGui::Checkbox( label.c_str(), v, isInterfaceLocked );
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
+    }
+
+    void DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip )
+    {
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+        ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None );
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
+    }
+
+    void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip )
+    {
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+        ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None );
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
+    }
+
+    static bool Items_SingleStringGetter( void* data, int idx, const char** out_text )
+    {
+        // FIXME-OPT: we could pre-compute the indices to fasten this. But only 1 active combo means the waste is limited.
+        const char* items_separated_by_zeros = ( const char* ) data;
+        int items_count = 0;
+        const char* p = items_separated_by_zeros;
+        while ( *p )
+        {
+            if ( idx == items_count )
+                break;
+            p += strlen( p ) + 1;
+            items_count++;
+        }
+        if ( !*p )
+            return false;
+        if ( out_text )
+            *out_text = p;
+        return true;
+    }
+
+    void Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip )
+    {
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+
+        int items_count = 0;
+        if ( !isInterfaceLocked )
+        {
+            const char* p = items_separated_by_zeros.c_str();
+            while ( *p )
+            {
+                p += strlen( p ) + 1;
+                items_count++;
+            }
+        }
+
+        ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count );
     }
 }

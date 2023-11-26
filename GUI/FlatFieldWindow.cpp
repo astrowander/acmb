@@ -14,10 +14,8 @@ FlatFieldWindow::FlatFieldWindow( const Point& gridPos )
 
 void FlatFieldWindow::DrawPipelineElementControls()
 {
-    ImGui::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop );
-    ImGui::SetTooltipIfHovered( "By default the top image is considered as a flat field and applied to the left one. If checked, the left image is considered as a flat field", cMenuScaling );
-    ImGui::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 500.0f );
-    ImGui::SetTooltipIfHovered( "The effect of the instrument can be weakened or enhanced. The default value is 100 percent", cMenuScaling );
+    UI::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop, "By default the top image is considered as a flat field and applied to the left one. If checked, the left image is considered as a flat field" );
+    UI::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 500.0f, "The effect of the instrument can be weakened or enhanced. The default value is 100 percent" );
 }
 
 IBitmapPtr FlatFieldWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

@@ -119,6 +119,8 @@ public:
         _lockInterface = false;
     }
 
+    bool IsInterfaceLocked() { return _lockInterface; }
+
     bool isCudaEnabled() { return _enableCuda; }
 };
 

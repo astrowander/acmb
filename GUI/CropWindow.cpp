@@ -1,6 +1,7 @@
 #include "CropWindow.h"
 #include "MainWindow.h"
 #include "Serializer.h"
+#include "ImGuiHelpers.h"
 #include "./../Transforms/CropTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -12,11 +13,11 @@ CropWindow::CropWindow( const Point& gridPos )
 
 void CropWindow::DrawPipelineElementControls()
 {
-    ImGui::Text( "Destination Rect:" );
-    ImGui::DragInt( "Left", &_dstRect.x, 1.0f, 1, 65535 );
-    ImGui::DragInt( "Top", &_dstRect.y, 1.0f, 1, 65535 );
-    ImGui::DragInt( "Width", &_dstRect.width, 1.0f, 1, 65535 );
-    ImGui::DragInt( "Height", &_dstRect.height, 1.0f, 1, 65535 );
+    ImGui::Text( "Crop area:" );
+    UI::DragInt( "Left", &_dstRect.x, 1.0f, 1, 65535, "Left boundary of the crop area" );
+    UI::DragInt( "Top", &_dstRect.y, 1.0f, 1, 65535,"Top boundary of the crop area" );
+    UI::DragInt( "Width", &_dstRect.width, 1.0f, 1, 65535,  "Width of the crop area" );
+    UI::DragInt( "Height", &_dstRect.height, 1.0f, 1, 65535, "Height of the crop area" );
 }
 
 IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
