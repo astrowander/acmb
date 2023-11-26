@@ -646,7 +646,7 @@ void MainWindow::Show()
 {
     Window::Show();
 
-    for ( int i = 0; i < _grid.size(); ++i )
+    for ( int i = 0; i < int( _grid.size() ); ++i )
     {
         const int x = i % cGridSize.width;
         const int y = i / cGridSize.width;

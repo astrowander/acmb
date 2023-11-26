@@ -7,7 +7,12 @@ namespace UI
 {
     void SetTooltipIfHovered( const std::string& text, float scaling )
     {
-        if ( !ImGui::IsItemHovered() || ImGui::IsItemActive() )
+        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
+
+        if ( !isInterfaceLocked && ( !ImGui::IsItemHovered() || ImGui::IsItemActive() ) )
+            return;
+
+        if ( isInterfaceLocked && ( !ImGui::IsMouseDown( ImGuiMouseButton_Left ) || !ImGui::IsItemHovered() ) )
             return;
 
         assert( scaling > 0.f );
@@ -18,9 +23,7 @@ namespace UI
         auto textSize = ImGui::CalcTextSize( text.c_str(), nullptr, false, cMaxWidth * scaling - style.WindowPadding.x * 2 );
         ImGui::SetNextWindowSize( ImVec2{ textSize.x + style.WindowPadding.x * 2, 0 } );
 
-        const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
         ImGui::BeginTooltip();
-
 
         if ( isInterfaceLocked )
             ImGui::PushStyleColor( ImGuiCol_Text, { 1.0f, 0.0f , 0.0f , 1.0f } );
@@ -197,5 +200,6 @@ namespace UI
         }
 
         ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count );
+        SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
     }
 }

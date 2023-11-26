@@ -55,6 +55,7 @@ float Window::GetMenuScaling()
     return float( cxPhysical ) / cxLogical;
 #elif defined ( __linux__ )
     static const auto glfwHandle = glfwInit();
+    (void)glfwHandle;
     float xscale, yscale;
     glfwGetMonitorContentScale( glfwGetPrimaryMonitor(), &xscale, &yscale);
     return xscale;
