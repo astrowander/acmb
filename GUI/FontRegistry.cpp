@@ -10,7 +10,8 @@ FontRegistry::FontRegistry( float )
     ImGuiIO& io = ImGui::GetIO();
     const std::string acmb_path = GetAcmbPath();
 
-    byDefault = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Regular.ttf" ).c_str(), 15 );
+    ImFontAtlas fontAtlas;
+    byDefault = io.Fonts->AddFontFromFileTTF( (acmb_path + "/GUI/Fonts/NotoSans-Regular.ttf").c_str(), 15, nullptr, fontAtlas.GetGlyphRangesCyrillic() );
     bold = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Bold.ttf" ).c_str(), 15 );
     big = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Regular.ttf" ).c_str(), 20 );
     bigBold = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Bold.ttf" ).c_str(), 20 );

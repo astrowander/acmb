@@ -385,6 +385,7 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 int main(int, char**)
 {
 #ifdef _WIN32
+    _wsetlocale( LC_ALL, L".UTF8" );
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ACMB", nullptr };
