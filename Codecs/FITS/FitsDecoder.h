@@ -12,7 +12,7 @@ ACMB_NAMESPACE_BEGIN
 
 class FitsDecoder : public ImageDecoder
 {
-    CCfits::FITS* _pFits = nullptr;
+    std::unique_ptr<CCfits::FITS> _pFits;
 
 public:
     FitsDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
