@@ -18,6 +18,28 @@ EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "FitsDecoder/TestRGB48.ppm" ), p
 
 END_TEST
 
+BEGIN_TEST( TestGray16 )
+
+auto pDecoder = std::make_unique<FitsDecoder>();
+pDecoder->Attach( GetPathToTestFile( "FITS/gray16.fit" ) );
+EXPECT_EQ( PixelFormat::Gray16, pDecoder->GetPixelFormat() );
+EXPECT_EQ( 5496, pDecoder->GetWidth() );
+EXPECT_EQ( 3670, pDecoder->GetHeight() );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "FitsDecoder/TestGray16.ppm" ), pDecoder->ReadBitmap() ) );
+
+END_TEST
+
+BEGIN_TEST( TestOfficialSample )
+
+auto pDecoder = std::make_unique<FitsDecoder>();
+pDecoder->Attach( GetPathToTestFile( "FITS/UITfuv2582gc.fits" ) );
+EXPECT_EQ( PixelFormat::Gray16, pDecoder->GetPixelFormat() );
+EXPECT_EQ( 512, pDecoder->GetWidth() );
+EXPECT_EQ( 512, pDecoder->GetHeight() );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "FitsDecoder/UITfuv2582gc.ppm" ), pDecoder->ReadBitmap() ) );
+
+END_TEST
+
 BEGIN_TEST( TestEmptyFile )
 auto f = [] ()
 {
@@ -39,7 +61,7 @@ END_TEST
 BEGIN_TEST( ReadTwice )
 
 auto pDecoder = std::make_unique<FitsDecoder>();
-pDecoder->Attach( GetPathToTestFile( "TIFF/rgb48.fit" ) );
+pDecoder->Attach( GetPathToTestFile( "FITS/UITfuv2582gc.fits" ) );
 auto pFirstBitmap = pDecoder->ReadBitmap();
 auto pSecondBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE( BitmapsAreEqual( pFirstBitmap, pSecondBitmap ) );

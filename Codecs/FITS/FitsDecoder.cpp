@@ -19,7 +19,15 @@ FitsDecoder::FitsDecoder( PixelFormat outputFormat )
 void FitsDecoder::Attach( const std::string& fileName )
 {
     _lastFileName = fileName;
-    _pFits = std::make_unique<CCfits::FITS>( fileName, CCfits::RWmode::Read, true );
+
+    try
+    {
+        _pFits = std::make_unique<CCfits::FITS>( fileName, CCfits::RWmode::Read, true );
+    }
+    catch ( CCfits::FitsException& )
+    {
+        throw std::runtime_error( "unable to read FITS file" );
+    }
 
     auto& header = _pFits->pHDU();
     header.readAllKeys();
@@ -84,6 +92,28 @@ void FitsDecoder::Detach()
     _pStream.reset();
 }
 
+template<typename FitsDataType, PixelFormat acmbFormat>
+static void CopyDataFromFits( std::shared_ptr<Bitmap<acmbFormat>> pBitmap, const std::valarray<FitsDataType>& contents )
+{
+    const int channelCount = PixelFormatTraits<acmbFormat>::channelCount;
+    const int width = pBitmap->GetWidth();
+    const int height = pBitmap->GetHeight();
+    const int imageSize = width * height;
+
+    tbb::parallel_for( tbb::blocked_range<int>( 0, height ), [&] ( const tbb::blocked_range<int>& range )
+    {
+        for ( int i = range.begin(); i < range.end(); ++i )
+        {
+            auto pScanline = ( typename PixelFormatTraits<acmbFormat>::ChannelType* ) (pBitmap->GetPlanarScanline( i ));
+            for ( int j = 0; j < width * channelCount; ++j )
+            {
+                const auto dv = std::div( j, channelCount );
+                pScanline[j] = static_cast<typename PixelFormatTraits<acmbFormat>::ChannelType>( std::clamp( contents[imageSize * dv.rem + i * width + dv.quot] + 0.5f, 0.f, float( PixelFormatTraits<acmbFormat>::channelMax ) ) );
+            }
+        }
+    } );
+}
+
 IBitmapPtr FitsDecoder::ReadBitmap()
 {
     if ( !_pFits )
@@ -96,33 +126,26 @@ IBitmapPtr FitsDecoder::ReadBitmap()
     {
         std::valarray<uint8_t> contents;
         header.read( contents );
-        std::copy( std::begin( contents ), std::end( contents ), pBitmap->GetPlanarScanline( 0 ) );
+
+        _decodedFormat == PixelFormat::Gray8 ?
+            CopyDataFromFits <uint8_t, PixelFormat::Gray8>( std::static_pointer_cast< Bitmap<PixelFormat::Gray8> >(pBitmap), contents ) :
+            CopyDataFromFits <uint8_t, PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >(pBitmap), contents );
     }
     else if ( header.bitpix() == CCfits::Ishort )
     {
         std::valarray<uint16_t> contents;
         header.read( contents );
-        std::copy( std::begin( contents ), std::end( contents ), pBitmap->GetPlanarScanline( 0 ) );
+        _decodedFormat == PixelFormat::Gray16 ?
+            CopyDataFromFits <uint16_t, PixelFormat::Gray16>( std::static_pointer_cast< Bitmap<PixelFormat::Gray16> >(pBitmap), contents ) :
+            CopyDataFromFits <uint16_t, PixelFormat::RGB48>( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >(pBitmap), contents );
     }
     else if ( header.bitpix() == CCfits::Ifloat )
     {
         std::valarray<float> contents;
         header.read( contents );
-        const int channelCount = ChannelCount( _pixelFormat );
-        const int imageSize = _width * _height;
-
-        tbb::parallel_for( tbb::blocked_range<int>( 0, _height ), [&] ( const tbb::blocked_range<int>& range )
-        {
-            for ( int i = range.begin(); i < range.end(); ++i )
-            {
-                uint16_t* pScanline = ( uint16_t* ) (pBitmap->GetPlanarScanline( i ));
-                for ( int j = 0; j < _width * channelCount; ++j )
-                {
-                    const auto dv = std::div( j, channelCount );
-                    pScanline[j] = uint16_t( std::clamp( contents[imageSize * dv.rem + i * _width + dv.quot] + 0.5f, 0.f, 65535.f ) );
-                }
-            }
-        } );
+        _decodedFormat == PixelFormat::Gray16 ?
+            CopyDataFromFits <float, PixelFormat::Gray16>( std::static_pointer_cast< Bitmap<PixelFormat::Gray16> >(pBitmap), contents ) :
+            CopyDataFromFits <float, PixelFormat::RGB48>( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >(pBitmap), contents );
     }
 
     return ToOutputFormat( pBitmap );

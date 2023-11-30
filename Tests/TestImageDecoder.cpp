@@ -15,7 +15,7 @@ END_TEST
 
 BEGIN_TEST( TestExtensionsSize )
 
-EXPECT_EQ( 32, ImageDecoder::GetAllExtensions().size() );
+EXPECT_EQ( 34, ImageDecoder::GetAllExtensions().size() );
 
 END_TEST
 

@@ -232,6 +232,9 @@ std::shared_ptr<Converter> Converter::Create( PixelFormat srcPixelFormat, PixelF
 
 IBitmapPtr Converter::Convert(IBitmapPtr pSrcBitmap, PixelFormat dstPixelFormat)
 {
+    if ( !pSrcBitmap )
+        throw std::invalid_argument( "pSrcBitmap is null" );
+
     if ( pSrcBitmap->GetPixelFormat() == PixelFormat::Bayer16 )
         pSrcBitmap = DebayerTransform::Debayer( pSrcBitmap, pSrcBitmap->GetCameraSettings() );
     

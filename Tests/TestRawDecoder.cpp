@@ -149,7 +149,7 @@ EXPECT_EQ( PixelFormat::RGB48, pDecoder->GetPixelFormat() );
 EXPECT_EQ( 5496, pDecoder->GetWidth() );
 EXPECT_EQ( 3670, pDecoder->GetHeight() );
 auto pBitmap = pDecoder->ReadBitmap();
-EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944.ppm"), pBitmap));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944_stream.ppm"), pBitmap));
 
 END_TEST
 
