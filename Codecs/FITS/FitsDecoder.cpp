@@ -131,7 +131,7 @@ IBitmapPtr FitsDecoder::ReadBitmap()
             CopyDataFromFits <uint8_t, PixelFormat::Gray8>( std::static_pointer_cast< Bitmap<PixelFormat::Gray8> >(pBitmap), contents ) :
             CopyDataFromFits <uint8_t, PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >(pBitmap), contents );
     }
-    else if ( header.bitpix() == CCfits::Ishort )
+    else if ( header.bitpix() == CCfits::Iushort || header.bitpix() == CCfits::Ishort )
     {
         std::valarray<uint16_t> contents;
         header.read( contents );

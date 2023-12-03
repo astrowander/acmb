@@ -3,6 +3,7 @@
 #include "PPM/ppmdecoder.h"
 #include "Raw/RawDecoder.h"
 #include "Tiff/TiffDecoder.h"
+#include "Fits/FitsDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/converter.h"
@@ -97,6 +98,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     else if ( TiffDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset( new TiffDecoder( outputFormat ) );
+    }
+    else if ( FitsDecoder::GetExtensions().contains( extension ) )
+    {
+        pDecoder.reset( new FitsDecoder( outputFormat ) );
     }
 
     if ( !pDecoder )

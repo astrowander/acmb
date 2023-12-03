@@ -1,61 +1,35 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Codecs/Tiff/TiffEncoder.h"
-#include "../Codecs/PPM/ppmencoder.h"
 #include "../Core/bitmap.h"
-#include <filesystem>
-#include <fstream>
 #include <sstream>
 #include "stdio.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN
 
-static bool TestPixelFormat(const std::string& pixelFormat)
-{
-    auto pRefBitmap = IBitmap::Create( GetPathToTestFile( std::string("TIFF/") +  pixelFormat + ".tiff" ) );
-    TiffEncoder tiffEncoder;
-    auto tempDir = GetPathToTestFile("/tmp/");
-
-    PpmEncoder ppmEncoder(PpmMode::Binary);
-    std::string ppmFileName = tempDir + pixelFormat + "_temp.ppm";
-    ppmEncoder.Attach( ppmFileName );
-    ppmEncoder.WriteBitmap( pRefBitmap );
-    ppmEncoder.Detach();
-
-
-    std::string tmpFileName = tempDir + pixelFormat + "_temp.tif";
-
-    tiffEncoder.Attach( tmpFileName );
-    tiffEncoder.WriteBitmap( pRefBitmap );
-    tiffEncoder.Detach();
-
-    auto pTargetBitmap = IBitmap::Create( tmpFileName );
-    return BitmapsAreEqual( pRefBitmap, pTargetBitmap );
-}
-
 BEGIN_SUITE( TiffEncoder )
 
 BEGIN_TEST(TestGray8)
 
-EXPECT_TRUE( TestPixelFormat( "Gray8" ) );
+EXPECT_TRUE( TestPixelFormat<TiffEncoder>( "Gray8" ) );
 
 END_TEST
 
 BEGIN_TEST( TestGray16 )
 
-EXPECT_TRUE( TestPixelFormat( "Gray16" ) );
+EXPECT_TRUE( TestPixelFormat<TiffEncoder>( "Gray16" ) );
 
 END_TEST
 
 BEGIN_TEST( TestRGB24 )
 
-EXPECT_TRUE( TestPixelFormat( "RGB24" ) );
+EXPECT_TRUE( TestPixelFormat<TiffEncoder>( "RGB24" ) );
 
 END_TEST
 
 BEGIN_TEST( TestRGB48 )
 
-EXPECT_TRUE( TestPixelFormat( "RGB48" ) );
+EXPECT_TRUE( TestPixelFormat<TiffEncoder>( "RGB48" ) );
 
 END_TEST
 

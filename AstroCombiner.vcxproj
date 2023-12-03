@@ -23,6 +23,7 @@
     <ClInclude Include="AGG\agg_config.h" />
     <ClInclude Include="AGG\agg_trans_affine.h" />
     <ClInclude Include="Codecs\FITS\FitsDecoder.h" />
+    <ClInclude Include="Codecs\FITS\FitsEncoder.h" />
     <ClInclude Include="Codecs\imagedecoder.h" />
     <ClInclude Include="Codecs\imageencoder.h" />
     <ClInclude Include="Codecs\JPEG\JpegEncoder.h" />
@@ -77,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
     <ClCompile Include="Codecs\FITS\FitsDecoder.cpp" />
+    <ClCompile Include="Codecs\FITS\FitsEncoder.cpp" />
     <ClCompile Include="Codecs\imagedecoder.cpp" />
     <ClCompile Include="Codecs\imageencoder.cpp" />
     <ClCompile Include="Codecs\JPEG\JpegEncoder.cpp" />

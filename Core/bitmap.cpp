@@ -15,13 +15,17 @@ std::string GetDirectory( const std::string& fileName )
 std::shared_ptr<IBitmap> IBitmap::Create(std::shared_ptr<std::istream> pStream, PixelFormat outputFormat )
 {
     auto pDecoder = ImageDecoder::Create( pStream, outputFormat );
-    return pDecoder->ReadBitmap();
+    const auto res =  pDecoder->ReadBitmap();
+    pDecoder->Detach();
+    return res;
 }
 
 std::shared_ptr<IBitmap> IBitmap::Create(const std::string &fileName, PixelFormat outputFormat )
 {
     auto pDecoder = ImageDecoder::Create( fileName, outputFormat );
-    return pDecoder->ReadBitmap();
+    const auto res = pDecoder->ReadBitmap();
+    pDecoder->Detach();
+    return res;
 }
 
 std::shared_ptr<IBitmap> IBitmap::Create(uint32_t width, uint32_t height, PixelFormat pixelFormat)
