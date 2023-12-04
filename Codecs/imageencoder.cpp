@@ -5,6 +5,7 @@
 #include "PPM/ppmencoder.h"
 #include "Tiff/TiffEncoder.h"
 #include "JPEG/JpegEncoder.h"
+#include "FITS/FitsEncoder.h"
 
 ACMB_NAMESPACE_BEGIN
 
@@ -51,6 +52,10 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
     else if ( JpegEncoder::GetExtensions().contains( extension ) )
     {
         pEncoder.reset( new JpegEncoder() );
+    }
+    else if ( FitsEncoder::GetExtensions().contains( extension ) )
+    {
+        pEncoder.reset( new FitsEncoder() );
     }
 
     if (!pEncoder)

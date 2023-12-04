@@ -60,7 +60,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
             fileDialog.OpenDialog( "SelectOutputFile", "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
         }, "Choose a directory to export the results" );
 
-        UI::Combo( "Format", &_formatId, _formatList.c_str(), "Choose a file format to export the results");
+        UI::Combo( "Format", &_formatId, _formatList, "Choose a file format to export the results");
     }
     else
     {
