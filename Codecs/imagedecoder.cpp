@@ -3,7 +3,7 @@
 #include "PPM/ppmdecoder.h"
 #include "Raw/RawDecoder.h"
 #include "Tiff/TiffDecoder.h"
-#include "Fits/FitsDecoder.h"
+#include "FITS/FitsDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/converter.h"

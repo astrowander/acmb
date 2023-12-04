@@ -1,6 +1,6 @@
 #include "test.h"
 #include "testtools.h"
-#include "../Codecs/Fits/FitsDecoder.h"
+#include "../Codecs/FITS/FitsDecoder.h"
 #include "../Core/bitmap.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN

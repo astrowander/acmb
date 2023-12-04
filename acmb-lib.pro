@@ -10,9 +10,12 @@ TARGET = acmb-lib
 TEMPLATE = lib
 CONFIG += staticlib
 CONFIG += c++2a
+INCLUDEPATH += Libs/cfitsio/include
 
 SOURCES += \
     AGG/agg_trans_affine.cpp \
+    Codecs/FITS/FitsDecoder.cpp \
+    Codecs/FITS/FitsEncoder.cpp \
     Codecs/imageencoder.cpp \
     Codecs/imagedecoder.cpp \
     Codecs/JPEG/toojpeg/toojpeg.cpp \
@@ -54,6 +57,8 @@ HEADERS += \
     AGG/agg_trans_affine.h \
     AGG/agg_config.h \
     AGG/agg_basics.h \
+    Codecs/FITS/FitsDecoder.h \
+    Codecs/FITS/FitsEncoder.h \
     Codecs/Raw/RawSettings.h \
     Codecs/imageencoder.h \
     Codecs/imagedecoder.h \

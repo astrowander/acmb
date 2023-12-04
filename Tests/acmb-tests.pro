@@ -7,6 +7,8 @@ LIBS += -L/usr/local/lib/ -lraw
 LIBS += -llensfun
 LIBS += -lTinyTIFFShared_Release
 LIBS += -ltbb
+LIBS += -L/usr/local/lib/ -lCCfits
+LIBS += -L/usr/local/lib/ -lcfitsio
 
 HEADERS += \
     TestRunner.h \
@@ -24,6 +26,8 @@ SOURCES += \
     TestDeaberrateTransform.cpp \
     TestDebayerTransform.cpp \
     TestFastAligner.cpp \
+    TestFitsDecoder.cpp \
+    TestFitsEncoder.cpp \
     TestHaloRemoval.cpp \
     TestHistogramBuilder.cpp \
     TestImageDecoder.cpp \

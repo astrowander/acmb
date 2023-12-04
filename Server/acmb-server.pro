@@ -9,6 +9,8 @@ LIBS += -lTinyTIFFShared_Release
 LIBS += -ltbb
 LIBS += -lcudart
 LIBS += -lboost_system
+LIBS += -L/usr/local/lib/ -lCCfits
+LIBS += -L/usr/local/lib/ -lcfitsio
 
 SOURCES += \
     main.cpp \

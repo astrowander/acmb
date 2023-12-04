@@ -11,6 +11,8 @@ LIBS += -ltbb
 LIBS += -lcudart
 LIBS += -lglfw
 LIBS += -lvulkan
+LIBS += -L/usr/local/lib/ -lCCfits
+LIBS += -L/usr/local/lib/ -lcfitsio
 
 LIBS += -L$$OUT_PWD/../ -lacmb-lib
 LIBS += -L$$OUT_PWD/../Cuda/ -lacmb-cuda

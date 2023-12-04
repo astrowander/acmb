@@ -8,6 +8,8 @@ LIBS += -llensfun
 LIBS += -lTinyTIFFShared_Release
 LIBS += -ltbb
 LIBS += -lcudart
+LIBS += -L/usr/local/lib/ -lCCfits
+LIBS += -L/usr/local/lib/ -lcfitsio
 
 SOURCES += \
     CliParser.cpp \
