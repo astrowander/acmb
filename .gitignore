@@ -84,3 +84,7 @@ build*
 *.tiff
 *.CR2
 *.dng
+*.fit
+*.fits
+
+*.user
