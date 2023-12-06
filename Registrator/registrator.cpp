@@ -39,7 +39,7 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
 
     if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Gray)
     {
-        _pBitmap = pBitmap;
+        _pBitmap = pBitmap->Clone();
     }
     else
     {

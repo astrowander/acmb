@@ -30,6 +30,8 @@ public:
     virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
     /// returns count of allocated bytes
     virtual uint32_t GetByteSize() const = 0;
+    /// returns deep copy of a bitmap
+    virtual std::shared_ptr<IBitmap> Clone() const = 0;
 
     /// creates bitmap from a given file
     static std::shared_ptr<IBitmap> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
@@ -186,6 +188,13 @@ public:
     virtual IBitmapPtr ProcessBitmap( std::shared_ptr<IBitmap> ) override
     {
         return this->shared_from_this();
+    }
+
+    virtual std::shared_ptr<IBitmap> Clone() const override
+    {
+        auto pRes = std::make_shared<Bitmap<pixelFormat>>( _width, _height );
+        pRes->SetData( _data );
+        return pRes;
     }
 };
 
