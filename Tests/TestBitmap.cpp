@@ -103,6 +103,17 @@ EXPECT_EQ( 16252, pBitmap->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 1324, pBitmap->GetChannel( 0, 0, 2 ) );
 END_TEST
 
+BEGIN_TEST( TestCloning )
+IBitmapPtr pBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, ARGB32Color::Azure );
+EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
+pBitmap = std::make_shared<Bitmap<PixelFormat::RGB48>>( 1, 1, ARGB64Color::Azure );
+EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
+pBitmap = std::make_shared<Bitmap<PixelFormat::Gray16>>( 1, 1, 3456 );
+EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
+pBitmap = std::make_shared<Bitmap<PixelFormat::Gray8>>( 1, 1, 34 );
+EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

@@ -80,6 +80,14 @@ BEGIN_TEST(TestBlackBitmap)
 	EXPECT_EQ(0, pRegistrator->GetStars()[0].size());
 END_TEST
 
+BEGIN_TEST(TestGrayscale)
+auto pRegistrator = std::make_unique<Registrator>( 25 );
+auto pBitmap = IBitmap::Create( GetPathToTestFile( "TIFF/m65.tif" ) );
+auto pBitmapCopy = pBitmap->Clone();
+pRegistrator->Registrate( pBitmap );
+EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmapCopy ) );
+END_TEST
+
 BEGIN_TEST( TestNullArgs )
 auto f = []
 {
