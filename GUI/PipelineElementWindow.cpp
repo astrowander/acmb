@@ -25,7 +25,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
     }
     catch ( std::exception& e )
     {
-        ResetProgress();
+        ResetProgress( PropagationDir::Both );
         return unexpected( e.what() );
     }
 
@@ -282,13 +282,27 @@ void PipelineElementWindow::ResetTasks()
     _taskReadiness = 0;
 }
 
-void PipelineElementWindow::ResetProgress()
+void PipelineElementWindow::ResetProgress( PropagationDir dir )
 {
     _completedTaskCount = 0;
     _taskReadiness = 0;
-    auto pPrimaryInput = GetPrimaryInput();
-    if ( pPrimaryInput )
-        pPrimaryInput->ResetProgress();
+
+    if ( int( dir ) & int( PropagationDir::Backward ) )
+    {
+        auto pPrimaryInput = GetPrimaryInput();
+        if ( pPrimaryInput )
+            pPrimaryInput->ResetProgress( dir );
+    }
+    
+    if ( int( dir ) & int( PropagationDir::Forward ) )
+    {
+        auto pOutput = GetRightOutput();
+        if ( !pOutput )
+            pOutput = GetBottomOutput();
+
+        if ( pOutput )
+            pOutput->ResetProgress( dir );
+    }
 }
 
 void PipelineElementWindow::DrawDialog()

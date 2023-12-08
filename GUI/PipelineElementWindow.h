@@ -59,6 +59,13 @@ public:
         RelationType top = RelationType::None;
     };
 
+    enum class PropagationDir
+    {
+        Forward = 1,
+        Backward = 2,
+        Both = 3
+    };
+
 protected:
 
     float _itemWidth = 0.0f;
@@ -129,7 +136,7 @@ public:
     size_t GetTaskCount();
     size_t GetCompletedTaskCount();
     virtual void ResetTasks();
-    void ResetProgress();
+    void ResetProgress( PropagationDir dir );
 
     virtual uint8_t GetMenuOrder() const = 0;
 

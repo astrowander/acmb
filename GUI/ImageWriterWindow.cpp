@@ -148,7 +148,7 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
     if ( !pPrimaryInput )
         return { "No primary input for the'" + _name + "' element" };
 
-    ResetProgress();
+    ResetProgress( PropagationDir::Backward );
 
     _taskCount = pPrimaryInput->GetTaskCount();
     if ( _taskCount == 0 )
