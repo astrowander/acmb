@@ -25,7 +25,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
     }
     catch ( std::exception& e )
     {
-        _completedTaskCount = 0;
+        ResetProgress();
         return unexpected( e.what() );
     }
 
@@ -35,18 +35,23 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
 
 Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 {
+    const auto pPrimaryInput = GetPrimaryInput();
+    if ( !pPrimaryInput )
+        return unexpected( "Primary input of the '" + _name + "' element is not set" );
+
+    const size_t primaryInputTaskCount = pPrimaryInput->GetTaskCount();
+    if ( primaryInputTaskCount == 0 )
+        return unexpected( "No input frames for the'" + _name + "' element" );
+
     if ( _completedTaskCount == 0 && (_inOutFlags & PEFlags_StrictlyTwoInputs) )
     {
         auto temp = ProcessSecondaryInput();
         if ( !temp.has_value() )
             return unexpected( temp.error() );
 
-        _pSecondaryInputResult = temp.value();
+        if ( temp.value() )
+            _pSecondaryInputResult = temp.value();
     }
-
-    const auto pPrimaryInput = GetPrimaryInput();
-    if ( !pPrimaryInput )
-        return unexpected( "Primary input of the '" + _name + "' element is not set" );
 
     auto relationType = (pPrimaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
@@ -58,13 +63,9 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
         std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
             std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
 
-        const size_t inputTaskCount = pPrimaryInput->GetTaskCount();
-        if ( inputTaskCount == 0 )
-            return unexpected( "No input frames for the'" + _name + "' element");
-
         try
         {
-            for ( size_t i = 1; i < inputTaskCount; ++i )
+            for ( size_t i = 1; i < primaryInputTaskCount; ++i )
             {
                 pBitmap = pPrimaryInput->RunTaskAndReportProgress( i );
                 if ( !pBitmap )
@@ -72,7 +73,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 
                 pStacker->AddBitmap( *pBitmap );
 
-                _taskReadiness = float( i ) / (inputTaskCount + 1);
+                _taskReadiness = float( i ) / (primaryInputTaskCount + 1);
             }
 
             const auto res = ProcessBitmapFromPrimaryInput( pStacker->GetResult() );
@@ -109,6 +110,9 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
     auto pSecondaryInput = GetSecondaryInput();
     if ( !pSecondaryInput )
         return unexpected( "Secondary input of the '" + _name + "' element is not set" );
+
+    if ( pSecondaryInput->GetCompletedTaskCount() > 0 )
+        return nullptr;
 
     auto relationType = (pSecondaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
     if ( relationType == RelationType::Join )
@@ -266,11 +270,25 @@ size_t PipelineElementWindow::GetTaskCount()
     return _taskCount;
 }
 
+size_t PipelineElementWindow::GetCompletedTaskCount()
+{
+    return _completedTaskCount;
+}
+
 void PipelineElementWindow::ResetTasks()
 {
     _taskCount = 0;
     _completedTaskCount = 0;
     _taskReadiness = 0;
+}
+
+void PipelineElementWindow::ResetProgress()
+{
+    _completedTaskCount = 0;
+    _taskReadiness = 0;
+    auto pPrimaryInput = GetPrimaryInput();
+    if ( pPrimaryInput )
+        pPrimaryInput->ResetProgress();
 }
 
 void PipelineElementWindow::DrawDialog()

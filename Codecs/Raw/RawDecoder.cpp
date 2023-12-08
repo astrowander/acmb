@@ -124,6 +124,9 @@ void RawDecoder::Attach()
 	_width = _pLibRaw->imgdata.sizes.iwidth;
 	_height = _pLibRaw->imgdata.sizes.iheight;
 
+	if ( !_pCameraSettings )
+		_pCameraSettings = std::make_shared<CameraSettings>();
+
 	_pCameraSettings->timestamp = _pLibRaw->imgdata.other.timestamp;
 	_pCameraSettings->sensorSizeMm = sensorSizes[_pLibRaw->imgdata.lens.makernotes.CameraFormat];
 	_pCameraSettings->cropFactor = cropFactors[_pLibRaw->imgdata.lens.makernotes.CameraFormat];

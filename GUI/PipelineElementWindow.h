@@ -127,7 +127,9 @@ public:
     bool HasFreeOutputs();
 
     size_t GetTaskCount();
+    size_t GetCompletedTaskCount();
     virtual void ResetTasks();
+    void ResetProgress();
 
     virtual uint8_t GetMenuOrder() const = 0;
 

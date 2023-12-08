@@ -51,6 +51,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
             for ( auto pWriter : _writers )
             {
+                pWriter.second.lock()->ResetTasks();
                 const auto errors = pWriter.second.lock()->RunAllTasks();
                 _errors.insert( _errors.end(), errors.begin(), errors.end() );
             }

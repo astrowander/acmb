@@ -210,17 +210,19 @@ public:
 Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
 : BaseStacker( pipelines, stackMode )
 {
-    _means.resize(_width * _height * ChannelCount(_pixelFormat));
-    _devs.resize(_width * _height * ChannelCount(_pixelFormat));
-    _counts.resize(_width * _height * ChannelCount(_pixelFormat));
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );
 }
 
 Stacker::Stacker( const ImageParams& imageParams, StackMode stackMode )
 :BaseStacker(imageParams, stackMode)
 {
-    _means.resize(_width * _height * ChannelCount(_pixelFormat));
-    _devs.resize(_width * _height * ChannelCount(_pixelFormat));
-    _counts.resize(_width * _height * ChannelCount(_pixelFormat));
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );
 }
 
 void Stacker::CallAddBitmapHelper( IBitmapPtr pBitmap )

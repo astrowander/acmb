@@ -56,12 +56,14 @@ void ImageReaderWindow::DrawPipelineElementControls()
     {
         static auto filters = GetFilters();
         fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0 );
+        _completedTaskCount = 0;
     }, "Add images to the importing list" );
 
     UI::Button( "Clear List", { itemWidth, 0 }, [&]
     {
         _fileNames.clear();
         _selectedItemIdx = 0;
+        _completedTaskCount = 0;
     }, "Delete all images from the importing list" );
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )

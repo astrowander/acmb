@@ -17,13 +17,16 @@ void StackerWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Stack Mode" );
     UI::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ), "Input images will be debayered and aligned by stars before stacking" );
+    UI::RadioButton( "Light (w/o alignment)", ( int* ) (&_stackMode), int( StackMode::LightNoAlign ), "Input images will be stacked without alignment and then debayered" );
     UI::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ), "Input images will be stacked as-is, without alignment and debayerization" );
 
-    ImGui::Separator();
-    ImGui::Text( "Star Detection Threshold" );
+    ImGui::Separator();    
     if ( _stackMode == StackMode::Light )
-        UI::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f, 
+    {
+        ImGui::Text( "Star Detection Threshold" );
+        UI::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f,
                        "A group of pixels will be recognized as a star only if their luminosity is greater than this threshold (in percents) above the median value" );
+    }
 }
 
 Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )

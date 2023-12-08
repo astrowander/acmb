@@ -4,7 +4,6 @@
 ACMB_NAMESPACE_BEGIN
 
 IPipelineElement::IPipelineElement()
-: _pCameraSettings( std::make_shared<CameraSettings>() )
 {
 
 }

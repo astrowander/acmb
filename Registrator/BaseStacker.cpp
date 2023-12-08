@@ -53,7 +53,7 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     for ( const auto& pipeline : pipelines )
     {
         _stackingData.push_back( { pipeline, {}, {} } );
-        if ( ( stackMode == StackMode::Light || stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
+        if ( ( stackMode == StackMode::Light ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
             _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
     }
 
@@ -64,10 +64,12 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     if ( !finalParams )
         throw std::invalid_argument( "cannot calculate image params" );
 
+    _pCameraSettings = pipelines[0].GetCameraSettings();
+
     _width = finalParams->GetWidth();
     _height = finalParams->GetHeight();
     _pixelFormat = finalParams->GetPixelFormat();
-    if ( _stackMode == StackMode::Light && _pixelFormat == PixelFormat::Bayer16 )
+    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
         _pixelFormat = PixelFormat::RGB48;
 
     _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
@@ -81,7 +83,7 @@ BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
     _height = imageParams.GetHeight();
 
     _pixelFormat = imageParams.GetPixelFormat();
-    if ( _stackMode == StackMode::Light && _pixelFormat == PixelFormat::Bayer16 )
+    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
         _pixelFormat = PixelFormat::RGB48;
 
     _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
@@ -188,11 +190,14 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
         AddBitmap( _stackingData[i].pipeline );
     }
 
-    return CallGeneratingResultHelper();
+    return GetResult();
 }
 
 void BaseStacker::AddBitmap( IBitmapPtr pBitmap )
 {
+    if ( !_pCameraSettings )
+        _pCameraSettings = pBitmap->GetCameraSettings();
+
     Pipeline pipeline{ pBitmap };
     return AddBitmap( pipeline );
 }
@@ -200,7 +205,7 @@ void BaseStacker::AddBitmap( IBitmapPtr pBitmap )
 void BaseStacker::AddBitmap(Pipeline& pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );
-    if ( ( _stackMode == StackMode::Light || _stackMode == StackMode::LightNoAlign ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
+    if ( ( _stackMode == StackMode::Light ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
         pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
 
     auto pBitmap = pipeline.RunAndGetBitmap();
@@ -233,7 +238,11 @@ void BaseStacker::AddBitmap(Pipeline& pipeline)
 
 IBitmapPtr BaseStacker::GetResult()
 {
-    return CallGeneratingResultHelper();
+    auto pRes = CallGeneratingResultHelper();
+    if ( _stackMode == StackMode::LightNoAlign && pRes->GetPixelFormat() == PixelFormat::Bayer16 )
+        pRes = DebayerTransform::Debayer( pRes, _pCameraSettings );
+
+    return pRes;
 }
 
 std::shared_ptr<IBitmap>  BaseStacker::RegistrateAndStack()
@@ -246,7 +255,7 @@ std::shared_ptr<IBitmap>  BaseStacker::RegistrateAndStack()
         AddBitmap( _stackingData[i].pipeline );
     }
 
-    return CallGeneratingResultHelper();
+    return GetResult();
 }
 
 IBitmapPtr BaseStacker::ProcessBitmap( IBitmapPtr )
