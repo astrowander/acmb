@@ -19,6 +19,8 @@ public:
     virtual void Deserialize(std::istream& in) override;
     virtual int GetSerializedStringSize() const override;
 
+    virtual void ResetTasks() override;
+
     SET_MENU_PARAMS( "\xef\x97\xbd", "Stack", "Sum up a group of frames to one image", 3 );
 };
 

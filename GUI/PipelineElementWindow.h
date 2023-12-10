@@ -133,7 +133,7 @@ public:
     bool HasFreeInputs();
     bool HasFreeOutputs();
 
-    size_t GetTaskCount();
+    virtual size_t GetTaskCount();
     size_t GetCompletedTaskCount();
     virtual void ResetTasks();
     void ResetProgress( PropagationDir dir );

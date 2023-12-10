@@ -76,8 +76,6 @@ void ImageReaderWindow::DrawPipelineElementControls()
             const auto selection = fileDialog.GetSelection();
             for ( const auto& it : selection )
                 _fileNames.push_back( _workingDirectory + "/" + it.first);
-
-            _taskCount = _fileNames.size();
         }
 
         // close
@@ -111,8 +109,6 @@ void ImageReaderWindow::Deserialize(std::istream& in)
     _workingDirectory = gui::Deserialize<std::string>(in, _remainingBytes);
     _fileNames = gui::Deserialize<std::vector<std::string>>(in, _remainingBytes);
     _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
-
-    _taskCount = _fileNames.size();
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const
@@ -126,6 +122,11 @@ int ImageReaderWindow::GetSerializedStringSize() const
 std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
 {
     return (taskNumber < _fileNames.size()) ? _fileNames[taskNumber] : std::string{};
+}
+
+size_t ImageReaderWindow::GetTaskCount()
+{
+    return _fileNames.size();
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )

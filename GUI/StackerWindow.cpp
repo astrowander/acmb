@@ -97,6 +97,12 @@ int StackerWindow::GetSerializedStringSize() const
         + gui::GetSerializedStringSize( _threshold );
 }
 
+void StackerWindow::ResetTasks()
+{
+    _completedTaskCount = 0;
+    _taskReadiness = 0;
+}
+
 REGISTER_TOOLS_ITEM( StackerWindow )
 
 ACMB_GUI_NAMESPACE_END

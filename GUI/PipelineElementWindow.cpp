@@ -285,9 +285,7 @@ void PipelineElementWindow::ResetTasks()
 
 void PipelineElementWindow::ResetProgress( PropagationDir dir )
 {
-    _taskCount = 0;
-    _completedTaskCount = 0;
-    _taskReadiness = 0;
+    ResetTasks();
 
     if ( int( dir ) & int( PropagationDir::Backward ) )
     {
@@ -319,7 +317,8 @@ void PipelineElementWindow::DrawDialog()
     ImGui::PopItemWidth();
 
     ImGui::SetCursorPosY( cElementHeight - ImGui::GetStyle().WindowPadding.y - ImGui::GetTextLineHeight() - 2 * ImGui::GetStyle().FramePadding.y );
-    ImGui::ProgressBar( _taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( _taskCount ) : 0.0f, { _itemWidth, 0 } );
+    const auto taskCount = GetTaskCount();
+    ImGui::ProgressBar( taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( taskCount ) : 0.0f, { _itemWidth, 0 } );
 
     if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
     {

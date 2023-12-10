@@ -19,6 +19,7 @@ public:
     virtual void Serialize(std::ostream& out) const override;
     virtual void Deserialize(std::istream& in) override;
     virtual int GetSerializedStringSize() const override;
+    virtual size_t GetTaskCount() override;
 
     std::string GetTaskName( size_t taskNumber ) const override;
 
