@@ -1,6 +1,7 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 #include "MainWindow.h"
+#include "StackerWindow.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -284,6 +285,7 @@ void PipelineElementWindow::ResetTasks()
 
 void PipelineElementWindow::ResetProgress( PropagationDir dir )
 {
+    _taskCount = 0;
     _completedTaskCount = 0;
     _taskReadiness = 0;
 
@@ -299,9 +301,14 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
         auto pOutput = GetRightOutput();
         if ( !pOutput )
             pOutput = GetBottomOutput();
-
+        
         if ( pOutput )
+        {
+            //if ( pOutput->GetPrimaryInput().get() == this && std::dynamic_pointer_cast< StackerWindow >(pOutput) == nullptr )
+                //pOutput->_taskCount = _taskCount;
+
             pOutput->ResetProgress( dir );
+        }
     }
 }
 
