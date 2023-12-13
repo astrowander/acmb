@@ -26,7 +26,10 @@
     <ClInclude Include="Codecs\FITS\FitsEncoder.h" />
     <ClInclude Include="Codecs\imagedecoder.h" />
     <ClInclude Include="Codecs\imageencoder.h" />
+    <ClInclude Include="Codecs\JPEG\JpegDecoder.h" />
     <ClInclude Include="Codecs\JPEG\JpegEncoder.h" />
+    <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgd.h" />
+    <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgdcnf.h" />
     <ClInclude Include="Codecs\JPEG\toojpeg\toojpeg.h" />
     <ClInclude Include="Codecs\MP4\Mp4Encoder.h" />
     <ClInclude Include="Codecs\PPM\ppmdecoder.h" />
@@ -82,7 +85,9 @@
     <ClCompile Include="Codecs\FITS\FitsEncoder.cpp" />
     <ClCompile Include="Codecs\imagedecoder.cpp" />
     <ClCompile Include="Codecs\imageencoder.cpp" />
+    <ClCompile Include="Codecs\JPEG\JpegDecoder.cpp" />
     <ClCompile Include="Codecs\JPEG\JpegEncoder.cpp" />
+    <ClCompile Include="Codecs\JPEG\TJpg_Decoder\tjpgd.cpp" />
     <ClCompile Include="Codecs\JPEG\toojpeg\toojpeg.cpp" />
     <ClCompile Include="Codecs\MP4\Mp4Encoder.cpp" />
     <ClCompile Include="Codecs\PPM\ppmdecoder.cpp" />

@@ -183,6 +183,15 @@
     <ClInclude Include="Codecs\MP4\Mp4Encoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Codecs\JPEG\JpegDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgdcnf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -303,6 +312,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\MP4\Mp4Encoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\JPEG\JpegDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\JPEG\TJpg_Decoder\tjpgd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
