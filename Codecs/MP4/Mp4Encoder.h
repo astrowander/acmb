@@ -1,6 +1,5 @@
 #pragma once
 #include "../../Codecs/imageencoder.h"
-#include "x264.h"
 
 ACMB_NAMESPACE_BEGIN
 
@@ -41,17 +40,12 @@ enum class H264Profile
     None
 };
 
+struct Mp4EncoderParams;
+
 class Mp4Encoder : public ImageEncoder
 {
-    x264_param_t _param;
-    x264_picture_t _pic;
-    x264_picture_t _pic_out;
-    x264_t* _h = nullptr;
-    x264_nal_t* _nal = nullptr;
-    int i_nal = 0;
-    int _i_frame = 0;
-
-    FILE* _f;
+    std::shared_ptr<Mp4EncoderParams> _params;
+    FILE* _f = nullptr;
 
 public:
     Mp4Encoder( H264Preset preset, H264Tune tune = H264Tune::None, H264Profile profile = H264Profile::None );
@@ -65,6 +59,9 @@ public:
     void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
     /// returns supported extensions
     static std::set<std::string> GetExtensions();
+
+    void SetFrameRate( uint32_t frameRate );
+    uint32_t GetFrameRate() const;
 
     ADD_EXTENSIONS
 };
