@@ -17,12 +17,18 @@ protected:
 
 public:
     ///
-    IPipelineElement();
+    IPipelineElement() = default;
+    IPipelineElement( const IPipelineElement& other ) = delete;
+    IPipelineElement( IPipelineElement&& other ) = delete;
+    IPipelineElement& operator=( const IPipelineElement& other ) = delete;
+    IPipelineElement& operator=( IPipelineElement&& other ) = delete;
+    virtual ~IPipelineElement() = default;
+
     /// override this if derived class changes size or pixel format of the image
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams );
     /// abstract fuction where the given bitmap is processed
     virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr ) = 0;
-    virtual ~IPipelineElement() = default;
+
     /// returns camera settings
     std::shared_ptr<CameraSettings> GetCameraSettings() const;
     /// sets camera settings

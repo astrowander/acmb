@@ -3,11 +3,6 @@
 
 ACMB_NAMESPACE_BEGIN
 
-IPipelineElement::IPipelineElement()
-{
-
-}
-
 void IPipelineElement::CalcParams( std::shared_ptr<ImageParams> pParams )
 {
     _width = pParams->GetWidth();
