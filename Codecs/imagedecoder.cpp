@@ -63,7 +63,7 @@ void ImageDecoder::Detach()
 
 ImageDecoder::~ImageDecoder()
 {
-    Detach();
+    _pStream.reset();
 }
 
 std::shared_ptr<IBitmap> ImageDecoder::ReadStripe( uint32_t )
