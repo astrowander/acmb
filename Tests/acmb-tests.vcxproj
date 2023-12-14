@@ -131,6 +131,7 @@
     <ClCompile Include="TestDebayerTransform.cpp" />
     <ClCompile Include="TestFitsDecoder.cpp" />
     <ClCompile Include="TestFitsEncoder.cpp" />
+    <ClCompile Include="TestJpegDecoder.cpp" />
     <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />
     <ClCompile Include="TestBitmap.cpp" />

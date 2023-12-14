@@ -4,6 +4,7 @@
 #include "Raw/RawDecoder.h"
 #include "Tiff/TiffDecoder.h"
 #include "FITS/FitsDecoder.h"
+#include "JPEG/JpegDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/converter.h"
@@ -102,6 +103,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     else if ( FitsDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset( new FitsDecoder( outputFormat ) );
+    }
+    else if ( JpegDecoder::GetExtensions().contains( extension ) )
+    {
+        pDecoder.reset( new JpegDecoder( outputFormat ) );
     }
 
     if ( !pDecoder )

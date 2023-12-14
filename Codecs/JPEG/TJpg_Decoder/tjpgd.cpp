@@ -242,12 +242,12 @@ static JRESULT create_huffman_tbl (	/* 0:OK, !0:Failed */
 			uint8_t *tbl_dc = 0;
 
 			if (cls) {
-				tbl_ac = alloc_pool(jd, HUFF_LEN * sizeof (uint16_t));	/* LUT for AC elements */
+				tbl_ac = ( uint16_t* )alloc_pool(jd, HUFF_LEN * sizeof (uint16_t));	/* LUT for AC elements */
 				if (!tbl_ac) return JDR_MEM1;		/* Err: not enough memory */
 				jd->hufflut_ac[num] = tbl_ac;
 				memset(tbl_ac, 0xFF, HUFF_LEN * sizeof (uint16_t));		/* Default value (0xFFFF: may be long code) */
 			} else {
-				tbl_dc = alloc_pool(jd, HUFF_LEN * sizeof (uint8_t));	/* LUT for AC elements */
+				tbl_dc = ( uint8_t* )alloc_pool(jd, HUFF_LEN * sizeof (uint8_t));	/* LUT for AC elements */
 				if (!tbl_dc) return JDR_MEM1;		/* Err: not enough memory */
 				jd->hufflut_dc[num] = tbl_dc;
 				memset(tbl_dc, 0xFF, HUFF_LEN * sizeof (uint8_t));		/* Default value (0xFF: may be long code) */
