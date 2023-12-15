@@ -3,7 +3,7 @@
 
 ACMB_NAMESPACE_BEGIN
 
-enum class H264Preset
+enum class H265Preset
 {
     UltraFast,
     SuperFast,
@@ -16,20 +16,18 @@ enum class H264Preset
     VerySlow
 };
 
-enum class H264Tune
+enum class H265Tune
 {
-    Film,
-    Animation,
-    Grain,
-    StillImage,
     Psnr,
     Ssim,
-    FastDecode,
+    Grain,
     ZeroLatency,
+    FastDecode,
+    Animation,
     None
 };
 
-enum class H264Profile
+enum class H265Profile
 {
     Baseline,
     Main,
@@ -47,8 +45,10 @@ class Mp4Encoder : public ImageEncoder
     std::shared_ptr<Mp4EncoderParams> _params;
     FILE* _f = nullptr;
 
+    std::vector<uint8_t> _i420Channels[3];
+
 public:
-    Mp4Encoder( H264Preset preset, H264Tune tune = H264Tune::None, H264Profile profile = H264Profile::None );
+    Mp4Encoder( H265Preset preset, H265Tune tune = H265Tune::None, H265Profile profile = H265Profile::None );
 
     virtual void Attach( std::shared_ptr<std::ostream> pStream ) override;
     /// attach to file

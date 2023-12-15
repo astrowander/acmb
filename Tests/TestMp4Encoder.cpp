@@ -2,6 +2,7 @@
 #include "testtools.h"
 #include "../Codecs/MP4/Mp4Encoder.h"
 #include "../Codecs/JPEG/JpegDecoder.h"
+#include "../Transforms/ResizeTransform.h"
 
 #include <filesystem>
 
@@ -11,12 +12,13 @@ BEGIN_SUITE( Mp4Encoder )
 
 BEGIN_TEST( TestRGB24 )
 
-    Mp4Encoder encoder( H264Preset::Medium );
-    encoder.Attach( GetPathToPattern( "Mp4Encoder/TestRGB24.mp4" ) );
+    Mp4Encoder encoder( H265Preset::VerySlow, H265Tune::ZeroLatency );
+    encoder.Attach( "C:/ffmpeg/frames/output.h265");
     encoder.SetFrameRate( 30 );
     JpegDecoder jpegDecoder;
-
-    for ( auto entry : std::filesystem::directory_iterator( "D:/FILES/PHOTOS/timelapses/2019_07_kireevsk/night1/Resized/" ) )
+    
+    int count = 0;
+    for ( auto entry : std::filesystem::directory_iterator( "C:/ffmpeg/frames/" ) )
     {
         if ( entry.is_directory() )
             continue;
@@ -25,8 +27,13 @@ BEGIN_TEST( TestRGB24 )
              continue;
 
         jpegDecoder.Attach( path.string() );
-        encoder.WriteBitmap( jpegDecoder.ReadBitmap() );
+        auto bitmap = jpegDecoder.ReadBitmap();
+        //auto pResize = ResizeTransform::Create( PixelFormat::RGB24, { .width = 256, .height = 144 } );
+        //auto pResizedBitmap = ResizeTransform::Resize( bitmap, { .width = 720, .height = 480 } );
+        //bitmap->Save( pResizedBitmap, GetPathToPattern( "Mp4Encoder/bitmap.ppm" ) );
+        encoder.WriteBitmap( bitmap );
         jpegDecoder.Detach();
+        std::cout << count++ << "frames encoded" << std::endl;
     }
 
     encoder.Detach();
