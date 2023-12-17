@@ -136,11 +136,12 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
     {
         const size_t dotPos = _fileName.find_last_of( '.' );
         std::size_t numberSize = 0;
-        if ( taskNumber >= 1000 )
+        const auto taskCount = GetTaskCount();
+        if ( taskCount >= 1000 )
             numberSize = 4;
-        else if ( taskNumber >= 100 )
+        else if ( taskCount >= 100 )
             numberSize = 3;
-        else if ( taskNumber >= 10 )
+        else if ( taskCount >= 10 )
             numberSize = 2;
         else
             numberSize = 1;
@@ -149,7 +150,7 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
         std::string number = std::to_string( taskNumber );
         numberWithLeadingZeros.replace( numberWithLeadingZeros.size() - number.size(), number.size(), number );
 
-        finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + std::to_string( taskNumber ) + _fileName.substr( dotPos ) );
+        finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + numberWithLeadingZeros + _fileName.substr( dotPos ) );
     }
 
     IBitmap::Save( pSource, finalName );
