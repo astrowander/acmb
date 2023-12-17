@@ -135,6 +135,20 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
     else
     {
         const size_t dotPos = _fileName.find_last_of( '.' );
+        std::size_t numberSize = 0;
+        if ( taskNumber >= 1000 )
+            numberSize = 4;
+        else if ( taskNumber >= 100 )
+            numberSize = 3;
+        else if ( taskNumber >= 10 )
+            numberSize = 2;
+        else
+            numberSize = 1;
+
+        std::string numberWithLeadingZeros( numberSize, '0' );
+        std::string number = std::to_string( taskNumber );
+        numberWithLeadingZeros.replace( numberWithLeadingZeros.size() - number.size(), number.size(), number );
+
         finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + std::to_string( taskNumber ) + _fileName.substr( dotPos ) );
     }
 
