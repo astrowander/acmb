@@ -9,7 +9,7 @@ BEGIN_SUITE( ImageEncoder )
 BEGIN_TEST( TestExtensions )
 
 auto extensions = ImageEncoder::GetAllExtensions();
-EXPECT_EQ( 9, extensions.size() );
+EXPECT_EQ( 11, extensions.size() );
 
 END_TEST
 
