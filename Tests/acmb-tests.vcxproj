@@ -131,8 +131,9 @@
     <ClCompile Include="TestDebayerTransform.cpp" />
     <ClCompile Include="TestFitsDecoder.cpp" />
     <ClCompile Include="TestFitsEncoder.cpp" />
+    <ClCompile Include="TestH265Encoder.cpp" />
     <ClCompile Include="TestJpegDecoder.cpp" />
-    <ClCompile Include="TestMp4Encoder.cpp" />
+    <ClCompile Include="TestY4MEncoder.cpp" />
     <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />
     <ClCompile Include="TestBitmap.cpp" />

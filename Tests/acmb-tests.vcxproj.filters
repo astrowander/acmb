@@ -114,7 +114,10 @@
     <ClCompile Include="TestJpegDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestMp4Encoder.cpp">
+    <ClCompile Include="TestY4MEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestH265Encoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

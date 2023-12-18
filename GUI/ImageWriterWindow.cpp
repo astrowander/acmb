@@ -6,6 +6,9 @@
 
 #include "./../Core/bitmap.h"
 #include "./../Codecs/imageencoder.h"
+#include "./../Codecs/H265/H265Encoder.h"
+#include "./../Codecs/Y4M/Y4MEncoder.h"
+
 #include <sstream>
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -22,12 +25,15 @@ static std::string GetFilters()
     return ss.str();
 }
 
-static std::string GetFormatList()
+static std::string GetFormatList( bool excludeVideoFormats = false )
 {
     const auto extensions = ImageEncoder::GetAllExtensions();
     std::ostringstream ss;
     for ( const auto& extension : extensions )
     {
+        if ( excludeVideoFormats && ( H265Encoder::GetExtensions().contains( extension) || Y4MEncoder::GetExtensions().contains( extension ) ) )
+            continue;
+
         ss << extension << '\0';
     }
 
@@ -38,7 +44,7 @@ static std::string GetFormatList()
 ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
 : PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
 {
-    _formatList = GetFormatList();
+    _formatList = GetFormatList( true );
 }
 
 void ImageWriterWindow::DrawPipelineElementControls()
@@ -76,6 +82,14 @@ void ImageWriterWindow::DrawPipelineElementControls()
         }, "Choose a file format to export the results" );
     }
 
+
+    if ( H265Encoder::GetExtensions().contains( _extension ) || Y4MEncoder::GetExtensions().contains( _extension ) )
+    {        
+        UI::DragInt( "Frame Rate", &_frameRate, 0.1f, 1, 144, "Frame rate of the output video");
+        if ( H265Encoder::GetExtensions().contains( _extension ) )
+            UI::DragInt( "Quality", &_quality, 0.1f, 1, 9, "1 - worst quality, fastest speed\n9 - best quality, slowest speed");
+    }
+
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
@@ -83,6 +97,11 @@ void ImageWriterWindow::DrawPipelineElementControls()
         {
             _workingDirectory = fileDialog.GetCurrentPath();
             _fileName = fileDialog.GetFilePathName();
+            const size_t dotPos = _fileName.find_last_of( '.' );
+            if ( dotPos != std::string::npos )
+            {
+                _extension = _fileName.substr( dotPos );
+            }
         }
 
         // close
@@ -97,6 +116,8 @@ void ImageWriterWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _fileName, out );
     gui::Serialize( _formatId, out );
     gui::Serialize( _keepOriginalFileName, out );
+    gui::Serialize( _frameRate, out );
+    gui::Serialize( _quality, out );
 }
 
 void ImageWriterWindow::Deserialize( std::istream& in )
@@ -106,6 +127,14 @@ void ImageWriterWindow::Deserialize( std::istream& in )
     _fileName = gui::Deserialize<std::string>( in, _remainingBytes );
     _formatId = gui::Deserialize<int>( in, _remainingBytes );
     _keepOriginalFileName = gui::Deserialize<bool>( in, _remainingBytes );
+    _frameRate = gui::Deserialize<int>( in, _remainingBytes );
+    _quality = gui::Deserialize<int>( in, _remainingBytes );
+
+    const size_t dotPos = _fileName.find_last_of( '.' );
+    if ( dotPos != std::string::npos )
+    {
+        _extension = _fileName.substr( dotPos );
+    }
 }
 
 int ImageWriterWindow::GetSerializedStringSize() const
@@ -114,11 +143,19 @@ int ImageWriterWindow::GetSerializedStringSize() const
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileName )
         + gui::GetSerializedStringSize( _formatId )
-        + gui::GetSerializedStringSize( _keepOriginalFileName );
+        + gui::GetSerializedStringSize( _keepOriginalFileName )
+        + gui::GetSerializedStringSize( _frameRate )
+        + gui::GetSerializedStringSize( _quality );
 }
 
 IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
 {
+    if ( _pEncoder )
+    {
+        _pEncoder->WriteBitmap( pSource );
+        return nullptr;
+    }
+
     std::string finalName;
     if ( _keepOriginalFileName )
     {
@@ -157,7 +194,7 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
     return nullptr;
 }
 
-std::vector<std::string> ImageWriterWindow::RunAllTasks()
+std::vector<std::string> ImageWriterWindow::ExportAllImages()
 {
     auto pPrimaryInput = GetPrimaryInput();
     if ( !pPrimaryInput )
@@ -175,6 +212,18 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
     if ( !_keepOriginalFileName && _fileName.empty() )
         return { "File name for the'" + _name + "' element is not specified" };
 
+    const bool isH265 = H265Encoder::GetExtensions().contains( _extension );
+    const bool isY4M = Y4MEncoder::GetExtensions().contains( _extension );
+    if ( isH265 || isY4M )
+    {
+        if ( isH265 )
+            _pEncoder = std::make_shared<H265Encoder>( H265Encoder::Preset( _quality - 1 ) );
+        else
+            _pEncoder = std::make_shared<Y4MEncoder>();
+
+        _pEncoder->Attach( _fileName );
+    }
+
     std::vector<std::string> res;
     for ( size_t i = 0; i < _taskCount; ++i )
     {
@@ -182,7 +231,12 @@ std::vector<std::string> ImageWriterWindow::RunAllTasks()
         if ( !taskRes.has_value() )
             res.push_back( taskRes.error() );
     }
-    
+
+    if ( _pEncoder )
+    {
+        _pEncoder->Detach();
+        _pEncoder.reset();
+    }
     return res;
 }
 

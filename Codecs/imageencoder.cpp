@@ -6,7 +6,8 @@
 #include "Tiff/TiffEncoder.h"
 #include "JPEG/JpegEncoder.h"
 #include "FITS/FitsEncoder.h"
-
+#include "Y4M/Y4MEncoder.h"
+#include "H265/H265Encoder.h"
 ACMB_NAMESPACE_BEGIN
 
 void ImageEncoder::Attach(std::shared_ptr<std::ostream> pStream)
@@ -56,6 +57,14 @@ std::shared_ptr<ImageEncoder> ImageEncoder::Create(const std::string &fileName)
     else if ( FitsEncoder::GetExtensions().contains( extension ) )
     {
         pEncoder.reset( new FitsEncoder() );
+    }
+    else if ( Y4MEncoder::GetExtensions().contains( extension ) )
+    {
+        pEncoder.reset( new Y4MEncoder() );
+    }
+    else if ( H265Encoder::GetExtensions().contains( extension ) )
+    {
+        pEncoder.reset( new H265Encoder( H265Encoder::Preset::VeryFast, H265Encoder::Tune::FastDecode, H265Encoder::Profile::Main ) );
     }
 
     if (!pEncoder)

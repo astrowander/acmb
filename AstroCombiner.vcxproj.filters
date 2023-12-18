@@ -180,7 +180,7 @@
     <ClInclude Include="Codecs\FITS\FitsEncoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Codecs\MP4\Mp4Encoder.h">
+    <ClInclude Include="Codecs\Y4M\Y4MEncoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Codecs\JPEG\JpegDecoder.h">
@@ -190,6 +190,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgdcnf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Codecs\H265\H265Encoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Codecs\VideoEncoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -311,13 +317,19 @@
     <ClCompile Include="Codecs\FITS\FitsEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Codecs\MP4\Mp4Encoder.cpp">
+    <ClCompile Include="Codecs\Y4M\Y4MEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\JPEG\JpegDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Codecs\JPEG\TJpg_Decoder\tjpgd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\H265\H265Encoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\VideoEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
