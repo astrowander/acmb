@@ -1,7 +1,6 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 #include "MainWindow.h"
-#include "StackerWindow.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -11,8 +10,8 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 PipelineElementWindow::PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
     : Window( name + "##R" + std::to_string( gridPos.y ) + "C" + std::to_string( gridPos.x ), { cElementWidth, cElementHeight } )
-    , _inOutFlags( inOutFlags )
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
+    , _inOutFlags( inOutFlags )
     , _gridPos( gridPos )
 {
 }
@@ -320,49 +319,54 @@ void PipelineElementWindow::DrawDialog()
     const auto taskCount = GetTaskCount();
     ImGui::ProgressBar( taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( taskCount ) : 0.0f, { _itemWidth, 0 } );
 
-    if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
+
+    if ( !mainWindow.IsInterfaceLocked() )
     {
-        auto mousePos = ImGui::GetMousePos();
-        const auto windowPos = ImGui::GetWindowPos();
-        mousePos.x -= windowPos.x;
-        mousePos.y -= windowPos.y;
-
-        const auto& style = ImGui::GetStyle();
-        const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
-
-        if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
+        if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
         {
-            _openRenamePopup = true;
-        }
-    }
+            auto mousePos = ImGui::GetMousePos();
+            const auto windowPos = ImGui::GetWindowPos();
+            mousePos.x -= windowPos.x;
+            mousePos.y -= windowPos.y;
 
-    if ( _openRenamePopup )
-    {
-        ImGui::OpenPopup( "RenameElement" );
-        MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
-    }
+            const auto& style = ImGui::GetStyle();
+            const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
 
-    if ( ImGui::BeginPopup( "RenameElement" ) )
-    {
-        ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
-
-        if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
-        {
-            const size_t length = strlen( _renameBuf.data() );
-            if ( length > 0 )
-                _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
-
-            MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
-            _openRenamePopup = false;
+            if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
+            {
+                _openRenamePopup = true;
+            }
         }
 
-        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        if ( _openRenamePopup )
         {
-            MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
-            _openRenamePopup = false;
+            ImGui::OpenPopup( "RenameElement" );
+            mainWindow.LockInterface();
         }
 
-        ImGui::EndPopup();
+        if ( ImGui::BeginPopup( "RenameElement" ) )
+        {
+            ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
+
+            if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
+            {
+                const size_t length = strlen( _renameBuf.data() );
+                if ( length > 0 )
+                    _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+
+                mainWindow.UnlockInterface();
+                _openRenamePopup = false;
+            }
+
+            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+            {
+                mainWindow.UnlockInterface();
+                _openRenamePopup = false;
+            }
+
+            ImGui::EndPopup();
+        }
     }
 }
 

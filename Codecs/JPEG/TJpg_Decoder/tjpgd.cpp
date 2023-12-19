@@ -1013,8 +1013,8 @@ JRESULT jd_prepare (
 		marker = LDB_WORD(seg);		/* Marker */
 		len = LDB_WORD(seg + 2);	/* Length field */
 		if (len <= 2 || (marker >> 8) != 0xFF) return JDR_FMT1;
-		len -= 2;			/* Segent content size */
-		ofs += unsigned int( 4 + len );		/* Number of bytes loaded */
+        len -= 2;			/* Segent content size */
+        ofs += (unsigned int)( 4 + len );		/* Number of bytes loaded */
 
 		switch (marker & 0xFF) {
 		case 0xC0:	/* SOF0 (baseline JPEG) */

@@ -16,6 +16,11 @@ SOURCES += \
     AGG/agg_trans_affine.cpp \
     Codecs/FITS/FitsDecoder.cpp \
     Codecs/FITS/FitsEncoder.cpp \
+    Codecs/H265/H265Encoder.cpp \
+    Codecs/JPEG/JpegDecoder.cpp \
+    Codecs/JPEG/TJpg_Decoder/tjpgd.cpp \
+    Codecs/VideoEncoder.cpp \
+    Codecs/Y4M/Y4MEncoder.cpp \
     Codecs/imageencoder.cpp \
     Codecs/imagedecoder.cpp \
     Codecs/JPEG/toojpeg/toojpeg.cpp \
@@ -59,7 +64,13 @@ HEADERS += \
     AGG/agg_basics.h \
     Codecs/FITS/FitsDecoder.h \
     Codecs/FITS/FitsEncoder.h \
+    Codecs/H265/H265Encoder.h \
+    Codecs/JPEG/JpegDecoder.h \
+    Codecs/JPEG/TJpg_Decoder/tjpgd.h \
+    Codecs/JPEG/TJpg_Decoder/tjpgdcnf.h \
     Codecs/Raw/RawSettings.h \
+    Codecs/VideoEncoder.h \
+    Codecs/Y4M/Y4MEncoder.h \
     Codecs/imageencoder.h \
     Codecs/imagedecoder.h \
     Codecs/JPEG/toojpeg/toojpeg.h \

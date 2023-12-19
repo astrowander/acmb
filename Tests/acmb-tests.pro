@@ -9,6 +9,7 @@ LIBS += -lTinyTIFFShared_Release
 LIBS += -ltbb
 LIBS += -L/usr/local/lib/ -lCCfits
 LIBS += -L/usr/local/lib/ -lcfitsio
+LIBS += -lx265
 
 HEADERS += \
     TestRunner.h \
@@ -28,6 +29,7 @@ SOURCES += \
     TestFastAligner.cpp \
     TestFitsDecoder.cpp \
     TestFitsEncoder.cpp \
+    TestH265Encoder.cpp \
     TestHaloRemoval.cpp \
     TestHistogramBuilder.cpp \
     TestImageDecoder.cpp \
@@ -46,6 +48,7 @@ SOURCES += \
     TestStarTrekTransform.cpp \
     TestTiffDecoder.cpp \
     TestTiffEncoder.cpp \
+    TestY4MEncoder.cpp \
     main.cpp \
     testtools.cpp
 

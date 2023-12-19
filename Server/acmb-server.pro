@@ -11,6 +11,7 @@ LIBS += -lcudart
 LIBS += -lboost_system
 LIBS += -L/usr/local/lib/ -lCCfits
 LIBS += -L/usr/local/lib/ -lcfitsio
+LIBS += -lx265
 
 SOURCES += \
     main.cpp \
