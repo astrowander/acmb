@@ -76,4 +76,14 @@ uint32_t VideoEncoder::GetFrameRate() const
     return _frameRate;
 }
 
+void VideoEncoder::SetTotalFrames( uint32_t frames )
+{
+    _totalFrames = frames;
+}
+
+uint32_t VideoEncoder::GetTotalFrames() const
+{
+    return _totalFrames;
+}
+
 ACMB_NAMESPACE_END

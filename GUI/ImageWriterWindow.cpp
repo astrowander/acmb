@@ -221,6 +221,8 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
         else
             _pEncoder = std::make_shared<Y4MEncoder>();
 
+        _pEncoder->SetTotalFrames( _taskCount );
+        _pEncoder->SetFrameRate( _frameRate );
         _pEncoder->Attach( _fileName );
     }
 
