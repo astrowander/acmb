@@ -34,7 +34,6 @@ When you open the program, you will see an empty table and a row of buttons abov
 
 ### Importing Images
 The main frames on which the stars are captured, in fact, are the so-called light frames. We import them first. To do this, select cell A2 and click on the Import button. The Import Images tool will appear in the cell. In it, you need to click the "Select Image" button and select your light frames.
-Open in the console the directory where the executable is located (or add it to PATH environment variable)
 
 ### Subtracting a dark frame
 Since each light frame, in addition to useful information, contains the noise of a sensor, it is recommended to take a dark frame with the same exposure and subtract it from the light frame. Select the right adjacent cell B2 with the arrows on the keyboard or by clicking the mouse and add the "Dark Frame" tool to it. Note that cells A2 and B2 are connected by three arrows. This means that the frames between them are transmitted one-by-one, in batch mode.
