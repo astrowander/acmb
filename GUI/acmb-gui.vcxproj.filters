@@ -180,6 +180,7 @@
     <ClInclude Include="tl\expected.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter">
@@ -190,5 +191,15 @@
     <Natvis Include="imgui\misc\debuggers\imgui.natvis">
       <Filter>ImGui</Filter>
     </Natvis>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="acmb-gui.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\acmb_releases\help\acmb.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

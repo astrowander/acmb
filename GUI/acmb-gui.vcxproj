@@ -185,6 +185,7 @@
     <ClInclude Include="MenuItemsHolder.h" />
     <ClInclude Include="PipelineElementWindow.h" />
     <ClInclude Include="ResizeWindow.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />
@@ -204,6 +205,12 @@
     <ProjectReference Include="..\Cuda\acmb-cuda.vcxproj">
       <Project>{d5865a38-eac3-4bc9-9e4b-e52b2a2e950d}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="acmb-gui.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\..\acmb_releases\help\acmb.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

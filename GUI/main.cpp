@@ -393,7 +393,9 @@ int main(int, char**)
 
     CRect rcDesktop;
     ::SystemParametersInfo( SPI_GETWORKAREA, NULL, &rcDesktop, NULL );
-    HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"acmb v" FULL_VERSION, WS_OVERLAPPEDWINDOW, rcDesktop.left, rcDesktop.top, rcDesktop.Width(), rcDesktop.Height(), nullptr, nullptr, wc.hInstance, nullptr);
+    HICON hIcon = ( HICON ) LoadImage( NULL, L"acmb.ico", IMAGE_ICON, 0, 0, LR_LOADFROMFILE );
+    HWND hwnd = ::CreateWindowEx( 0, wc.lpszClassName, L"acmb v" FULL_VERSION, WS_OVERLAPPEDWINDOW, rcDesktop.left, rcDesktop.top, rcDesktop.Width(), rcDesktop.Height(), nullptr, nullptr, wc.hInstance, nullptr );
+    SendMessage( hwnd, WM_SETICON, ICON_SMALL, ( LPARAM ) hIcon );
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
