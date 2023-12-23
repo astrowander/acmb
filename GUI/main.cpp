@@ -525,7 +525,7 @@ int main(int, char**)
     try
     {
         const auto path = acmb::GetEnv("ACMB_PATH");
-        auto pBitmap = acmb::IBitmap::Create( path + "/GUI/acmb.ppm");
+        auto pBitmap = acmb::IBitmap::Create( path + "/GUI/acmb.PPM");
         const uint32_t iconWidth = pBitmap->GetWidth();
         const uint32_t iconHeight = pBitmap->GetHeight();
 
