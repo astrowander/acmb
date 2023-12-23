@@ -40,6 +40,11 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 
+#include <../Core/bitmap.h>
+#include <../Tools/SystemTools.h>
+#include <tbb/blocked_range.h>
+#include <tbb/parallel_for.h>
+
 static VkAllocationCallbacks*   g_Allocator = nullptr;
 static VkInstance               g_Instance = VK_NULL_HANDLE;
 static VkPhysicalDevice         g_PhysicalDevice = VK_NULL_HANDLE;
@@ -388,7 +393,7 @@ int main(int, char**)
     _wsetlocale( LC_ALL, L".UTF8" );
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ACMB", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nulglfwSetWindowIcon(window, 1, images); lptr, L"ACMB", nullptr };
     ::RegisterClassExW(&wc);
 
     CRect rcDesktop;
@@ -510,11 +515,44 @@ int main(int, char**)
 
     // Create window with Vulkan context
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "acmb" FULL_VERSION, nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "acmb " FULL_VERSION, nullptr, nullptr);
     if (!glfwVulkanSupported())
     {
         printf("GLFW: Vulkan Not Supported\n");
         return 1;
+    }
+
+    try
+    {
+        const auto path = acmb::GetEnv("ACMB_PATH");
+        auto pBitmap = acmb::IBitmap::Create( path + "/GUI/acmb.ppm");
+        const uint32_t iconWidth = pBitmap->GetWidth();
+        const uint32_t iconHeight = pBitmap->GetHeight();
+
+        std::vector<uint8_t> iconBuffer( iconWidth * iconHeight * 4, 255 );
+        tbb::parallel_for( tbb::blocked_range<uint32_t>(0, iconHeight ), [&](const tbb::blocked_range<uint32_t>& range)
+        {
+            for ( uint32_t y = range.begin(); y < range.end(); ++y)
+            {
+                const auto pScanline = pBitmap->GetPlanarScanline( y );
+                for ( uint32_t x = 0; x < iconWidth; ++x)
+                {
+                    iconBuffer[ y * 4 * iconWidth + x * 4] = pScanline[ 3 * x];
+                    iconBuffer[ y * 4 * iconWidth + x * 4 + 1] = pScanline[ 3 * x + 1];
+                    iconBuffer[ y * 4 * iconWidth + x * 4 + 2] = pScanline[ 3 * x + 2];
+                }
+            }
+        });
+
+        GLFWimage icon[1];
+        icon[0].width = iconWidth;
+        icon[0].height = iconHeight;
+        icon[0].pixels = iconBuffer.data();
+        glfwSetWindowIcon(window, 1, icon);
+    }
+    catch ( std::exception& e)
+    {
+        std::cout << "unable to open icon file, skipping" << std::endl;
     }
 
     ImVector<const char*> extensions;
