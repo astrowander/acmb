@@ -4,6 +4,7 @@
 #include "CudaBasic.h"
 #include "./../Core/bitmap.h"
 
+#define CUDA_SYNCHRONIZE
 ACMB_CUDA_NAMESPACE_BEGIN
 
 struct StackData

@@ -3,7 +3,6 @@
 #include "../Core/pipeline.h"
 #include "../Codecs/Raw/RawDecoder.h"
 #include "../Registrator/stacker.h"
-#include "../Transforms/converter.h"
 #include "../Transforms/BitmapSubtractor.h"
 #include "../Transforms/BitmapDivisor.h"
 #include <filesystem>

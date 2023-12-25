@@ -1,6 +1,5 @@
 #pragma once
 #include "CudaBasic.h"
-#include "CudaUtils.cuh"
 
 ACMB_CUDA_NAMESPACE_BEGIN
 

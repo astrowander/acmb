@@ -17,6 +17,7 @@ DEPENDPATH += /usr/local/include
 
 HEADERS += \
     AddBitmap.h \
+    AddBitmapWithAlignment.cuh \
     AddBitmapWithAlignment.h \
     CudaBasic.h \
     CudaBasic.hpp \
