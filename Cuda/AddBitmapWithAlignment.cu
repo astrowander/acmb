@@ -1,4 +1,5 @@
 #include "AddBitmapWithAlignment.cuh"
+#include "CudaUtils.cuh"
 #include <float.h>
 ACMB_CUDA_NAMESPACE_BEGIN
 

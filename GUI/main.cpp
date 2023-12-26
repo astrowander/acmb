@@ -393,7 +393,7 @@ int main(int, char**)
     _wsetlocale( LC_ALL, L".UTF8" );
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
-    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nulglfwSetWindowIcon(window, 1, images); lptr, L"ACMB", nullptr };
+    WNDCLASSEXW wc = { sizeof(wc), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(nullptr), nullptr, nullptr, nullptr, nullptr, L"ACMB", nullptr };
     ::RegisterClassExW(&wc);
 
     CRect rcDesktop;
