@@ -39,9 +39,9 @@ CUDA_SOURCES += \
 CUDA_DIR = /usr/lib/cuda
 # GPU architecture
 #https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
-CUDA_VARCH = compute_87
+CUDA_VARCH = compute_80
 #https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#gpu-feature-list-dc -rdc=true
-CUDA_GPU_ARCH = sm_87
+CUDA_GPU_ARCH = sm_80
 
 # nvcc flags (ptxas option verbose is always useful)
 NVCCFLAGS = --compiler-options -use-fast-math --Wno-deprecated-gpu-targets

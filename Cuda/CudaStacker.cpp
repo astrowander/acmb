@@ -96,7 +96,7 @@ if (_pixelFormat == format) { \
     helper.Run( bitmap.data(), _width, _height, PixelFormatTraits<format>::channelCount, _grid, _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data() );\
     if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
                         throw std::runtime_error( "error in CUDA kernel occured" );\
-}
+    return;}
 
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray8 );
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray16 );
