@@ -22,6 +22,7 @@ HEADERS += \
     CudaBasic.h \
     CudaBasic.hpp \
     CudaStacker.h \
+    CudaUtils.cuh \
     GenerateResult.h\
     CudaInfo.h
 
@@ -78,7 +79,7 @@ cuda.commands = $$CUDA_DIR/bin/nvcc -m64 -g -G -gencode arch=$$CUDA_VARCH,code=$
                 2>&1 | sed -r \"s/\\(([0-9]+)\\)/:\\1/g\" 1>&2
 }
 else {
-cuda.commands = $$CUDA_DIR/bin/nvcc -m64 -O3 -gencode arch=$$CUDA_VARCH,code=$$CUDA_GPU_ARCH -c $$NVCCFLAGS \
+cuda.commands = $$CUDA_DIR/bin/nvcc -m64 -O2 -gencode arch=$$CUDA_VARCH,code=$$CUDA_GPU_ARCH -c $$NVCCFLAGS \
                 $$CUDA_INC $$LIBS  ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT} \
                 2>&1 | sed -r \"s/\\(([0-9]+)\\)/:\\1/g\" 1>&2
 }
@@ -92,7 +93,7 @@ CONFIG(debug, debug|release) {
     cuda.depend_command = $$CUDA_DIR/bin/nvcc -g -G -M $$CUDA_INC $$NVCCFLAGS   ${QMAKE_FILE_NAME}  | sed \"s/^.*: //\"
 }
 else {
-    cuda.depend_command = $$CUDA_DIR/bin/nvcc -O3 -M $$CUDA_INC $$NVCCFLAGS   ${QMAKE_FILE_NAME}  | sed \"s/^.*: //\"
+    cuda.depend_command = $$CUDA_DIR/bin/nvcc -O2 -M $$CUDA_INC $$NVCCFLAGS   ${QMAKE_FILE_NAME}  | sed \"s/^.*: //\"
 }
 
 # Tell Qt that we want add more stuff to the Makefile

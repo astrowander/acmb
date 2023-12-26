@@ -4,7 +4,7 @@
 #include "CudaBasic.h"
 #include "./../Core/bitmap.h"
 
-#define CUDA_SYNCHRONIZE
+static constexpr bool CUDA_SYNCHRONIZE = false;
 ACMB_CUDA_NAMESPACE_BEGIN
 
 struct StackData
@@ -57,10 +57,9 @@ void Stacker::Init()
 
 void Stacker::CallAddBitmapHelper( IBitmapPtr pBitmap )
 {
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
-        throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
+                throw std::runtime_error( "error in CUDA kernel occured" );\
+
     const size_t size = _width * _height * ChannelCount( _pixelFormat );
 
 #define TRY_ADD_BITMAP( format ) \
@@ -68,7 +67,10 @@ if (_pixelFormat == format) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
     auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     bitmap.fromVector( std::static_pointer_cast< Bitmap<format> >( pBitmap )->GetData() );\
-    return AddBitmapHelper( bitmap.data(), _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data(), size ); }
+    AddBitmapHelper( bitmap.data(), _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data(), size );\
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
+        throw std::runtime_error( "error in CUDA kernel occured" );\
+    return;}
 
     TRY_ADD_BITMAP( PixelFormat::Gray8 );
     TRY_ADD_BITMAP( PixelFormat::Gray16 );
@@ -77,18 +79,13 @@ if (_pixelFormat == format) { \
     TRY_ADD_BITMAP( PixelFormat::Bayer16 );
 
     throw std::runtime_error( "pixel format must be known" );
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
-        throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
+
 }
 
 void Stacker::CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap )
 {
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
-        throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )
+                    throw std::runtime_error( "error in CUDA kernel occured" );
 #define TRY_ADD_BITMAP_WITH_ALIGNMENT( format ) \
 if (_pixelFormat == format) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
@@ -96,7 +93,10 @@ if (_pixelFormat == format) { \
     auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     auto& helper = std::get<HelperT>( _helper );\
     bitmap.fromVector( std::static_pointer_cast< Bitmap<format> >( pBitmap )->GetData() );\
-    return helper.Run( bitmap.data(), _width, _height, PixelFormatTraits<format>::channelCount, _grid, _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data() ); }
+    helper.Run( bitmap.data(), _width, _height, PixelFormatTraits<format>::channelCount, _grid, _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data() );\
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
+                        throw std::runtime_error( "error in CUDA kernel occured" );\
+}
 
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray8 );
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Gray16 );
@@ -105,24 +105,21 @@ if (_pixelFormat == format) { \
     TRY_ADD_BITMAP_WITH_ALIGNMENT( PixelFormat::Bayer16 );
 
     throw std::runtime_error( "pixel format must be known" );
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
-        throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
 }
 
 IBitmapPtr Stacker::CallGeneratingResultHelper()
 {
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )
         throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
+
     const size_t size = _width * _height * ChannelCount( _pixelFormat );
 #define TRY_GENERATE_RESULT( format ) \
 if (_pixelFormat == format ) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
     auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     GeneratingResultKernel(_stackData->_means.data(), bitmap.data(), size );\
+    if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
+            throw std::runtime_error( "error in CUDA kernel occured" );\
     IBitmapPtr res = IBitmap::Create( _width, _height, _pixelFormat );\
     bitmap.toVector(std::static_pointer_cast<Bitmap<format>>(res)->GetData());\
     return res; } \
@@ -134,10 +131,6 @@ if (_pixelFormat == format ) { \
     TRY_GENERATE_RESULT( PixelFormat::Bayer16 );
 
     throw std::runtime_error( "pixel format must be known" );
-#ifdef CUDA_SYNCHRONIZE
-    if ( cudaDeviceSynchronize() != cudaSuccess )
-        throw std::runtime_error( "error in CUDA kernel occured" );
-#endif
 }
 
 ACMB_CUDA_NAMESPACE_END
