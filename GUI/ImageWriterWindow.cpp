@@ -217,7 +217,7 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
     if ( isH265 || isY4M )
     {
         if ( isH265 )
-            _pEncoder = std::make_shared<H265Encoder>( H265Encoder::Preset( _quality - 1 ) );
+            _pEncoder = std::make_shared<H265Encoder>( H265Encoder::Preset( _quality - 1 ), H265Encoder::Tune::Animation );
         else
             _pEncoder = std::make_shared<Y4MEncoder>();
 
