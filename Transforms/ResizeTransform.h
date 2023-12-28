@@ -23,6 +23,8 @@ public:
 
     /// returns size of destination image
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
+
+    static Size GetSizeWithPreservedRatio( Size srcSize, Size dstSize );
 };
 
 ACMB_NAMESPACE_END

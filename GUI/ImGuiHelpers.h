@@ -1,8 +1,10 @@
 #pragma once
 #include "imgui.h"
+
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 
 namespace UI
 {
@@ -27,5 +29,4 @@ namespace UI
     void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max, const std::string& tooltip );
 
     void Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip );
-    
 }

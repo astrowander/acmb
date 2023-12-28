@@ -5,6 +5,7 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Codecs/imagedecoder.h"
+#include "./../Transforms/converter.h"
 
 #include <sstream>
 
@@ -33,7 +34,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 128 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 100 } ) )
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
@@ -48,6 +49,15 @@ void ImageReaderWindow::DrawPipelineElementControls()
         }
         ImGui::EndListBox();
     }
+
+    UI::Button( "Show Preview", { itemWidth, 0 }, [&]
+    {
+        if ( _selectedItemIdx >= _fileNames.size() )
+            return;
+
+        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+        _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast<Bitmap<PixelFormat::RGBA32>>(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 ) ) );
+    }, "Show a preview of the selected image" );
 
     auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
@@ -80,6 +90,26 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
         // close
         fileDialog.Close();
+    }
+
+    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
+
+    if ( _pPreviewTexture )
+    {
+        ImGui::OpenPopup( "Preview" );
+        mainWindow.LockInterface();
+    }
+
+    if ( ImGui::BeginPopup( "Preview" ) )
+    {
+        ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            mainWindow.UnlockInterface();
+            _pPreviewTexture.reset();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "PipelineElementWindow.h"
+#include "Texture.h"
 
 ACMB_NAMESPACE_BEGIN
 class VideoEncoder;
@@ -20,7 +21,8 @@ class ImageWriterWindow : public PipelineElementWindow
     int _quality = 3;
 
     std::shared_ptr<VideoEncoder> _pEncoder;
-    
+    std::unique_ptr<Texture> _pResultTexture;
+
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
 public:

@@ -144,4 +144,11 @@ void ResizeTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
     _height = _dstSize.height;
     _pixelFormat = pParams->GetPixelFormat();
 }
+
+Size ResizeTransform::GetSizeWithPreservedRatio( Size srcSize, Size dstSize )
+{
+    const auto srcRatio = static_cast< float >(srcSize.width) / srcSize.height;
+    const auto dstRatio = static_cast< float >(dstSize.width) / dstSize.height;
+    return (srcRatio < dstRatio) ? Size{ int( dstSize.height* srcRatio + 0.5f ), dstSize.height } : Size{ dstSize.width, int( dstSize.height* srcRatio ) };
+}
 ACMB_NAMESPACE_END

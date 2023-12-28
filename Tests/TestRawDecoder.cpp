@@ -153,6 +153,16 @@ EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944_stream.ppm"), 
 
 END_TEST
 
+BEGIN_TEST ( TestReadingPreview )
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
+const auto pPreview = pDecoder->ReadPreview();
+EXPECT_EQ( PixelFormat::RGB24, pPreview->GetPixelFormat() );
+EXPECT_EQ( 1080, pPreview->GetWidth() );
+EXPECT_EQ( 720, pPreview->GetHeight() );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/IMG_8944_preview.ppm" ), pPreview ) );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

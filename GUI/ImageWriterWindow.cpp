@@ -8,6 +8,8 @@
 #include "./../Codecs/imageencoder.h"
 #include "./../Codecs/H265/H265Encoder.h"
 #include "./../Codecs/Y4M/Y4MEncoder.h"
+#include "./../Transforms/converter.h"
+#include "./../Transforms/ResizeTransform.h"
 
 #include <sstream>
 
@@ -31,7 +33,7 @@ static std::string GetFormatList( bool excludeVideoFormats = false )
     std::ostringstream ss;
     for ( const auto& extension : extensions )
     {
-        if ( excludeVideoFormats && ( H265Encoder::GetExtensions().contains( extension) || Y4MEncoder::GetExtensions().contains( extension ) ) )
+        if ( excludeVideoFormats && (H265Encoder::GetExtensions().contains( extension ) || Y4MEncoder::GetExtensions().contains( extension )) )
             continue;
 
         ss << extension << '\0';
@@ -42,7 +44,7 @@ static std::string GetFormatList( bool excludeVideoFormats = false )
 }
 
 ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
-: PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
+    : PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
 {
     _formatList = GetFormatList( true );
 }
@@ -66,14 +68,14 @@ void ImageWriterWindow::DrawPipelineElementControls()
             fileDialog.OpenDialog( "SelectOutputFile", "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
         }, "Choose a directory to export the results" );
 
-        UI::Combo( "Format", &_formatId, _formatList, "Choose a file format to export the results");
+        UI::Combo( "Format", &_formatId, _formatList, "Choose a file format to export the results" );
     }
     else
     {
         ImGui::Text( "File Name" );
         ImGui::SetNextItemWidth( itemWidth );
         const size_t lastSlash = _fileName.find_last_of( "\\/" );
-        ImGui::InputText( "##File Name", ( char* ) _fileName.substr( lastSlash + 1).c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
+        ImGui::InputText( "##File Name", ( char* ) _fileName.substr( lastSlash + 1 ).c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
 
         UI::Button( "Select File", { itemWidth, 0 }, [&]
         {
@@ -84,10 +86,10 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
 
     if ( H265Encoder::GetExtensions().contains( _extension ) || Y4MEncoder::GetExtensions().contains( _extension ) )
-    {        
-        UI::DragInt( "Frame Rate", &_frameRate, 0.1f, 1, 144, "Frame rate of the output video");
+    {
+        UI::DragInt( "Frame Rate", &_frameRate, 0.1f, 1, 144, "Frame rate of the output video" );
         if ( H265Encoder::GetExtensions().contains( _extension ) )
-            UI::DragInt( "Quality", &_quality, 0.1f, 1, 9, "1 - worst quality, fastest speed\n9 - best quality, slowest speed");
+            UI::DragInt( "Quality", &_quality, 0.1f, 1, 9, "1 - worst quality, fastest speed\n9 - best quality, slowest speed" );
     }
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -106,6 +108,22 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
         // close
         fileDialog.Close();
+    }
+
+    if ( _pResultTexture )
+    {
+        ImGui::OpenPopup( "PreviewResult" );
+    }
+
+    if ( ImGui::BeginPopup( "PreviewResult" ) )
+    {
+        ImGui::Image( _pResultTexture->GetTexture(), { float( _pResultTexture->GetWidth() ), float( _pResultTexture->GetHeight() ) } );
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            _pResultTexture.reset();
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
     }
 }
 
@@ -139,7 +157,7 @@ void ImageWriterWindow::Deserialize( std::istream& in )
 
 int ImageWriterWindow::GetSerializedStringSize() const
 {
-    return PipelineElementWindow::GetSerializedStringSize() 
+    return PipelineElementWindow::GetSerializedStringSize()
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileName )
         + gui::GetSerializedStringSize( _formatId )
@@ -187,9 +205,14 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
         std::string number = std::to_string( taskNumber );
         numberWithLeadingZeros.replace( numberWithLeadingZeros.size() - number.size(), number.size(), number );
 
-        finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + numberWithLeadingZeros + _fileName.substr( dotPos ) );
+        finalName = (taskNumber == 0) ? _fileName : (_fileName.substr( 0, dotPos ) + "_" + numberWithLeadingZeros + _fileName.substr( dotPos ));
     }
 
+    if ( taskNumber == 0 )
+    {
+        auto pResized = ResizeTransform::Resize( pSource, ResizeTransform::GetSizeWithPreservedRatio( { int( pSource->GetWidth() ), int( pSource->GetHeight() ) }, { 1280, 720 } ) );
+        _pResultTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pResized, PixelFormat::RGBA32 )) );
+    }
     IBitmap::Save( pSource, finalName );
     return nullptr;
 }

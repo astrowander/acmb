@@ -7,6 +7,7 @@
 #include "JPEG/JpegDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
+#include "./../Transforms/ResizeTransform.h"
 #include "./../Transforms/converter.h"
 
 #include <fstream>
@@ -64,6 +65,15 @@ void ImageDecoder::Detach()
 ImageDecoder::~ImageDecoder()
 {
     _pStream.reset();
+}
+
+std::shared_ptr<IBitmap> ImageDecoder::ReadPreview()
+{
+    auto pBitmap = ReadBitmap();
+    Pipeline pipeline( pBitmap );
+    if ( _width > 1280 || _height > 720 )
+        pipeline.AddTransform<ResizeTransform>( ResizeTransform::GetSizeWithPreservedRatio( Size{int( pBitmap->GetWidth() ), int( pBitmap->GetHeight() )}, Size{1280, 720} ) );
+    return pipeline.RunAndGetBitmap();
 }
 
 std::shared_ptr<IBitmap> ImageDecoder::ReadStripe( uint32_t )

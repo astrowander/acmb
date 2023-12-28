@@ -12,9 +12,9 @@ enum class PixelFormat : uint32_t
 {
     Unspecified = 0x0,
     RGB24 = 0x010103,
-    //ARGB32 = 0x010104,
+    RGBA32 = 0x010104,
     RGB48 = 0x020103,
-    //ARGB64 = 0x020104,
+    RGBA64 = 0x020104,
 
     Gray8 = 0x010201,
    // Agray16 = 0x010202,
@@ -101,7 +101,8 @@ enum class Channel : uint32_t
     L = 0,
     R = 0,
     G = 1,
-    B = 2
+    B = 2,
+    A = 3
 };
 
 ///traits of given pixel format 

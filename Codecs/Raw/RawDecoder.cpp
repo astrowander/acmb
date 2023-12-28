@@ -2,9 +2,12 @@
 
 #include "../../Core/bitmap.h"
 #include "../../Tools/SystemTools.h"
+#include "../JPEG/JpegDecoder.h"
+#include "../../Transforms/ResizeTransform.h"
 
 #include <map>
 #include <string>
+#include <sstream>
 #include "libraw/libraw.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
@@ -227,6 +230,47 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	pRes->SetCameraSettings( _pCameraSettings );
 	Reattach();
 	return ToOutputFormat( pRes );
+}
+
+std::shared_ptr<IBitmap> RawDecoder::ReadPreview()
+{
+    if ( !_pLibRaw )
+        throw std::runtime_error( "RawDecoder is detached" );
+
+	if ( _pLibRaw->imgdata.thumbs_list.thumbcount == 0 )
+		return ImageDecoder::ReadPreview();
+
+    if ( _pLibRaw->unpack_thumb() != LIBRAW_SUCCESS )
+		throw std::runtime_error( "raw processing error" );
+
+	IBitmapPtr pPreviewBitmap;
+	if ( _pLibRaw->imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_JPEG )
+	{
+        auto ss = std::make_shared<std::istringstream>( std::string( _pLibRaw->imgdata.thumbnail.thumb, _pLibRaw->imgdata.thumbnail.tlength ), std::ios_base::binary );
+        JpegDecoder decoder;
+        decoder.Attach( ss );
+		pPreviewBitmap = decoder.ReadBitmap();
+		decoder.Detach();
+	}
+	else if ( _pLibRaw->imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_BITMAP16 )
+	{
+        pPreviewBitmap = IBitmap::Create( _pLibRaw->imgdata.thumbnail.twidth, _pLibRaw->imgdata.thumbnail.theight, PixelFormat::RGB48 );
+        std::copy( _pLibRaw->imgdata.thumbnail.thumb, _pLibRaw->imgdata.thumbnail.thumb +_pLibRaw->imgdata.thumbnail.tlength, (char*)pPreviewBitmap->GetPlanarScanline( 0 ) );
+	}
+	else if (_pLibRaw->imgdata.thumbnail.tformat == LIBRAW_THUMBNAIL_BITMAP)
+	{
+        pPreviewBitmap = IBitmap::Create( _pLibRaw->imgdata.thumbnail.twidth, _pLibRaw->imgdata.thumbnail.theight, PixelFormat::RGB24 );
+        std::copy( _pLibRaw->imgdata.thumbnail.thumb, _pLibRaw->imgdata.thumbnail.thumb + _pLibRaw->imgdata.thumbnail.tlength, ( char* ) pPreviewBitmap->GetPlanarScanline( 0 ) );
+	}
+	else
+    {
+        return ImageDecoder::ReadPreview();
+    }
+	
+    Size previewSize{ pPreviewBitmap->GetWidth(), pPreviewBitmap->GetHeight() };
+	if ( previewSize.width > 1280 || previewSize.height > 720 )
+		pPreviewBitmap = ResizeTransform::Resize( pPreviewBitmap, ResizeTransform::GetSizeWithPreservedRatio( previewSize, { 1280, 720 } ) );
+	return pPreviewBitmap;
 }
 
 std::unordered_set<std::string> RawDecoder::GetExtensions()

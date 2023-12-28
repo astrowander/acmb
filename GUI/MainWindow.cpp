@@ -594,9 +594,7 @@ void MainWindow::DrawDialog()
         }
 
         if ( _errors.empty() )
-        {
-            return UI::ShowModalMessage( { "Success!", _durationString }, UI::ModalMessageType::Success, _showResultsPopup);
-        }
+            return;
 
         return UI::ShowModalMessage( _errors, UI::ModalMessageType::Error, _showResultsPopup );
     }

@@ -452,6 +452,9 @@ int main(int, char**)
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     auto& mainWindow = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() );
+#ifdef _WIN32
+    mainWindow.SetD3D11Device( g_pd3dDevice );
+#endif // _WIN32
 
     // Main loop
     bool done = false;

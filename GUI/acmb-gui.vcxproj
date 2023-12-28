@@ -160,6 +160,7 @@
     <ClCompile Include="ResizeWindow.cpp" />
     <ClCompile Include="StackerWindow.cpp" />
     <ClCompile Include="DarkFrameWindow.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -189,6 +190,7 @@
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="tl\expected.hpp" />
     <ClInclude Include="window.h" />
   </ItemGroup>

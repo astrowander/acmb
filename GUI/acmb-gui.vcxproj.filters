@@ -97,6 +97,9 @@
     <ClCompile Include="window.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -181,6 +184,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Texture.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter">

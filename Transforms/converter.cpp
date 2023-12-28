@@ -48,6 +48,24 @@ void ConvertPixel<PixelFormat::RGB24, PixelFormat::RGB48>( uint8_t* pSrcChannel,
 }
 
 template<>
+void ConvertPixel<PixelFormat::RGB24, PixelFormat::RGBA32>( uint8_t* pSrcChannel, uint8_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel = 255;
+}
+
+template<>
+void ConvertPixel<PixelFormat::RGB24, PixelFormat::RGBA64>( uint8_t* pSrcChannel, uint16_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++ << 8;
+    *pDstChannel++ = *pSrcChannel++ << 8;
+    *pDstChannel++ = *pSrcChannel << 8;
+    *pDstChannel = 65535;
+}
+
+template<>
 void ConvertPixel<PixelFormat::RGB48, PixelFormat::Gray16>(uint16_t* pSrcChannel, uint16_t* pDstChannel)
 {
     auto r = *pSrcChannel++;
@@ -75,6 +93,24 @@ void ConvertPixel<PixelFormat::RGB48, PixelFormat::RGB24>( uint16_t* pSrcChannel
     *pDstChannel = *pSrcChannel >> 8;
 }
 
+template<>
+void ConvertPixel<PixelFormat::RGB48, PixelFormat::RGBA32>( uint16_t* pSrcChannel, uint8_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++ >> 8;
+    *pDstChannel++ = *pSrcChannel++ >> 8;
+    *pDstChannel++ = *pSrcChannel >> 8;
+    *pDstChannel = 255;
+}
+
+template<>
+void ConvertPixel<PixelFormat::RGB48, PixelFormat::RGBA64>( uint16_t* pSrcChannel, uint16_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel = 65535;
+}
+
 template <>
 void ConvertPixel<PixelFormat::Gray8, PixelFormat::Gray16>( uint8_t* pSrcChannel, uint16_t* pDstChannel )
 {
@@ -99,6 +135,25 @@ void ConvertPixel<PixelFormat::Gray8, PixelFormat::RGB48>( uint8_t* pSrcChannel,
 }
 
 template <>
+void ConvertPixel<PixelFormat::Gray8, PixelFormat::RGBA32>( uint8_t* pSrcChannel, uint8_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel = 255;
+}
+
+template <>
+void ConvertPixel<PixelFormat::Gray8, PixelFormat::RGBA64>( uint8_t* pSrcChannel, uint16_t* pDstChannel )
+{
+    const uint16_t dstChannel = *pSrcChannel << 8;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel = 65535;
+}
+
+template <>
 void ConvertPixel<PixelFormat::Gray16, PixelFormat::Gray8>( uint16_t* pSrcChannel, uint8_t* pDstChannel )
 {
     *pDstChannel = *pSrcChannel >> 8;
@@ -119,6 +174,25 @@ void ConvertPixel<PixelFormat::Gray16, PixelFormat::RGB48>( uint16_t* pSrcChanne
     *pDstChannel++ = *pSrcChannel;
     *pDstChannel++ = *pSrcChannel;
     *pDstChannel = *pSrcChannel;
+}
+
+template <>
+void ConvertPixel<PixelFormat::Gray16, PixelFormat::RGBA32>( uint16_t* pSrcChannel, uint8_t* pDstChannel )
+{
+    const uint8_t dstChannel = *pSrcChannel >> 8;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel++ = dstChannel;
+    *pDstChannel = 255;
+}
+
+template <>
+void ConvertPixel<PixelFormat::Gray16, PixelFormat::RGBA64>( uint16_t* pSrcChannel, uint16_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel++ = *pSrcChannel;
+    *pDstChannel = 65535;
 }
 
 template <PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
@@ -186,21 +260,29 @@ std::shared_ptr<Converter> Converter::Create(IBitmapPtr pSrcBitmap, PixelFormat 
     CREATE_CONVERTER( Gray8, Gray16 );
     CREATE_CONVERTER( Gray8, RGB24 );
     CREATE_CONVERTER( Gray8, RGB48 );
+    CREATE_CONVERTER( Gray8, RGBA32 );
+    CREATE_CONVERTER( Gray8, RGBA64 );
 
     CREATE_CONVERTER( Gray16, Gray8 );
     CREATE_CONVERTER( Gray16, Gray16 );
     CREATE_CONVERTER( Gray16, RGB24 );
     CREATE_CONVERTER( Gray16, RGB48 );
+    CREATE_CONVERTER( Gray16, RGBA32 );
+    CREATE_CONVERTER( Gray16, RGBA64 );
 
     CREATE_CONVERTER( RGB24, Gray8 );
     CREATE_CONVERTER( RGB24, Gray16 );
     CREATE_CONVERTER( RGB24, RGB24 );
     CREATE_CONVERTER( RGB24, RGB48 );
+    CREATE_CONVERTER( RGB24, RGBA32 );
+    CREATE_CONVERTER( RGB24, RGBA64 );
 
     CREATE_CONVERTER( RGB48, Gray8 );
     CREATE_CONVERTER( RGB48, Gray16 );
     CREATE_CONVERTER( RGB48, RGB24 );
     CREATE_CONVERTER( RGB48, RGB48 );
+    CREATE_CONVERTER( RGB48, RGBA32 );
+    CREATE_CONVERTER( RGB48, RGBA64 );
 
     throw std::invalid_argument( "Unsupported pixel format" );
 }

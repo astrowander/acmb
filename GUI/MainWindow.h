@@ -6,6 +6,12 @@
 #include <unordered_map>
 #include <chrono>
 
+#ifdef _WIN32
+#include <d3d11.h>
+#undef min
+#undef max
+#endif // _WIN32
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 class PipelineElementWindow;
@@ -125,6 +131,14 @@ public:
     bool IsInterfaceLocked() { return _lockInterface; }
 
     bool isCudaEnabled() { return _enableCuda; }
+
+#ifdef _WIN32
+private:
+    ID3D11Device* _pD3D11Device = nullptr;
+public:
+    ID3D11Device* GetD3D11Device() { return _pD3D11Device; }
+    void SetD3D11Device( ID3D11Device* pDevice ) { _pD3D11Device = pDevice; }
+#endif
 };
 
 ACMB_GUI_NAMESPACE_END
