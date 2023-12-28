@@ -44,6 +44,7 @@ public:
     
     /// read whole bitmap, need to implement in the derived class
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;
+    virtual std::shared_ptr<IBitmap> ReadPreview();
     /// read a stripe (several lines), throws exception "not implemented, override this if the image format allows to read file partially.
     virtual std::shared_ptr<IBitmap> ReadStripe( uint32_t stripeHeight );
     /// returns beginning of the next stripe, throws exception "not implemented, override this if the image format allows to read file partially.
