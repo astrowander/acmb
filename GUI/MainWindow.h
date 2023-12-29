@@ -2,6 +2,7 @@
 #include "PipelineElementWindow.h"
 #include "./../Geometry/size.h"
 #include "./../Geometry/point.h"
+#include "imgui_impl_vulkan.h"
 #include <array>
 #include <unordered_map>
 #include <chrono>
@@ -10,6 +11,8 @@
 #include <d3d11.h>
 #undef min
 #undef max
+#elif defined ( __linux__ )
+#include <vulkan/vulkan.h>
 #endif // _WIN32
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -138,6 +141,24 @@ private:
 public:
     ID3D11Device* GetD3D11Device() { return _pD3D11Device; }
     void SetD3D11Device( ID3D11Device* pDevice ) { _pD3D11Device = pDevice; }
+#elif defined ( __linux__ )
+private:
+    VkPhysicalDevice _physicalDevice;
+    VkDevice _device;
+    VkAllocationCallbacks* _allocator;
+    ImGui_ImplVulkanH_Window* _mainWindowData;
+    VkQueue _queue;
+public:
+    VkPhysicalDevice GetPhysicalDevice() { return _physicalDevice; }
+    void SetPhysicalDevice( VkPhysicalDevice physicalDevice) { _physicalDevice = physicalDevice; }
+    VkDevice GetDevice() { return _device; }
+    void SetDevice( VkDevice device) { _device = device; }
+    VkAllocationCallbacks* GetAllocator() {return _allocator;}
+    void SetAllocator(VkAllocationCallbacks* allocator) { _allocator = allocator;}
+    ImGui_ImplVulkanH_Window* GetMainWindowData() { return _mainWindowData; }
+    void SetMainWindowData( ImGui_ImplVulkanH_Window* val ) { _mainWindowData = val; }
+    VkQueue GetQueue() {return _queue;}
+    void SetQueue( VkQueue queue ) { _queue = queue;}
 #endif
 };
 

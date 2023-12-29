@@ -7,10 +7,16 @@ struct ID3D11ShaderResourceView;
 
 ACMB_GUI_NAMESPACE_BEGIN
 
+#ifdef __linux__
+struct VulkanTextureData;
+#endif
+
 class Texture
 {
 #ifdef _WIN32
     ID3D11ShaderResourceView* _pSRV = nullptr;
+#elif defined( __linux__ )
+    VulkanTextureData* _pTextureData = nullptr;
 #endif // _WIN32
 
     uint32_t _width;

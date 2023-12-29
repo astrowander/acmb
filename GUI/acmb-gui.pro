@@ -46,6 +46,7 @@ SOURCES += \
         ResizeWindow.cpp \
         StackerWindow.cpp \
         DarkFrameWindow.cpp \
+        Texture.cpp \
         imgui/backends/imgui_impl_glfw.cpp \
         imgui/backends/imgui_impl_vulkan.cpp \
         imgui/imgui.cpp \
@@ -78,6 +79,7 @@ HEADERS += \
     Serializer.h \
     StackerWindow.h \
     DarkFrameWindow.h \
+    Texture.h \
     imgui/backends/imgui_impl_glfw.h \
     imgui/backends/imgui_impl_vulkan.h \
     imgui/imconfig.h \

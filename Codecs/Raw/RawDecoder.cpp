@@ -266,8 +266,8 @@ std::shared_ptr<IBitmap> RawDecoder::ReadPreview()
     {
         return ImageDecoder::ReadPreview();
     }
-	
-    Size previewSize{ pPreviewBitmap->GetWidth(), pPreviewBitmap->GetHeight() };
+
+    Size previewSize{ int( pPreviewBitmap->GetWidth() ), int( pPreviewBitmap->GetHeight() ) };
 	if ( previewSize.width > 1280 || previewSize.height > 720 )
 		pPreviewBitmap = ResizeTransform::Resize( pPreviewBitmap, ResizeTransform::GetSizeWithPreservedRatio( previewSize, { 1280, 720 } ) );
 	return pPreviewBitmap;
