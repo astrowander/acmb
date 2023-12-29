@@ -2,7 +2,7 @@
 #include "PipelineElementWindow.h"
 #include "./../Geometry/size.h"
 #include "./../Geometry/point.h"
-#include "imgui_impl_vulkan.h"
+
 #include <array>
 #include <unordered_map>
 #include <chrono>
@@ -12,7 +12,7 @@
 #undef min
 #undef max
 #elif defined ( __linux__ )
-#include <vulkan/vulkan.h>
+#include "imgui_impl_vulkan.h"
 #endif // _WIN32
 
 ACMB_GUI_NAMESPACE_BEGIN

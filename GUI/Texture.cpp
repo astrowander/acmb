@@ -1,10 +1,10 @@
 #include "Texture.h"
 #include "MainWindow.h"
-#include "imgui_impl_vulkan.h"
+
 #ifdef _WIN32
 #include <d3d11.h>
 #elif defined ( __linux__ )
-#include <vulkan/vulkan.h>
+#include "imgui_impl_vulkan.h"
 #endif // _WIN32
 
 ACMB_GUI_NAMESPACE_BEGIN
