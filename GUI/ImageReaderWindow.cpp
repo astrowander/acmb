@@ -34,7 +34,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 100 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 110 } ) )
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
@@ -48,16 +48,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
                 ImGui::SetItemDefaultFocus();
         }
         ImGui::EndListBox();
-    }
-
-    UI::Button( "Show Preview", { itemWidth, 0 }, [&]
-    {
-        if ( _selectedItemIdx >= _fileNames.size() )
-            return;
-
-        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
-        _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast<Bitmap<PixelFormat::RGBA32>>(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 ) ) );
-    }, "Show a preview of the selected image" );
+    }  
 
     auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
@@ -75,6 +66,18 @@ void ImageReaderWindow::DrawPipelineElementControls()
         _selectedItemIdx = 0;
         ResetProgress( PropagationDir::Forward );
     }, "Delete all images from the importing list" );
+
+    if ( !_fileNames.empty() )
+    {
+        UI::Button( "Show Preview", { itemWidth, 0 }, [&]
+        {
+            if ( _selectedItemIdx >= _fileNames.size() )
+                return;
+
+            auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+            _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 )) );
+        }, "Show a preview of the selected image" );
+    }
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {

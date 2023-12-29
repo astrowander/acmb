@@ -591,10 +591,18 @@ void MainWindow::DrawDialog()
         {
             const auto ms = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::high_resolution_clock::now() - _startTime).count();
             _durationString = "Elapsed " + std::to_string( ms / 1000 ) + "s " + std::to_string( ms % 1000 ) + "ms";
+            std::cout << _durationString << std::endl;
         }
 
         if ( _errors.empty() )
-            return;
+        {
+            if ( ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !ImGui::IsPopupOpen( " Success##modal" ) )
+            {
+                return;
+            }
+
+            return UI::ShowModalMessage( { _durationString }, UI::ModalMessageType::Success, _showResultsPopup );
+        }
 
         return UI::ShowModalMessage( _errors, UI::ModalMessageType::Error, _showResultsPopup );
     }
