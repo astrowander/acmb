@@ -16,7 +16,7 @@ class Texture
 #ifdef _WIN32
     ID3D11ShaderResourceView* _pSRV = nullptr;
 #elif defined( __linux__ )
-    VulkanTextureData* _pTextureData = nullptr;
+    std::shared_ptr<VulkanTextureData> _pTextureData = nullptr;
 #endif // _WIN32
 
     uint32_t _width;

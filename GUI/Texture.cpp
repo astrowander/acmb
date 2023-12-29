@@ -10,6 +10,15 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 #ifdef __linux__
+
+static bool check_vk_result(VkResult err)
+{
+    if (err == 0)
+        return true;
+    fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
+    return false;
+}
+
 struct VulkanTextureData
 {
     VkDescriptorSet DS;         // Descriptor set: this is what you'll pass to Image()
@@ -45,10 +54,7 @@ uint32_t findMemoryType(uint32_t type_filter, VkMemoryPropertyFlags properties)
 // Helper function to load an image with common settings and return a MyTextureData with a VkDescriptorSet as a sort of Vulkan pointer
 bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_data)
 {
-    // Specifying 4 channels forces stb to load the image in RGBA which is an easy format for Vulkan
-    tex_data->Channels = 4;
-
-    if (image_data == NULL)
+    if (image_data == NULL || tex_data == NULL )
         return false;
 
     // Calculate allocation size (in number of bytes)
@@ -76,6 +82,7 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         err = vkCreateImage(g_Device, &info, g_Allocator, &tex_data->Image);
+        if ( !check_vk_result(err) ) return false;
         VkMemoryRequirements req;
         vkGetImageMemoryRequirements(g_Device, tex_data->Image, &req);
         VkMemoryAllocateInfo alloc_info = {};
@@ -83,7 +90,9 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         alloc_info.allocationSize = req.size;
         alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         err = vkAllocateMemory(g_Device, &alloc_info, g_Allocator, &tex_data->ImageMemory);
+        if ( !check_vk_result(err) ) return false;
         err = vkBindImageMemory(g_Device, tex_data->Image, tex_data->ImageMemory, 0);
+        if ( !check_vk_result(err) ) return false;
     }
 
     // Create the Image View
@@ -97,6 +106,7 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         info.subresourceRange.levelCount = 1;
         info.subresourceRange.layerCount = 1;
         err = vkCreateImageView(g_Device, &info, g_Allocator, &tex_data->ImageView);
+        if ( !check_vk_result(err) ) return false;
     }
 
     // Create Sampler
@@ -113,6 +123,7 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         sampler_info.maxLod = 1000;
         sampler_info.maxAnisotropy = 1.0f;
         err = vkCreateSampler(g_Device, &sampler_info, g_Allocator, &tex_data->Sampler);
+        if ( !check_vk_result(err) ) return false;
     }
 
     // Create Descriptor Set using ImGUI's implementation
@@ -133,7 +144,9 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         alloc_info.allocationSize = req.size;
         alloc_info.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
         err = vkAllocateMemory(g_Device, &alloc_info, g_Allocator, &tex_data->UploadBufferMemory);
+        if ( !check_vk_result(err) ) return false;
         err = vkBindBufferMemory(g_Device, tex_data->UploadBuffer, tex_data->UploadBufferMemory, 0);
+        if ( !check_vk_result(err) ) return false;
     }
 
     // Upload to Buffer:
@@ -146,6 +159,7 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         range[0].memory = tex_data->UploadBufferMemory;
         range[0].size = image_size;
         err = vkFlushMappedMemoryRanges(g_Device, 1, range);
+        if ( !check_vk_result(err) ) return false;
         vkUnmapMemory(g_Device, tex_data->UploadBufferMemory);
     }
 
@@ -161,11 +175,12 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         alloc_info.commandBufferCount = 1;
 
         err = vkAllocateCommandBuffers(g_Device, &alloc_info, &command_buffer);
-
+        if ( !check_vk_result(err) ) return false;
         VkCommandBufferBeginInfo begin_info = {};
         begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         err = vkBeginCommandBuffer(command_buffer, &begin_info);
+        if ( !check_vk_result(err) ) return false;
     }
 
     // Copy to Image
@@ -213,8 +228,11 @@ bool LoadTextureFromMemory(unsigned char* image_data, VulkanTextureData* tex_dat
         end_info.commandBufferCount = 1;
         end_info.pCommandBuffers = &command_buffer;
         err = vkEndCommandBuffer(command_buffer);
+        if ( !check_vk_result(err) ) return false;
         err = vkQueueSubmit(g_Queue, 1, &end_info, VK_NULL_HANDLE);
+        if ( !check_vk_result(err) ) return false;
         err = vkDeviceWaitIdle(g_Device);
+        if ( !check_vk_result(err) ) return false;
     }
 
     return true;
@@ -233,7 +251,6 @@ void RemoveTexture(VulkanTextureData* tex_data)
     vkDestroySampler(g_Device, tex_data->Sampler, nullptr);
     vkDestroyImageView(g_Device, tex_data->ImageView, nullptr);
     vkDestroyImage(g_Device, tex_data->Image, nullptr);
-    vkFreeMemory(g_Device, tex_data->ImageMemory, nullptr);
     ImGui_ImplVulkan_RemoveTexture(tex_data->DS);
 }
 
@@ -280,7 +297,11 @@ Texture::Texture( std::shared_ptr<acmb::Bitmap<acmb::PixelFormat::RGBA32>> pBitm
     pd3dDevice->CreateShaderResourceView( pTexture, &srvDesc, &_pSRV );
     pTexture->Release();
 #elif defined ( __linux__ )
-    LoadTextureFromMemory( pBitmap->GetData().data(), _pTextureData );
+    _pTextureData = std::make_shared<VulkanTextureData>();
+    _pTextureData->Width = pBitmap->GetWidth();
+    _pTextureData->Height = pBitmap->GetHeight();
+    _pTextureData->Channels = 4;
+    LoadTextureFromMemory( pBitmap->GetData().data(), _pTextureData.get() );
 #endif
 }
 
@@ -290,7 +311,8 @@ Texture::~Texture()
     if ( _pSRV )
         _pSRV->Release();
 #elif defined ( __linux__ )
-    RemoveTexture(_pTextureData);
+    RemoveTexture(_pTextureData.get() );
+    _pTextureData.reset();
 #endif
 
 }
