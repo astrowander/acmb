@@ -433,6 +433,7 @@ void MainWindow::DrawDialog()
     ImGui::SetCursorPos( { 0, cGridTop - cHeadRowHeight } );
     UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [&]
     {
+        _writers.clear();
         for ( auto& pElement : _grid )
             pElement.reset();
     }, "Clear table" );
