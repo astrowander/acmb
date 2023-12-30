@@ -71,7 +71,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     {
         UI::Button( "Show Preview", { itemWidth, 0 }, [&]
         {
-            if ( _selectedItemIdx >= _fileNames.size() )
+            if ( _selectedItemIdx >= int( _fileNames.size() ) )
                 return;
 
             auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
