@@ -41,16 +41,13 @@ void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 {
 	_eps = eps;
 	_targetStars = targetStars;
-	_matches.clear();	
-
-	auto res = BruteForceSearch(bruteForceSearchSize);
-	_matches = res.first;
-	_transform = res.second;
-
+    _matches = IndexMap( _targetStars.size() );
+	_transform = BruteForceSearch(bruteForceSearchSize);
+	auto matches = _matches;
 	for (size_t i = bruteForceSearchSize + 1; i < _refStars.size(); ++i)
 	{
-		IndexMap temp(res.first);
-		if (TryRefStar(i, temp, res.second))
+		IndexMap temp( matches );
+		if (TryRefStar(i, temp, _transform))
 			return;
 	}
 }
@@ -58,9 +55,11 @@ void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 MatchMap FastAligner::GetMatches() const
 {
 	MatchMap res;
-	for (auto it : _matches)
+	for (size_t i = 0; i < _matches.size(); ++i)
 	{
-		res.insert({ _targetStars[it.first].center, _refStars[it.second].center });
+        if ( _matches[i] == -1 )
+            continue;
+		res.insert({ _targetStars[i].center, _refStars[_matches[i]].center });
 	}
 
 	return res;
@@ -76,9 +75,9 @@ void FastAligner::SetEps(double eps)
 	_eps = eps;
 }
 
-std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const size_t N)
+agg::trans_affine  FastAligner::BruteForceSearch(const size_t N)
 {
-	std::pair< IndexMap, agg::trans_affine> res;
+	agg::trans_affine res;
 	if ( _refStars.size() == 0 || _targetStars.size() == 0 )
 		return res;
 
@@ -105,7 +104,7 @@ std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const siz
 			if ( matches.second > resMatches.second )
 			{
 				resMatches = matches;
-				res.second = transform;
+				res = transform;
 			}
 
 			//IndexMap temp2 = IndexMap{ {k, j}, {l, i} };
@@ -114,7 +113,7 @@ std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const siz
 			if ( matches.second > resMatches.second )
 			{
 				resMatches = matches;
-				res.second = transform;
+				res = transform;
 			}
 		}
 	}
@@ -122,7 +121,7 @@ std::pair< IndexMap, agg::trans_affine>  FastAligner::BruteForceSearch(const siz
 	for ( uint8_t i = 0; i < bruteForceSearchSize; ++i )
 	{
 		if ( resMatches.first[i] != 0 )
-			res.first[i] = resMatches.first[i] - 1;
+			_matches.set( i, resMatches.first[i] - 1 );
 	}
 
 	return res;

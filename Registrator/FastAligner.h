@@ -15,7 +15,38 @@ ACMB_NAMESPACE_BEGIN
 constexpr uint32_t bruteForceSearchSize = 30;
 
 using StarPair = std::pair<Star, Star>;
-using IndexMap = parallel_flat_hash_map<size_t, size_t>;
+//using IndexMap = parallel_flat_hash_map<size_t, size_t>;
+//using IndexMap = std::vector<int>;
+class IndexMap
+{
+    std::vector<int> _map;
+    size_t _size;
+
+public:
+    IndexMap( size_t capacity = 0 ) 
+	: _map( capacity, -1 )
+	, _size( 0 ) 
+	{}
+
+    int operator[]( size_t i ) const 
+	{
+        return _map[i];
+    }
+
+    void set( size_t i, int value )
+    {
+        if ( _map[i] == -1 && value != -1 )
+            ++_size;
+        else if ( _map[i] != -1 && value == -1 )
+            --_size;
+
+        _map[i] = value;
+    }
+    size_t size() const 
+	{
+        return _size;
+    }
+};
 using MatchMap = parallel_flat_hash_map<PointF, PointF, PointFHasher>;
 using BruteForceIndexMap = std::pair< std::array<uint8_t, bruteForceSearchSize>, uint8_t>;
 /// <summary>
@@ -31,7 +62,7 @@ class FastAligner
 
 	double _eps = 1.0;
 
-	std::pair< IndexMap, agg::trans_affine> BruteForceSearch(const size_t n);
+	agg::trans_affine BruteForceSearch(const size_t n);
 	BruteForceIndexMap BruteForceCheckTransform(const size_t refLim, const size_t targetLim, const std::pair<uint8_t, uint8_t>& refs, const std::pair<uint8_t, uint8_t>& targets, const agg::trans_affine& transform);
 	
 	template <class TransformType>
@@ -52,12 +83,10 @@ class FastAligner
 
 		for (size_t i = 0; i < _targetStars.size(); ++i)
 		{
-			auto it = matches.find(i);
-			if (it != std::end(matches))
-				continue;
+			if ( matches[i] != -1 )
+                continue;
 
-			matches.insert({ i, refIndex });
-
+			matches.set( i, refIndex );
 			const auto& targetStar = _targetStars[i];
 
 			PointF targetPos = targetStar.center;
@@ -69,7 +98,7 @@ class FastAligner
 					return true;
 			}
 
-			matches.erase(i);
+            matches.set( i, - 1);
 		}
 
 		if (TryRefStar(refIndex + 1, matches, transform))
@@ -85,7 +114,7 @@ public:
 	void Align(const std::vector<Star>& targetStars, double eps = 5.0);
 
 	/// Receives the target vector of stars, applies given transform and finds respective stars to the reference vector
-	template<class TransformType>
+	/*template<class TransformType>
 	void Align(const std::vector<Star>& targetStars, const TransformType& transform, double eps = 5.0)
 	{
 		_eps = eps;
@@ -98,7 +127,7 @@ public:
 			if (TryRefStar(i, temp, transform))
 				return;
 		}
-	}
+	}*/
 	/// Returns map of respective stars
 	MatchMap GetMatches() const;
 	/// Returns found transform
