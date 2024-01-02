@@ -35,14 +35,16 @@ public:
 
     void set( size_t i, int value )
     {
-        if ( _map[i] == -1 && value != -1 )
-            ++_size;
-        else if ( _map[i] != -1 && value == -1 )
-            --_size;
-
+        ++_size;
         _map[i] = value;
     }
-    size_t size() const 
+
+	void reset( size_t i )
+	{
+		--_size;
+        _map[i] = -1;
+	}
+	size_t size() const 
 	{
         return _size;
     }
@@ -72,7 +74,7 @@ class FastAligner
 		{
 			if (matches.size() > _matches.size() && matches.size() > 2)
 			{
-				_matches = matches;
+				_matches = std::move( matches );
 				return true;
 			}
 
@@ -98,7 +100,7 @@ class FastAligner
 					return true;
 			}
 
-            matches.set( i, - 1);
+            matches.reset( i );
 		}
 
 		if (TryRefStar(refIndex + 1, matches, transform))

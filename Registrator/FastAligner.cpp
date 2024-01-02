@@ -103,7 +103,7 @@ agg::trans_affine  FastAligner::BruteForceSearch(const size_t N)
 			auto matches = BruteForceCheckTransform(refLim, targetLim, {i,j}, {k,l}, transform);
 			if ( matches.second > resMatches.second )
 			{
-				resMatches = matches;
+				resMatches = std::move( matches );
 				res = transform;
 			}
 
@@ -112,7 +112,7 @@ agg::trans_affine  FastAligner::BruteForceSearch(const size_t N)
 			matches = BruteForceCheckTransform( refLim, targetLim, { j,i }, { k,l }, transform );
 			if ( matches.second > resMatches.second )
 			{
-				resMatches = matches;
+				resMatches = std::move( matches );
 				res = transform;
 			}
 		}
