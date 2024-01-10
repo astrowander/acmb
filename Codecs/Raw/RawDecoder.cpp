@@ -253,8 +253,9 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 			}
 		} );
 	}
+	
+	pRes->SetCameraSettings( _pCameraSettings );
     pRes = ToOutputFormat( pRes );
-	pRes->SetCameraSettings( _pCameraSettings );	
 	Reattach();
 	return pRes;
 }

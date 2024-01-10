@@ -230,6 +230,7 @@ public:
         }
 
         _pDstBitmap = std::make_shared<Bitmap<dstPixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
+        _pDstBitmap->SetCameraSettings( _pSrcBitmap->GetCameraSettings() );
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<srcPixelFormat> >( _pSrcBitmap );
         auto pDstBitmap = std::static_pointer_cast< Bitmap<dstPixelFormat> >( _pDstBitmap );
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )

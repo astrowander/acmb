@@ -107,6 +107,14 @@ auto pBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/TestGray8.pgm" ), pBitmap ) );
 END_TEST
 
+BEGIN_TEST( TestCameraSettings )
+auto pDecoder = std::make_unique<RawDecoder>( PixelFormat::Gray8 );
+pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
+auto pBitmap = pDecoder->ReadBitmap();
+EXPECT_TRUE( bool( pBitmap->GetCameraSettings() ) );
+EXPECT_EQ( "Sigma", pBitmap->GetCameraSettings()->lensMakerName );
+END_TEST
+
 BEGIN_TEST (TestLensInfo)
 auto pDecoder = std::make_unique<RawDecoder>();
 
@@ -128,7 +136,6 @@ EXPECT_EQ( "", pDecoder->GetCameraSettings()->lensModelName );
 END_TEST
 
 BEGIN_TEST (TestReadingFromStream)
-
 std::ifstream is( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ), std::ios_base::in | std::ios_base::binary );
 if ( !is.is_open() )
     throw std::runtime_error( "unable to open input file" );
@@ -150,7 +157,6 @@ EXPECT_EQ( 5496, pDecoder->GetWidth() );
 EXPECT_EQ( 3670, pDecoder->GetHeight() );
 auto pBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944_stream.ppm"), pBitmap));
-
 END_TEST
 
 BEGIN_TEST ( TestReadingPreview )
@@ -161,6 +167,26 @@ EXPECT_EQ( PixelFormat::RGB24, pPreview->GetPixelFormat() );
 EXPECT_EQ( 1080, pPreview->GetWidth() );
 EXPECT_EQ( 720, pPreview->GetHeight() );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/IMG_8944_preview.ppm" ), pPreview ) );
+END_TEST
+
+BEGIN_TEST( TestSmallRaw )
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach( GetPathToTestFile( "RAW/sraw.CR2" ) );
+auto pBitmap = pDecoder->ReadBitmap();
+EXPECT_EQ( PixelFormat::RGB48, pBitmap->GetPixelFormat() );
+EXPECT_EQ( 2736, pBitmap->GetWidth() );
+EXPECT_EQ( 1824, pBitmap->GetHeight() );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/sraw.ppm" ), pBitmap ) );
+END_TEST
+
+BEGIN_TEST( TestMediumRaw )
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach( GetPathToTestFile( "RAW/mraw.CR2" ) );
+auto pBitmap = pDecoder->ReadBitmap();
+EXPECT_EQ( PixelFormat::RGB48, pBitmap->GetPixelFormat() );
+EXPECT_EQ( 4104, pBitmap->GetWidth() );
+EXPECT_EQ( 2736, pBitmap->GetHeight() );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "RawDecoder/mraw.ppm" ), pBitmap ) );
 END_TEST
 
 END_SUITE
