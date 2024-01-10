@@ -100,6 +100,9 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="LevelsWindow.cpp">
+      <Filter>ToolWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -186,6 +189,9 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Texture.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelsWindow.h">
+      <Filter>ToolWindows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
