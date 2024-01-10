@@ -114,7 +114,7 @@ void RawDecoder::Attach()
 {
 	_decodedFormat = PixelFormat::Bayer16;
 
-	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _pixelFormat );
+	_pLibRaw->imgdata.params.output_bps = BitsPerChannel( _decodedFormat );
 	_pLibRaw->imgdata.params.no_interpolation = 1;
 	_pLibRaw->imgdata.params.fbdd_noiserd = 0;
 	_pLibRaw->imgdata.params.med_passes = 0;
@@ -206,13 +206,26 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	if (!_pLibRaw)
 		throw std::runtime_error("RawDecoder is detached");
 
-	auto pRes = IBitmap::Create(_width, _height, _decodedFormat );
-
 	auto ret = _pLibRaw->unpack();
 	if (ret != LIBRAW_SUCCESS)
 	{
 		throw std::runtime_error("raw processing error");
 	}
+
+	if ( _pLibRaw->imgdata.rawdata.raw_image )
+	{
+        _decodedFormat = PixelFormat::Bayer16;
+        if ( _pixelFormat == PixelFormat::Unspecified )
+            _pixelFormat = _decodedFormat;
+	}
+	else if ( _pLibRaw->imgdata.rawdata.color4_image )
+	{
+		_decodedFormat = PixelFormat::RGBA64;
+		if ( _pixelFormat == PixelFormat::Bayer16 )
+            _pixelFormat = PixelFormat::RGB48;
+	}
+        
+	auto pRes = IBitmap::Create( _width, _height, _decodedFormat );
 	_pCameraSettings->blackLevel = _pLibRaw->imgdata.color.black;
 	
 	const int rawStride = _pLibRaw->imgdata.sizes.raw_width * BytesPerPixel( _decodedFormat );
@@ -220,16 +233,30 @@ std::shared_ptr<IBitmap> RawDecoder::ReadBitmap()
 	const int leftOffset = _pLibRaw->imgdata.sizes.left_margin * BytesPerPixel( _decodedFormat );
 	const int stride = _width * BytesPerPixel( _decodedFormat );
 
-	oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] (const oneapi::tbb::blocked_range<int>& range)
+	if ( _pLibRaw->imgdata.rawdata.raw_image )
 	{
-		for ( int i = range.begin(); i < range.end(); ++i )
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
 		{
-			memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >( _pLibRaw->imgdata.rawdata.raw_image ) + topOffset + i * rawStride + leftOffset, stride );
-		}
-	} );
-	pRes->SetCameraSettings( _pCameraSettings );
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >(_pLibRaw->imgdata.rawdata.raw_image) + topOffset + i * rawStride + leftOffset, stride );
+			}
+		} );
+	}
+	else if ( _pLibRaw->imgdata.rawdata.color4_image )
+	{
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+		{
+			for ( int i = range.begin(); i < range.end(); ++i )
+			{
+				memcpy( pRes->GetPlanarScanline( i ), reinterpret_cast< char* >(_pLibRaw->imgdata.rawdata.color4_image) + topOffset + i * rawStride + leftOffset, stride );
+			}
+		} );
+	}
+    pRes = ToOutputFormat( pRes );
+	pRes->SetCameraSettings( _pCameraSettings );	
 	Reattach();
-	return ToOutputFormat( pRes );
+	return pRes;
 }
 
 std::shared_ptr<IBitmap> RawDecoder::ReadPreview()
