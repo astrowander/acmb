@@ -10,7 +10,7 @@ class ImageReaderWindow : public PipelineElementWindow
     std::vector<std::string> _fileNames;
     int _selectedItemIdx = 0;
     std::unique_ptr<Texture> _pPreviewTexture;
-
+    bool _invertOrder = false;
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }
 

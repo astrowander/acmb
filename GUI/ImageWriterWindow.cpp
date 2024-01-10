@@ -40,13 +40,15 @@ static std::string GetFormatList( bool excludeVideoFormats = false )
     }
 
     const auto res = ss.str();
-    return { res.begin(), std::prev( res.end() ) };
+    auto endIt = res.end();
+    std::advance( endIt, -1 );
+    return { res.begin(), endIt };
 }
 
 ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
     : PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
 {
-    _formatList = GetFormatList( true );
+    _formatList = GetFormatList( false );
 }
 
 void ImageWriterWindow::DrawPipelineElementControls()
@@ -244,7 +246,7 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
         else
             _pEncoder = std::make_shared<Y4MEncoder>();
 
-        _pEncoder->SetTotalFrames( _taskCount );
+        _pEncoder->SetTotalFrames( uint32_t( _taskCount ) );
         _pEncoder->SetFrameRate( _frameRate );
         _pEncoder->Attach( _fileName );
     }
