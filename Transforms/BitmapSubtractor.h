@@ -8,18 +8,22 @@ ACMB_NAMESPACE_BEGIN
 class BitmapSubtractor : public BaseTransform
 {
 public:
-    using Settings = IBitmapPtr;
+    struct Settings
+    {
+        IBitmapPtr pBitmapToSubtract;
+        float intensity = 100.0f;
+    };
 protected:
-    IBitmapPtr _pBitmapToSubtract;
-    BitmapSubtractor( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+    Settings _settings;
+    BitmapSubtractor( IBitmapPtr pSrcBitmap, const Settings& settings );
 
 public:
     /// Creates an instance with source bitmap and bitmap that will be subtracted
-    static std::shared_ptr<BitmapSubtractor> Create( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+    static std::shared_ptr<BitmapSubtractor> Create( IBitmapPtr pSrcBitmap, const Settings& settings );
     /// Creates an instance with pixel format of source bitmap (need to set it later) and bitmap that will be subtracted
-    static std::shared_ptr<BitmapSubtractor> Create( PixelFormat srcPixelFormat, IBitmapPtr pBitmapToSubtract );
+    static std::shared_ptr<BitmapSubtractor> Create( PixelFormat srcPixelFormat, const Settings& settings );
     /// Subtracts given bitmap from the source and returns result
-    static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, IBitmapPtr pBitmapToSubtract );
+    static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, const Settings& settings );
 };
 
 ACMB_NAMESPACE_END

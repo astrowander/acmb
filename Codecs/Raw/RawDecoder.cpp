@@ -5,7 +5,6 @@
 #include "../JPEG/JpegDecoder.h"
 #include "../../Transforms/ResizeTransform.h"
 
-#include <map>
 #include <string>
 #include <sstream>
 #include "libraw/libraw.h"

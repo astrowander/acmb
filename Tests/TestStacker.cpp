@@ -149,7 +149,7 @@ BEGIN_TEST( StackWithDarks )
     auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );    
     for ( auto& pipeline : pipelines )
     {        
-        pipeline.AddTransform<BitmapSubtractor>( pDarkFrame );
+        pipeline.AddTransform<BitmapSubtractor>( { pDarkFrame } );
     }
 
     auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::Light );
@@ -170,7 +170,7 @@ auto pDarkFlatFrame = pDarkStacker->Stack();
 auto flatPipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Flats/" ) );
 for ( auto& pipeline : flatPipelines )
 {
-    pipeline.AddTransform<BitmapSubtractor>( pDarkFlatFrame );
+    pipeline.AddTransform<BitmapSubtractor>( { pDarkFlatFrame } );
 }
 
 auto pFlatStacker = std::make_shared<Stacker>( flatPipelines, StackMode::DarkOrFlat );
@@ -180,7 +180,7 @@ EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/masterflat.ppm" ), pFla
 auto pipelines = ImageDecoder::GetPipelinesFromDir( GetPathToTestFile( "RAW/StackWithDarks/Lights/" ) );
 for ( auto& pipeline : pipelines )
 {
-    pipeline.AddTransform<BitmapSubtractor>( pDarkFrame );
+    pipeline.AddTransform<BitmapSubtractor>( { pDarkFrame } );
     pipeline.AddTransform<BitmapDivisor>( { .pDivisor = pFlatFrame } );
 }
 

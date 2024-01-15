@@ -58,7 +58,7 @@ BEGIN_TEST( TestLongPipeline )
 Pipeline pipeline( ImageDecoder::Create( GetPathToTestFile( "PPM/IMG_8970.ppm" ) ) );
 pipeline.AddTransform<ResizeTransform>( { 5496, 3670 } );
 pipeline.AddTransform<Converter>( PixelFormat::RGB48 );
-pipeline.AddTransform<BitmapSubtractor>( IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark.ppm" ) ) );
+pipeline.AddTransform<BitmapSubtractor>( { IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark.ppm" ) ) } );
 pipeline.AddTransform<AutoChannelEqualizer>();
 pipeline.AddTransform<AutoHaloRemoval>();
 pipeline.AddTransform<Converter>( PixelFormat::Gray8 );
