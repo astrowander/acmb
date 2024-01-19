@@ -11,7 +11,7 @@ public:
     struct Settings
     {
         IBitmapPtr pBitmapToSubtract;
-        float intensity = 100.0f;
+        float multiplier = 1.0f;
     };
 protected:
     Settings _settings;

@@ -5,10 +5,10 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class DarkFrameWindow : public PipelineElementWindow
 {
-    float _intensity = 100.0f;
+    float _multiplier = 1.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
-    Expected<float, std::string> AutoAdjustIntensity();
+    Expected<float, std::string> AutoAdjustMultiplier();
 
 public:
 

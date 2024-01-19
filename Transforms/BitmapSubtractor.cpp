@@ -36,9 +36,7 @@ public:
                 for ( uint32_t j = 0; j < N; ++j )
                 {
                     const auto srcVal = pSrcScanline[j];
-                    const auto subtractVal = ( pScanlineToSubtract[j] - srcBlackLevel ) * _settings.intensity / 100.0f;
-                    if ( i == 1642 && j == 3682 )
-                        i = i;
+                    const auto subtractVal = ( pScanlineToSubtract[j] - srcBlackLevel ) * _settings.multiplier;
                     //const auto res = ChannelType( std::min( srcBlackLevel + std::max( 0, srcVal - subtractVal ), maxChannel ) );
                     const auto res = ChannelType( std::max( float( srcBlackLevel ), ( srcVal - subtractVal ) ) );
                     pSrcScanline[j] = res;

@@ -121,7 +121,7 @@ END_TEST
 BEGIN_TEST( TestIntensity )
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "DarkFrame/IMG_5090.CR2" ) );
 auto pDarkFrame = IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark_intensity.tif" ), PixelFormat::Bayer16 );
-auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, { pDarkFrame, 200.0f } );
+auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, { pDarkFrame, 2.0f } );
 auto pResult = pSubtractor->RunAndGetBitmap();
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapSubtractor/TestIntensity.tif" ), pResult ) );
 END_TEST

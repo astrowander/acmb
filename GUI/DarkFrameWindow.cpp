@@ -20,12 +20,12 @@ DarkFrameWindow::DarkFrameWindow( const Point& gridPos )
 void DarkFrameWindow::DrawPipelineElementControls()
 {
     UI::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop, "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one" );
-    UI::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 500.0f, "The effect of the instrument can be weakened or enhanced. The default value is 100 percent" );
-    UI::Button( "Auto Intensity", { -1, 0 }, [&]
+    UI::DragFloat( "Multiplier", &_multiplier, 0.001f, 0.2f, 5.0f, "Each pixel of the dark frame will be multiplied by this factor before subtracting" );
+    UI::Button( "Adjust Multiplier", { -1, 0 }, [&]
     {
         auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
         mainWindow.LockInterface();
-        auto res = AutoAdjustIntensity();
+        auto res = AutoAdjustMultiplier();
         mainWindow.UnlockInterface();
         if ( !res )
         {
@@ -33,30 +33,30 @@ void DarkFrameWindow::DrawPipelineElementControls()
             _error = res.error();
             return;
         }
-        _intensity = res.value();
-    }, "Calculate intensity automatically");
+        _multiplier = res.value();
+    }, "Calculate appropriate multiplier automatically");
 }
 
 IBitmapPtr DarkFrameWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
-    return BitmapSubtractor::Subtract( pSource, { .pBitmapToSubtract = _pSecondaryInputResult, .intensity = _intensity } );
+    return BitmapSubtractor::Subtract( pSource, { .pBitmapToSubtract = _pSecondaryInputResult, .multiplier = _multiplier } );
 }
 
 void DarkFrameWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
-    gui::Serialize( _intensity, out );
+    gui::Serialize( _multiplier, out );
 }
 
 int DarkFrameWindow::GetSerializedStringSize() const
 {
-    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _intensity );
+    return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _multiplier );
 }
 
 void DarkFrameWindow::Deserialize( std::istream& in )
 {
     PipelineElementWindow::Deserialize( in );
-    _intensity = gui::Deserialize<float>( in, _remainingBytes );
+    _multiplier = gui::Deserialize<float>( in, _remainingBytes );
 }
 
 template<PixelFormat pixelFormat>
@@ -110,7 +110,7 @@ float CalculateIntensity( std::shared_ptr<Bitmap<pixelFormat>> pSource, std::sha
                     if ( darkValue >= thresholds[ch] )
                     {
                         const auto value = *scanline;
-                        const auto multiplier = static_cast< float >(value - sourceBlackLevel) / static_cast< float >(darkValue - darkBlackLevel);
+                        const auto multiplier = float( value - sourceBlackLevel ) / float( darkValue - darkBlackLevel );
                         local.push_back( multiplier );
                     }
 
@@ -132,15 +132,15 @@ float CalculateIntensity( std::shared_ptr<Bitmap<pixelFormat>> pSource, std::sha
         }
     }
 
-    return result / count * 100.0f;
+    return result / count;
 }
 
-Expected<float, std::string> DarkFrameWindow::AutoAdjustIntensity()
+Expected<float, std::string> DarkFrameWindow::AutoAdjustMultiplier()
 {
     auto pPrimaryInput = GetPrimaryInput();
     auto pSecondaryInput = GetSecondaryInput();
     if ( !pPrimaryInput || pPrimaryInput->GetTaskCount() == 0 || !pSecondaryInput  || pSecondaryInput->GetTaskCount() == 0 )
-        return unexpected( "no input bitmap" );
+        return unexpected( "no input element" );
 
     auto pDarkFrameExp = pSecondaryInput->RunTaskAndReportProgress( 0 );
     if ( !pDarkFrameExp )
