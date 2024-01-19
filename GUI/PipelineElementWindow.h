@@ -90,6 +90,9 @@ protected:
 
     int _remainingBytes{};
 
+    bool _showError = false;
+    std::string _error;
+
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
     virtual void DrawPipelineElementControls() = 0;

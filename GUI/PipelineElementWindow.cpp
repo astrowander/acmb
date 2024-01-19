@@ -1,6 +1,7 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 #include "MainWindow.h"
+#include "ImGuiHelpers.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -367,6 +368,9 @@ void PipelineElementWindow::DrawDialog()
 
             ImGui::EndPopup();
         }
+
+        if ( _showError )
+            UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );
     }
 }
 

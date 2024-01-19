@@ -8,6 +8,8 @@ class DarkFrameWindow : public PipelineElementWindow
     float _intensity = 100.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
+    Expected<float, std::string> AutoAdjustIntensity();
+
 public:
 
     DarkFrameWindow( const Point& gridPos );
