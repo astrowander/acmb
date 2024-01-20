@@ -10,6 +10,8 @@ class DarkFrameWindow : public PipelineElementWindow
 
     Expected<float, std::string> AutoAdjustMultiplier();
 
+    virtual Expected<void, std::string> GeneratePreviewTexture() override;
+
 public:
 
     DarkFrameWindow( const Point& gridPos );

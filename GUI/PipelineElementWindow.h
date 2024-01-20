@@ -2,6 +2,7 @@
 #include "window.h"
 
 #include "MenuItemsHolder.h"
+#include "Texture.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
@@ -34,6 +35,7 @@ class PipelineElementWindow : public Window
 {
     bool _openRenamePopup = false;
     std::array<char, 256> _renameBuf = {};
+    std::string _previewPopupName;
 
 public:    
 
@@ -92,6 +94,9 @@ protected:
 
     bool _showError = false;
     std::string _error;
+
+    std::unique_ptr<Texture> _pPreviewTexture;
+    IBitmapPtr _pPreviewBitmap;
 
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
@@ -155,6 +160,9 @@ public:
         auto pPrimaryInput = GetPrimaryInput();
         return pPrimaryInput ? pPrimaryInput->GetTaskName( taskNumber ) : std::string{};
     }
+
+    IBitmapPtr GetPreviewBitmap() const { return _pPreviewBitmap; }
+    virtual Expected<void, std::string> GeneratePreviewTexture() { return {}; }
 
 protected:
     virtual void DrawDialog() override;

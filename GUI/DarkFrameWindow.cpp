@@ -178,6 +178,31 @@ Expected<float, std::string> DarkFrameWindow::AutoAdjustMultiplier()
     }
 }
 
+Expected<void, std::string> DarkFrameWindow::GeneratePreviewTexture()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    auto pSecondaryInput = GetSecondaryInput();
+    if ( !pPrimaryInput || pPrimaryInput->GetTaskCount() == 0 || !pSecondaryInput || pSecondaryInput->GetTaskCount() == 0 )
+        return unexpected( "no input element" );
+
+    if ( !pPrimaryInput->GetPreviewBitmap() )
+        pPrimaryInput->GeneratePreviewTexture();
+
+    if ( !pSecondaryInput->GetPreviewBitmap() )
+        pSecondaryInput->GeneratePreviewTexture();
+
+    try
+    {
+        _pPreviewBitmap = BitmapSubtractor::Subtract( pPrimaryInput->GetPreviewBitmap(), { .pBitmapToSubtract = pSecondaryInput->GetPreviewBitmap(), .multiplier = _multiplier } );
+        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+        return {};
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
 REGISTER_TOOLS_ITEM( DarkFrameWindow )
 
 ACMB_GUI_NAMESPACE_END

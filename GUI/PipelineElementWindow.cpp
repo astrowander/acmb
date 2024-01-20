@@ -16,6 +16,7 @@ PipelineElementWindow::PipelineElementWindow( const std::string& name, const Poi
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
     , _inOutFlags( inOutFlags )
     , _gridPos( gridPos )
+    , _previewPopupName( name + "##Preview" )
 {
 }
 
@@ -340,7 +341,21 @@ bool PipelineElementWindow::DrawHeader()
     ImGui::PushFont( FontRegistry::Instance().iconsSmall );
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
 
-    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, []{}, "Show preview of the image processed by this tool" );
+    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, [&]
+    {
+        if ( !_pPreviewTexture )
+        {
+            auto previewExp = GeneratePreviewTexture();
+            if ( !previewExp.has_value() )
+            {
+                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+                return;
+            }            
+        }
+
+        if ( _pPreviewTexture )
+            ImGui::OpenPopup( _previewPopupName.c_str() );
+    }, "Show preview of the image processed by this tool" );
 
     ImGui::PopStyleVar();
     ImGui::PopFont();
@@ -407,6 +422,16 @@ void PipelineElementWindow::DrawDialog()
                 _openRenamePopup = false;
             }
 
+            ImGui::EndPopup();
+        }
+
+        if ( ImGui::BeginPopup( _previewPopupName.c_str() ) )
+        {
+            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
+            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+            {
+                ImGui::CloseCurrentPopup();
+            }
             ImGui::EndPopup();
         }
 
