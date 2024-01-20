@@ -9,6 +9,7 @@ struct FontRegistry
 {
     ImFont* byDefault;
     ImFont* icons;
+    ImFont* iconsSmall;
     ImFont* bold;
     ImFont* big;
     ImFont* bigBold;

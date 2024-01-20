@@ -7,6 +7,8 @@
 #include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
 
+#include "imgui/imgui_internal.h"
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 PipelineElementWindow::PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
@@ -308,6 +310,45 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
             pOutput->ResetProgress( dir );
         }
     }
+}
+
+bool PipelineElementWindow::DrawHeader()
+{
+    if ( !Window::DrawHeader() )
+        return false;
+
+    auto window = ImGui::GetCurrentWindow();
+    constexpr float titleBarHeight = 24.0f;
+
+    const auto oldCursorPos = ImGui::GetCursorPos();
+    const ImVec2 topLeft{ window->Pos.x + 1, window->Pos.y + 1 };
+    const ImVec2 bottomRight{ topLeft.x + _size.x - 2, topLeft.y + titleBarHeight - 2 };
+    
+    auto drawList = ImGui::GetWindowDrawList();
+    ImGui::PushClipRect( topLeft, bottomRight, false );
+    drawList->AddRectFilled( topLeft, bottomRight, ImGui::GetColorU32( ImGuiCol_TitleBgActive ) );
+    
+    ImGui::SetCursorPosY( oldCursorPos.y - ImGui::GetStyle().WindowPadding.y * 0.5f );
+    ImGui::Text( "%s", _name.substr(0, _name.find_first_of('#') ).c_str());
+    ImGui::SameLine();
+
+    constexpr float previewButtonWidth = titleBarHeight;
+    constexpr float previewButtonHeight = titleBarHeight;
+    ImGui::SetCursorPos( { window->Size.x - previewButtonWidth, 0.0f } );
+
+    ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 1.0f, 0.0f, 0.4f } );
+    ImGui::PushFont( FontRegistry::Instance().iconsSmall );
+    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
+
+    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, []{}, "Show preview of the image processed by this tool" );
+
+    ImGui::PopStyleVar();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
+    ImGui::PopClipRect();
+    ImGui::SetCursorPosY( oldCursorPos.y + titleBarHeight );
+    return true;
 }
 
 void PipelineElementWindow::DrawDialog()

@@ -22,6 +22,7 @@ protected:
 
     bool _isOpen = false;
     virtual ImGuiWindowFlags flags() const { return ImGuiWindowFlags( 0 ); }
+    virtual bool DrawHeader();
 
 public:
     inline static const float cMenuScaling = GetMenuScaling();
