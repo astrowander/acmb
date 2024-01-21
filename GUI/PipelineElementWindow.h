@@ -97,6 +97,7 @@ protected:
 
     std::unique_ptr<Texture> _pPreviewTexture;
     IBitmapPtr _pPreviewBitmap;
+    bool _showPreview = false;
 
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
@@ -162,10 +163,14 @@ public:
     }
 
     IBitmapPtr GetPreviewBitmap() const { return _pPreviewBitmap; }
-    virtual Expected<void, std::string> GeneratePreviewTexture() { return {}; }
+    Expected<void, std::string> GeneratePreviewTexture();
+    
+    void ResetPreview();
 
 protected:
     virtual void DrawDialog() override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() = 0;
+    virtual Expected<Size, std::string> GetBitmapSize();
 };
 
 #define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \

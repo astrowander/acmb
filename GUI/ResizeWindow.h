@@ -8,6 +8,7 @@ class ResizeWindow : public PipelineElementWindow
     Size _dstSize = { 1920, 1080 };
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 
 public:
 

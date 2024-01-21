@@ -267,6 +267,12 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
     return res;
 }
 
+Expected<void, std::string> ImageWriterWindow::GeneratePreviewBitmap()
+{
+    _pPreviewBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    return {};
+}
+
 REGISTER_TOOLS_ITEM( ImageWriterWindow )
 
 ACMB_GUI_NAMESPACE_END

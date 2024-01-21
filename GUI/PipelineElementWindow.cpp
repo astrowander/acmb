@@ -354,7 +354,7 @@ bool PipelineElementWindow::DrawHeader()
         }
 
         if ( _pPreviewTexture )
-            ImGui::OpenPopup( _previewPopupName.c_str() );
+            _showPreview = true;
     }, "Show preview of the image processed by this tool" );
 
     ImGui::PopStyleVar();
@@ -425,12 +425,28 @@ void PipelineElementWindow::DrawDialog()
             ImGui::EndPopup();
         }
 
-        if ( ImGui::BeginPopup( _previewPopupName.c_str() ) )
+        if ( _showPreview && !ImGui::IsPopupOpen( _previewPopupName.c_str() ) )
         {
+            ImGui::OpenPopup( _previewPopupName.c_str() );
+            const auto mainWindow = ImGui::FindWindowByName( "acmb" );
+            ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
+            ImGui::SetNextWindowPos( previewPos );
+        }
+
+        if ( ImGui::BeginPopup( _previewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+        {
+            if ( !_pPreviewTexture )
+            {
+                auto previewExp = GeneratePreviewTexture();
+                if ( !previewExp.has_value() )
+                    UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+            }
+
             ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
             if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
             {
                 ImGui::CloseCurrentPopup();
+                _showPreview = false;
             }
             ImGui::EndPopup();
         }
@@ -463,5 +479,55 @@ int PipelineElementWindow::GetSerializedStringSize() const
     return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnTop );
 }
 
+Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    auto pSecondaryInput = GetSecondaryInput();
+    if ( !(_inOutFlags | PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
+        return unexpected( "no primary input element" );
+
+    if ( !(_inOutFlags | PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
+        return unexpected( "no secondary input element" );
+
+    if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
+        pPrimaryInput->GeneratePreviewTexture();
+
+    if ( pSecondaryInput && !pSecondaryInput->GetPreviewBitmap() )
+        pSecondaryInput->GeneratePreviewTexture();
+
+    try
+    {
+        if ( auto res = GeneratePreviewBitmap(); !res )
+            return unexpected( res.error() );
+
+        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+        return {};
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
+void PipelineElementWindow::ResetPreview()
+{
+    _pPreviewBitmap.reset();
+    _pPreviewTexture.reset();
+    auto output = GetRightOutput();
+    if ( !output )
+        output = GetBottomOutput();
+
+    if ( output )
+        output->ResetPreview();
+}
+
+Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    if ( !pPrimaryInput )
+        return unexpected( "no primary input element" );
+
+    return pPrimaryInput->GetBitmapSize();
+}
 
 ACMB_GUI_NAMESPACE_END

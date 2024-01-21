@@ -10,7 +10,7 @@ class DarkFrameWindow : public PipelineElementWindow
 
     Expected<float, std::string> AutoAdjustMultiplier();
 
-    virtual Expected<void, std::string> GeneratePreviewTexture() override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 
 public:
 

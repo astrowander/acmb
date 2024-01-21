@@ -33,45 +33,90 @@ public:
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
         const float srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        
+        constexpr ColorSpace colorSpace = GetColorSpace( pixelFormat );
         std::array<float, 4> pivots = {};
-
-        if ( _cachedPivots.contains( pDivisor ) )
-        {
-            pivots = _cachedPivots[pDivisor];
-        }
-        else
-        {
-            auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
-            pHistogramBuilder->BuildHistogram();
-            pivots[0] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f );
-            pivots[1] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f );
-            pivots[2] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f );
-            pivots[3] = srcBlackLevel + ( pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel ) / ( pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f );
-            _cachedPivots[pDivisor] = pivots;
-        }
-
-        const float maxChannel = pSrcBitmap->GetCameraSettings() ? float( pSrcBitmap->GetCameraSettings()->maxChannel ) : float( PixelFormatTraits<pixelFormat>::channelMax );
-
-        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
-        {
-            for ( int y = range.begin(); y < range.end(); ++y )
+        if constexpr ( colorSpace == ColorSpace::Gray || colorSpace == ColorSpace::Bayer )
+        {            
+            if ( _cachedPivots.contains( pDivisor ) )
             {
-                auto pSrcScanline = pSrcBitmap->GetScanline( y );
-                auto pDivisorScanline = pDivisor->GetScanline( y );
-
-                for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
-                {
-                    const auto subpixelIndex = ( x % 2 ) + ( 2 * ( y % 2 ) );                        
-                    const size_t index = x * channelCount;
-                    const float srcValue = pSrcScanline[index];
-                    const float divisorValue = pDivisorScanline[index];
-                    float coeff = std::max( 1.0f, ( pivots[subpixelIndex] - srcBlackLevel ) / ( divisorValue - srcBlackLevel ) );
-                    coeff = 1.0f + ( coeff - 1.0f ) * ( _settings.intensity / 100.0f );
-                    const float res = std::min( srcBlackLevel + std::max( 0.0f, srcValue - srcBlackLevel ) * coeff, maxChannel );
-                    pSrcScanline[index] = ChannelType( res );
-                }
+                pivots = _cachedPivots[pDivisor];
             }
-        } );
+            else
+            {
+                auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
+                pHistogramBuilder->BuildHistogram();
+                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
+                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                _cachedPivots[pDivisor] = pivots;
+            }
+
+            const float maxChannel = pSrcBitmap->GetCameraSettings() ? float( pSrcBitmap->GetCameraSettings()->maxChannel ) : float( PixelFormatTraits<pixelFormat>::channelMax );
+
+            oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+            {
+                for ( int y = range.begin(); y < range.end(); ++y )
+                {
+                    auto pSrcScanline = pSrcBitmap->GetScanline( y );
+                    auto pDivisorScanline = pDivisor->GetScanline( y );
+
+                    for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+                    {
+                        const auto subpixelIndex = (x % 2) + (2 * (y % 2));
+                        const size_t index = x * channelCount;
+                        const float srcValue = pSrcScanline[index];
+                        const float divisorValue = pDivisorScanline[index];
+                        float coeff = std::max( 1.0f, (pivots[subpixelIndex] - srcBlackLevel) / (divisorValue - srcBlackLevel) );
+                        coeff = 1.0f + (coeff - 1.0f) * (_settings.intensity / 100.0f);
+                        const float res = std::min( srcBlackLevel + std::max( 0.0f, srcValue - srcBlackLevel ) * coeff, maxChannel );
+                        pSrcScanline[index] = ChannelType( res );
+                    }
+                }
+            } );
+        }
+        else if ( colorSpace == ColorSpace::RGB )
+        {
+            if ( _cachedPivots.contains( pDivisor ) )
+            {
+                pivots = _cachedPivots[pDivisor];
+            }
+            else
+            {
+                auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
+                pHistogramBuilder->BuildHistogram();
+                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
+                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 1 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 2 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                //pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                _cachedPivots[pDivisor] = pivots;
+            }
+
+            const float maxChannel = pSrcBitmap->GetCameraSettings() ? float( pSrcBitmap->GetCameraSettings()->maxChannel ) : float( PixelFormatTraits<pixelFormat>::channelMax );
+            oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+            {
+                for ( int y = range.begin(); y < range.end(); ++y )
+                {
+                    auto pSrcPixel = pSrcBitmap->GetScanline( y );
+                    auto pDivisorPixel = pDivisor->GetScanline( y );
+
+                    for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+                    {
+                        for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                        {
+                            float coeff = std::max( 1.0f, (pivots[ch] - srcBlackLevel) / (*pDivisorPixel - srcBlackLevel) );
+                            coeff = 1.0f + (coeff - 1.0f) * (_settings.intensity / 100.0f);
+                            *pSrcPixel = ChannelType( std::min( srcBlackLevel + std::max( 0.0f, *pSrcPixel - srcBlackLevel ) * coeff, maxChannel ) );
+
+                            ++pDivisorPixel;
+                            ++pSrcPixel;
+                        }
+                    }
+                }
+            } );
+        }
+
         this->_pDstBitmap = this->_pSrcBitmap;
     }
 
@@ -113,8 +158,12 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( IBitmapPtr pSrcBitmap, con
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( pSrcBitmap, settings );
         case PixelFormat::Bayer16:
             return std::make_shared<BitmapDivisor_<PixelFormat::Bayer16>>( pSrcBitmap, settings );
+        case PixelFormat::RGB24:
+            return std::make_shared<BitmapDivisor_<PixelFormat::RGB24>>( pSrcBitmap, settings );
+        case PixelFormat::RGB48:
+            return std::make_shared<BitmapDivisor_<PixelFormat::RGB48>>( pSrcBitmap, settings );
         default:
-            throw std::runtime_error( "only grayscale bitmaps can be divided" );
+            throw std::runtime_error( "unsupported pixel format" );
     }
 }
 
@@ -131,8 +180,12 @@ std::shared_ptr<BitmapDivisor> BitmapDivisor::Create( PixelFormat srcPixelFormat
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, settings );
         case PixelFormat::Bayer16:
             return std::make_shared<BitmapDivisor_<PixelFormat::Gray16>>( nullptr, settings );
+        case PixelFormat::RGB24:
+            return std::make_shared<BitmapDivisor_<PixelFormat::RGB24>>( nullptr, settings );
+        case PixelFormat::RGB48:
+            return std::make_shared<BitmapDivisor_<PixelFormat::RGB48>>( nullptr, settings );
         default:
-            throw std::runtime_error( "only grayscale bitmaps can be divided" );
+            throw std::runtime_error( "unsupported pixel format" );
     }
 }
 

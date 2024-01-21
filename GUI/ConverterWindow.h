@@ -9,6 +9,7 @@ class ConverterWindow : public PipelineElementWindow
     PixelFormat _dstPixelFormat = PixelFormat::RGB24;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 
 public:
 

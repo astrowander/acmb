@@ -117,7 +117,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     }*/
 }
 
-Expected<void, std::string> ImageReaderWindow::GeneratePreviewTexture()
+Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
 {
     if ( _fileNames.empty() )
         return unexpected( "No images in the list" );
@@ -127,17 +127,11 @@ Expected<void, std::string> ImageReaderWindow::GeneratePreviewTexture()
 
     if ( _fileNames[_selectedItemIdx].empty() )
         return unexpected( "Selected file name is empty" );
-
-    try
-    {
-        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
-        _pPreviewBitmap = pDecoder->ReadPreview();
-        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
-    }
-    catch ( std::exception& e )
-    {
-        return unexpected( e.what() );
-    }
+    
+    auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+    _pPreviewBitmap = pDecoder->ReadPreview();
+    _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+    return {};
 }
 
 Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
@@ -146,6 +140,30 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     {
         const size_t idx = _invertOrder ? _fileNames.size() - 1 - i : i;
         return IBitmap::Create( _fileNames[idx] );
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
+Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
+{
+    if ( _fileNames.empty() )
+        return unexpected( "No images in the list" );
+
+    if ( _selectedItemIdx >= _fileNames.size() )
+        return unexpected( "No image selected" );
+
+    if ( _fileNames[_selectedItemIdx].empty() )
+        return unexpected( "Selected file name is empty" );
+    
+    try
+    {
+        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+        const auto res = Size{ int( pDecoder->GetWidth() ), int( pDecoder->GetHeight() ) };
+        pDecoder->Detach();
+        return res;
     }
     catch ( std::exception& e )
     {

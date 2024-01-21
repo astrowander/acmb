@@ -113,6 +113,12 @@ void StackerWindow::ResetTasks()
     _taskReadiness = 0;
 }
 
+Expected<void, std::string> StackerWindow::GeneratePreviewBitmap()
+{
+    _pPreviewBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    return {};
+}
+
 REGISTER_TOOLS_ITEM( StackerWindow )
 
 ACMB_GUI_NAMESPACE_END

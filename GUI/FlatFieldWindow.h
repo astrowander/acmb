@@ -8,6 +8,7 @@ class FlatFieldWindow : public PipelineElementWindow
     float _intensity = 100.0f;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 public:
 
     FlatFieldWindow( const Point& gridPos );
