@@ -125,6 +125,77 @@ std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap
 	}
 }
 
+std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms )
+{
+	if ( !pSrcBitmap )
+		throw std::invalid_argument( "pSrcBitmap is null" );
+
+	if ( channelTransforms.size() != ChannelCount( pSrcBitmap->GetPixelFormat() ) )
+		throw std::invalid_argument( "Multiplier count must be equal to channel count" );
+
+	switch ( pSrcBitmap->GetPixelFormat() )
+	{
+		case PixelFormat::Gray8:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
+			{
+				[channelTransforms]( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[0]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				}
+			} );
+		case PixelFormat::Gray16:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
+			{
+				[channelTransforms]( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[0]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				}
+			} );
+		case PixelFormat::RGB24:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
+			{
+				[channelTransforms]( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[0]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				},
+					[channelTransforms] ( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[1]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				},
+					[channelTransforms] ( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[2]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				}
+
+			} );
+		case PixelFormat::RGB48:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
+			{
+				[channelTransforms]( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[0]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				},
+					[channelTransforms] ( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[1]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				},
+					[channelTransforms] ( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[2]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				}
+
+			} );
+		default:
+			throw std::runtime_error( "unsupported pixel format" );
+	}
+}
+
+IBitmapPtr ChannelEqualizer::Equalize( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms )
+{
+    auto pEqualizer = Create( pSrcBitmap, channelTransforms );
+	return pEqualizer->RunAndGetBitmap();
+}
+
 IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 {
 	auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );

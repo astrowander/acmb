@@ -348,7 +348,7 @@ bool PipelineElementWindow::DrawHeader()
             auto previewExp = GeneratePreviewTexture();
             if ( !previewExp.has_value() )
             {
-                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+                UI::ShowModalMessage( { previewExp.error() }, UI::ModalMessageType::Error, _showError = true );
                 return;
             }            
         }
@@ -483,10 +483,10 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
     auto pPrimaryInput = GetPrimaryInput();
     auto pSecondaryInput = GetSecondaryInput();
-    if ( !(_inOutFlags | PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
+    if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
         return unexpected( "no primary input element" );
 
-    if ( !(_inOutFlags | PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
+    if ( (_inOutFlags & PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
         return unexpected( "no secondary input element" );
 
     if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
