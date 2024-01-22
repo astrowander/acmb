@@ -125,12 +125,14 @@ namespace UI
         ImGui::PopStyleColor();
     }
 
-    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip )
+    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
         {
             action();
+            if ( parent )
+                parent->ResetPreview();
         }
 
         SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );

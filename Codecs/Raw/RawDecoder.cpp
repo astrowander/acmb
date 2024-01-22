@@ -264,7 +264,16 @@ std::shared_ptr<IBitmap> RawDecoder::ReadPreview()
     if ( !_pLibRaw )
         throw std::runtime_error( "RawDecoder is detached" );
 
-	if ( _pLibRaw->imgdata.thumbs_list.thumbcount == 0 )
+    auto oldPixelFormat = _pixelFormat;
+    _pixelFormat = PixelFormat::RGB48;
+    auto pRes = ReadBitmap();
+    _pixelFormat = oldPixelFormat;
+
+	Size previewSize{ int( pRes->GetWidth() ), int( pRes->GetHeight() ) };
+	if ( previewSize.width > 1280 || previewSize.height > 720 )
+		pRes = ResizeTransform::Resize( pRes, ResizeTransform::GetSizeWithPreservedRatio( previewSize, { 1280, 720 } ) );
+	return pRes;
+	/*if ( _pLibRaw->imgdata.thumbs_list.thumbcount == 0 )
 		return ImageDecoder::ReadPreview();
 
     if ( _pLibRaw->unpack_thumb() != LIBRAW_SUCCESS )
@@ -297,7 +306,7 @@ std::shared_ptr<IBitmap> RawDecoder::ReadPreview()
     Size previewSize{ int( pPreviewBitmap->GetWidth() ), int( pPreviewBitmap->GetHeight() ) };
 	if ( previewSize.width > 1280 || previewSize.height > 720 )
 		pPreviewBitmap = ResizeTransform::Resize( pPreviewBitmap, ResizeTransform::GetSizeWithPreservedRatio( previewSize, { 1280, 720 } ) );
-	return pPreviewBitmap;
+	return pPreviewBitmap;*/
 }
 
 std::unordered_set<std::string> RawDecoder::GetExtensions()

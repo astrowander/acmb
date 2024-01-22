@@ -25,7 +25,7 @@ namespace UI
 
     void ShowModalMessage( const std::vector<std::string>& msg, ModalMessageType msgType, bool& isEnabled );
 
-    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string & tooltip );
+    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string & tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
     void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip );
 
