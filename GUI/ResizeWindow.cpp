@@ -39,6 +39,34 @@ int ResizeWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize );
 }
 
+Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
+{
+    const auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
+    const auto inputSizeExp = GetBitmapSize();
+    if ( !inputSizeExp )
+        return unexpected( inputSizeExp.error() );
+
+    const Size inputSize = inputSizeExp.value();
+    const float dstAspectRatio = float( _dstSize.width ) / float( _dstSize.height );
+    constexpr float pivotAspectRatio = 16.0f / 9.0f;
+
+    Size previewSize;
+    if ( dstAspectRatio > pivotAspectRatio )
+    {
+        previewSize.width = inputPreviewSize.width;
+        previewSize.height = int( previewSize.width / dstAspectRatio );
+    }
+    else
+    {
+        previewSize.height = inputPreviewSize.height;
+        previewSize.width = int( previewSize.height * dstAspectRatio );
+    }
+
+    _pPreviewBitmap = ResizeTransform::Resize( pInputBitmap, previewSize );
+    return {};
+}
+
 REGISTER_TOOLS_ITEM( ResizeWindow )
 
 ACMB_GUI_NAMESPACE_END

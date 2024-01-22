@@ -3,6 +3,8 @@
 #include "FontRegistry.h"
 #include "MainWindow.h"
 
+using namespace acmb::gui;
+
 namespace UI
 {
     void SetTooltipIfHovered( const std::string& text, float scaling )
@@ -123,12 +125,14 @@ namespace UI
         ImGui::PopStyleColor();
     }
 
-    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip )
+    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
         {
             action();
+            if ( parent )
+                parent->ResetPreview();
         }
 
         SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
@@ -157,10 +161,13 @@ namespace UI
         SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
     }
 
-    void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip )
+    void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).IsInterfaceLocked();
-        ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None );
+        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None ) && parent )
+        {
+            parent->ResetPreview();
+        }
         SetTooltipIfHovered( tooltip, acmb::gui::MainWindow::cMenuScaling );
     }
 

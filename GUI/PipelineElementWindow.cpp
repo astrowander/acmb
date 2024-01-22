@@ -1,10 +1,13 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 #include "MainWindow.h"
+#include "ImGuiHelpers.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
+
+#include "imgui/imgui_internal.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -13,6 +16,7 @@ PipelineElementWindow::PipelineElementWindow( const std::string& name, const Poi
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
     , _inOutFlags( inOutFlags )
     , _gridPos( gridPos )
+    , _previewPopupName( name + "##Preview" )
 {
 }
 
@@ -309,6 +313,59 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
     }
 }
 
+bool PipelineElementWindow::DrawHeader()
+{
+    if ( !Window::DrawHeader() )
+        return false;
+
+    auto window = ImGui::GetCurrentWindow();
+    constexpr float titleBarHeight = 24.0f;
+
+    const auto oldCursorPos = ImGui::GetCursorPos();
+    const ImVec2 topLeft{ window->Pos.x + 1, window->Pos.y + 1 };
+    const ImVec2 bottomRight{ topLeft.x + _size.x - 2, topLeft.y + titleBarHeight - 2 };
+    
+    auto drawList = ImGui::GetWindowDrawList();
+    ImGui::PushClipRect( topLeft, bottomRight, false );
+    drawList->AddRectFilled( topLeft, bottomRight, ImGui::GetColorU32( ImGuiCol_TitleBgActive ) );
+    
+    ImGui::SetCursorPosY( oldCursorPos.y - ImGui::GetStyle().WindowPadding.y * 0.5f );
+    ImGui::Text( "%s", _name.substr(0, _name.find_first_of('#') ).c_str());
+    ImGui::SameLine();
+
+    constexpr float previewButtonWidth = titleBarHeight;
+    constexpr float previewButtonHeight = titleBarHeight;
+    ImGui::SetCursorPos( { window->Size.x - previewButtonWidth, 0.0f } );
+
+    ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 1.0f, 0.0f, 0.4f } );
+    ImGui::PushFont( FontRegistry::Instance().iconsSmall );
+    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
+
+    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, [&]
+    {
+        if ( !_pPreviewTexture )
+        {
+            auto previewExp = GeneratePreviewTexture();
+            if ( !previewExp.has_value() )
+            {
+                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+                return;
+            }            
+        }
+
+        if ( _pPreviewTexture )
+            _showPreview = true;
+    }, "Show preview of the image processed by this tool" );
+
+    ImGui::PopStyleVar();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
+    ImGui::PopClipRect();
+    ImGui::SetCursorPosY( oldCursorPos.y + titleBarHeight );
+    return true;
+}
+
 void PipelineElementWindow::DrawDialog()
 {
     ImGui::PushItemWidth( 50.0f * cMenuScaling );
@@ -367,6 +424,35 @@ void PipelineElementWindow::DrawDialog()
 
             ImGui::EndPopup();
         }
+
+        if ( _showPreview && !ImGui::IsPopupOpen( _previewPopupName.c_str() ) )
+        {
+            ImGui::OpenPopup( _previewPopupName.c_str() );
+            const auto mainWindow = ImGui::FindWindowByName( "acmb" );
+            ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
+            ImGui::SetNextWindowPos( previewPos );
+        }
+
+        if ( ImGui::BeginPopup( _previewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+        {
+            if ( !_pPreviewTexture )
+            {
+                auto previewExp = GeneratePreviewTexture();
+                if ( !previewExp.has_value() )
+                    UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+            }
+
+            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
+            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+            {
+                ImGui::CloseCurrentPopup();
+                _showPreview = false;
+            }
+            ImGui::EndPopup();
+        }
+
+        if ( _showError )
+            UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );
     }
 }
 
@@ -393,5 +479,55 @@ int PipelineElementWindow::GetSerializedStringSize() const
     return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnTop );
 }
 
+Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    auto pSecondaryInput = GetSecondaryInput();
+    if ( !(_inOutFlags | PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
+        return unexpected( "no primary input element" );
+
+    if ( !(_inOutFlags | PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
+        return unexpected( "no secondary input element" );
+
+    if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
+        pPrimaryInput->GeneratePreviewTexture();
+
+    if ( pSecondaryInput && !pSecondaryInput->GetPreviewBitmap() )
+        pSecondaryInput->GeneratePreviewTexture();
+
+    try
+    {
+        if ( auto res = GeneratePreviewBitmap(); !res )
+            return unexpected( res.error() );
+
+        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+        return {};
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
+void PipelineElementWindow::ResetPreview()
+{
+    _pPreviewBitmap.reset();
+    _pPreviewTexture.reset();
+    auto output = GetRightOutput();
+    if ( !output )
+        output = GetBottomOutput();
+
+    if ( output )
+        output->ResetPreview();
+}
+
+Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    if ( !pPrimaryInput )
+        return unexpected( "no primary input element" );
+
+    return pPrimaryInput->GetBitmapSize();
+}
 
 ACMB_GUI_NAMESPACE_END

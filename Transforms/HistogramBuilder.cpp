@@ -1,8 +1,13 @@
 #include "HistogramBuilder.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/enumerable_thread_specific.h>
 #include <array>
 #include <mutex>
+
+#undef min
+#undef max
+
 ACMB_NAMESPACE_BEGIN
 
 template <PixelFormat pixelFormat>
@@ -15,8 +20,6 @@ class HistogramBuilder_ final : public HistorgamBuilder
 	std::array<ChannelHistogram, channelCount> _histograms;
 	std::array<HistogramStatistics, channelCount> _statistics;
 
-	std::mutex _mutex;
-
 public:
 	HistogramBuilder_( IBitmapPtr pBitmap, const Rect& roi )
 	: HistorgamBuilder( pBitmap, roi )
@@ -27,12 +30,28 @@ public:
 	{
 		for ( uint32_t ch = 0; ch < channelCount; ++ch )
 			_histograms[ch].resize( channelMax + 1 );
-
-		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pBitmap->GetHeight() ), [this] ( const oneapi::tbb::blocked_range<int>& range )
+		
+		struct ThreadLocalData
 		{
+			std::array<ChannelHistogram, channelCount > histograms;
+            std::array<HistogramStatistics, channelCount > statistics;
+
+			ThreadLocalData()
+			{
+                for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                {
+                    histograms[ch].resize( channelMax + 1 );
+                }
+			}
+		};
+
+        tbb::enumerable_thread_specific<ThreadLocalData> tld;
+
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+		{
+			auto& local = tld.local();
 			for ( int i = range.begin(); i < range.end(); ++i )
 			{
-				std::scoped_lock lock( _mutex );
 				for ( uint32_t ch = 0; ch < channelCount; ++ch )
 				{
 					auto pBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pBitmap );
@@ -41,25 +60,27 @@ public:
 					for ( int x = 0; x < _roi.width; ++x )
 					{
 						ChannelType val = *pChannel;
-						++_histograms[ch][val];
-						if ( val < _statistics[ch].min )
-						{
-							_statistics[ch].min = val;
-						}
-						if ( val > _statistics[ch].max )
-						{
-							_statistics[ch].max = val;
-						}
-						if ( _histograms[ch][val] > _histograms[ch][_statistics[ch].peak] ||
-							 ( _histograms[ch][val] == _histograms[ch][_statistics[ch].peak] && val > _statistics[ch].peak ) )
-						{
-							_statistics[ch].peak = val;
-						}
+						++local.histograms[ch][val];
+                        local.statistics[ch].min = std::min<ChannelType>( local.statistics[ch].min, val );
+                        local.statistics[ch].max = std::max<ChannelType>( local.statistics[ch].max, val );
 						pChannel += channelCount;
 					}
 				}
 			}
 		} );
+
+		for ( auto& local : tld )
+		{
+			for ( uint32_t ch = 0; ch < channelCount; ++ch )
+			{
+                for ( uint32_t val = 0; val <= channelMax; ++val )
+                {
+                    _histograms[ch][val] += local.histograms[ch][val];
+                    _statistics[ch].min = std::min( _statistics[ch].min, local.statistics[ch].min );
+                    _statistics[ch].max = std::max( _statistics[ch].max, local.statistics[ch].max );
+                }
+			}
+		}
 
 		const uint32_t pixCount = _roi.width * _roi.height;
 		const uint32_t centilPixCount = pixCount / 100;
@@ -70,6 +91,9 @@ public:
 			uint32_t curCentil = 1;
 			for ( uint32_t i = 0; i < channelMax + 1; ++i )
 			{
+                if ( _histograms[ch][i] >= _histograms[ch][_statistics[ch].peak])
+					_statistics[ch].peak = i;
+
 				count += _histograms[ch][i];
 				sum += i * _histograms[ch][i];
 				while ( count > centilPixCount )

@@ -153,13 +153,13 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
 
             if ( isStackerFound )
             {
-                _pipelineAfterStacker.AddTransform<BitmapSubtractor>( pBitmapToSubtract );
+                _pipelineAfterStacker.AddTransform<BitmapSubtractor>( { pBitmapToSubtract } );
             }
             else
             {
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
-                    pipeline.AddTransform<BitmapSubtractor>( pBitmapToSubtract );
+                    pipeline.AddTransform<BitmapSubtractor>( { pBitmapToSubtract } );
                 }
             }
         }

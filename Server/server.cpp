@@ -118,7 +118,7 @@ void Server::WorkWithClient( tcp::socket& socket )
                 std::string str = ReceiveData( socket );
                 auto pStream = std::make_shared<std::istringstream>( str );
                 const auto pixelFormat = activePipeline->GetFinalParams()->GetPixelFormat();
-                activePipeline->AddTransform<BitmapSubtractor>( IBitmap::Create( pStream, pixelFormat ) );
+                activePipeline->AddTransform<BitmapSubtractor>( { IBitmap::Create( pStream, pixelFormat ) } );
                 break;
             }
             case CommandCode::Divide:

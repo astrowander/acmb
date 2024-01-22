@@ -5,7 +5,6 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Codecs/imagedecoder.h"
-#include "./../Transforms/converter.h"
 
 #include <sstream>
 
@@ -67,7 +66,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
         ResetProgress( PropagationDir::Forward );
     }, "Delete all images from the importing list" );
 
-    if ( !_fileNames.empty() )
+    /*if ( !_fileNames.empty() )
     {
         UI::Button( "Show Preview", { itemWidth, 0 }, [&]
         {
@@ -77,7 +76,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
             auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
             _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 )) );
         }, "Show a preview of the selected image" );
-    }
+    }*/
 
     UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
 
@@ -99,7 +98,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
     auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
 
-    if ( _pPreviewTexture )
+    /*if ( _pPreviewTexture )
     {
         ImGui::OpenPopup( "Preview" );
         mainWindow.LockInterface();
@@ -115,7 +114,24 @@ void ImageReaderWindow::DrawPipelineElementControls()
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
-    }
+    }*/
+}
+
+Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
+{
+    if ( _fileNames.empty() )
+        return unexpected( "No images in the list" );
+
+    if ( _selectedItemIdx >= _fileNames.size() )
+        return unexpected( "No image selected" );
+
+    if ( _fileNames[_selectedItemIdx].empty() )
+        return unexpected( "Selected file name is empty" );
+    
+    auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+    _pPreviewBitmap = pDecoder->ReadPreview();
+    _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+    return {};
 }
 
 Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
@@ -124,6 +140,30 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     {
         const size_t idx = _invertOrder ? _fileNames.size() - 1 - i : i;
         return IBitmap::Create( _fileNames[idx] );
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
+Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
+{
+    if ( _fileNames.empty() )
+        return unexpected( "No images in the list" );
+
+    if ( _selectedItemIdx >= _fileNames.size() )
+        return unexpected( "No image selected" );
+
+    if ( _fileNames[_selectedItemIdx].empty() )
+        return unexpected( "Selected file name is empty" );
+    
+    try
+    {
+        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+        const auto res = Size{ int( pDecoder->GetWidth() ), int( pDecoder->GetHeight() ) };
+        pDecoder->Detach();
+        return res;
     }
     catch ( std::exception& e )
     {

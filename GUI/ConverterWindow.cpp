@@ -43,6 +43,12 @@ int ConverterWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
 }
 
+Expected<void, std::string> ConverterWindow::GeneratePreviewBitmap()
+{    
+    _pPreviewBitmap = Converter::Convert( GetPrimaryInput()->GetPreviewBitmap()->Clone(), _dstPixelFormat);
+    return {};
+}
+
 REGISTER_TOOLS_ITEM( ConverterWindow );
 
 ACMB_GUI_NAMESPACE_END

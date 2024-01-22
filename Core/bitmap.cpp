@@ -42,6 +42,10 @@ std::shared_ptr<IBitmap> IBitmap::Create(uint32_t width, uint32_t height, PixelF
         return std::make_shared<Bitmap<PixelFormat::RGB48>>(width, height);
     case PixelFormat::Bayer16:
         return std::make_shared<Bitmap<PixelFormat::Bayer16>>( width, height );
+    case PixelFormat::RGBA32:
+        return std::make_shared<Bitmap<PixelFormat::RGBA32>>( width, height );
+    case PixelFormat::RGBA64:
+        return std::make_shared<Bitmap<PixelFormat::RGBA64>>( width, height );
     default:
         throw std::runtime_error("not implemented");
 
