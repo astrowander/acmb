@@ -11,9 +11,11 @@ template<PixelFormat pixelFormat>
 class ChannelEqualizer_ final : public ChannelEqualizer
 {
 	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-	static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+	static constexpr uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+    static constexpr ChannelType channelMax = PixelFormatTraits<pixelFormat>::channelMax;
 
 	std::array<std::function<ChannelType( ChannelType )>, channelCount> _channelTransforms;
+    std::array< std::array<ChannelType, channelMax + 1>, channelCount> _lut;
 
 public:
 	ChannelEqualizer_( IBitmapPtr pSrcBitmap, const std::array< std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
@@ -27,6 +29,17 @@ public:
 		auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
 		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<ChannelType>( 0, channelMax ), [this] ( const oneapi::tbb::blocked_range<ChannelType>& range )
+		{
+            for ( ChannelType i = range.begin(); i < range.end(); ++i )
+            {
+                for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                {
+                    _lut[ch][i] = _channelTransforms[ch]( i );
+                }
+            }
+		} );
+
 		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
 		{
 			for ( int i = range.begin(); i < range.end(); ++i )
@@ -38,7 +51,7 @@ public:
 
 					for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
 					{
-						pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
+						pDstScanline[0] = _lut[ch][ pSrcScanline[0] ];
 						pSrcScanline += channelCount;
 						pDstScanline += channelCount;
 					}

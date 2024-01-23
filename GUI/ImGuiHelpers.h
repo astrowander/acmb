@@ -27,12 +27,12 @@ namespace UI
 
     void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string & tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
-    void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip );
+    void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
-    void Checkbox( const std::string& label, bool* v, const std::string& tooltip );
+    void Checkbox( const std::string& label, bool* v, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
-    void DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max,  const std::string& tooltip );
+    void DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max,  const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
     void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
-    void Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip );
+    void Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 }

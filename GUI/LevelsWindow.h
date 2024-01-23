@@ -10,6 +10,8 @@ class LevelsWindow : public PipelineElementWindow
     //std::vector<uint32_t> _channelHistograms[4];
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
     virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+
+    virtual Expected<void, std::string> AutoAdjustLevels();
 public:
     
     struct LevelsSettings
