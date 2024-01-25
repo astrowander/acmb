@@ -256,7 +256,11 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
     {
         const auto taskRes = RunTaskAndReportProgress( i );
         if ( !taskRes.has_value() )
+        {
             res.push_back( taskRes.error() );
+            ResetProgress( PropagationDir::Backward );
+            break;
+        }
     }
 
     if ( _pEncoder )

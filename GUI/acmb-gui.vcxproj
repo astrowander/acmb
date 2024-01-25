@@ -159,6 +159,7 @@
     <ClCompile Include="MenuItemsHolder.cpp" />
     <ClCompile Include="PipelineElementWindow.cpp" />
     <ClCompile Include="ResizeWindow.cpp" />
+    <ClCompile Include="SaturationWindow.cpp" />
     <ClCompile Include="StackerWindow.cpp" />
     <ClCompile Include="DarkFrameWindow.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="PipelineElementWindow.h" />
     <ClInclude Include="ResizeWindow.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SaturationWindow.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />

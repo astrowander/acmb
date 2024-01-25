@@ -35,7 +35,7 @@ class PipelineElementWindow : public Window
 {
     bool _openRenamePopup = false;
     std::array<char, 256> _renameBuf = {};
-    std::string _previewPopupName;
+    inline static const std::string cPreviewPopupName = "PreviewPopup";
 
 public:    
 

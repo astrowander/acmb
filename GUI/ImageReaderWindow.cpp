@@ -40,8 +40,10 @@ void ImageReaderWindow::DrawPipelineElementControls()
             const bool is_selected = ( _selectedItemIdx == i );
             const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
             if ( ImGui::Selectable( shortName.c_str(), is_selected ) )
+            {
                 _selectedItemIdx = i;
-
+                ResetPreview();
+            }
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if ( is_selected )
                 ImGui::SetItemDefaultFocus();

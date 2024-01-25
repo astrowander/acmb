@@ -67,6 +67,11 @@ Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
     return {};
 }
 
+Expected<Size, std::string> ResizeWindow::GetBitmapSize()
+{
+    return _dstSize;
+}
+
 REGISTER_TOOLS_ITEM( ResizeWindow )
 
 ACMB_GUI_NAMESPACE_END

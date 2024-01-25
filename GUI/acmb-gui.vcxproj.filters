@@ -103,6 +103,9 @@
     <ClCompile Include="LevelsWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
+    <ClCompile Include="SaturationWindow.cpp">
+      <Filter>ToolWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -191,6 +194,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="LevelsWindow.h">
+      <Filter>ToolWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="SaturationWindow.h">
       <Filter>ToolWindows</Filter>
     </ClInclude>
   </ItemGroup>

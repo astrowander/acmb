@@ -16,7 +16,6 @@ PipelineElementWindow::PipelineElementWindow( const std::string& name, const Poi
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
     , _inOutFlags( inOutFlags )
     , _gridPos( gridPos )
-    , _previewPopupName( name + "##Preview" )
 {
 }
 
@@ -341,21 +340,26 @@ bool PipelineElementWindow::DrawHeader()
     ImGui::PushFont( FontRegistry::Instance().iconsSmall );
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
 
+    const bool isPreviewOpen = ImGui::IsPopupOpen( ImGuiID( 0 ), ImGuiPopupFlags_AnyPopupId );
     UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, [&]
     {
+        if ( isPreviewOpen )
+            return;
+
         if ( !_pPreviewTexture )
         {
             auto previewExp = GeneratePreviewTexture();
             if ( !previewExp.has_value() )
             {
-                UI::ShowModalMessage( { previewExp.error() }, UI::ModalMessageType::Error, _showError = true );
+                _error = previewExp.error();
+                UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError = true );
                 return;
             }            
         }
 
         if ( _pPreviewTexture )
             _showPreview = true;
-    }, "Show preview of the image processed by this tool" );
+    }, isPreviewOpen ? "Another preview is already opened" : "Show preview of the image processed by this tool" );
 
     ImGui::PopStyleVar();
     ImGui::PopFont();
@@ -425,15 +429,15 @@ void PipelineElementWindow::DrawDialog()
             ImGui::EndPopup();
         }
 
-        if ( _showPreview && !ImGui::IsPopupOpen( _previewPopupName.c_str() ) )
+        if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
         {
-            ImGui::OpenPopup( _previewPopupName.c_str() );
+            ImGui::OpenPopup( cPreviewPopupName.c_str() );
             const auto mainWindow = ImGui::FindWindowByName( "acmb" );
             ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
             ImGui::SetNextWindowPos( previewPos );
         }
 
-        if ( ImGui::BeginPopup( _previewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+        if ( ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
         {
             if ( !_pPreviewTexture )
             {
@@ -481,6 +485,8 @@ int PipelineElementWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
+    MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
+
     auto pPrimaryInput = GetPrimaryInput();
     auto pSecondaryInput = GetSecondaryInput();
     if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
@@ -501,10 +507,12 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
             return unexpected( res.error() );
 
         _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
         return {};
     }
     catch ( std::exception& e )
     {
+        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
         return unexpected( e.what() );
     }
 }
