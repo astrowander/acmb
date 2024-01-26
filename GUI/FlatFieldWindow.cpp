@@ -14,7 +14,7 @@ FlatFieldWindow::FlatFieldWindow( const Point& gridPos )
 
 void FlatFieldWindow::DrawPipelineElementControls()
 {
-    UI::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop, "By default the top image is considered as a flat field and applied to the left one. If checked, the left image is considered as a flat field" );
+    UI::Checkbox( "Flat Frame is on Left", &_primaryInputIsOnTop, "By default the top image is considered as a flat field and applied to the left one. If checked, the left image is considered as a flat field", this );
     UI::DragFloat( "Intensity", &_intensity, 0.1f, 0.0f, 500.0f, "The effect of the instrument can be weakened or enhanced. The default value is 100 percent", this );
 }
 

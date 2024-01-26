@@ -19,7 +19,7 @@ DarkFrameWindow::DarkFrameWindow( const Point& gridPos )
 
 void DarkFrameWindow::DrawPipelineElementControls()
 {
-    UI::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop, "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one" );
+    UI::Checkbox( "Dark Frame is on Left", &_primaryInputIsOnTop, "By default the top image is subtracted from the left one. If checked, the left image is subtracted from the top one", this );
     UI::DragFloat( "Multiplier", &_multiplier, 0.001f, 0.2f, 5.0f, "Each pixel of the dark frame will be multiplied by this factor before subtracting", this );
     UI::Button( "Adjust Multiplier", { -1, 0 }, [&]
     {

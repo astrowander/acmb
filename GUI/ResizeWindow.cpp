@@ -13,8 +13,8 @@ ResizeWindow::ResizeWindow( const Point& gridPos )
 void ResizeWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Destination Size" );
-    UI::DragInt( "Width", &_dstSize.width, 1.0f, 1, 65535, "Width of the resized image" );
-    UI::DragInt( "Height", &_dstSize.height, 1.0f, 1, 65535, "Height of the resized image" );
+    UI::DragInt( "Width", &_dstSize.width, 1.0f, 2, 65535, "Width of the resized image", this );
+    UI::DragInt( "Height", &_dstSize.height, 1.0f, 2, 65535, "Height of the resized image", this );
 }
 
 IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
@@ -55,12 +55,12 @@ Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
     if ( dstAspectRatio > pivotAspectRatio )
     {
         previewSize.width = inputPreviewSize.width;
-        previewSize.height = int( previewSize.width / dstAspectRatio );
+        previewSize.height = std::max( int( previewSize.width / dstAspectRatio ), 1 );
     }
     else
     {
         previewSize.height = inputPreviewSize.height;
-        previewSize.width = int( previewSize.height * dstAspectRatio );
+        previewSize.width = std::max( int( previewSize.height * dstAspectRatio ), 1 );
     }
 
     _pPreviewBitmap = ResizeTransform::Resize( pInputBitmap, previewSize );

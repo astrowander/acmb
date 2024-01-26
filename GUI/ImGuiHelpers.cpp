@@ -164,7 +164,7 @@ namespace UI
     void DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None ) && parent )
+        if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
             parent->ResetPreview();
         }
@@ -174,7 +174,7 @@ namespace UI
     void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_None ) && parent )
+        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
             parent->ResetPreview();
         }

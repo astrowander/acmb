@@ -20,7 +20,6 @@ void StackerWindow::DrawPipelineElementControls()
     UI::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ), "Input images will be debayered and aligned by stars before stacking" );
     UI::RadioButton( "Light (w/o alignment)", ( int* ) (&_stackMode), int( StackMode::LightNoAlign ), "Input images will be stacked without alignment and then debayered" );
     UI::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ), "Input images will be stacked as-is, without alignment and debayerization" );
-    UI::Checkbox( "Auto Contrast Result", &_autoContrast, "If checked then resulting picture will be automatically equalized" );
     
     ImGui::Separator();    
     if ( _stackMode == StackMode::Light )
@@ -68,11 +67,6 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
         }
 
         auto res = pStacker->GetResult();
-        if ( _autoContrast )
-        {
-            res = ChannelEqualizer::AutoEqualize( res );
-        }
-
         _completedTaskCount = 1;
         _taskReadiness = 0.0f;
         return res;
@@ -88,7 +82,6 @@ void StackerWindow::Serialize( std::ostream& out ) const
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _stackMode, out );
     gui::Serialize( _threshold, out );
-    gui::Serialize( _autoContrast, out );
 }
 
 void StackerWindow::Deserialize( std::istream& in )
@@ -96,15 +89,13 @@ void StackerWindow::Deserialize( std::istream& in )
     PipelineElementWindow::Deserialize( in );
     _stackMode = gui::Deserialize<StackMode>( in, _remainingBytes );
     _threshold = gui::Deserialize<float>( in, _remainingBytes );
-    _autoContrast = gui::Deserialize<bool>( in, _remainingBytes );
 }
 
 int StackerWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize()
         + gui::GetSerializedStringSize( _stackMode )
-        + gui::GetSerializedStringSize( _threshold )
-        + gui::GetSerializedStringSize( _autoContrast );
+        + gui::GetSerializedStringSize( _threshold );
 }
 
 void StackerWindow::ResetTasks()

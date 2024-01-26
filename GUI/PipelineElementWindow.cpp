@@ -382,82 +382,84 @@ void PipelineElementWindow::DrawDialog()
 
     auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
 
-    if ( !mainWindow.IsInterfaceLocked() )
+    if ( mainWindow.IsInterfaceLocked() )
+        return;
+    
+    if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
     {
-        if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+        auto mousePos = ImGui::GetMousePos();
+        const auto windowPos = ImGui::GetWindowPos();
+        mousePos.x -= windowPos.x;
+        mousePos.y -= windowPos.y;
+
+        const auto& style = ImGui::GetStyle();
+        const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
+
+        if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
         {
-            auto mousePos = ImGui::GetMousePos();
-            const auto windowPos = ImGui::GetWindowPos();
-            mousePos.x -= windowPos.x;
-            mousePos.y -= windowPos.y;
-
-            const auto& style = ImGui::GetStyle();
-            const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
-
-            if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
-            {
-                _openRenamePopup = true;
-            }
+            _openRenamePopup = true;
         }
-
-        if ( _openRenamePopup )
-        {
-            ImGui::OpenPopup( "RenameElement" );
-            mainWindow.LockInterface();
-        }
-
-        if ( ImGui::BeginPopup( "RenameElement" ) )
-        {
-            ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
-
-            if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
-            {
-                const size_t length = strlen( _renameBuf.data() );
-                if ( length > 0 )
-                    _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
-
-                mainWindow.UnlockInterface();
-                _openRenamePopup = false;
-            }
-
-            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-            {
-                mainWindow.UnlockInterface();
-                _openRenamePopup = false;
-            }
-
-            ImGui::EndPopup();
-        }
-
-        if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
-        {
-            ImGui::OpenPopup( cPreviewPopupName.c_str() );
-            const auto mainWindow = ImGui::FindWindowByName( "acmb" );
-            ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
-            ImGui::SetNextWindowPos( previewPos );
-        }
-
-        if ( ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
-        {
-            if ( !_pPreviewTexture )
-            {
-                auto previewExp = GeneratePreviewTexture();
-                if ( !previewExp.has_value() )
-                    UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
-            }
-
-            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
-            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-            {
-                ImGui::CloseCurrentPopup();
-                _showPreview = false;
-            }
-            ImGui::EndPopup();
-        }
-
-        if ( _showError )
-            UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );
     }
+
+    if ( _openRenamePopup )
+    {
+        ImGui::OpenPopup( "RenameElement" );
+        mainWindow.LockInterface();
+    }
+
+    if ( ImGui::BeginPopup( "RenameElement" ) )
+    {
+        ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
+        {
+            const size_t length = strlen( _renameBuf.data() );
+            if ( length > 0 )
+                _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+
+            mainWindow.UnlockInterface();
+            _openRenamePopup = false;
+        }
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            mainWindow.UnlockInterface();
+            _openRenamePopup = false;
+        }
+
+        ImGui::EndPopup();
+    }
+
+    if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
+    {
+        ImGui::OpenPopup( cPreviewPopupName.c_str() );
+        const auto mainWindow = ImGui::FindWindowByName( "acmb" );
+        ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
+        ImGui::SetNextWindowPos( previewPos );
+    }
+
+    if ( ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+    {
+        if ( !_pPreviewTexture )
+        {
+            auto previewExp = GeneratePreviewTexture();
+            if ( !previewExp.has_value() )
+                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+        }
+
+        if ( _pPreviewTexture )            
+            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            ImGui::CloseCurrentPopup();
+            _showPreview = false;
+        }
+        ImGui::EndPopup();
+    }
+
+    if ( _showError )
+        UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );    
 }
 
 void PipelineElementWindow::Serialize( std::ostream& out ) const

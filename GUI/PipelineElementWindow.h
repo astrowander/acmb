@@ -167,10 +167,11 @@ public:
     
     void ResetPreview();
 
+    virtual Expected<Size, std::string> GetBitmapSize();
+
 protected:
     virtual void DrawDialog() override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() = 0;
-    virtual Expected<Size, std::string> GetBitmapSize();
+    virtual Expected<void, std::string> GeneratePreviewBitmap() = 0; 
 };
 
 #define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \
