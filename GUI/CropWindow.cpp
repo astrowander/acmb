@@ -51,7 +51,7 @@ Expected<void, std::string> CropWindow::GeneratePreviewBitmap()
 {
     const auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap();
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
-    const auto inputSizeExp = GetBitmapSize();
+    const auto inputSizeExp = GetPrimaryInput()->GetBitmapSize();
     if ( !inputSizeExp )
         return unexpected( inputSizeExp.error() );
 
@@ -68,6 +68,11 @@ Expected<void, std::string> CropWindow::GeneratePreviewBitmap()
     };
     _pPreviewBitmap = CropTransform::Crop( GetPrimaryInput()->GetPreviewBitmap()->Clone(), cropArea );
     return {};
+}
+
+Expected<Size, std::string> CropWindow::GetBitmapSize()
+{
+    return Size{ _dstRect.width, _dstRect.height };
 }
 
 REGISTER_TOOLS_ITEM( CropWindow );
