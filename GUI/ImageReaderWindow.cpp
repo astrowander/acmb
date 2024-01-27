@@ -34,7 +34,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 110 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 90 } ) )
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
@@ -79,6 +79,8 @@ void ImageReaderWindow::DrawPipelineElementControls()
         }, "Show a preview of the selected image" );
     }
 
+    UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
+
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         // action if OK
@@ -120,7 +122,8 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
 {
     try
     {
-        return IBitmap::Create( _fileNames[i] );
+        const size_t idx = _invertOrder ? _fileNames.size() - 1 - i : i;
+        return IBitmap::Create( _fileNames[idx] );
     }
     catch ( std::exception& e )
     {
@@ -132,8 +135,9 @@ void ImageReaderWindow::Serialize(std::ostream& out) const
 {
     PipelineElementWindow::Serialize(out);
     gui::Serialize( _workingDirectory, out);
-    gui::Serialize( std::move( _fileNames ), out);
+    gui::Serialize( _fileNames, out);
     gui::Serialize(_selectedItemIdx, out);    
+    gui::Serialize( _invertOrder, out );
 }
 
 void ImageReaderWindow::Deserialize(std::istream& in)
@@ -142,6 +146,7 @@ void ImageReaderWindow::Deserialize(std::istream& in)
     _workingDirectory = gui::Deserialize<std::string>(in, _remainingBytes);
     _fileNames = gui::Deserialize<std::vector<std::string>>(in, _remainingBytes);
     _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
+    _invertOrder = gui::Deserialize<bool>( in, _remainingBytes );
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const
@@ -149,7 +154,8 @@ int ImageReaderWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() 
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileNames )
-        + gui::GetSerializedStringSize( _selectedItemIdx );
+        + gui::GetSerializedStringSize( _selectedItemIdx )
+        + gui::GetSerializedStringSize( _invertOrder );
 }
 
 std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const

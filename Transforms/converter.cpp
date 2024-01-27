@@ -195,6 +195,22 @@ void ConvertPixel<PixelFormat::Gray16, PixelFormat::RGBA64>( uint16_t* pSrcChann
     *pDstChannel = 65535;
 }
 
+template<>
+void ConvertPixel<PixelFormat::RGBA32, PixelFormat::RGB24>( uint8_t* pSrcChannel, uint8_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel = *pSrcChannel++;
+}
+
+template<>
+void ConvertPixel<PixelFormat::RGBA64, PixelFormat::RGB48>( uint16_t* pSrcChannel, uint16_t* pDstChannel )
+{
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel++ = *pSrcChannel++;
+    *pDstChannel = *pSrcChannel++;
+}
+
 template <PixelFormat srcPixelFormat, PixelFormat dstPixelFormat>
 class Converter_ final : public Converter
 {
@@ -214,6 +230,7 @@ public:
         }
 
         _pDstBitmap = std::make_shared<Bitmap<dstPixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
+        _pDstBitmap->SetCameraSettings( _pSrcBitmap->GetCameraSettings() );
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<srcPixelFormat> >( _pSrcBitmap );
         auto pDstBitmap = std::static_pointer_cast< Bitmap<dstPixelFormat> >( _pDstBitmap );
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
@@ -283,6 +300,9 @@ std::shared_ptr<Converter> Converter::Create(IBitmapPtr pSrcBitmap, PixelFormat 
     CREATE_CONVERTER( RGB48, RGB48 );
     CREATE_CONVERTER( RGB48, RGBA32 );
     CREATE_CONVERTER( RGB48, RGBA64 );
+
+    CREATE_CONVERTER( RGBA32, RGB24 );
+    CREATE_CONVERTER( RGBA64, RGB48 );
 
     throw std::invalid_argument( "Unsupported pixel format" );
 }

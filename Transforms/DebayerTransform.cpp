@@ -81,6 +81,8 @@ void DebayerTransform::Run()
     memcpy( _pDstBitmap->GetPlanarScanline( 0 ), image->data, image->data_size );
 
     libRaw.dcraw_clear_mem( image );
+
+    _pDstBitmap->SetCameraSettings( _pSrcBitmap->GetCameraSettings() );
 }
 
 void DebayerTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
