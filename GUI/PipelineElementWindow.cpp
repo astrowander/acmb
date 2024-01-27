@@ -433,8 +433,10 @@ void PipelineElementWindow::DrawDialog()
     if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
     {
         ImGui::OpenPopup( cPreviewPopupName.c_str() );
-        const auto mainWindow = ImGui::FindWindowByName( "acmb" );
-        ImVec2 previewPos { std::max( mainWindow->Size.x - 1280.0f, 0.0f ), 0.0f };
+        ImVec2 previewPos;        
+        if ( const auto mainWindow = ImGui::FindWindowByName( "acmb" ); ImGui::GetMousePos().x < mainWindow->Size.x / 2 )
+            previewPos.x = mainWindow->Size.x - _pPreviewTexture->GetWidth();
+        
         ImGui::SetNextWindowPos( previewPos );
     }
 

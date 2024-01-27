@@ -162,7 +162,7 @@ END_TEST
 BEGIN_TEST ( TestReadingPreview )
 auto pDecoder = std::make_unique<RawDecoder>();
 pDecoder->Attach( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) );
-const auto pPreview = pDecoder->ReadPreview();
+const auto pPreview = pDecoder->ReadPreview( { 1280, 720 } );
 EXPECT_EQ( PixelFormat::RGB48, pPreview->GetPixelFormat() );
 EXPECT_EQ( 1078, pPreview->GetWidth() );
 EXPECT_EQ( 720, pPreview->GetHeight() );

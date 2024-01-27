@@ -3,8 +3,8 @@
 #include "Serializer.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
-
 #include "./../Codecs/imagedecoder.h"
+#include "imgui/imgui_internal.h"
 
 #include <sstream>
 
@@ -131,7 +131,8 @@ Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
         return unexpected( "Selected file name is empty" );
     
     auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
-    _pPreviewBitmap = pDecoder->ReadPreview();
+    const auto mainWindow = ImGui::FindWindowByName( "acmb" );
+    _pPreviewBitmap = pDecoder->ReadPreview( Size{ std::max( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::max( int( mainWindow->Size.y * 0.5f ), 720 ) } );
     _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
     return {};
 }

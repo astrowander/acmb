@@ -68,7 +68,7 @@ class MainWindow : public Window
 public:
 
     virtual void Show() override;
-    static MainWindow& GetInstance( const FontRegistry& fontRegistry );
+    static MainWindow& GetInstance( const FontRegistry& fontRegistry = FontRegistry::Instance() );
 
     template<class ElementType>
     void AddElementToGrid( const Point& pos )

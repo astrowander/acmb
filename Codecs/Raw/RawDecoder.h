@@ -41,7 +41,7 @@ public:
     void Detach() override;
     ///read whole bitmap
     std::shared_ptr<IBitmap> ReadBitmap() override;
-    std::shared_ptr<IBitmap> ReadPreview() override;
+    std::shared_ptr<IBitmap> ReadPreview( const Size& maxSize ) override;
     ///returns supported extensions
     static std::unordered_set <std::string> GetExtensions();
 

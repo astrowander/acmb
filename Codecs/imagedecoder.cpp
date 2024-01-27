@@ -67,12 +67,12 @@ ImageDecoder::~ImageDecoder()
     _pStream.reset();
 }
 
-std::shared_ptr<IBitmap> ImageDecoder::ReadPreview()
+std::shared_ptr<IBitmap> ImageDecoder::ReadPreview( const Size& maxSize )
 {
     auto pBitmap = ReadBitmap();
     Pipeline pipeline( pBitmap );
-    if ( _width > 1280 || _height > 720 )
-        pipeline.AddTransform<ResizeTransform>( ResizeTransform::GetSizeWithPreservedRatio( Size{int( pBitmap->GetWidth() ), int( pBitmap->GetHeight() )}, Size{1280, 720} ) );
+    if ( int( _width ) > maxSize.width || int( _height ) > maxSize.height )
+        pipeline.AddTransform<ResizeTransform>( ResizeTransform::GetSizeWithPreservedRatio( Size{int( _width ), int( _height )}, maxSize ) );
     return pipeline.RunAndGetBitmap();
 }
 
