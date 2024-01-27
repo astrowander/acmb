@@ -56,6 +56,9 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
     UI::Button( "Select Images", { itemWidth, 0 }, [&]
     {
+        _showPreview = false;
+        ImGui::CloseCurrentPopup();
+
         static auto filters = GetFilters();
         fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0 );
         ResetProgress( PropagationDir::Forward );
@@ -63,22 +66,13 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
     UI::Button( "Clear List", { itemWidth, 0 }, [&]
     {
+        _showPreview = false;
+        ImGui::CloseCurrentPopup();
+
         _fileNames.clear();
         _selectedItemIdx = 0;
         ResetProgress( PropagationDir::Forward );
     }, "Delete all images from the importing list", this );
-
-    /*if ( !_fileNames.empty() )
-    {
-        UI::Button( "Show Preview", { itemWidth, 0 }, [&]
-        {
-            if ( _selectedItemIdx >= _fileNames.size() )
-                return;
-
-            auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
-            _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 )) );
-        }, "Show a preview of the selected image" );
-    }*/
 
     UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
 
@@ -97,26 +91,6 @@ void ImageReaderWindow::DrawPipelineElementControls()
         // close
         fileDialog.Close();
     }
-
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
-
-    /*if ( _pPreviewTexture )
-    {
-        ImGui::OpenPopup( "Preview" );
-        mainWindow.LockInterface();
-    }
-
-    if ( ImGui::BeginPopup( "Preview" ) )
-    {
-        ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
-        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-        {
-            mainWindow.UnlockInterface();
-            _pPreviewTexture.reset();
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }*/
 }
 
 Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
@@ -124,7 +98,7 @@ Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
     if ( _fileNames.empty() )
         return unexpected( "No images in the list" );
 
-    if ( _selectedItemIdx >= _fileNames.size() )
+    if ( _selectedItemIdx >= int( _fileNames.size() ) )
         return unexpected( "No image selected" );
 
     if ( _fileNames[_selectedItemIdx].empty() )
@@ -132,8 +106,7 @@ Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
     
     auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
     const auto mainWindow = ImGui::FindWindowByName( "acmb" );
-    _pPreviewBitmap = pDecoder->ReadPreview( Size{ std::max( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::max( int( mainWindow->Size.y * 0.5f ), 720 ) } );
-    _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+    _pPreviewBitmap = pDecoder->ReadPreview( Size{ std::min( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::min( int( mainWindow->Size.y * 0.5f ), 720 ) } );
     return {};
 }
 
@@ -155,7 +128,7 @@ Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
     if ( _fileNames.empty() )
         return unexpected( "No images in the list" );
 
-    if ( _selectedItemIdx >= _fileNames.size() )
+    if ( _selectedItemIdx >= int( _fileNames.size() ) )
         return unexpected( "No image selected" );
 
     if ( _fileNames[_selectedItemIdx].empty() )

@@ -24,7 +24,7 @@ Expected<void, std::string> SaturationWindow::GeneratePreviewBitmap()
     return {};
 }
 
-IBitmapPtr SaturationWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
+IBitmapPtr SaturationWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
     return SaturationTransform::Saturate( pSource, _saturation );
 }

@@ -229,15 +229,15 @@ static void SetupVulkan(ImVector<const char*> instance_extensions)
     // The example only requires a single combined image sampler descriptor for the font image and only uses one descriptor set (for that)
     // If you wish to load e.g. additional textures you may need to alter pools sizes.
     {
+        const int maxTextureCount = acmb::gui::MainWindow::cGridSize.width * acmb::gui::MainWindow::cGridSize.height + 1;
         VkDescriptorPoolSize pool_sizes[] =
             {
-             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 },
-             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
+             { .type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount = maxTextureCount }
              };
         VkDescriptorPoolCreateInfo pool_info = {};
         pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        pool_info.maxSets = 2;
+        pool_info.maxSets = maxTextureCount;
         pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
         pool_info.pPoolSizes = pool_sizes;
         err = vkCreateDescriptorPool(g_Device, &pool_info, g_Allocator, &g_DescriptorPool);
@@ -674,11 +674,12 @@ int main(int, char**)
         }
     }
 
+    mainWindow.ClearTable();
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);
     check_vk_result(err);
 
-    ImGui_ImplVulkan_Shutdown();
+    //ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 

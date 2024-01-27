@@ -24,10 +24,11 @@ class FileDialog;
 
 class MainWindow : public Window
 {
-    std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
-    std::vector<std::string> _errors;
-
+public:
     static constexpr Size cGridSize = { 26, 26 };
+private:
+    std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
+    std::vector<std::string> _errors;    
     Size _actualGridSize = {};
     std::array<std::shared_ptr< PipelineElementWindow>, cGridSize.width * cGridSize.height> _grid;
 
@@ -134,6 +135,13 @@ public:
     bool IsInterfaceLocked() { return _lockInterface; }
 
     bool isCudaEnabled() { return _enableCuda; }
+
+    void ClearTable()
+    {
+        _writers.clear();
+        for ( auto& pElement : _grid )
+            pElement.reset();
+    }
 
 #ifdef _WIN32
 private:

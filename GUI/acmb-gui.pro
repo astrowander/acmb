@@ -39,11 +39,13 @@ SOURCES += \
         ImGuiHelpers.cpp \
         ImageReaderWindow.cpp \
         ImageWriterWindow.cpp \
+        LevelsWindow.cpp \
         MainWindow.cpp \
         MenuItem.cpp \
         MenuItemsHolder.cpp \
         PipelineElementWindow.cpp \
         ResizeWindow.cpp \
+        SaturationWindow.cpp \
         StackerWindow.cpp \
         DarkFrameWindow.cpp \
         Texture.cpp \
@@ -71,11 +73,13 @@ HEADERS += \
     ImGuiHelpers.h \
     ImageReaderWindow.h \
     ImageWriterWindow.h \
+    LevelsWindow.h \
     MainWindow.h \
     MenuItem.h \
     MenuItemsHolder.h \
     PipelineElementWindow.h \
     ResizeWindow.h \
+    SaturationWindow.h \
     Serializer.h \
     StackerWindow.h \
     DarkFrameWindow.h \

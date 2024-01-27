@@ -20,8 +20,7 @@ public:
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
         auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _settings.pBitmapToSubtract );
-        const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
-        const int maxChannel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->maxChannel : PixelFormatTraits<pixelFormat>::channelMax;
+        const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;        
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )

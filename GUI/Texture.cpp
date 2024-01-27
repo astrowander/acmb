@@ -245,7 +245,7 @@ void RemoveTexture(VulkanTextureData* tex_data)
     if ( !tex_data )
         return;
 
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
+    auto& mainWindow = MainWindow::GetInstance();
     auto g_Device = mainWindow.GetDevice();
     vkFreeMemory(g_Device, tex_data->UploadBufferMemory, nullptr);
     vkDestroyBuffer(g_Device, tex_data->UploadBuffer, nullptr);
@@ -258,8 +258,8 @@ void RemoveTexture(VulkanTextureData* tex_data)
 #endif
 
 Texture::Texture( IBitmapPtr pBitmap )
-: _width( pBitmap->GetWidth() )
-, _height( pBitmap->GetHeight() )
+: _width( pBitmap ? pBitmap->GetWidth() : 0 )
+, _height( pBitmap ? pBitmap->GetHeight() : 0 )
 {
     if ( !pBitmap )
         return;
@@ -303,7 +303,7 @@ Texture::Texture( IBitmapPtr pBitmap )
     _pTextureData->Width = pBitmap->GetWidth();
     _pTextureData->Height = pBitmap->GetHeight();
     _pTextureData->Channels = 4;
-    LoadTextureFromMemory( pTextureBitmap->GetData().data(), _pTextureData.get() );
+    LoadTextureFromMemory( (unsigned char*)( pTextureBitmap->GetPlanarScanline( 0 ) ), _pTextureData.get() );
 #endif
 }
 

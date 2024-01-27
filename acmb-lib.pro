@@ -49,6 +49,7 @@ SOURCES += \
     Transforms/CropTransform.cpp \
     Transforms/DebayerTransform.cpp \
     Transforms/ResizeTransform.cpp \
+    Transforms/SaturationTransform.cpp \
     Transforms/basetransform.cpp \
     Transforms/binningtransform.cpp \
     Transforms/BitmapSubtractor.cpp \
@@ -108,6 +109,7 @@ HEADERS += \
     Transforms/CropTransform.h \
     Transforms/DebayerTransform.h \
     Transforms/ResizeTransform.h \
+    Transforms/SaturationTransform.h \
     Transforms/basetransform.h \
     Transforms/binningtransform.h \
     Transforms/BitmapSubtractor.h \

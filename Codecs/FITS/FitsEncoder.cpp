@@ -110,6 +110,8 @@ void FitsEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
         case PixelFormat::RGB48:
             WriteBitmapToFits( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >(pBitmap), _fileName );
             break;
+        default:
+            throw std::runtime_error( "unsupported pixel format" );
     }
 
     if ( _pStream )

@@ -47,7 +47,6 @@ Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
     if ( !inputSizeExp )
         return unexpected( inputSizeExp.error() );
 
-    const Size inputSize = inputSizeExp.value();
     const float dstAspectRatio = float( _dstSize.width ) / float( _dstSize.height );
     constexpr float pivotAspectRatio = 16.0f / 9.0f;
 

@@ -191,6 +191,8 @@ Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
             }
             break;
         }
+        default:
+            return unexpected( "unsupported pixel format" );
     }
     return {};
 }
@@ -250,7 +252,7 @@ Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
     return {};
 }
 
-IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber )
+IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
     const auto colorSpace = GetColorSpace( pSource->GetPixelFormat() );
     switch ( colorSpace )

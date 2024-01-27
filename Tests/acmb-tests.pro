@@ -46,6 +46,7 @@ SOURCES += \
     TestResizeTransform.cpp \
     TestRgbToHsl.cpp \
     TestRunner.cpp \
+    TestSaturationTransform.cpp \
     TestStacker.cpp \
     TestStarTrekTransform.cpp \
     TestTiffDecoder.cpp \

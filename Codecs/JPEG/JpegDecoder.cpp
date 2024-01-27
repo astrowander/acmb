@@ -54,7 +54,7 @@ std::shared_ptr<IBitmap> JpegDecoder::ReadBitmap()
     _pStream->seekg( _startDataPos, std::ios_base::beg );
     _pBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( _width, _height );
 
-    auto readData = [pBitmap = _pBitmap] ( JDEC* jdec, void* data, JRECT* rect ) -> int
+    auto readData = [pBitmap = _pBitmap] ( JDEC*, void* data, JRECT* rect ) -> int
     {
         const auto width = rect->right + 1 - rect->left;
         const auto height = rect->bottom + 1 - rect->top;

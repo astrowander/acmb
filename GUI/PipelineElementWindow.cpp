@@ -352,7 +352,8 @@ bool PipelineElementWindow::DrawHeader()
             if ( !previewExp.has_value() )
             {
                 _error = previewExp.error();
-                UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError = true );
+                _showError = true;
+                //UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError = true );
                 return;
             }            
         }
@@ -380,12 +381,8 @@ void PipelineElementWindow::DrawDialog()
     const auto taskCount = GetTaskCount();
     ImGui::ProgressBar( taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( taskCount ) : 0.0f, { _itemWidth, 0 } );
 
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
-
-    if ( mainWindow.IsInterfaceLocked() )
-        return;
-    
-    if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
+    auto& mainWindow = MainWindow::GetInstance();
+    if ( !mainWindow.IsInterfaceLocked() && ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
     {
         auto mousePos = ImGui::GetMousePos();
         const auto windowPos = ImGui::GetWindowPos();
@@ -397,14 +394,9 @@ void PipelineElementWindow::DrawDialog()
 
         if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
         {
-            _openRenamePopup = true;
+            ImGui::OpenPopup( "RenameElement" );
+            mainWindow.LockInterface();
         }
-    }
-
-    if ( _openRenamePopup )
-    {
-        ImGui::OpenPopup( "RenameElement" );
-        mainWindow.LockInterface();
     }
 
     if ( ImGui::BeginPopup( "RenameElement" ) )
@@ -418,13 +410,14 @@ void PipelineElementWindow::DrawDialog()
                 _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
 
             mainWindow.UnlockInterface();
-            _openRenamePopup = false;
+            ImGui::CloseCurrentPopup();
+
         }
 
         if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
         {
             mainWindow.UnlockInterface();
-            _openRenamePopup = false;
+            ImGui::CloseCurrentPopup();
         }
 
         ImGui::EndPopup();
@@ -440,7 +433,7 @@ void PipelineElementWindow::DrawDialog()
         ImGui::SetNextWindowPos( previewPos );
     }
 
-    if ( ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+    if ( _showPreview && ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
     {
         if ( !_pPreviewTexture )
         {
@@ -489,8 +482,6 @@ int PipelineElementWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
-    MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
-
     auto pPrimaryInput = GetPrimaryInput();
     auto pSecondaryInput = GetSecondaryInput();
     if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
@@ -499,24 +490,37 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
     if ( (_inOutFlags & PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
         return unexpected( "no secondary input element" );
 
+    MainWindow::GetInstance().LockInterface();
+
     if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
-        pPrimaryInput->GeneratePreviewTexture();
+        if ( auto res = pPrimaryInput->GeneratePreviewTexture(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
+             return unexpected( res.error() );
+        }
 
     if ( pSecondaryInput && !pSecondaryInput->GetPreviewBitmap() )
-        pSecondaryInput->GeneratePreviewTexture();
+        if ( auto res = pSecondaryInput->GeneratePreviewTexture(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
+            return unexpected( res.error() );
+        }
 
     try
     {
         if ( auto res = GeneratePreviewBitmap(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
             return unexpected( res.error() );
+        }
 
         _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
-        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
+        MainWindow::GetInstance().UnlockInterface();
         return {};
     }
     catch ( std::exception& e )
     {
-        MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
+        MainWindow::GetInstance().UnlockInterface();
         return unexpected( e.what() );
     }
 }

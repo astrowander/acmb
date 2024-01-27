@@ -29,6 +29,7 @@ public:
                   ImVec2 vMaxSize = ImVec2( FLT_MAX, FLT_MAX ) );
                   
     bool IsOk() const;
+    bool IsOpened() const;
 
     std::map<std::string, std::string> GetSelection();
 
