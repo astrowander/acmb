@@ -33,7 +33,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 90 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 110 } ) )
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
@@ -78,11 +78,10 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
+        _workingDirectory = fileDialog.GetCurrentPath() + "\\";
         // action if OK
         if ( fileDialog.IsOk() )
         {
-            _workingDirectory = fileDialog.GetCurrentPath();
-
             const auto selection = fileDialog.GetSelection();
             for ( const auto& it : selection )
                 _fileNames.push_back( _workingDirectory + "/" + it.first);

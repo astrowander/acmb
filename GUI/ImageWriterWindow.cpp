@@ -96,10 +96,10 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
+        _workingDirectory = fileDialog.GetCurrentPath() + "\\";
         // action if OK
         if ( fileDialog.IsOk() )
         {
-            _workingDirectory = fileDialog.GetCurrentPath();
             _fileName = fileDialog.GetFilePathName();
             const size_t dotPos = _fileName.find_last_of( '.' );
             if ( dotPos != std::string::npos )
