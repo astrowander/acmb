@@ -366,10 +366,12 @@ void MainWindow::DrawMenu()
             ImGui::PushFont( _fontRegistry.icons );
 
             const auto oldPos = ImGui::GetCursorPos();
+            const bool isAnyPopupOpen = ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId );
             UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
             {
-                item.second->action( _activeCell );
-            }, item.second->tooltip );
+                if ( !isAnyPopupOpen )
+                    item.second->action( _activeCell );
+            }, isAnyPopupOpen ? "Menu is disabled while any ancillary window is opened" : item.second->tooltip );
 
             ImGui::PopFont();
 
@@ -420,6 +422,9 @@ void MainWindow::DrawMenu()
 
 void MainWindow::DrawDialog()
 {
+    if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() )
+        UnlockInterface();
+
     if ( !_lockInterface && !_showHelpPopup )
     {
         ProcessKeyboardEvents();
@@ -431,11 +436,9 @@ void MainWindow::DrawDialog()
     ImGui::PushFont( _fontRegistry.byDefault );
 
     ImGui::SetCursorPos( { 0, cGridTop - cHeadRowHeight } );
-    UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [&]
+    UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [this]
     {
-        _writers.clear();
-        for ( auto& pElement : _grid )
-            pElement.reset();
+        ClearTable();
     }, "Clear table" );
 
     auto drawList = ImGui::GetWindowDrawList();

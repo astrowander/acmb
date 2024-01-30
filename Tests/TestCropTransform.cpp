@@ -59,8 +59,14 @@ auto f1 = []
 };
 
 ASSERT_THROWS( f1, std::runtime_error );
+END_TEST
 
-
+BEGIN_TEST( TooLargeCropRectOnCreate )
+auto f1 = []
+{
+    CropTransform::Create( IBitmap::Create( 20, 20, PixelFormat::Gray8 ), { 0, 0, 1000, 1000 } );
+};
+ASSERT_THROWS( f1, std::runtime_error );
 END_TEST
 
 BEGIN_TEST( TestNullArg )

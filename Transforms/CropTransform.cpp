@@ -50,13 +50,19 @@ CropTransform::CropTransform( std::shared_ptr<IBitmap> pSrcBitmap, Rect dstRect 
         throw std::invalid_argument( "invalid destination point" );
 
     if ( _dstRect.width <= 0 || _dstRect.height <= 0 )
-        throw std::invalid_argument( "invalid destination size" );
+        throw std::invalid_argument( "invalid destination size" );   
 }
 
 std::shared_ptr<CropTransform> CropTransform::Create( std::shared_ptr<IBitmap> pSrcBitmap, Rect dstRect )
 {
     if ( !pSrcBitmap )
         throw std::invalid_argument( "pSrcBitmap is null" );
+
+    if ( dstRect.x + dstRect.width > int( pSrcBitmap->GetWidth() ) ||
+         dstRect.y + dstRect.height > int( pSrcBitmap->GetHeight() ) )
+    {
+        throw std::runtime_error( "crop rect exceeds the source bitmap" );
+    }
 
     switch ( pSrcBitmap->GetPixelFormat() )
     {

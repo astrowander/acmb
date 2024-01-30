@@ -7,11 +7,11 @@ class StackerWindow : public PipelineElementWindow
 {
     StackMode _stackMode = StackMode::Light;
     float _threshold = 25.0f;
-    bool _autoContrast = false;
 
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }
-    
+    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+
 public:
 
     StackerWindow( const Point& gridPos );

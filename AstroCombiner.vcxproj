@@ -80,6 +80,7 @@
     <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
     <ClInclude Include="Transforms\ResizeTransform.h" />
+    <ClInclude Include="Transforms\SaturationTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
@@ -126,6 +127,7 @@
     <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
     <ClCompile Include="Transforms\ResizeTransform.cpp" />
+    <ClCompile Include="Transforms\SaturationTransform.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

@@ -96,10 +96,10 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
+        _workingDirectory = fileDialog.GetCurrentPath() + "\\";
         // action if OK
         if ( fileDialog.IsOk() )
         {
-            _workingDirectory = fileDialog.GetCurrentPath();
             _fileName = fileDialog.GetFilePathName();
             const size_t dotPos = _fileName.find_last_of( '.' );
             if ( dotPos != std::string::npos )
@@ -256,7 +256,11 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
     {
         const auto taskRes = RunTaskAndReportProgress( i );
         if ( !taskRes.has_value() )
+        {
             res.push_back( taskRes.error() );
+            ResetProgress( PropagationDir::Backward );
+            break;
+        }
     }
 
     if ( _pEncoder )
@@ -265,6 +269,12 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
         _pEncoder.reset();
     }
     return res;
+}
+
+Expected<void, std::string> ImageWriterWindow::GeneratePreviewBitmap()
+{
+    _pPreviewBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    return {};
 }
 
 REGISTER_TOOLS_ITEM( ImageWriterWindow )

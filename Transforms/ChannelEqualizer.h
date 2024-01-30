@@ -13,8 +13,13 @@ protected:
 	ChannelEqualizer(IBitmapPtr pSrcBitmap);
 
 public:
-	/// Creates instance with source bitmap and given channel transformations. Number of transforms must be equal to the numuber of channels
+	/// Creates instance with source bitmap and given channel transformations. Number of transforms must be equal to the number of channels
 	static std::shared_ptr<ChannelEqualizer> Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms );
+
+	/// Creates instance with source bitmap and given channel transformations. Number of transforms must be equal to the number of channels
+	static std::shared_ptr<ChannelEqualizer> Create( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms );
+
+    static IBitmapPtr Equalize( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms );
 	/// returns result with default transformations
 	static IBitmapPtr AutoEqualize( IBitmapPtr pSrcBitmap );
 };

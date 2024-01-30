@@ -22,7 +22,7 @@ void FileDialog::OpenDialog( const std::string& vKey, const std::string& vTitle,
 
 void FileDialog::Close()
 {
-    _pImGuiFileDialog->Close();
+    _pImGuiFileDialog->Close();    
     MainWindow::GetInstance( FontRegistry::Instance() ).UnlockInterface();
 }
 
@@ -34,6 +34,11 @@ bool FileDialog::Display( const std::string& vKey, ImGuiWindowFlags vFlags, ImVe
 bool FileDialog::IsOk() const
 {
     return _pImGuiFileDialog->IsOk();
+}
+
+bool FileDialog::IsOpened() const
+{
+    return _pImGuiFileDialog->IsOpened();
 }
 
 std::string FileDialog::GetFilePathName()

@@ -20,11 +20,16 @@ void Window::Show()
     ImGui::SetNextWindowPos( _pos, ImGuiCond_Always );
     ImGui::SetNextWindowSize( _size, ImGuiCond_Always );
 
-    if ( !ImGui::Begin( _name.c_str(), nullptr, flags() ) )
+    if ( !DrawHeader() )
         return ImGui::End();
 
     DrawDialog();
     ImGui::End();
+}
+
+bool Window::DrawHeader()
+{
+    return ImGui::Begin( _name.c_str(), nullptr, flags() );
 }
 
 void Window::SetPos( const ImVec2& pos )

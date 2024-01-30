@@ -15,10 +15,10 @@ ConverterWindow::ConverterWindow( const Point& gridPos )
 void ConverterWindow::DrawPipelineElementControls()
 {
     ImGui::Text( "Convert to Pixel Format:" );
-    UI::RadioButton( "Gray8", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray8 ), "Grayscale, 8 bits per channel");
-    UI::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ), "Grayscale, 16 bits per channel" );
-    UI::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ), "RGB colors, 8 bits per channel" );
-    UI::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ), "RGB colors, 16 bits per channel" );
+    UI::RadioButton( "Gray8", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray8 ), "Grayscale, 8 bits per channel", this );
+    UI::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ), "Grayscale, 16 bits per channel", this );
+    UI::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ), "RGB colors, 8 bits per channel", this );
+    UI::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ), "RGB colors, 16 bits per channel", this );
 }
 
 IBitmapPtr ConverterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
@@ -41,6 +41,12 @@ void ConverterWindow::Deserialize(std::istream& in)
 int ConverterWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
+}
+
+Expected<void, std::string> ConverterWindow::GeneratePreviewBitmap()
+{    
+    _pPreviewBitmap = Converter::Convert( GetPrimaryInput()->GetPreviewBitmap()->Clone(), _dstPixelFormat);
+    return {};
 }
 
 REGISTER_TOOLS_ITEM( ConverterWindow );

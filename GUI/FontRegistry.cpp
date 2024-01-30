@@ -20,6 +20,10 @@ FontRegistry::FontRegistry( float )
     iconsConfig.GlyphMinAdvanceX = 32;
     const ImWchar iconRanges[] = { 0xe005, 0xf8ff, 0 };
     icons = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/fa-solid-900.ttf" ).c_str(), 30, &iconsConfig, iconRanges );
+
+    ImFontConfig smallIconsConfig;
+    smallIconsConfig.GlyphMinAdvanceX = 12;
+    iconsSmall = io.Fonts->AddFontFromFileTTF( (acmb_path + "/GUI/Fonts/fa-solid-900.ttf").c_str(), 12, &smallIconsConfig, iconRanges );
     io.Fonts->Build();
 }
 

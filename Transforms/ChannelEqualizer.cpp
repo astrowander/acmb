@@ -11,9 +11,11 @@ template<PixelFormat pixelFormat>
 class ChannelEqualizer_ final : public ChannelEqualizer
 {
 	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
-	static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+	static constexpr uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+    static constexpr ChannelType channelMax = PixelFormatTraits<pixelFormat>::channelMax;
 
 	std::array<std::function<ChannelType( ChannelType )>, channelCount> _channelTransforms;
+    std::array< std::array<ChannelType, channelMax + 1>, channelCount> _lut;
 
 public:
 	ChannelEqualizer_( IBitmapPtr pSrcBitmap, const std::array< std::function<ChannelType( ChannelType )>, channelCount>& channelTransforms )
@@ -27,6 +29,17 @@ public:
 		auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
 		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<ChannelType>( 0, channelMax ), [this] ( const oneapi::tbb::blocked_range<ChannelType>& range )
+		{
+            for ( ChannelType i = range.begin(); i < range.end(); ++i )
+            {
+                for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                {
+                    _lut[ch][i] = _channelTransforms[ch]( i );
+                }
+            }
+		} );
+
 		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [this, pSrcBitmap, pDstBitmap] ( const oneapi::tbb::blocked_range<int>& range )
 		{
 			for ( int i = range.begin(); i < range.end(); ++i )
@@ -38,7 +51,7 @@ public:
 
 					for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
 					{
-						pDstScanline[0] = _channelTransforms[ch]( pSrcScanline[0] );
+						pDstScanline[0] = _lut[ch][ pSrcScanline[0] ];
 						pSrcScanline += channelCount;
 						pDstScanline += channelCount;
 					}
@@ -123,6 +136,77 @@ std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap
 	default:
 		throw std::runtime_error("unsupported pixel format");
 	}
+}
+
+std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms )
+{
+	if ( !pSrcBitmap )
+		throw std::invalid_argument( "pSrcBitmap is null" );
+
+	if ( channelTransforms.size() != ChannelCount( pSrcBitmap->GetPixelFormat() ) )
+		throw std::invalid_argument( "Multiplier count must be equal to channel count" );
+
+	switch ( pSrcBitmap->GetPixelFormat() )
+	{
+		case PixelFormat::Gray8:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::Gray8>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 1>
+			{
+				[channelTransforms]( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[0]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				}
+			} );
+		case PixelFormat::Gray16:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::Gray16>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 1>
+			{
+				[channelTransforms]( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[0]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				}
+			} );
+		case PixelFormat::RGB24:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::RGB24>>( pSrcBitmap, std::array< std::function<uint8_t( uint8_t )>, 3>
+			{
+				[channelTransforms]( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[0]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				},
+					[channelTransforms] ( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[1]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				},
+					[channelTransforms] ( uint8_t arg )
+				{
+					return uint8_t( std::clamp( uint32_t( channelTransforms[2]( arg / 255.0f ) * 255 ), 0u, 255u ) );
+				}
+
+			} );
+		case PixelFormat::RGB48:
+			return std::make_shared<ChannelEqualizer_<PixelFormat::RGB48>>( pSrcBitmap, std::array< std::function<uint16_t( uint16_t )>, 3>
+			{
+				[channelTransforms]( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[0]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				},
+					[channelTransforms] ( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[1]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				},
+					[channelTransforms] ( uint16_t arg )
+				{
+					return uint16_t( std::clamp( uint32_t( channelTransforms[2]( arg / 65535.0f ) * 65535 ), 0u, 65535u ) );
+				}
+
+			} );
+		default:
+			throw std::runtime_error( "unsupported pixel format" );
+	}
+}
+
+IBitmapPtr ChannelEqualizer::Equalize( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms )
+{
+    auto pEqualizer = Create( pSrcBitmap, channelTransforms );
+	return pEqualizer->RunAndGetBitmap();
 }
 
 IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )

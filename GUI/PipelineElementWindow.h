@@ -2,6 +2,7 @@
 #include "window.h"
 
 #include "MenuItemsHolder.h"
+#include "Texture.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
@@ -34,6 +35,7 @@ class PipelineElementWindow : public Window
 {
     bool _openRenamePopup = false;
     std::array<char, 256> _renameBuf = {};
+    inline static const std::string cPreviewPopupName = "PreviewPopup";
 
 public:    
 
@@ -90,6 +92,13 @@ protected:
 
     int _remainingBytes{};
 
+    bool _showError = false;
+    std::string _error;
+
+    std::unique_ptr<Texture> _pPreviewTexture;
+    IBitmapPtr _pPreviewBitmap;
+    bool _showPreview = false;
+
     PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags );
 
     virtual void DrawPipelineElementControls() = 0;
@@ -98,7 +107,8 @@ protected:
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
  
     Expected<IBitmapPtr, std::string> ProcessSecondaryInput();
-    virtual ImGuiWindowFlags flags() const override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing; }
+    virtual ImGuiWindowFlags flags() const override { return ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoDecoration; }
+    virtual bool DrawHeader() override;
 
 public:
 
@@ -152,8 +162,16 @@ public:
         return pPrimaryInput ? pPrimaryInput->GetTaskName( taskNumber ) : std::string{};
     }
 
+    IBitmapPtr GetPreviewBitmap() const { return _pPreviewBitmap; }
+    Expected<void, std::string> GeneratePreviewTexture();
+    
+    void ResetPreview();
+
+    virtual Expected<Size, std::string> GetBitmapSize();
+
 protected:
     virtual void DrawDialog() override;
+    virtual Expected<void, std::string> GeneratePreviewBitmap() = 0; 
 };
 
 #define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \

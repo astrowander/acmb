@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./imgui/;./imgui/backends;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./imgui/;./imgui/backends;./../Libs/oneTBB/include; </AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -123,7 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./imgui/;./imgui/backends;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./imgui/;./imgui/backends;./../Libs/oneTBB/include; </AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -152,12 +152,14 @@
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
+    <ClCompile Include="LevelsWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuItem.cpp" />
     <ClCompile Include="MenuItemsHolder.cpp" />
     <ClCompile Include="PipelineElementWindow.cpp" />
     <ClCompile Include="ResizeWindow.cpp" />
+    <ClCompile Include="SaturationWindow.cpp" />
     <ClCompile Include="StackerWindow.cpp" />
     <ClCompile Include="DarkFrameWindow.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -181,12 +183,14 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
+    <ClInclude Include="LevelsWindow.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />
     <ClInclude Include="PipelineElementWindow.h" />
     <ClInclude Include="ResizeWindow.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SaturationWindow.h" />
     <ClInclude Include="Serializer.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />

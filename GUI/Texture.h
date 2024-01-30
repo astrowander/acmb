@@ -23,7 +23,7 @@ class Texture
     uint32_t _height;
 
 public:
-    Texture( std::shared_ptr<acmb::Bitmap<acmb::PixelFormat::RGBA32>> pBitmap );
+    Texture( IBitmapPtr pBitmap );
     ~Texture();
 
     void* GetTexture() const;

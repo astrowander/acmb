@@ -3,9 +3,8 @@
 #include "Serializer.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
-
 #include "./../Codecs/imagedecoder.h"
-#include "./../Transforms/converter.h"
+#include "imgui/imgui_internal.h"
 
 #include <sstream>
 
@@ -34,15 +33,17 @@ void ImageReaderWindow::DrawPipelineElementControls()
     const auto& style = ImGui::GetStyle();
     const float itemWidth = cElementWidth - 2.0f * style.WindowPadding.x;
 
-    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 90 } ) )
+    if ( ImGui::BeginListBox( "##ImageList", { itemWidth, 110 } ) )
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
             const bool is_selected = ( _selectedItemIdx == i );
             const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
             if ( ImGui::Selectable( shortName.c_str(), is_selected ) )
+            {
                 _selectedItemIdx = i;
-
+                ResetPreview();
+            }
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if ( is_selected )
                 ImGui::SetItemDefaultFocus();
@@ -55,39 +56,32 @@ void ImageReaderWindow::DrawPipelineElementControls()
 
     UI::Button( "Select Images", { itemWidth, 0 }, [&]
     {
+        _showPreview = false;
+        ImGui::CloseCurrentPopup();
+
         static auto filters = GetFilters();
         fileDialog.OpenDialog( openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0 );
         ResetProgress( PropagationDir::Forward );
-    }, "Add images to the importing list" );
+    }, "Add images to the importing list", this );
 
     UI::Button( "Clear List", { itemWidth, 0 }, [&]
     {
+        _showPreview = false;
+        ImGui::CloseCurrentPopup();
+
         _fileNames.clear();
         _selectedItemIdx = 0;
         ResetProgress( PropagationDir::Forward );
-    }, "Delete all images from the importing list" );
-
-    if ( !_fileNames.empty() )
-    {
-        UI::Button( "Show Preview", { itemWidth, 0 }, [&]
-        {
-            if ( _selectedItemIdx >= int( _fileNames.size() ) )
-                return;
-
-            auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
-            _pPreviewTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pDecoder->ReadPreview(), PixelFormat::RGBA32 )) );
-        }, "Show a preview of the selected image" );
-    }
+    }, "Delete all images from the importing list", this );
 
     UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
+        _workingDirectory = fileDialog.GetCurrentPath() + "\\";
         // action if OK
         if ( fileDialog.IsOk() )
         {
-            _workingDirectory = fileDialog.GetCurrentPath();
-
             const auto selection = fileDialog.GetSelection();
             for ( const auto& it : selection )
                 _fileNames.push_back( _workingDirectory + "/" + it.first);
@@ -96,26 +90,23 @@ void ImageReaderWindow::DrawPipelineElementControls()
         // close
         fileDialog.Close();
     }
+}
 
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
+Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
+{
+    if ( _fileNames.empty() )
+        return unexpected( "No images in the list" );
 
-    if ( _pPreviewTexture )
-    {
-        ImGui::OpenPopup( "Preview" );
-        mainWindow.LockInterface();
-    }
+    if ( _selectedItemIdx >= int( _fileNames.size() ) )
+        return unexpected( "No image selected" );
 
-    if ( ImGui::BeginPopup( "Preview" ) )
-    {
-        ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
-        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-        {
-            mainWindow.UnlockInterface();
-            _pPreviewTexture.reset();
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
-    }
+    if ( _fileNames[_selectedItemIdx].empty() )
+        return unexpected( "Selected file name is empty" );
+    
+    auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+    const auto mainWindow = ImGui::FindWindowByName( "acmb" );
+    _pPreviewBitmap = pDecoder->ReadPreview( Size{ std::min( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::min( int( mainWindow->Size.y * 0.5f ), 720 ) } );
+    return {};
 }
 
 Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
@@ -124,6 +115,30 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
     {
         const size_t idx = _invertOrder ? _fileNames.size() - 1 - i : i;
         return IBitmap::Create( _fileNames[idx] );
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected( e.what() );
+    }
+}
+
+Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
+{
+    if ( _fileNames.empty() )
+        return unexpected( "No images in the list" );
+
+    if ( _selectedItemIdx >= int( _fileNames.size() ) )
+        return unexpected( "No image selected" );
+
+    if ( _fileNames[_selectedItemIdx].empty() )
+        return unexpected( "Selected file name is empty" );
+    
+    try
+    {
+        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+        const auto res = Size{ int( pDecoder->GetWidth() ), int( pDecoder->GetHeight() ) };
+        pDecoder->Detach();
+        return res;
     }
     catch ( std::exception& e )
     {

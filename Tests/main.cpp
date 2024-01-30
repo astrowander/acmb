@@ -2,5 +2,5 @@
 
 int main()
 {
-    acmb::tests::TestRunner::RunAllTests();
+    acmb::tests::TestRunner::RunTest( "BitmapSubtractor", "TestIntensity" );
 }

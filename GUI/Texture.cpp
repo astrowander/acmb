@@ -1,6 +1,7 @@
 #include "Texture.h"
 #include "MainWindow.h"
 
+#include "./../Transforms/converter.h"
 #ifdef _WIN32
 #include <d3d11.h>
 #elif defined ( __linux__ )
@@ -244,7 +245,7 @@ void RemoveTexture(VulkanTextureData* tex_data)
     if ( !tex_data )
         return;
 
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
+    auto& mainWindow = MainWindow::GetInstance();
     auto g_Device = mainWindow.GetDevice();
     vkFreeMemory(g_Device, tex_data->UploadBufferMemory, nullptr);
     vkDestroyBuffer(g_Device, tex_data->UploadBuffer, nullptr);
@@ -256,13 +257,14 @@ void RemoveTexture(VulkanTextureData* tex_data)
 
 #endif
 
-Texture::Texture( std::shared_ptr<acmb::Bitmap<acmb::PixelFormat::RGBA32>> pBitmap )
-: _width( pBitmap->GetWidth() )
-, _height( pBitmap->GetHeight() )
+Texture::Texture( IBitmapPtr pBitmap )
+: _width( pBitmap ? pBitmap->GetWidth() : 0 )
+, _height( pBitmap ? pBitmap->GetHeight() : 0 )
 {
     if ( !pBitmap )
         return;
 
+    auto pTextureBitmap = Converter::Convert( pBitmap, PixelFormat::RGBA32 );
 #ifdef _WIN32
     // Create texture
     D3D11_TEXTURE2D_DESC desc;
@@ -279,7 +281,7 @@ Texture::Texture( std::shared_ptr<acmb::Bitmap<acmb::PixelFormat::RGBA32>> pBitm
 
     ID3D11Texture2D* pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
-    subResource.pSysMem = pBitmap->GetPlanarScanline( 0 );
+    subResource.pSysMem = pTextureBitmap->GetPlanarScanline( 0 );
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
     auto pd3dDevice = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).GetD3D11Device();
@@ -301,7 +303,7 @@ Texture::Texture( std::shared_ptr<acmb::Bitmap<acmb::PixelFormat::RGBA32>> pBitm
     _pTextureData->Width = pBitmap->GetWidth();
     _pTextureData->Height = pBitmap->GetHeight();
     _pTextureData->Channels = 4;
-    LoadTextureFromMemory( pBitmap->GetData().data(), _pTextureData.get() );
+    LoadTextureFromMemory( (unsigned char*)( pTextureBitmap->GetPlanarScanline( 0 ) ), _pTextureData.get() );
 #endif
 }
 

@@ -1,10 +1,13 @@
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
 #include "MainWindow.h"
+#include "ImGuiHelpers.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
+
+#include "imgui/imgui_internal.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -309,6 +312,65 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
     }
 }
 
+bool PipelineElementWindow::DrawHeader()
+{
+    if ( !Window::DrawHeader() )
+        return false;
+
+    auto window = ImGui::GetCurrentWindow();
+    constexpr float titleBarHeight = 24.0f;
+
+    const auto oldCursorPos = ImGui::GetCursorPos();
+    const ImVec2 topLeft{ window->Pos.x + 1, window->Pos.y + 1 };
+    const ImVec2 bottomRight{ topLeft.x + _size.x - 2, topLeft.y + titleBarHeight - 2 };
+    
+    auto drawList = ImGui::GetWindowDrawList();
+    ImGui::PushClipRect( topLeft, bottomRight, false );
+    drawList->AddRectFilled( topLeft, bottomRight, ImGui::GetColorU32( ImGuiCol_TitleBgActive ) );
+    
+    ImGui::SetCursorPosY( oldCursorPos.y - ImGui::GetStyle().WindowPadding.y * 0.5f );
+    ImGui::Text( "%s", _name.substr(0, _name.find_first_of('#') ).c_str());
+    ImGui::SameLine();
+
+    constexpr float previewButtonWidth = titleBarHeight;
+    constexpr float previewButtonHeight = titleBarHeight;
+    ImGui::SetCursorPos( { window->Size.x - previewButtonWidth, 0.0f } );
+
+    ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 1.0f, 0.0f, 0.4f } );
+    ImGui::PushFont( FontRegistry::Instance().iconsSmall );
+    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
+
+    const bool isPreviewOpen = ImGui::IsPopupOpen( ImGuiID( 0 ), ImGuiPopupFlags_AnyPopupId );
+    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, [&]
+    {
+        if ( isPreviewOpen )
+            return;
+
+        if ( !_pPreviewTexture )
+        {
+            auto previewExp = GeneratePreviewTexture();
+            if ( !previewExp.has_value() )
+            {
+                _error = previewExp.error();
+                _showError = true;
+                //UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError = true );
+                return;
+            }            
+        }
+
+        if ( _pPreviewTexture )
+            _showPreview = true;
+    }, isPreviewOpen ? "Another preview is already opened" : "Show preview of the image processed by this tool" );
+
+    ImGui::PopStyleVar();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
+
+    ImGui::PopClipRect();
+    ImGui::SetCursorPosY( oldCursorPos.y + titleBarHeight );
+    return true;
+}
+
 void PipelineElementWindow::DrawDialog()
 {
     ImGui::PushItemWidth( 50.0f * cMenuScaling );
@@ -319,55 +381,80 @@ void PipelineElementWindow::DrawDialog()
     const auto taskCount = GetTaskCount();
     ImGui::ProgressBar( taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( taskCount ) : 0.0f, { _itemWidth, 0 } );
 
-    auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
-
-    if ( !mainWindow.IsInterfaceLocked() )
+    auto& mainWindow = MainWindow::GetInstance();
+    if ( !mainWindow.IsInterfaceLocked() && ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
     {
-        if ( ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left ) )
-        {
-            auto mousePos = ImGui::GetMousePos();
-            const auto windowPos = ImGui::GetWindowPos();
-            mousePos.x -= windowPos.x;
-            mousePos.y -= windowPos.y;
+        auto mousePos = ImGui::GetMousePos();
+        const auto windowPos = ImGui::GetWindowPos();
+        mousePos.x -= windowPos.x;
+        mousePos.y -= windowPos.y;
 
-            const auto& style = ImGui::GetStyle();
-            const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
+        const auto& style = ImGui::GetStyle();
+        const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
 
-            if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
-            {
-                _openRenamePopup = true;
-            }
-        }
-
-        if ( _openRenamePopup )
+        if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
         {
             ImGui::OpenPopup( "RenameElement" );
             mainWindow.LockInterface();
         }
-
-        if ( ImGui::BeginPopup( "RenameElement" ) )
-        {
-            ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
-
-            if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
-            {
-                const size_t length = strlen( _renameBuf.data() );
-                if ( length > 0 )
-                    _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
-
-                mainWindow.UnlockInterface();
-                _openRenamePopup = false;
-            }
-
-            if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-            {
-                mainWindow.UnlockInterface();
-                _openRenamePopup = false;
-            }
-
-            ImGui::EndPopup();
-        }
     }
+
+    if ( ImGui::BeginPopup( "RenameElement" ) )
+    {
+        ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
+        {
+            const size_t length = strlen( _renameBuf.data() );
+            if ( length > 0 )
+                _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+
+            mainWindow.UnlockInterface();
+            ImGui::CloseCurrentPopup();
+
+        }
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            mainWindow.UnlockInterface();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
+    {
+        ImGui::OpenPopup( cPreviewPopupName.c_str() );
+        ImVec2 previewPos;        
+        if ( const auto mainWindow = ImGui::FindWindowByName( "acmb" ); ImGui::GetMousePos().x < mainWindow->Size.x / 2 )
+            previewPos.x = mainWindow->Size.x - _pPreviewTexture->GetWidth();
+        
+        ImGui::SetNextWindowPos( previewPos );
+    }
+
+    if ( _showPreview && ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
+    {
+        if ( !_pPreviewTexture )
+        {
+            auto previewExp = GeneratePreviewTexture();
+            if ( !previewExp.has_value() )
+                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+        }
+
+        if ( _pPreviewTexture )            
+            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
+
+        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
+        {
+            ImGui::CloseCurrentPopup();
+            _showPreview = false;
+        }
+        ImGui::EndPopup();
+    }
+
+    if ( _showError )
+        UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );    
 }
 
 void PipelineElementWindow::Serialize( std::ostream& out ) const
@@ -393,5 +480,70 @@ int PipelineElementWindow::GetSerializedStringSize() const
     return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnTop );
 }
 
+Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    auto pSecondaryInput = GetSecondaryInput();
+    if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
+        return unexpected( "no primary input element" );
+
+    if ( (_inOutFlags & PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
+        return unexpected( "no secondary input element" );
+
+    MainWindow::GetInstance().LockInterface();
+
+    if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
+        if ( auto res = pPrimaryInput->GeneratePreviewTexture(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
+             return unexpected( res.error() );
+        }
+
+    if ( pSecondaryInput && !pSecondaryInput->GetPreviewBitmap() )
+        if ( auto res = pSecondaryInput->GeneratePreviewTexture(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
+            return unexpected( res.error() );
+        }
+
+    try
+    {
+        if ( auto res = GeneratePreviewBitmap(); !res )
+        {
+            MainWindow::GetInstance().UnlockInterface();
+            return unexpected( res.error() );
+        }
+
+        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
+        MainWindow::GetInstance().UnlockInterface();
+        return {};
+    }
+    catch ( std::exception& e )
+    {
+        MainWindow::GetInstance().UnlockInterface();
+        return unexpected( e.what() );
+    }
+}
+
+void PipelineElementWindow::ResetPreview()
+{
+    _pPreviewBitmap.reset();
+    _pPreviewTexture.reset();
+    auto output = GetRightOutput();
+    if ( !output )
+        output = GetBottomOutput();
+
+    if ( output )
+        output->ResetPreview();
+}
+
+Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
+{
+    auto pPrimaryInput = GetPrimaryInput();
+    if ( !pPrimaryInput )
+        return unexpected( "no primary input element" );
+
+    return pPrimaryInput->GetBitmapSize();
+}
 
 ACMB_GUI_NAMESPACE_END
