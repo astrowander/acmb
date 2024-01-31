@@ -212,7 +212,7 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
 
     if ( taskNumber == 0 && GetTaskCount() == 1 )
     {
-        auto pResized = ResizeTransform::Resize( pSource, ResizeTransform::GetSizeWithPreservedRatio( { int( pSource->GetWidth() ), int( pSource->GetHeight() ) }, { 1280, 720 } ) );
+        auto pResized = ResizeTransform::Resize( pSource->Clone(), ResizeTransform::GetSizeWithPreservedRatio({int(pSource->GetWidth()), int(pSource->GetHeight())}, {1280, 720}));
         _pResultTexture = std::make_unique<Texture>( std::static_pointer_cast< Bitmap<PixelFormat::RGBA32> >(Converter::Convert( pResized, PixelFormat::RGBA32 )) );
     }
     IBitmap::Save( pSource, finalName );

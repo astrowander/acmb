@@ -4,7 +4,7 @@
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
 #include "./../Tools/SystemTools.h"
-#include "./../Cuda/CudaInfo.h"
+//#include "./../Cuda/CudaInfo.h"
 #include <fstream>
 #include <thread>
 
@@ -399,8 +399,8 @@ void MainWindow::DrawMenu()
         ImGui::PopFont();
 
     ImGui::SetCursorPos( { cachedPos.x, cachedPos.y + ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y } );
-    if ( cuda::isCudaAvailable() )
-        UI::Checkbox( "Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available" );
+    //if ( cuda::isCudaAvailable() )
+      //  UI::Checkbox( "Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available" );
 
     auto fileDialog = FileDialog::Instance();
     if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )

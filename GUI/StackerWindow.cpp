@@ -3,7 +3,6 @@
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
 #include "./../Registrator/stacker.h"
-#include "./../Cuda/CudaStacker.h"
 #include "./../Transforms/ChannelEqualizer.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
@@ -48,8 +47,7 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
         if ( !pBitmap )
             return unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = MainWindow::GetInstance( FontRegistry::Instance() ).isCudaEnabled() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
+        std::shared_ptr<BaseStacker> pStacker = std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
 
         pStacker->SetThreshold( _threshold );
         pStacker->AddBitmap( *pBitmap );

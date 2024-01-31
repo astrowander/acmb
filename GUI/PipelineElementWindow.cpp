@@ -4,8 +4,6 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Registrator/stacker.h"
-#include "./../Cuda/CudaInfo.h"
-#include "./../Cuda/CudaStacker.h"
 
 #include "imgui/imgui_internal.h"
 
@@ -63,8 +61,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
         if ( !pBitmap )
             return unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
+        std::shared_ptr<BaseStacker> pStacker = std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
 
         try
         {
@@ -124,8 +121,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
         if ( !pBitmap )
             return unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
+        std::shared_ptr<BaseStacker> pStacker = std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
 
         const size_t inputTaskCount = pSecondaryInput->GetTaskCount();
         if ( inputTaskCount == 0 )
