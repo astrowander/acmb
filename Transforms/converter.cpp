@@ -303,6 +303,8 @@ std::shared_ptr<Converter> Converter::Create(IBitmapPtr pSrcBitmap, PixelFormat 
 
     CREATE_CONVERTER( RGBA32, RGB24 );
     CREATE_CONVERTER( RGBA64, RGB48 );
+    CREATE_CONVERTER( RGBA32, RGBA32 );
+    CREATE_CONVERTER( RGBA64, RGBA64 );
 
     throw std::invalid_argument( "Unsupported pixel format" );
 }
