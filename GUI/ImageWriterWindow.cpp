@@ -96,7 +96,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
-        _workingDirectory = fileDialog.GetCurrentPath() + "\\";
+        _workingDirectory = fileDialog.GetCurrentPath() + "/";
         // action if OK
         if ( fileDialog.IsOk() )
         {
