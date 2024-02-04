@@ -1,33 +1,45 @@
 # What is it? 
 The name "acmb" is a reduction from "AstroCombiner". acmb is an open-source cross-platform software for astronomical photographic image manipulation.
+## Downloading Binaries
+You can use binaries for x64 Windows and x64 Linux. Just download and unpack a respective archive, and launch an executive: acmb-gui.exe in Windows or acmb-gui.sh in Linux
+
 ## Building instructions
 ### Download sources from GitHub
 ```sh
-$ git clone https://github.com/astrowander/Astrocombine
+$ git clone https://github.com/astrowander/acmb
 ```
 ### Preparing Third Parties
 Create subdirectory Libs in the main project folder
 ```sh
-$ cd Astrocombine && mkdir Libs && cd Libs
+$ cd acmb && mkdir Libs && cd Libs
 ```
-Download the following libraries from GitHub
-```sh
-$ git clone https://github.com/LibRaw/LibRaw
-$ git clone https://github.com/lensfun/lensfun
-$ git clone https://github.com/oneapi-src/oneTBB
-$ git clone https://github.com/jkriege2/TinyTIFF
-```
+Download the following libraries
+
+**1. LibRaw** https://github.com/LibRaw/LibRaw
+**2. lensfun** https://github.com/lensfun/lensfun
+**3. oneTBB** https://github.com/oneapi-src/oneTBB
+**4. TinyTIFF** https://github.com/jkriege2/TinyTIFF
+**5. CFITSIO** https://github.com/healpy/cfitsio
+**6. CCFITS** https://heasarc.gsfc.nasa.gov/docs/software/fitsio/ccfits/CCfits-2.6.tar.gz
+**7. x265** https://bitbucket.org/multicoreware/x265_git.git
+**8. avir** https://github.com/avaneev/avir
+
 Build and install them using their own instructions
+
+Also you need to install CUDA 12.3: https://developer.nvidia.com/cuda-downloads
 
 ### Building acmb on Windows
 Open the solution acmb.sln with Visual Studio 2022, and build it
 ### Building acmb on Linux
 Open the project file acmb.pro with QtCreator, and build it. Please note, that you need a compiler with support of C++20
 
-## Downloading Binaries
-You can also download binaries for x64 Windows and x64 Linux. Linux binary requires of installed third party libraries (please see above)
 
 ## How to use it
+You can watch the following tutorials in order to get acquantied with acmb:
+https://www.youtube.com/watch?v=8JjK_G1G30g
+https://youtu.be/uJEVtISbjT0?si=XB-NDA9EOeY7VvpG
+
+Here is a text tutorial.
 ![empty_table](https://github.com/astrowander/acmb/assets/7758781/1900d522-486e-4390-8ca3-0f311863d088)
 Starting from version 1.0, an GUI version of acmb is available. The principle of operation of this application is similar to Microsoft Excel, with the difference that the cells of the spreadsheet are not numbers and formulas, but images and tools for processing them.
 When you open the program, you will see an empty table and a row of buttons above it. To get acquainted with the application, consider as an example a typical astrophotography task. Let's say that we want to combine a set of images of one scene of the starry sky into a single image, optimize it for display on a 4K screen and save it in JPEG format. The original frames were taken with a Canon camera in CR2 format.
