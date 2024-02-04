@@ -18,11 +18,17 @@ Download the following libraries
 **1. LibRaw** https://github.com/LibRaw/LibRaw
 
 **2. lensfun** https://github.com/lensfun/lensfun
+
 **3. oneTBB** https://github.com/oneapi-src/oneTBB
+
 **4. TinyTIFF** https://github.com/jkriege2/TinyTIFF
+
 **5. CFITSIO** https://github.com/healpy/cfitsio
+
 **6. CCFITS** https://heasarc.gsfc.nasa.gov/docs/software/fitsio/ccfits/CCfits-2.6.tar.gz
+
 **7. x265** https://bitbucket.org/multicoreware/x265_git.git
+
 **8. avir** https://github.com/avaneev/avir
 
 Build and install them using their own instructions
@@ -37,7 +43,9 @@ Open the project file acmb.pro with QtCreator, and build it. Please note, that y
 
 ## How to use it
 You can watch the following tutorials in order to get acquantied with acmb:
+
 https://www.youtube.com/watch?v=8JjK_G1G30g
+
 https://youtu.be/uJEVtISbjT0?si=XB-NDA9EOeY7VvpG
 
 Here is a text tutorial.
