@@ -6,9 +6,20 @@ You can use binaries for x64 Windows and x64 Linux. Just download and unpack a r
 ## Building instructions
 ### Download sources from GitHub
 ```sh
-$ git clone https://github.com/astrowander/acmb
+$ git clone --recurse-submodules https://github.com/astrowander/acmb
 ```
 ### Preparing Third Parties
+#### On Linux
+Run a script to download and install third party libraries. When the x265 library are installing you will see pseudo-graphic interface of cmake. Press 'c' key to configure, then 'e' and 'g' to build the library.
+```sh
+$ chmod +x install-third-parties.sh
+$ ./install-third-parties.sh
+```
+After the script finishes open acmb.pro with Qt Creator and build acmb project.
+```sh
+$ qtcreator acmb.pro
+```
+#### On Windows
 Create subdirectory Libs in the main project folder
 ```sh
 $ cd acmb && mkdir Libs && cd Libs
