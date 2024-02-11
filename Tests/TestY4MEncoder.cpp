@@ -33,7 +33,17 @@ BEGIN_TEST( TestRGB24 )
     encoder.Detach();
     const auto encoded = pStream->str();
 
-    std::ifstream f( GetPathToTestFile( "AllFormats/rgb24.y4m" ), std::ios::binary );
+    const std::string dirPath = GetPathToPattern( "Y4MEncoder" );
+    if ( !std::filesystem::exists( dirPath ) )
+        std::filesystem::create_directory( dirPath );
+    const std::string filePath = dirPath + "/rgb24.y4m";
+    if ( !std::filesystem::exists( filePath ) )
+    {
+        std::ofstream fOut( filePath, std::ios::binary );
+        fOut.write( encoded.data(), encoded.size() );
+    }
+
+    std::ifstream f( filePath, std::ios::binary );
     f.seekg( 0, std::ios::end );
     const auto length = f.tellg();
     f.seekg( 0, std::ios::beg );

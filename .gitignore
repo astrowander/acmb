@@ -72,6 +72,8 @@ Libs/
 Debug/
 .vs/
 Libs/
+Tests/TestFiles/
+Tests/Patterns/
 build*
 
 *.pgm
