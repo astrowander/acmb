@@ -239,7 +239,7 @@ void BaseStacker::AddBitmap(Pipeline& pipeline)
 IBitmapPtr BaseStacker::GetResult()
 {
     auto pRes = CallGeneratingResultHelper();
-    if ( _stackMode == StackMode::LightNoAlign && pRes->GetPixelFormat() == PixelFormat::Bayer16 )
+    if ( ( _stackMode == StackMode::LightNoAlign || _stackMode == StackMode::StarTrails ) && pRes->GetPixelFormat() == PixelFormat::Bayer16 )
         pRes = DebayerTransform::Debayer( pRes, _pCameraSettings );
 
     return pRes;

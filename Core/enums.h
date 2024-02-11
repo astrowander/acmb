@@ -151,7 +151,8 @@ enum class StackMode
 {
     Light,
     LightNoAlign,
-    DarkOrFlat
+    DarkOrFlat,
+    StarTrails
 };
 
 ACMB_NAMESPACE_END

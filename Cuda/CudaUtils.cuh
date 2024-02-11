@@ -11,6 +11,12 @@ __device__ inline T Clamp( T x, T l, T u )
 }
 
 template<typename T>
+__device__ inline T Max( T a, T b)
+{
+    return ((a > b) ? a : b);
+}
+
+template<typename T>
 __device__ inline T MaxValue()
 {
     return T{};

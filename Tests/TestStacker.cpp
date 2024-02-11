@@ -200,6 +200,18 @@ auto f = []
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
+BEGIN_TEST( TestStarTrails )
+std::vector<Pipeline> pipelines
+{
+    { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) ) },
+    { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8945.CR2" ) ) },
+    { ImageDecoder::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8946.CR2" ) ) }
+};
+
+auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::StarTrails );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestStarTrails.ppm" ), pStacker->Stack() ) );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

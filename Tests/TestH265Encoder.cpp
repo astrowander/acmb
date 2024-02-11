@@ -31,7 +31,17 @@ for ( int i = 0; i < 25; ++i )
 encoder.Detach();
 const auto encoded = pStream->str();
 
-std::ifstream f( GetPathToTestFile( "AllFormats/rgb24.H265" ), std::ios::binary );
+const std::string dirPath = GetPathToPattern( "H265Encoder" );
+if ( !std::filesystem::exists( dirPath ) )
+    std::filesystem::create_directory( dirPath );
+const std::string filePath = dirPath + "/rgb24.h265";
+if ( !std::filesystem::exists( filePath ) )
+{
+    std::ofstream fOut( filePath, std::ios::binary );
+    fOut.write( encoded.data(), encoded.size() );
+}
+
+std::ifstream f( filePath, std::ios::binary );
 f.seekg( 0, std::ios::end );
 const auto length = f.tellg();
 f.seekg( 0, std::ios::beg );

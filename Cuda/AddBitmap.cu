@@ -40,5 +40,27 @@ void AddBitmapHelper( const ChannelType* pPixels, float* pMeans, float* pDevs, u
 template void AddBitmapHelper<>( const uint8_t*, float*, float*, uint16_t*, size_t );
 template void AddBitmapHelper<>( const uint16_t*, float*, float*, uint16_t*, size_t );
 
+template<typename ChannelType>
+__global__ void AddBitmapInStarTrailsModeKernel( const ChannelType* pPixels, float* pMeans, size_t size )
+{
+    size_t index = blockIdx.x * blockDim.x + threadIdx.x;
+    if ( index >= size )
+        return;
+
+    auto& mean = pMeans[index];
+    mean = Max( mean, float( pPixels[index] ) );
+}
+
+template<typename ChannelType>
+void AddBitmapInStarTrailsModeHelper( const ChannelType* pPixels, float* pMeans, size_t size )
+{
+    int maxThreadsPerBlock = 0;
+    cudaDeviceGetAttribute( &maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, 0 );
+    int numBlocks = (int( size ) + maxThreadsPerBlock - 1) / maxThreadsPerBlock;
+    AddBitmapInStarTrailsModeKernel<ChannelType> << <numBlocks, maxThreadsPerBlock >> > (pPixels, pMeans, size);
+}
+
+template void AddBitmapInStarTrailsModeHelper<>( const uint8_t*, float*, size_t );
+template void AddBitmapInStarTrailsModeHelper<>( const uint16_t*, float*, size_t );
 
 ACMB_CUDA_NAMESPACE_END
