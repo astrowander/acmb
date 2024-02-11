@@ -73,6 +73,7 @@ Debug/
 .vs/
 Libs/
 Tests/TestFiles/
+Tests/TestFiles/EmptyDir/
 Tests/Patterns/
 build*
 
