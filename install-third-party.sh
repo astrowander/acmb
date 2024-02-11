@@ -1,6 +1,6 @@
 #install packages
 sudo apt-get update
-sudo apt-get install g++ clang cmake libgtk2.0-dev python3 python3-pip cmake-curses-gui build-essential yasm nasm
+sudo apt-get install g++ clang cmake libgtk2.0-dev python3 python3-pip cmake-curses-gui build-essential nasm libglfw3 libglfw3-dev qtcreator qt6-base-dev
 pip3 install --upgrade pip3
 pip3 install setuptools
 #download and install libraries
@@ -32,7 +32,7 @@ sudo cmake --build . --target install
 cd ../../
 git clone https://github.com/healpy/cfitsio
 cd cfitsio
-./configure
+./configure --prefix=/usr/local/
 make
 make install
 #CCFits
@@ -41,7 +41,7 @@ wget https://heasarc.gsfc.nasa.gov/docs/software/fitsio/ccfits/CCfits-2.6.tar.gz
 tar -xzvf CCfits-2.6.tar.gz
 rm CCfits-2.6.tar.gz
 cd CCfits-2.6
-./configure --with-cfitsio=$PWD/../cfitsio
+./configure --with-cfitsio=/usr/local/
 make
 sudo make install
 #LibRaw
@@ -72,3 +72,7 @@ mkdir cuda
 cd cuda
 wget https://developer.download.nvidia.com/compute/cuda/12.3.2/local_installers/cuda_12.3.2_545.23.08_linux.run
 sudo sh cuda_12.3.2_545.23.08_linux.run
+# set ACMB_PATH environment variable
+cd ../../
+echo "export ACMB_PATH=$PWD" >> ~/.bashrc
+source ~/.bashrc
