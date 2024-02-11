@@ -1,0 +1,3 @@
+[submodule "GUI/ImGuiFileDialog"]
+	path = GUI/ImGuiFileDialog
+	url = ../../aiekick/ImGuiFileDialog
