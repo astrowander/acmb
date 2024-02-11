@@ -8,18 +8,17 @@ You can use binaries for x64 Windows and x64 Linux. Just download and unpack a r
 ```sh
 $ git clone --recurse-submodules https://github.com/astrowander/acmb
 ```
-### Preparing Third Parties
-#### On Linux
+### Building in Linux
 Run a script to download and install third party libraries. When the x265 library are installing you will see pseudo-graphic interface of cmake. Press 'c' key to configure, then 'e' and 'g' to build the library.
 ```sh
 $ chmod +x install-third-parties.sh
 $ ./install-third-parties.sh
 ```
-After the script finishes open acmb.pro with Qt Creator and build acmb project.
+After the script finishes open acmb.pro with Qt Creator and build acmb project. Please note, that you need a compiler with support of C++20
 ```sh
 $ qtcreator acmb.pro
 ```
-#### On Windows
+### Building in Windows
 Create subdirectory Libs in the main project folder
 ```sh
 $ cd acmb && mkdir Libs && cd Libs
@@ -42,15 +41,13 @@ Download the following libraries
 
 **8. avir** https://github.com/avaneev/avir
 
+**9. parallel-hashmap** https://github.com/greg7mdp/parallel-hashmap
+
 Build and install them using their own instructions
 
 Also you need to install CUDA 12.3: https://developer.nvidia.com/cuda-downloads
 
-### Building acmb on Windows
 Open the solution acmb.sln with Visual Studio 2022, and build it
-### Building acmb on Linux
-Open the project file acmb.pro with QtCreator, and build it. Please note, that you need a compiler with support of C++20
-
 
 ## How to use it
 You can watch the following tutorials in order to get acquantied with acmb:
