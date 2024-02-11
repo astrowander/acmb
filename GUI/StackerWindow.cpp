@@ -20,6 +20,7 @@ void StackerWindow::DrawPipelineElementControls()
     UI::RadioButton( "Light Frames", ( int* ) (&_stackMode), int( StackMode::Light ), "Input images will be debayered and aligned by stars before stacking" );
     UI::RadioButton( "Light (w/o alignment)", ( int* ) (&_stackMode), int( StackMode::LightNoAlign ), "Input images will be stacked without alignment and then debayered" );
     UI::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ), "Input images will be stacked as-is, without alignment and debayerization" );
+    UI::RadioButton( "Star Trails", ( int* ) (&_stackMode), int( StackMode::StarTrails ), "Generates image with star trails" );
     
     ImGui::Separator();    
     if ( _stackMode == StackMode::Light )

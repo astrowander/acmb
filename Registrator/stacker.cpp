@@ -57,6 +57,11 @@ class AddingBitmapHelper
         {
             const auto index = i * _stacker._width * channelCount + j;
             auto& mean = _stacker._means[index];
+            if ( _stacker._stackMode == StackMode::StarTrails )
+            {
+                mean = std::max<float>( mean, _pBitmap->GetScanline( 0 )[index] );
+                continue;
+            }
             auto& dev = _stacker._devs[index];
             auto& n = _stacker._counts[index];
             auto& channel = _pBitmap->GetScanline( 0 )[index];

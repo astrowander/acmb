@@ -67,7 +67,10 @@ if (_pixelFormat == format) { \
     using DynamicArrayT = typename std::conditional_t<PixelFormatTraits<format>::bytesPerChannel == 1, DynamicArrayU8, DynamicArrayU16>;\
     auto& bitmap = std::get<DynamicArrayT>( _stackData->_cudaBitmap );\
     bitmap.fromVector( std::static_pointer_cast< Bitmap<format> >( pBitmap )->GetData() );\
-    AddBitmapHelper( bitmap.data(), _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data(), size );\
+    if ( _stackMode == StackMode::StarTrails ) \
+        AddBitmapInStarTrailsModeHelper( bitmap.data(), _stackData->_means.data(), size ); \
+    else \
+        AddBitmapHelper( bitmap.data(), _stackData->_means.data(), _stackData->_devs.data(), _stackData->_counts.data(), size );\
     if ( CUDA_SYNCHRONIZE && cudaDeviceSynchronize() != cudaSuccess )\
         throw std::runtime_error( "error in CUDA kernel occured" );\
     return;}

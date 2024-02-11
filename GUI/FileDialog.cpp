@@ -16,7 +16,7 @@ FileDialog::FileDialog()
 
 void FileDialog::OpenDialog( const std::string& vKey, const std::string& vTitle, const char* vFilters, const std::string& vFilePathName, const int& vCountSelectionMax )
 {
-    _pImGuiFileDialog->OpenDialog( vKey, vTitle, vFilters, vFilePathName, vCountSelectionMax );
+    _pImGuiFileDialog->OpenDialog( vKey, vTitle, vFilters, { .filePathName = vFilePathName, .countSelectionMax = vCountSelectionMax } );
     MainWindow::GetInstance( FontRegistry::Instance() ).LockInterface();
 }
 
