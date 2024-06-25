@@ -2,14 +2,23 @@
 
 #include "PipelineElementWindow.h"
 
+ACMB_NAMESPACE_BEGIN
+class ImageDecoder;
+ACMB_NAMESPACE_END
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 class ImageReaderWindow : public PipelineElementWindow
 {
+    std::shared_ptr<ImageDecoder> _pDecoder;
+
     std::string _workingDirectory;
     std::vector<std::string> _fileNames;
+    std::map<int, int> _taskNumberToFileIndex;
+
     int _selectedItemIdx = 0;
-    
+    size_t _frameCount = 0;
+
     bool _invertOrder = false;
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }

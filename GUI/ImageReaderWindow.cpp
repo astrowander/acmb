@@ -23,8 +23,8 @@ std::string GetFilters()
 }
 
 ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
-: PipelineElementWindow( "Import Images", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
-, _workingDirectory( "." )
+    : PipelineElementWindow( "Import Images", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
+    , _workingDirectory( "." )
 {
 }
 
@@ -37,7 +37,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
-            const bool is_selected = ( _selectedItemIdx == i );
+            const bool is_selected = (_selectedItemIdx == i);
             const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
             if ( ImGui::Selectable( shortName.c_str(), is_selected ) )
             {
@@ -49,7 +49,9 @@ void ImageReaderWindow::DrawPipelineElementControls()
                 ImGui::SetItemDefaultFocus();
         }
         ImGui::EndListBox();
-    }  
+    }
+
+    ImGui::Text( "%d frames in %d files", int( _frameCount ), int( _fileNames.size() ) );
 
     auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
@@ -70,11 +72,13 @@ void ImageReaderWindow::DrawPipelineElementControls()
         ImGui::CloseCurrentPopup();
 
         _fileNames.clear();
+        _frameCount = 0;
         _selectedItemIdx = 0;
+        _taskNumberToFileIndex.clear();
         ResetProgress( PropagationDir::Forward );
     }, "Delete all images from the importing list", this );
 
-    UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
+    //UI::Checkbox( "Invert Order", &_invertOrder, "Invert the order of the selected images" );
 
     if ( fileDialog.Display( openDialogName, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
@@ -84,7 +88,22 @@ void ImageReaderWindow::DrawPipelineElementControls()
         {
             const auto selection = fileDialog.GetSelection();
             for ( const auto& it : selection )
-                _fileNames.push_back( _workingDirectory + "/" + it.first);
+            {
+                const auto path = _workingDirectory + it.first;
+
+                try
+                {
+                    auto pDecoder = ImageDecoder::Create( path );
+                    _fileNames.push_back( path );
+                    _frameCount += pDecoder->GetFrameCount();
+                    _taskNumberToFileIndex[int( _frameCount - 1 )] = int( _fileNames.size() - 1 );
+                }
+                catch ( std::exception& e )
+                {
+                    _error = e.what();
+                    _showError = true;
+                }
+            }
         }
 
         // close
@@ -113,8 +132,21 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
 {
     try
     {
-        const size_t idx = _invertOrder ? _fileNames.size() - 1 - i : i;
-        return IBitmap::Create( _fileNames[idx] );
+        const int idx = int( _invertOrder ? _fileNames.size() - 1 - i : i );
+        const auto it = _taskNumberToFileIndex.lower_bound( idx );
+        if ( it == _taskNumberToFileIndex.end() )
+            return unexpected( "Incorrect index" );
+
+        if ( !_pDecoder )
+        {
+            _pDecoder = ImageDecoder::Create( _fileNames[it->second] );
+        }
+
+        auto res = _pDecoder->ReadBitmap();
+        if ( it->first == idx )
+            _pDecoder.reset();
+
+        return res;
     }
     catch ( std::exception& e )
     {
@@ -146,41 +178,48 @@ Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
     }
 }
 
-void ImageReaderWindow::Serialize(std::ostream& out) const
+void ImageReaderWindow::Serialize( std::ostream& out ) const
 {
-    PipelineElementWindow::Serialize(out);
-    gui::Serialize( _workingDirectory, out);
-    gui::Serialize( _fileNames, out);
-    gui::Serialize(_selectedItemIdx, out);    
+    PipelineElementWindow::Serialize( out );
+    gui::Serialize( _workingDirectory, out );
+    gui::Serialize( _fileNames, out );
+    gui::Serialize( _selectedItemIdx, out );
     gui::Serialize( _invertOrder, out );
+    gui::Serialize( _frameCount, out );
+    gui::Serialize( _taskNumberToFileIndex, out );
 }
 
-void ImageReaderWindow::Deserialize(std::istream& in)
+void ImageReaderWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize(in);
-    _workingDirectory = gui::Deserialize<std::string>(in, _remainingBytes);
-    _fileNames = gui::Deserialize<std::vector<std::string>>(in, _remainingBytes);
-    _selectedItemIdx = gui::Deserialize<int>(in, _remainingBytes);
+    PipelineElementWindow::Deserialize( in );
+    _workingDirectory = gui::Deserialize<std::string>( in, _remainingBytes );
+    _fileNames = gui::Deserialize<std::vector<std::string>>( in, _remainingBytes );
+    _selectedItemIdx = gui::Deserialize<int>( in, _remainingBytes );
     _invertOrder = gui::Deserialize<bool>( in, _remainingBytes );
+    _frameCount = gui::Deserialize<size_t>( in, _remainingBytes );
+    _taskNumberToFileIndex = gui::Deserialize<std::map<int, int>>( in, _remainingBytes );
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const
 {
-    return PipelineElementWindow::GetSerializedStringSize() 
+    return PipelineElementWindow::GetSerializedStringSize()
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileNames )
         + gui::GetSerializedStringSize( _selectedItemIdx )
-        + gui::GetSerializedStringSize( _invertOrder );
+        + gui::GetSerializedStringSize( _invertOrder )
+        + gui::GetSerializedStringSize( _frameCount )
+        + gui::GetSerializedStringSize( _taskNumberToFileIndex );
 }
 
 std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
 {
-    return (taskNumber < _fileNames.size()) ? _fileNames[taskNumber] : std::string{};
+    const auto it = _taskNumberToFileIndex.lower_bound( int( taskNumber ) );
+    return ( it == _taskNumberToFileIndex.end() ) ? std::string{} : _fileNames[it->second];
 }
 
 size_t ImageReaderWindow::GetTaskCount()
 {
-    return _fileNames.size();
+    return _frameCount;
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )

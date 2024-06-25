@@ -21,6 +21,11 @@ int GetSerializedStringSize( const T& val )
         return res;
     }
 
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
+    {
+        return int( sizeof( int ) * (2 * val.size() + 1) );
+    }
+
     return sizeof( T );
 }
 
@@ -39,6 +44,17 @@ void Serialize( T&& val, std::ostream& out )
         Serialize( int( val.size() ), out );
         for ( auto& str : val )
             Serialize( std::move( str ), out );
+        return;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
+    {
+        Serialize( int( val.size() ), out );
+        for ( auto it : val )
+        {
+            Serialize( it.first, out );
+            Serialize( it.second, out );
+        }
         return;
     }
 
@@ -83,6 +99,26 @@ T Deserialize( std::istream& in, int& remainingBytes )
             vec[i] = Deserialize<std::string>( in, remainingBytes );
 
         return vec;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
+    {
+        if ( remainingBytes < int( sizeof( int ) ) )
+        {
+            in.seekg( remainingBytes, std::ios_base::cur );
+            remainingBytes = 0;
+            return {};
+        }
+
+        int size = Deserialize<int>( in, remainingBytes );
+        std::map<int, int> map;
+        for ( int i = 0; i < size; ++i )
+        {
+            int key = Deserialize<int>( in, remainingBytes );
+            int value = Deserialize<int>( in, remainingBytes );
+            map.insert_or_assign( key, value );
+        }
+        return map;
     }
 
     if ( remainingBytes < int( sizeof( T )  ) )

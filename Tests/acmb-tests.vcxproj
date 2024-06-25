@@ -135,6 +135,7 @@
     <ClCompile Include="TestH265Encoder.cpp" />
     <ClCompile Include="TestJpegDecoder.cpp" />
     <ClCompile Include="TestSaturationTransform.cpp" />
+    <ClCompile Include="TestSerDecoder.cpp" />
     <ClCompile Include="TestY4MEncoder.cpp" />
     <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />

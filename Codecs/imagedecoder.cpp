@@ -5,6 +5,7 @@
 #include "Tiff/TiffDecoder.h"
 #include "FITS/FitsDecoder.h"
 #include "JPEG/JpegDecoder.h"
+#include "SER/SerDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/ResizeTransform.h"
@@ -38,6 +39,7 @@ void ImageDecoder::Attach(std::shared_ptr<std::istream> pStream)
         throw std::invalid_argument("pStream is null");
 
     _pStream = pStream;
+    _frameCount = 1;
 }
 
 void ImageDecoder::Attach(const std::string &fileName)
@@ -117,6 +119,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     else if ( JpegDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset( new JpegDecoder( outputFormat ) );
+    }
+    else if ( SerDecoder::GetExtensions().contains( extension ) )
+    {
+        pDecoder.reset( new SerDecoder( outputFormat ) );
     }
 
     if ( !pDecoder )

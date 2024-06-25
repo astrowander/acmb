@@ -21,6 +21,10 @@ class IBitmap;
 class ImageDecoder : public IPipelineFirstElement
 {
 protected:
+    
+    uint32_t _framesRead = 0;
+    uint32_t _frameCount = 0;
+
     std::string _lastFileName;
     std::shared_ptr<std::istream> _pStream;    
     virtual std::unique_ptr<std::istringstream> ReadLine();
@@ -65,7 +69,9 @@ public:
     /// if opening file is RAW, rawSettings will be applied
     static std::vector<Pipeline> GetPipelinesFromMask( std::string mask, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// returns all supported extensions by all decoders
-    static const std::unordered_set<std::string>& GetAllExtensions();    
+    static const std::unordered_set<std::string>& GetAllExtensions();
+
+    uint32_t GetFrameCount() const { return _frameCount; }
 
 protected:
     static bool AddCommonExtensions( const std::unordered_set<std::string>& extensions );
