@@ -212,6 +212,11 @@ auto pStacker = std::make_shared<Stacker>( pipelines, StackMode::StarTrails );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestStarTrails.ppm" ), pStacker->Stack() ) );
 END_TEST
 
+BEGIN_TEST( TestDeviationMap )
+auto pStacker = std::make_shared<Stacker>( ImageDecoder::GetPipelinesFromDir( "F:/Images/MilkyWay1_ISO3200_10s/" ), StackMode::Light );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "Stacker/TestDeviationMap.ppm" ), pStacker->Stack() ) );
+END_TEST
+
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END

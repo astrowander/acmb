@@ -37,6 +37,8 @@ public:
     virtual void CallAddBitmapHelper( IBitmapPtr pBitmap ) override;
     virtual void CallAddBitmapWithAlignmentHelper( IBitmapPtr pBitmap ) override;
     virtual IBitmapPtr CallGeneratingResultHelper() override;
+
+    IBitmapPtr GenerateDeviationMap() const;
         
     TEST_ACCESS(Stacker);
 };

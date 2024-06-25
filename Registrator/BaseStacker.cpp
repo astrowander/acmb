@@ -171,14 +171,31 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
     if (_stackingData.size() == 1)
         return pRefBitmap;
 
-    const auto& refStars = _stackingData[0].stars;
-
     if ( _stackMode == StackMode::Light )
     {
         _aligners.clear();
+        _starMaskWidth = _width / cSmallTileSize + 1;
+        const auto starMaskHeight = _height / cSmallTileSize + 1;
+        _pStarMask = std::make_shared<Bitmap<PixelFormat::Gray8>>( _starMaskWidth, starMaskHeight );
 
-        for (const auto& refStarVector : refStars)
-            _aligners.push_back(std::make_shared<FastAligner>(refStarVector));
+        auto pRegistrator = std::make_shared<Registrator>( _threshold, _minStarSize, _maxStarSize );
+        pRegistrator->Registrate( pRefBitmap );
+        const auto& stars = _stackingData[0].stars = pRegistrator->GetStars();
+
+        const auto pStarMaskData = _pStarMask->GetPlanarScanline( 0 );
+        for ( const auto& refStarVector : stars )
+        {
+            _stackingData[0].totalStarCount += refStarVector.size();
+            _aligners.push_back( std::make_shared<FastAligner>( refStarVector ) );
+            for ( const auto& star : refStarVector )
+            {
+                int y = int( star.center.y + 0.5f ) / cSmallTileSize;
+                int x = int( star.center.x + 0.5f ) / cSmallTileSize;
+                ++pStarMaskData[y * _starMaskWidth + x ];
+            }
+        }
+
+        _pStarMask->Save( _pStarMask, _stackingData[0].pipeline.GetFileName() + ".mask.ppm" );
     }
 
     CallAddBitmapHelper( pRefBitmap );
@@ -220,15 +237,26 @@ void BaseStacker::AddBitmap(Pipeline& pipeline)
     pRegistrator->Registrate( pBitmap );
     const auto& stars = pRegistrator->GetStars();
 
-    if ( _aligners.empty() )
+    /*if ( _aligners.empty() )
     {
-        for (const auto& starVector : stars)
-                 _aligners.push_back(std::make_shared<FastAligner>(starVector));
+        _starMaskWidth = (_width + 1) / cSmallTileSize;
+        const auto starMaskHeight = (_height + 1) / cSmallTileSize;
+        _starMask.resize( _starMaskWidth * starMaskHeight );
+        for ( const auto& starVector : stars )
+        {
+            _aligners.push_back( std::make_shared<FastAligner>( starVector ) );
+            for ( const auto& star : starVector )
+            {
+                int y = int( star.center.y + 0.5f ) / cSmallTileSize;
+                int x = int( star.center.x + 0.5f ) / cSmallTileSize;
+                _starMask[y * _starMaskWidth + x / cSmallTileSize] = true;
+            }
+        }
 
         CallAddBitmapHelper( pBitmap );
         Log( pipeline.GetFileName() + " is stacked" );
         return;
-    }
+    }*/
 
     CalculateAligningGrid( stars );
     Log( pipeline.GetFileName() + " grid is calculated" );

@@ -69,12 +69,12 @@ class AddingBitmapHelper
             const auto sigma = sqrt( dev );
             const auto kappa = 3.0;
 
-            if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
-            {
+            //if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
+           // {
                 dev = n * ( dev + ( channel - mean ) * ( channel - mean ) / ( n + 1 ) ) / ( n + 1 );
                 mean = std::clamp( ( n * mean + channel ) / ( n + 1 ), 0.0f, static_cast< float >( std::numeric_limits<ChannelType>::max() ) );
                 ++n;
-            }
+            //}
         }
     }
 
@@ -304,6 +304,26 @@ void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& l
     }
 
     lastPair = nearest;
+}
+
+IBitmapPtr Stacker::GenerateDeviationMap() const
+{
+    const uint32_t stride = _width * ChannelCount( _pixelFormat );
+    auto pBitmap = std::make_shared<Bitmap<PixelFormat::Gray16>>( stride, _height);
+    tbb::parallel_for( tbb::blocked_range<uint32_t>( 0u, _height ), [&] ( const tbb::blocked_range<uint32_t>& range )
+    {
+        for ( uint32_t y = range.begin(); y < range.end(); ++y )
+        {
+            const auto pScanline = pBitmap->GetScanline( y );
+            const auto pDev = _devs.data() + y * stride;
+            const auto pMean = _means.data() + y * stride;
+            for ( uint32_t x = 0; x < stride; ++x )
+            {
+                pScanline[x] = uint16_t( std::clamp<float>( pDev[x] / pMean[x] * 65535.0f + 0.5f, 0.0f, 65535.0f));
+            }
+        }
+    } );
+    return pBitmap;
 }
 
 ACMB_NAMESPACE_END

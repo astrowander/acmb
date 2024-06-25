@@ -32,6 +32,10 @@ protected:
     uint32_t _gridHeight = 0;
 
     std::vector<std::shared_ptr<FastAligner>> _aligners;
+    
+    std::shared_ptr<IBitmap> _pStarMask;
+    size_t _starMaskWidth = 0;
+
     MatchMap _matches;
 
     double _threshold = 25.0;

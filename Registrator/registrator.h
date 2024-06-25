@@ -93,8 +93,8 @@ private:
         star.center.y += y * pixelLuminance;
         pData[y * w + x] = 0;
 
-        if (star.rect.width > _maxStarSize + 1 || star.rect.height > _maxStarSize + 1)
-            return;
+        //if (star.rect.width > _maxStarSize + 1 || star.rect.height > _maxStarSize + 1)
+          //  return;
 
         if (x + 1 < roi.x + roi.width && pData[y * w + x + 1] > threshold)
         {
