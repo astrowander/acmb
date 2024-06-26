@@ -25,17 +25,4 @@ std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat)
     throw std::runtime_error("Unexpexted pixel format");
 }
 
-PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerPixel )
-{
-    switch ( channelsPerPixel )
-    {
-        case 1:
-            return ( bitsPerChannel == 8 ) ? PixelFormat::Gray8 : ( bitsPerChannel == 16 ) ? PixelFormat::Gray16 : PixelFormat::Unspecified;
-        case 3:
-            return ( bitsPerChannel == 8 ) ? PixelFormat::RGB24 : ( bitsPerChannel == 16 ) ? PixelFormat::RGB48 : PixelFormat::Unspecified;
-        default:
-            return PixelFormat::Unspecified;
-    }
-}
-
 ACMB_NAMESPACE_END

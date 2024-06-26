@@ -98,8 +98,8 @@ std::shared_ptr<CropTransform> CropTransform::Create( PixelFormat pixelFormat, R
 
 IBitmapPtr CropTransform::Crop( IBitmapPtr pSrcBitmap, Rect dstRect )
 {
-    auto pResizeTransform = Create( pSrcBitmap, dstRect );
-    return pResizeTransform->RunAndGetBitmap();
+    auto pCropTransform = Create( pSrcBitmap, dstRect );
+    return pCropTransform->RunAndGetBitmap();
 }
 
 void CropTransform::CalcParams( std::shared_ptr<ImageParams> pParams )

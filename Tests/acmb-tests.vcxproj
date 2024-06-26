@@ -127,6 +127,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TestBitmapDivisor.cpp" />
+    <ClCompile Include="TestCenterObjectTransform.cpp" />
     <ClCompile Include="TestCropTransform.cpp" />
     <ClCompile Include="TestCudaStacker.cpp" />
     <ClCompile Include="TestDebayerTransform.cpp" />

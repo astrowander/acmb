@@ -126,7 +126,18 @@ struct PixelFormatTraits
     PixelFormatTraits() = delete;
 };
 /// creates pixel format from number of bits per channel and number of channels
-PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerPixel );
+constexpr PixelFormat ConstructPixelFormat( uint16_t bitsPerChannel, uint16_t channelsPerPixel )
+{
+    switch ( channelsPerPixel )
+    {
+        case 1:
+            return (bitsPerChannel == 8) ? PixelFormat::Gray8 : (bitsPerChannel == 16) ? PixelFormat::Gray16 : PixelFormat::Unspecified;
+        case 3:
+            return (bitsPerChannel == 8) ? PixelFormat::RGB24 : (bitsPerChannel == 16) ? PixelFormat::RGB48 : PixelFormat::Unspecified;
+        default:
+            return PixelFormat::Unspecified;
+    }
+}
 
 constexpr bool ArePixelFormatsCompatible( PixelFormat f1, PixelFormat f2 )
 {

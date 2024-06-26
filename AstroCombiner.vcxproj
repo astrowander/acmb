@@ -73,6 +73,7 @@
     <ClInclude Include="Transforms\binningtransform.h" />
     <ClInclude Include="Transforms\BitmapDivisor.h" />
     <ClInclude Include="Transforms\BitmapSubtractor.h" />
+    <ClInclude Include="Transforms\CenterObjectTransform.h" />
     <ClInclude Include="Transforms\ChannelEqualizer.h" />
     <ClInclude Include="Transforms\converter.h" />
     <ClInclude Include="Transforms\CropTransform.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="Transforms\binningtransform.cpp" />
     <ClCompile Include="Transforms\BitmapDivisor.cpp" />
     <ClCompile Include="Transforms\BitmapSubtractor.cpp" />
+    <ClCompile Include="Transforms\CenterObjectTransform.cpp" />
     <ClCompile Include="Transforms\ChannelEqualizer.cpp" />
     <ClCompile Include="Transforms\converter.cpp" />
     <ClCompile Include="Transforms\CropTransform.cpp" />
