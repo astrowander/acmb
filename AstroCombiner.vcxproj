@@ -33,6 +33,7 @@
     <ClInclude Include="Codecs\JPEG\TJpg_Decoder\tjpgdcnf.h" />
     <ClInclude Include="Codecs\JPEG\toojpeg\toojpeg.h" />
     <ClInclude Include="Codecs\SER\SerDecoder.h" />
+    <ClInclude Include="Codecs\SER\SerEncoder.h" />
     <ClInclude Include="Codecs\VideoEncoder.h" />
     <ClInclude Include="Codecs\Y4M\Y4MEncoder.h" />
     <ClInclude Include="Codecs\PPM\ppmdecoder.h" />
@@ -96,6 +97,7 @@
     <ClCompile Include="Codecs\JPEG\TJpg_Decoder\tjpgd.cpp" />
     <ClCompile Include="Codecs\JPEG\toojpeg\toojpeg.cpp" />
     <ClCompile Include="Codecs\SER\SerDecoder.cpp" />
+    <ClCompile Include="Codecs\SER\SerEncoder.cpp" />
     <ClCompile Include="Codecs\VideoEncoder.cpp" />
     <ClCompile Include="Codecs\Y4M\Y4MEncoder.cpp" />
     <ClCompile Include="Codecs\PPM\ppmdecoder.cpp" />

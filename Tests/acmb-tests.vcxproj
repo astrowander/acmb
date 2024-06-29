@@ -137,6 +137,7 @@
     <ClCompile Include="TestJpegDecoder.cpp" />
     <ClCompile Include="TestSaturationTransform.cpp" />
     <ClCompile Include="TestSerDecoder.cpp" />
+    <ClCompile Include="TestSerEncoder.cpp" />
     <ClCompile Include="TestY4MEncoder.cpp" />
     <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />

@@ -2,11 +2,9 @@
 #include "../../Codecs/imagedecoder.h"
 #include "../../Core/enums.h"
 
-ACMB_NAMESPACE_BEGIN
-
-class SerDecoder : public ImageDecoder
+namespace Ser
 {
-    enum class ColorID : int32_t
+    enum class ColorID
     {
         MONO = 0,
         BAYER_RGGB = 8,
@@ -22,7 +20,12 @@ class SerDecoder : public ImageDecoder
     };
 
     inline static const size_t cHeaderSize = 178;
+}
 
+ACMB_NAMESPACE_BEGIN
+
+class SerDecoder : public ImageDecoder
+{
     /*struct Header
     {
         char fileID[14];

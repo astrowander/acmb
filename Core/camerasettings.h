@@ -19,10 +19,15 @@ struct CameraSettings
 	double distance = 1000.0;
 
 	int64_t timestamp;
+	int64_t timestampUTC;
 
 	uint16_t blackLevel = 0;
 	uint16_t maxChannel = 0xFFFF;	
 	std::array<float, 4> channelPremultipiers = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	char observer[40] = {};
+	char instrument[40] = {};
+	char telescope[40] = {};
 };
 
 ACMB_NAMESPACE_END

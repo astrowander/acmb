@@ -17,7 +17,7 @@ void SerDecoder::Attach( std::shared_ptr<std::istream> pStream )
     uint64_t fileSize = _pStream->tellg();
     _pStream->seekg( 0, std::ios_base::beg );
     
-    if ( fileSize < cHeaderSize )
+    if ( fileSize < Ser::cHeaderSize )
         throw std::runtime_error( "invalid stream" );
 
     char signature[14];
@@ -26,7 +26,7 @@ void SerDecoder::Attach( std::shared_ptr<std::istream> pStream )
     //skip unused bytes
     pStream->seekg(4, std::ios_base::cur );
 
-    ColorID colorID;
+    Ser::ColorID colorID;
     pStream->read( (char*)&colorID, 4 );
 
     int32_t littleEndian;
@@ -42,18 +42,21 @@ void SerDecoder::Attach( std::shared_ptr<std::istream> pStream )
 
     pStream->read( (char*)&_frameCount, 4 );
 
+    if ( pixelDepthPerPlane != 8 && pixelDepthPerPlane != 16 )
+        throw std::runtime_error( "unsupported pixel depth" );
+
     switch ( colorID )
     {
-        case ColorID::MONO:
+        case Ser::ColorID::MONO:
            pixelDepthPerPlane == 8 ? _decodedFormat = PixelFormat::Gray8 : _decodedFormat = PixelFormat::Gray16;
            break;
-        case ColorID::BAYER_RGGB:
+        case Ser::ColorID::BAYER_RGGB:
            if ( pixelDepthPerPlane != 16 )
                throw std::runtime_error( "unsupported pixel depth" );           
            _decodedFormat = PixelFormat::Bayer16;
            break;
-        case ColorID::RGB:
-           _decodedFormat = PixelFormat::RGB24;
+        case Ser::ColorID::RGB:
+            pixelDepthPerPlane == 8 ? _decodedFormat = PixelFormat::RGB24 : _decodedFormat = PixelFormat::RGB48;
            break;
         default:
             throw std::runtime_error( "unsupported colorID" );
@@ -63,7 +66,14 @@ void SerDecoder::Attach( std::shared_ptr<std::istream> pStream )
     if ( _pixelFormat == PixelFormat::Unspecified )
         _pixelFormat = _decodedFormat;
 
-    pStream->seekg( cHeaderSize, std::ios_base::beg );
+    _pCameraSettings = std::make_shared<CameraSettings>();
+
+    pStream->read( _pCameraSettings->observer, 40 );
+    pStream->read( _pCameraSettings->instrument, 40 );
+    pStream->read( _pCameraSettings->telescope, 40 );
+
+    pStream->read( (char*)&_pCameraSettings->timestamp, 8 );
+    pStream->read( ( char* ) &_pCameraSettings->timestampUTC, 8 );
 }
 
 std::shared_ptr<IBitmap> SerDecoder::ReadBitmap()
