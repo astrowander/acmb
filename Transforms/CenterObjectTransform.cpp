@@ -4,9 +4,13 @@
 
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/enumerable_thread_specific.h>
 
 #include <algorithm>
 #include <execution>
+
+#undef min
+#undef max
 
 ACMB_NAMESPACE_BEGIN
 
@@ -46,23 +50,40 @@ public:
 
         const ChannelType threshold = ChannelType( std::min( *median * (1 + settings_.threshold / 100.0f), float( PixelFormatTraits<pixelFormat>::channelMax ) ) );
 
-        ChannelType* pPixel = pGrayBitmap->GetScanline( 0 );
+        struct DataPerThread
+        {
+            float totalLuminance = 0;
+            PointF center;
+        };
+
+        oneapi::tbb::enumerable_thread_specific<DataPerThread> dataPerThread;
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<uint32_t>( 0, pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<uint32_t>& range )
+        {
+            auto& dataLocal = dataPerThread.local();
+            for ( uint32_t y = range.begin(); y < range.end(); ++y )
+            {
+                ChannelType* pPixel = pGrayBitmap->GetScanline( y );
+                for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
+                {
+                    auto value = *pPixel++;
+                    if ( value < threshold )
+                        continue;
+
+                    const auto luminance = value - threshold;
+                    dataLocal.totalLuminance += luminance;
+                    dataLocal.center.x += x * luminance;
+                    dataLocal.center.y += y * luminance;
+                }
+            }
+        } );
+
         float totalLuminance = 0;
         PointF center;
-
-        for ( uint32_t y = 0; y < pSrcBitmap->GetHeight(); ++y )
-        {           
-            for ( uint32_t x = 0; x < pSrcBitmap->GetWidth(); ++x )
-            {
-                auto value = *pPixel++;
-                if ( value < threshold )
-                    continue;
-
-                const auto luminance = value - threshold;
-                totalLuminance += luminance;
-                center.x += x * luminance;
-                center.y += y * luminance;                
-            }
+        for ( const auto& data : dataPerThread )
+        {
+            totalLuminance += data.totalLuminance;
+            center.x += data.center.x;
+            center.y += data.center.y;
         }
 
         center.x /= totalLuminance;
