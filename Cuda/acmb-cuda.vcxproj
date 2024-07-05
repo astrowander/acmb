@@ -57,6 +57,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <AdditionalOptions>-allow-unsupported-compiler %(AdditionalOptions)</AdditionalOptions>
     </CudaCompile>
     <Lib>
       <AdditionalDependencies>acmb-lib.lib</AdditionalDependencies>

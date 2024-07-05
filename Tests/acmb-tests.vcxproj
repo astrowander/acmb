@@ -135,6 +135,7 @@
     <ClCompile Include="TestFitsEncoder.cpp" />
     <ClCompile Include="TestH265Encoder.cpp" />
     <ClCompile Include="TestJpegDecoder.cpp" />
+    <ClCompile Include="TestMedianBlurTransform.cpp" />
     <ClCompile Include="TestSaturationTransform.cpp" />
     <ClCompile Include="TestSerDecoder.cpp" />
     <ClCompile Include="TestSerEncoder.cpp" />
