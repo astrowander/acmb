@@ -162,7 +162,12 @@ public:
         return pPrimaryInput ? pPrimaryInput->GetTaskName( taskNumber ) : std::string{};
     }
 
-    IBitmapPtr GetPreviewBitmap() const { return _pPreviewBitmap; }
+    IBitmapPtr GetPreviewBitmap() 
+    { 
+        if ( !_pPreviewBitmap )
+            GeneratePreviewBitmap();
+        return _pPreviewBitmap; 
+    }
     Expected<void, std::string> GeneratePreviewTexture();
     
     void ResetPreview();
