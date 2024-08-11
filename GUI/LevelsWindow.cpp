@@ -283,6 +283,7 @@ IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size
             return res;
             }
         default:
+            _error = "Unsupported color space";
             return nullptr;
     }
 }

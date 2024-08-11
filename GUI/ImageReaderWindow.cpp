@@ -185,8 +185,6 @@ void ImageReaderWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _fileNames, out );
     gui::Serialize( _selectedItemIdx, out );
     gui::Serialize( _invertOrder, out );
-    gui::Serialize( _frameCount, out );
-    gui::Serialize( _taskNumberToFileIndex, out );
 }
 
 void ImageReaderWindow::Deserialize( std::istream& in )
@@ -196,8 +194,13 @@ void ImageReaderWindow::Deserialize( std::istream& in )
     _fileNames = gui::Deserialize<std::vector<std::string>>( in, _remainingBytes );
     _selectedItemIdx = gui::Deserialize<int>( in, _remainingBytes );
     _invertOrder = gui::Deserialize<bool>( in, _remainingBytes );
-    _frameCount = gui::Deserialize<size_t>( in, _remainingBytes );
-    _taskNumberToFileIndex = gui::Deserialize<std::map<int, int>>( in, _remainingBytes );
+
+    for ( size_t i = 0; i < _fileNames.size(); ++i )
+    {
+        auto& fileName = _fileNames[i];
+        _taskNumberToFileIndex[int( _frameCount )] = int( i );
+        _frameCount += ImageDecoder::Create( fileName )->GetFrameCount();        
+    }
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const
@@ -206,9 +209,7 @@ int ImageReaderWindow::GetSerializedStringSize() const
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileNames )
         + gui::GetSerializedStringSize( _selectedItemIdx )
-        + gui::GetSerializedStringSize( _invertOrder )
-        + gui::GetSerializedStringSize( _frameCount )
-        + gui::GetSerializedStringSize( _taskNumberToFileIndex );
+        + gui::GetSerializedStringSize( _invertOrder );
 }
 
 std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const

@@ -96,7 +96,11 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 
     try
     {
-        return ProcessBitmapFromPrimaryInput( taskRes.value(), i );
+        auto res = ProcessBitmapFromPrimaryInput( taskRes.value(), i );
+        if ( !_error.empty() )
+            return unexpected( _error );
+
+        return res;
     }
     catch ( std::exception& e )
     {
