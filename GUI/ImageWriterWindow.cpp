@@ -8,6 +8,7 @@
 #include "./../Codecs/imageencoder.h"
 #include "./../Codecs/H265/H265Encoder.h"
 #include "./../Codecs/Y4M/Y4MEncoder.h"
+#include "./../Codecs/Ser/SerEncoder.h"
 #include "./../Transforms/converter.h"
 #include "./../Transforms/ResizeTransform.h"
 
@@ -239,14 +240,17 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
 
     const bool isH265 = H265Encoder::GetExtensions().contains( _extension );
     const bool isY4M = Y4MEncoder::GetExtensions().contains( _extension );
-    if ( isH265 || isY4M )
+    const bool isSER = SerEncoder::GetExtensions().contains( _extension );
+    const bool isVideo = isH265 || isY4M || isSER;
+    if ( isVideo )
     {
         if ( isH265 )
             _pEncoder = std::make_shared<H265Encoder>( H265Encoder::Preset( _quality - 1 ), H265Encoder::Tune::Animation );
-        else
+        else if ( isY4M )
             _pEncoder = std::make_shared<Y4MEncoder>();
-
-        _pEncoder->SetTotalFrames( uint32_t( _taskCount ) );
+        else
+            _pEncoder = std::make_shared<SerEncoder>();
+        
         _pEncoder->SetFrameRate( _frameRate );
         _pEncoder->Attach( _fileName );
     }
@@ -265,6 +269,9 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
 
     if ( _pEncoder )
     {
+        if ( isVideo )
+            _pEncoder->SetTotalFrames( uint32_t( _taskCount ) );
+
         _pEncoder->Detach();
         _pEncoder.reset();
     }
