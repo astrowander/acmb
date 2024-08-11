@@ -156,6 +156,7 @@
     <ClCompile Include="LevelsWindow.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="MedianBlurWindow.cpp" />
     <ClCompile Include="MenuItem.cpp" />
     <ClCompile Include="MenuItemsHolder.cpp" />
     <ClCompile Include="PipelineElementWindow.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="LevelsWindow.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="MedianBlurWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />
     <ClInclude Include="PipelineElementWindow.h" />
