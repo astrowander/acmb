@@ -19,13 +19,15 @@ encoder.SetFrameRate( 25 );
 for ( int i = 0; i < 25; ++i )
 {
     const uint8_t l = uint8_t( std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, MakeRGB24( l, l, l ) ) ) );
+    const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( l, l, l );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
 }
 
 for ( int i = 0; i < 25; ++i )
 {
     const uint8_t l = uint8_t( 255 - std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, MakeRGB24( l, l, l ) ) ) );
+    const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( l, l, l );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
 }
 
 encoder.Detach();
@@ -56,7 +58,8 @@ auto f = []
     H265Encoder encoder( H265Encoder::Preset::Medium );
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::Gray8>>( new Bitmap<PixelFormat::Gray8>( 64, 64, 255 ) ) );
+    const auto fillColor = std::make_shared<Color<PixelFormat::Gray8>>( 255 );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::Gray8>>( new Bitmap<PixelFormat::Gray8>( 64, 64, fillColor ) ) );
 };
 
 ASSERT_THROWS( f, std::invalid_argument );
@@ -80,8 +83,9 @@ auto f = []
     H265Encoder encoder( H265Encoder::Preset::Medium );
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, 255 ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, 255 ) ) );
+    const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( 255, 255, 255 );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, fillColor ) ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );

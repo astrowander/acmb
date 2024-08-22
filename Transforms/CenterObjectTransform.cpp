@@ -42,11 +42,16 @@ public:
             pGrayBitmap = static_pointer_cast<Bitmap<cGrayFormat>>( pConverter->RunAndGetBitmap() );
         }
 
-        std::vector<ChannelType> dataCopy( pSrcBitmap->GetWidth() * pSrcBitmap->GetHeight() );
-        memcpy( dataCopy.data(), pGrayBitmap->GetScanline( 0 ), settings_.dstSize.width * settings_.dstSize.height * sizeof( ChannelType ) );
+        uint32_t bgAreaSize = 0.15f * std::max( pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight() );
+        uint32_t srcPixelCount = bgAreaSize * bgAreaSize;
+        std::vector<ChannelType> dataCopy( srcPixelCount );
+        for ( uint32_t i = 0; i < bgAreaSize; ++i )
+        { 
+            memcpy( dataCopy.data() + i * bgAreaSize, pGrayBitmap->GetScanline( i ), bgAreaSize * sizeof( ChannelType ) );
+        }
 
-        ChannelType* median = dataCopy.data() + settings_.dstSize.width * settings_.dstSize.height / 2;
-        std::nth_element( std::execution::par, dataCopy.data(), median, dataCopy.data() + settings_.dstSize.width * settings_.dstSize.height );
+        ChannelType* median = dataCopy.data() + srcPixelCount / 2;
+        std::nth_element( std::execution::par, dataCopy.data(), median, dataCopy.data() + srcPixelCount );
 
         const ChannelType threshold = ChannelType( std::min( *median * (1 + settings_.threshold / 100.0f), float( PixelFormatTraits<pixelFormat>::channelMax ) ) );
 
@@ -93,10 +98,11 @@ public:
         dstRect.x = int( center.x - settings_.dstSize.width / 2 );
         dstRect.y = int( center.y - settings_.dstSize.height / 2 );
 
-        if ( dstRect.x < 0 || dstRect.y < 0 || dstRect.x + dstRect.width > pSrcBitmap->GetWidth() || dstRect.y + dstRect.height > pSrcBitmap->GetHeight() )
-            return;
+        //if ( dstRect.x < 0 || dstRect.y < 0 || dstRect.x + dstRect.width > pSrcBitmap->GetWidth() || dstRect.y + dstRect.height > pSrcBitmap->GetHeight() )
+           // return;
 
-        _pDstBitmap = CropTransform::Crop( pSrcBitmap, dstRect );
+        std::array<uint32_t,4> channels = { *median, *median, *median, *median };
+        _pDstBitmap = CropTransform::CropAndFill( pSrcBitmap, dstRect, IColor::Create( pixelFormat, channels ) );
     }
 
     virtual void ValidateSettings() override

@@ -21,13 +21,13 @@ BEGIN_TEST( TestRGB24 )
     for ( int i = 0; i < 25; ++i )
     {
         const uint8_t l = uint8_t( std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, MakeRGB24( l, l, l ) ) ) );
+        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) ) );
     }
 
     for ( int i = 0; i < 25; ++i )
     {
         const uint8_t l = uint8_t( 255 - std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, MakeRGB24( l, l, l ) ) ) );
+        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) ) );
     }
 
     encoder.Detach();
@@ -58,7 +58,7 @@ BEGIN_TEST( TestUnsupportedPixelFormat )
         Y4MEncoder encoder;
         std::shared_ptr<std::stringstream> pStream( new std::stringstream );
         encoder.Attach( pStream );
-        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::Gray8>>( new Bitmap<PixelFormat::Gray8>( 64, 64, 255 ) ) );
+        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::Gray8>>( new Bitmap<PixelFormat::Gray8>( 64, 64, IColor::MakeGray8( 255 ) ) ) );
     };
 
     ASSERT_THROWS( f, std::invalid_argument );
@@ -82,8 +82,8 @@ auto f = []
     Y4MEncoder encoder;
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, 255 ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, 255 ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );

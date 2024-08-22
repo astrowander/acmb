@@ -213,6 +213,9 @@
     <ClInclude Include="Transforms\MedianBlurTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Core\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -360,6 +363,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\MedianBlurTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

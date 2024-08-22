@@ -62,7 +62,7 @@ inline constexpr uint32_t BitsPerPixel( PixelFormat pixelFormat )
     return BytesPerPixel( pixelFormat ) * 8;
 }
 ///predefined rgb colors
-enum class ARGB32Color : uint32_t
+enum class NamedColor32 : uint32_t
 {
     Black       = 0xFF'00'00'00,
     Red         = 0xFF'FF'00'00,
@@ -74,7 +74,7 @@ enum class ARGB32Color : uint32_t
     Transparent = 0x00'00'00'00
 };
 ///predefined extended rgb colors
-enum class ARGB64Color : uint64_t
+enum class NamedColor64 : uint64_t
 {
     Black       = 0xFFFF'0000'0000'0000,
     Red         = 0xFFFF'FFFF'0000'0000,
@@ -85,7 +85,7 @@ enum class ARGB64Color : uint64_t
     Azure       = 0xFFFF'0000'7FFF,FFFF,
     Transparent = 0x0000'0000'0000'0000
 };
-///creates rgb color from given channel values
+/*///creates rgb color from given channel values
 inline constexpr uint32_t MakeRGB24( uint8_t r, uint8_t g, uint8_t b )
 {
     return uint32_t{ b } + ( uint32_t{ g } << 8 ) + ( uint32_t{ r } << 16 );
@@ -94,7 +94,7 @@ inline constexpr uint32_t MakeRGB24( uint8_t r, uint8_t g, uint8_t b )
 inline constexpr uint64_t MakeRGB48( uint16_t r, uint16_t g, uint16_t b )
 {
     return uint64_t{ b } + ( uint64_t{ g } << 16 ) + ( uint64_t{ r } << 32 );
-}
+}*/
 ///aliases for channels
 enum class Channel : uint32_t
 {
@@ -112,9 +112,9 @@ struct PixelFormatTraits
     /// alias for channel type (uint8_t/uint16_t)
     using ChannelType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint8_t, uint16_t>;
     /// alias for color type (uint32_t/uint64_t)
-    using ColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint32_t, uint64_t>;
+    using IntColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, uint32_t, uint64_t>;
     /// alias for predefined enum color type (ARGB32Color/ARGB64Color)
-    using EnumColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, ARGB32Color, ARGB64Color>;
+    using EnumColorType = typename std::conditional_t<((uint32_t)pixelFormat >> 16) == 1, NamedColor32, NamedColor64>;
 
     static constexpr auto colorSpace = GetColorSpace(pixelFormat);
     static constexpr auto channelCount = ChannelCount(pixelFormat);

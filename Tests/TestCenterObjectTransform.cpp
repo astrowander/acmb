@@ -50,9 +50,9 @@ ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST( TestTooLargeSize )
-    auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/jupiter.ppm" ) ); 
-    EXPECT_TRUE( CenterObjectTransform::CenterObject( pSrcBitmap, { .dstSize = {.width = 500, .height = 500}, .threshold = 25 } ) == nullptr );
-    END_TEST
+    auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/jupiter_crop.ppm" ) ); 
+    EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CenterObjectTransform/TestTooLargeSize.ppm" ), CenterObjectTransform::CenterObject( pSrcBitmap, { .dstSize = {.width = 600, .height = 400}, .threshold = 25 } ) ) );
+END_TEST
 
 BEGIN_TEST( TestZeroSize )
     auto f = [] ()

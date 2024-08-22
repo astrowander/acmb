@@ -9,8 +9,10 @@ ACMB_TESTS_NAMESPACE_BEGIN
 template<PixelFormat pixelFormat, PpmMode mode>
 static bool TestPixelFormat()
 {
-    using ColorEnumType = std::conditional_t<BytesPerChannel( pixelFormat ) == 1, ARGB32Color, ARGB64Color>;
-    auto pBitmap = std::make_shared<Bitmap<pixelFormat>>( 20, 23, static_cast< ColorEnumType >( ARGB64Color::Gray ) );
+    constexpr auto cChannelMax = PixelFormatTraits<pixelFormat>::channelMax;
+    std::array<uint32_t, 4> channels = { cChannelMax / 2, cChannelMax / 2, cChannelMax / 2 };
+
+    auto pBitmap = std::make_shared<Bitmap<pixelFormat>>( 20, 23, static_pointer_cast<Color<pixelFormat>>( IColor::Create( pixelFormat, channels ) ) );
     auto openMode = ( mode == PpmMode::Binary ) ? std::ios_base::out : std::ios_base::out | std::ios_base::binary;
 
     auto pOutStream = std::make_shared<std::ostringstream>( openMode );

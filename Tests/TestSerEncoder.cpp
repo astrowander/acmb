@@ -82,8 +82,8 @@ auto f = []
     SerEncoder encoder;
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, 255 ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, 255 ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );
@@ -95,8 +95,8 @@ auto f = []
     SerEncoder encoder;
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, 255 ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB48>>( new Bitmap<PixelFormat::RGB48>( 64, 64, 255 ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
+    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB48>>( new Bitmap<PixelFormat::RGB48>( 64, 64, IColor::MakeRGB48( 255, 255, 255 ) ) ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );

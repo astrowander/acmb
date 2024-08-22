@@ -43,6 +43,7 @@
     <ClInclude Include="Codecs\Tiff\TiffEncoder.h" />
     <ClInclude Include="Core\bitmap.h" />
     <ClInclude Include="Core\camerasettings.h" />
+    <ClInclude Include="Core\color.h" />
     <ClInclude Include="Core\enums.h" />
     <ClInclude Include="Core\imageparams.h" />
     <ClInclude Include="Core\IPipelineElement.h" />
@@ -107,6 +108,7 @@
     <ClCompile Include="Codecs\Tiff\TiffDecoder.cpp" />
     <ClCompile Include="Codecs\Tiff\TiffEncoder.cpp" />
     <ClCompile Include="Core\bitmap.cpp" />
+    <ClCompile Include="Core\color.cpp" />
     <ClCompile Include="Core\enums.cpp" />
     <ClCompile Include="Core\imageparams.cpp" />
     <ClCompile Include="Core\IPipelineElement.cpp" />

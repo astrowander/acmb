@@ -3,6 +3,7 @@
 #include "IPipelineElement.h"
 #include "../Tools/mathtools.h"
 #include "camerasettings.h"
+#include "color.h"
 
 #include <vector>
 #include <memory>
@@ -37,8 +38,10 @@ public:
     static std::shared_ptr<IBitmap> Create( const std::string& fileName, PixelFormat outputFormat = PixelFormat::Unspecified );
     /// creates bitmap from a given file
     static std::shared_ptr<IBitmap> Create( const std::shared_ptr<std::istream> pStream, PixelFormat outputFormat = PixelFormat::Unspecified );
-    /// creates bitmap with given params
+    /// creates bitmap with given size and pixel format
     static std::shared_ptr<IBitmap> Create(uint32_t width, uint32_t height, PixelFormat pixelFormat);
+    /// creates bitmap with given size and fills it with given color
+    static std::shared_ptr<IBitmap> Create( uint32_t width, uint32_t height, IColorPtr pColor );
     /// saves given bitmap to a file
     static void Save(std::shared_ptr<IBitmap> pBitmap, const std::string& fileName);
 };
@@ -52,7 +55,7 @@ class Bitmap : public IBitmap, public std::enable_shared_from_this<Bitmap<pixelF
     /// alias for channel type (uint8_t/uint16_t)
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     /// alias for color type (uint32_t/uint64_t)
-    using ColorType = typename PixelFormatTraits<pixelFormat>::ColorType;
+    using ColorType = typename PixelFormatTraits<pixelFormat>::IntColorType;
     /// alias for enum with predefined color
     using EnumColorType = typename PixelFormatTraits<pixelFormat>::EnumColorType;
     /// alias for channel count of pixel format
@@ -60,30 +63,11 @@ class Bitmap : public IBitmap, public std::enable_shared_from_this<Bitmap<pixelF
 
     std::vector<ChannelType> _data;
 
-    void Fill(ColorType fillColor)
-    {
-        ChannelType channels[channelCount];
-        for (uint32_t i = 0; i < channelCount; ++i)
-        {
-            auto channel = static_cast<ChannelType>(fillColor >> (BitsPerChannel(pixelFormat) * i) & PixelFormatTraits<pixelFormat>::channelMax);
-            channels[channelCount - i - 1] = channel;
-        }
-
-        for (uint32_t i = 0; i < _height; ++i)
-        {
-            for (uint32_t j = 0; j < _width; ++j)
-            {
-                for (uint32_t k = 0; k < channelCount; ++k)
-                {
-                    _data[(i * _width + j) * channelCount + k] = channels[k];
-                }
-            }
-        }
-    }
+    void Fill( std::shared_ptr<Color<pixelFormat>> pColor );
 
 public:
     /// creates bitmap with given size and fills it with given color (black by default)
-    Bitmap(uint32_t width, uint32_t height, ColorType fillColor = 0)
+    Bitmap(uint32_t width, uint32_t height, std::shared_ptr<Color<pixelFormat>> pColor = nullptr )
     {
         if (width == 0 || height == 0)
             throw std::invalid_argument("size should not be zero");
@@ -96,16 +80,16 @@ public:
         _pixelFormat = pixelFormat;
         _data.resize(_width * _height * channelCount);
 
-        if (fillColor != 0)
-        {
-            Fill(fillColor);
-        }
+        if ( pColor )
+            Fill( pColor );
     }
-    /// creates bitmap with given size and fills it with given color
+    
+    /* /// creates bitmap with given size and fills it with given color
     Bitmap(uint32_t width, uint32_t height, EnumColorType fillColor)
-    : Bitmap(width, height, static_cast<ColorType>(fillColor))
+    : Bitmap(width, height, std::make_shared<Color<pixelFormat>>(fillColor))
     {
-    }
+    } */
+
     /// returns given scanline
     ChannelType* GetScanline(uint32_t i)
     {

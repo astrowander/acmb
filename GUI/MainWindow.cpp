@@ -422,7 +422,7 @@ void MainWindow::DrawMenu()
 
 void MainWindow::DrawDialog()
 {
-    if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() )
+    if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() && !_isBusy )
         UnlockInterface();
 
     if ( !_lockInterface && !_showHelpPopup )

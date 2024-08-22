@@ -102,6 +102,47 @@ IBitmapPtr CropTransform::Crop( IBitmapPtr pSrcBitmap, Rect dstRect )
     return pCropTransform->RunAndGetBitmap();
 }
 
+IBitmapPtr CropTransform::CropAndFill( IBitmapPtr pSrcBitmap, Rect roi, IColorPtr pColor )
+{
+    if ( !pSrcBitmap )
+        throw std::invalid_argument( "pSrcBitmap is null" );
+
+    if ( !pColor )
+        throw std::invalid_argument( "pColor is null" );
+
+    if ( pSrcBitmap->GetPixelFormat() != pColor->GetPixelFormat() )
+        throw std::invalid_argument( "pixel formats do not match" );
+
+    auto pRes = IBitmap::Create( roi.width, roi.height, pColor );
+
+    // area on original image that will be copied
+    Rect srcRect
+    {
+        .x = roi.x < 0 ? 0 : roi.x,
+        .y = roi.y < 0 ? 0 : roi.y
+    };
+
+    srcRect.width = std::min( roi.GetRight(), int32_t( pSrcBitmap->GetWidth() ) ) - srcRect.x;
+    srcRect.height = std::min( roi.GetBottom(), int32_t( pSrcBitmap->GetHeight() ) ) - srcRect.y;
+    if ( srcRect.width <= 0 || srcRect.height <= 0 )
+        return pRes;
+
+    const uint32_t bypp = BytesPerPixel( pSrcBitmap->GetPixelFormat() );
+
+    Point originPoint { .x = roi.x < 0 ? -roi.x : 0, .y = roi.y < 0 ? -roi.y : 0 };
+    oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, srcRect.height ), [&] ( const oneapi::tbb::blocked_range<int>& range )
+    {
+        for ( int i = range.begin(); i < range.end(); ++i )
+        {
+            auto pSrcScanline = pSrcBitmap->GetPlanarScanline( i + srcRect.y );
+            auto pResScanline = pRes->GetPlanarScanline( i + originPoint.y );
+            memcpy( pResScanline + originPoint.x * bypp, pSrcScanline + bypp * srcRect.x, srcRect.width * bypp );
+        }
+    });
+
+    return pRes;
+}
+
 void CropTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
 {
     _width = _dstRect.width;
