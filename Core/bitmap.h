@@ -82,13 +82,12 @@ public:
 
         if ( pColor )
             Fill( pColor );
-    }
+    }    
     
-    /* /// creates bitmap with given size and fills it with given color
     Bitmap(uint32_t width, uint32_t height, EnumColorType fillColor)
     : Bitmap(width, height, std::make_shared<Color<pixelFormat>>(fillColor))
     {
-    } */
+    } 
 
     /// returns given scanline
     ChannelType* GetScanline(uint32_t i)

@@ -11,7 +11,7 @@ BEGIN_SUITE( BitmapDivisor )
 
 BEGIN_TEST( TestWrongArgs )
 
-auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Black ) );
+auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Black );
 auto f = [pSrcBitmap]
 {
     BitmapDivisor::Create( pSrcBitmap, { .pDivisor = nullptr } );

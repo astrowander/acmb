@@ -81,5 +81,13 @@ BEGIN_TEST( Test1x1 )
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/Test1x1.tiff" ), CropTransform::Crop( IBitmap::Create( GetPathToTestFile( "TIFF/RGB24.tiff" ) ), { 0, 0, 1, 1 } ) ) );
 END_TEST
 
+BEGIN_TEST( TestCropAndFill )
+auto pBitmap = IBitmap::Create( 100, 100, IColor::MakeRGB24( NamedColor32::White ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/CropAndFill_upper_left.tiff" ), CropTransform::CropAndFill( pBitmap, { -50, -50, 100, 100 }, IColor::MakeRGB24( NamedColor32::Blue ) ) ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/CropAndFill_upper_right.tiff" ), CropTransform::CropAndFill( pBitmap, { 50, -50, 100, 100 }, IColor::MakeRGB24( NamedColor32::Blue ) ) ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/CropAndFill_bottom_left.tiff" ), CropTransform::CropAndFill( pBitmap, { -50, 50, 100, 100 }, IColor::MakeRGB24( NamedColor32::Blue ) ) ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "CropTransform/CropAndFill_bottom_right.tiff" ), CropTransform::CropAndFill( pBitmap, { 50, 50, 100, 100 }, IColor::MakeRGB24( NamedColor32::Blue ) ) ) );
+END_TEST
+
 END_SUITE
 ACMB_TESTS_NAMESPACE_END

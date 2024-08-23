@@ -7,7 +7,7 @@ BEGIN_SUITE(Bitmap)
 
 BEGIN_TEST(TestGray8)
 
-    auto pBitmap = std::make_unique<Bitmap<PixelFormat::Gray8>>(15, 20, IColor::MakeGray8( NamedColor32::Gray) );
+    auto pBitmap = std::make_unique<Bitmap<PixelFormat::Gray8>>(15, 20, NamedColor32::Gray );
     EXPECT_EQ(127, pBitmap->GetChannel(0, 0, 0));
 
     EXPECT_EQ(300, pBitmap->GetByteSize());
@@ -19,7 +19,7 @@ END_TEST
 
 BEGIN_TEST(TestGray16)
 
-    auto pBitmap = std::make_unique<Bitmap<PixelFormat::Gray16>>(15, 20, IColor::MakeGray16( NamedColor64::Gray) );
+    auto pBitmap = std::make_unique<Bitmap<PixelFormat::Gray16>>(15, 20, NamedColor64::Gray );
     EXPECT_EQ(0x7FFF, pBitmap->GetChannel(0, 0, 0));
 
     EXPECT_EQ(600, pBitmap->GetByteSize());
@@ -30,7 +30,7 @@ BEGIN_TEST(TestGray16)
 END_TEST
 
 BEGIN_TEST(TestRgb48)
-    auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB48>>(15, 20, IColor::MakeRGB48( NamedColor64::Green) );
+    auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB48>>(15, 20, NamedColor64::Green );
     EXPECT_EQ(0x0000, pBitmap->GetChannel(0, 0, 0));
     EXPECT_EQ(0xFFFF, pBitmap->GetChannel(0, 0, 1));
     EXPECT_EQ(0x0000, pBitmap->GetChannel(0, 0, 2));
@@ -43,7 +43,7 @@ END_TEST
 
 BEGIN_TEST(TestRgb24)
 
-    auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(15, 20, IColor::MakeRGB24( NamedColor32::Red) );
+    auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(15, 20, NamedColor32::Red );
     EXPECT_EQ(0xFF, pBitmap->GetChannel(0, 0, 0));
     EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 1));
     EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 2));
@@ -63,17 +63,17 @@ BEGIN_TEST( TestInterpolation )
 END_TEST
 
 BEGIN_TEST(TestZeroSize)
-    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(0, 0, IColor::MakeRGB24( NamedColor32::Red) ); };
+    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(0, 0, NamedColor32::Red ); };
     ASSERT_THROWS(f, std::invalid_argument);
 END_TEST
 
 BEGIN_TEST( TooLarge)
-    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(-1, -1, IColor::MakeRGB24( NamedColor32::Red) ); };
+    auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(-1, -1, NamedColor32::Red ); };
     ASSERT_THROWS(f, std::invalid_argument);
 END_TEST
 
 BEGIN_TEST(Test1x1Bitmap)
-auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(1, 1, IColor::MakeRGB24( NamedColor32::Red) );
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(1, 1, NamedColor32::Red );
 EXPECT_EQ(0xFF, pBitmap->GetChannel(0, 0, 0));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 1));
 EXPECT_EQ(0x00, pBitmap->GetChannel(0, 0, 2));
@@ -81,7 +81,7 @@ END_TEST
 
 BEGIN_TEST( CreateWithColor )
 
-auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Azure ) );
+auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Azure );
 EXPECT_EQ( 0x00, pBitmap->GetChannel( 0, 0, 0 ) );
 EXPECT_EQ( 0x7F, pBitmap->GetChannel( 0, 0, 1 ) );
 EXPECT_EQ( 0xFF, pBitmap->GetChannel( 0, 0, 2 ) );
@@ -106,7 +106,7 @@ END_TEST
 BEGIN_TEST( TestCloning )
 IBitmapPtr pBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Azure ) );
 EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
-pBitmap = std::make_shared<Bitmap<PixelFormat::RGB48>>( 1, 1, IColor::MakeRGB48( NamedColor64::Azure ) );
+pBitmap = std::make_shared<Bitmap<PixelFormat::RGB48>>( 1, 1, NamedColor64::Azure );
 EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );
 pBitmap = std::make_shared<Bitmap<PixelFormat::Gray16>>( 1, 1, IColor::MakeGray16( 3456 ) );
 EXPECT_TRUE( BitmapsAreEqual( pBitmap, pBitmap->Clone() ) );

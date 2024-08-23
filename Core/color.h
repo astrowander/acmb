@@ -25,6 +25,11 @@ struct IColor
     static std::shared_ptr<Color<PixelFormat::RGB24>> MakeRGB24( NamedColor32 color );
     static std::shared_ptr<Color<PixelFormat::RGB48>> MakeRGB48( uint16_t r, uint16_t g, uint16_t b );
     static std::shared_ptr<Color<PixelFormat::RGB48>> MakeRGB48( NamedColor64 color );
+
+    static std::shared_ptr<Color<PixelFormat::RGBA32>> MakeRGBA32( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255 );
+    static std::shared_ptr<Color<PixelFormat::RGBA32>> MakeRGBA32( NamedColor32 color );
+    static std::shared_ptr<Color<PixelFormat::RGBA64>> MakeRGBA64( uint16_t r, uint16_t g, uint16_t b, uint16_t a = 65535 );
+    static std::shared_ptr<Color<PixelFormat::RGBA64>> MakeRGBA64( NamedColor64 color );
 };
 
 using IColorPtr = std::shared_ptr<IColor>;

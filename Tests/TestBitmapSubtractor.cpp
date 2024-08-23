@@ -8,7 +8,7 @@ BEGIN_SUITE(BitmapSubtractor)
 
 BEGIN_TEST(TestWrongArgs)
 
-auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Black ) );
+auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Black );
 auto f = [pSrcBitmap] {  BitmapSubtractor::Create( pSrcBitmap, { nullptr } ); };
 ASSERT_THROWS( f, std::invalid_argument );
 auto f2 = [pSrcBitmap] { BitmapSubtractor::Create( nullptr, { pSrcBitmap } ); };
@@ -16,8 +16,8 @@ ASSERT_THROWS( f2, std::invalid_argument );
 END_TEST
 
 BEGIN_TEST(SubtractFromBlack)
-auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Black ) );
-auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Azure ) );
+auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Black );
+auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Azure );
 
 auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, { pBitmapToSubtract } );
 auto pResult = pSubtractor->RunAndGetBitmap();
@@ -28,8 +28,8 @@ EXPECT_EQ( 0, pResult->GetChannel( 0, 0, 2 ) );
 END_TEST
 
 BEGIN_TEST( SubtractFromGray )
-auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Gray ) );
-auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Azure ) );
+auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Gray );
+auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Azure );
 
 auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, { pBitmapToSubtract } );
 auto pResult = pSubtractor->RunAndGetBitmap();
@@ -41,7 +41,7 @@ END_TEST
 
 BEGIN_TEST( SubtractFromWhite )
 auto pSrcBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::White ) );
-auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, IColor::MakeRGB24( NamedColor32::Azure ) );
+auto pBitmapToSubtract = std::make_shared<Bitmap<PixelFormat::RGB24>>( 1, 1, NamedColor32::Azure );
 
 auto pSubtractor = BitmapSubtractor::Create( pSrcBitmap, { pBitmapToSubtract } );
 auto pResult = pSubtractor->RunAndGetBitmap();
