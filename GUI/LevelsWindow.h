@@ -24,7 +24,7 @@ public:
     LevelsWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
-    virtual void Deserialize( std::istream& in ) override;
+    virtual bool Deserialize( std::istream& in ) override;
     virtual int GetSerializedStringSize() const override;
 
     SET_MENU_PARAMS( "\xef\x82\x80", "Levels", "Adjust levels of the image", 9 );

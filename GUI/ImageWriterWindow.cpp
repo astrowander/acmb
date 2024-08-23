@@ -141,9 +141,9 @@ void ImageWriterWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _quality, out );
 }
 
-void ImageWriterWindow::Deserialize( std::istream& in )
+bool ImageWriterWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _workingDirectory = gui::Deserialize<std::string>( in, _remainingBytes );
     _fileName = gui::Deserialize<std::string>( in, _remainingBytes );
     _formatId = gui::Deserialize<int>( in, _remainingBytes );
@@ -156,6 +156,7 @@ void ImageWriterWindow::Deserialize( std::istream& in )
     {
         _extension = _fileName.substr( dotPos );
     }
+    return true;
 }
 
 int ImageWriterWindow::GetSerializedStringSize() const

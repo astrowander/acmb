@@ -203,10 +203,11 @@ void LevelsWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _levelsSettings, out );
 }
 
-void LevelsWindow::Deserialize( std::istream& in )
+bool LevelsWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _levelsSettings = gui::Deserialize<decltype(_levelsSettings)>( in, _remainingBytes );
+    return true;
 }
 
 int LevelsWindow::GetSerializedStringSize() const

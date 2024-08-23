@@ -469,14 +469,19 @@ void PipelineElementWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _primaryInputIsOnTop, out );
 }
 
-void PipelineElementWindow::Deserialize( std::istream& in )
+bool PipelineElementWindow::Deserialize( std::istream& in )
 {
     _remainingBytes = sizeof( int );
     _remainingBytes = gui::Deserialize<int>( in, _remainingBytes );
 
-    _name = acmb::gui::Deserialize<std::string>( in, _remainingBytes );
+    auto savedName = gui::Deserialize<std::string>( in, _remainingBytes );
+    if ( savedName.empty() || savedName.back() == '\0' )
+        return false;
+    
+    _name = std::move( savedName );
     _serializedInputs = gui::Deserialize<SerializedInputs>( in, _remainingBytes );
     _primaryInputIsOnTop = gui::Deserialize<bool>( in, _remainingBytes );
+    return true;
 }
 
 int PipelineElementWindow::GetSerializedStringSize() const

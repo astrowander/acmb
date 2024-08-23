@@ -15,7 +15,7 @@ public:
     ResizeWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
-    virtual void Deserialize(std::istream& in) override;
+    virtual bool Deserialize(std::istream& in) override;
     virtual int GetSerializedStringSize() const override;
 
     SET_MENU_PARAMS( "\xef\x90\xa4", "Resize", "Choose image to arbitrary size", 6 );

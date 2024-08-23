@@ -58,10 +58,11 @@ int DarkFrameWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _multiplier );
 }
 
-void DarkFrameWindow::Deserialize( std::istream& in )
+bool DarkFrameWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _multiplier = gui::Deserialize<float>( in, _remainingBytes );
+    return true;
 }
 
 template<PixelFormat pixelFormat>

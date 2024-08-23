@@ -33,10 +33,11 @@ void FlatFieldWindow::Serialize(std::ostream& out) const
     gui::Serialize(_intensity, out);
 }
 
-void FlatFieldWindow::Deserialize(std::istream& in)
+bool FlatFieldWindow::Deserialize(std::istream& in)
 {
     PipelineElementWindow::Deserialize(in);
     _intensity = gui::Deserialize<float>(in, _remainingBytes);
+    return true;
 }
 
 int FlatFieldWindow::GetSerializedStringSize() const

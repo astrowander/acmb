@@ -85,11 +85,12 @@ void StackerWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _threshold, out );
 }
 
-void StackerWindow::Deserialize( std::istream& in )
+bool StackerWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _stackMode = gui::Deserialize<StackMode>( in, _remainingBytes );
     _threshold = gui::Deserialize<float>( in, _remainingBytes );
+    return true;
 }
 
 int StackerWindow::GetSerializedStringSize() const

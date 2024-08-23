@@ -35,10 +35,11 @@ void MedianBlurWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _radius, out );
 }
 
-void MedianBlurWindow::Deserialize( std::istream& in )
+bool MedianBlurWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _radius = gui::Deserialize<int>( in, _remainingBytes );
+    return true;
 }
 
 int MedianBlurWindow::GetSerializedStringSize() const

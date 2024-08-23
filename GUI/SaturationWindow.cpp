@@ -35,10 +35,11 @@ void SaturationWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _saturation, out );
 }
 
-void SaturationWindow::Deserialize( std::istream& in )
+bool SaturationWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _saturation = gui::Deserialize<float>( in, _remainingBytes );
+    return true;
 }
 
 int SaturationWindow::GetSerializedStringSize() const

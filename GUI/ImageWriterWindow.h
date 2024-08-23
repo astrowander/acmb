@@ -29,7 +29,7 @@ public:
     ImageWriterWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
-    virtual void Deserialize( std::istream& in ) override;
+    virtual bool Deserialize( std::istream& in ) override;
     virtual int GetSerializedStringSize() const override;
 
     std::vector<std::string> ExportAllImages();

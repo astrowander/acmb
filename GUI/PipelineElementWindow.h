@@ -151,7 +151,8 @@ public:
     virtual uint8_t GetMenuOrder() const = 0;
 
     virtual void Serialize(std::ostream& out) const;
-    virtual void Deserialize(std::istream& in);
+
+    virtual bool Deserialize(std::istream& in);
     virtual int GetSerializedStringSize() const;
 
     SerializedInputs GetActualInputs()  const { return _serializedInputs; }

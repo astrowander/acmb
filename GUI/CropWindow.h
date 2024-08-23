@@ -15,7 +15,7 @@ public:
     CropWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
-    virtual void Deserialize(std::istream& in) override;
+    virtual bool Deserialize(std::istream& in) override;
     virtual int GetSerializedStringSize() const override;
 
     SET_MENU_PARAMS( "\xef\x84\xa5", "Crop", "Crop image to an arbitrary rectangle", 7 );

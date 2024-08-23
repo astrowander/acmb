@@ -187,9 +187,9 @@ void ImageReaderWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _invertOrder, out );
 }
 
-void ImageReaderWindow::Deserialize( std::istream& in )
+bool ImageReaderWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _workingDirectory = gui::Deserialize<std::string>( in, _remainingBytes );
     _fileNames = gui::Deserialize<std::vector<std::string>>( in, _remainingBytes );
     _selectedItemIdx = gui::Deserialize<int>( in, _remainingBytes );
@@ -201,6 +201,7 @@ void ImageReaderWindow::Deserialize( std::istream& in )
         _frameCount += ImageDecoder::Create( fileName )->GetFrameCount();
         _taskNumberToFileIndex[int( _frameCount - 1)] = int( i );
     }
+    return true;
 }
 
 int ImageReaderWindow::GetSerializedStringSize() const

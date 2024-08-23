@@ -36,10 +36,11 @@ void CropWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _dstRect, out );
 }
 
-void CropWindow::Deserialize( std::istream& in )
+bool CropWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _dstRect = gui::Deserialize<Rect>( in, _remainingBytes );
+    return true;
 }
 
 int CropWindow::GetSerializedStringSize() const

@@ -30,11 +30,12 @@ void CenterObjectWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _threshold, out );
 }
 
-void CenterObjectWindow::Deserialize( std::istream& in )
+bool CenterObjectWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _dstSize = gui::Deserialize<Size>( in, _remainingBytes );
     _threshold = gui::Deserialize<float>( in, _remainingBytes );
+    return true;
 }
 
 int CenterObjectWindow::GetSerializedStringSize() const

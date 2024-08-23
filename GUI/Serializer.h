@@ -75,6 +75,9 @@ T Deserialize( std::istream& in, int& remainingBytes )
 
         int cachedRemainingBytes = remainingBytes;
         int size = std::min( Deserialize<int>( in, remainingBytes ), cachedRemainingBytes );
+        if ( size <= 0 )
+            remainingBytes = 0;
+
         if ( remainingBytes == 0 )
             return {};
 
@@ -94,6 +97,11 @@ T Deserialize( std::istream& in, int& remainingBytes )
         }
 
         int size = Deserialize<int>( in, remainingBytes );
+        if ( size <= 0 )
+        {
+            remainingBytes = 0;
+            return {};
+        }
         std::vector<std::string> vec( size );
         for ( int i = 0; i < size; ++i )
             vec[i] = Deserialize<std::string>( in, remainingBytes );
@@ -111,6 +119,11 @@ T Deserialize( std::istream& in, int& remainingBytes )
         }
 
         int size = Deserialize<int>( in, remainingBytes );
+        if ( size <= 0 )
+        {
+            remainingBytes = 0;
+            return {};
+        }
         std::map<int, int> map;
         for ( int i = 0; i < size; ++i )
         {

@@ -28,10 +28,11 @@ void ResizeWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _dstSize, out );
 }
 
-void ResizeWindow::Deserialize( std::istream& in )
+bool ResizeWindow::Deserialize( std::istream& in )
 {
-    PipelineElementWindow::Deserialize( in );
+    if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _dstSize = gui::Deserialize<Size>( in, _remainingBytes );
+    return true;
 }
 
 int ResizeWindow::GetSerializedStringSize() const
