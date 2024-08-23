@@ -45,10 +45,13 @@ public:
         uint32_t bgAreaSize = 0.15f * std::max( pSrcBitmap->GetWidth(), pSrcBitmap->GetHeight() );
         uint32_t srcPixelCount = bgAreaSize * bgAreaSize;
         std::vector<ChannelType> dataCopy( srcPixelCount );
-        for ( uint32_t i = 0; i < bgAreaSize; ++i )
-        { 
-            memcpy( dataCopy.data() + i * bgAreaSize, pGrayBitmap->GetScanline( i ), bgAreaSize * sizeof( ChannelType ) );
-        }
+        oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<uint32_t>( 0, bgAreaSize ), [&] ( const oneapi::tbb::blocked_range<uint32_t>& range )
+        {
+            for ( uint32_t i = range.begin(); i < range.end(); ++i )
+            {
+                memcpy( dataCopy.data() + i * bgAreaSize, pGrayBitmap->GetScanline( i ), bgAreaSize * sizeof( ChannelType ) );
+            }
+        } );
 
         ChannelType* median = dataCopy.data() + srcPixelCount / 2;
         std::nth_element( std::execution::par, dataCopy.data(), median, dataCopy.data() + srcPixelCount );

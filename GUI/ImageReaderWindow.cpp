@@ -197,9 +197,9 @@ void ImageReaderWindow::Deserialize( std::istream& in )
 
     for ( size_t i = 0; i < _fileNames.size(); ++i )
     {
-        auto& fileName = _fileNames[i];
-        _taskNumberToFileIndex[int( _frameCount )] = int( i );
-        _frameCount += ImageDecoder::Create( fileName )->GetFrameCount();        
+        auto& fileName = _fileNames[i];        
+        _frameCount += ImageDecoder::Create( fileName )->GetFrameCount();
+        _taskNumberToFileIndex[int( _frameCount - 1)] = int( i );
     }
 }
 
