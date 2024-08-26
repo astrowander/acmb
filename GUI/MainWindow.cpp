@@ -17,7 +17,7 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-static constexpr float cMenuButtonSize = 50.0f;
+static constexpr float cMenuButtonSize = 60.0f;
 
 static constexpr float cHeadRowHeight = 25;
 static constexpr float cGridTop = cMenuButtonSize + 105.0f;
