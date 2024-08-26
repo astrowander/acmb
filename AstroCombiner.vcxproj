@@ -83,6 +83,7 @@
     <ClInclude Include="Transforms\DebayerTransform.h" />
     <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
+    <ClInclude Include="Transforms\LaplacianTransform.h" />
     <ClInclude Include="Transforms\MedianBlurTransform.h" />
     <ClInclude Include="Transforms\ResizeTransform.h" />
     <ClInclude Include="Transforms\SaturationTransform.h" />
@@ -135,6 +136,7 @@
     <ClCompile Include="Transforms\DebayerTransform.cpp" />
     <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
+    <ClCompile Include="Transforms\LaplacianTransform.cpp" />
     <ClCompile Include="Transforms\MedianBlurTransform.cpp" />
     <ClCompile Include="Transforms\ResizeTransform.cpp" />
     <ClCompile Include="Transforms\SaturationTransform.cpp" />
