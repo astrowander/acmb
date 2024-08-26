@@ -74,6 +74,8 @@ void SerDecoder::Attach( std::shared_ptr<std::istream> pStream )
 
     pStream->read( (char*)&_pCameraSettings->timestamp, 8 );
     pStream->read( ( char* ) &_pCameraSettings->timestampUTC, 8 );
+
+    _frameByteSize = _width * _height * BytesPerPixel( _decodedFormat );
 }
 
 std::shared_ptr<IBitmap> SerDecoder::ReadBitmap()
@@ -83,13 +85,24 @@ std::shared_ptr<IBitmap> SerDecoder::ReadBitmap()
 
     uint64_t oldPos = _pStream->tellg();
     auto pBitmap = IBitmap::Create( _width, _height, _decodedFormat );
-    const uint64_t byteSize = _width * _height * BytesPerPixel( _decodedFormat );
-    _pStream->read( pBitmap->GetPlanarScanline(0), byteSize );
+    _pStream->read( pBitmap->GetPlanarScanline(0), _frameByteSize );
 
-    if ( _pStream->tellg() != oldPos + byteSize )
-        throw std::runtime_error( "invalid stream" );
+    if ( _pStream->tellg() != oldPos + _frameByteSize )
+        throw std::runtime_error( "SERDecoder: attempt to read past end of stream" );
 
-    return pBitmap;
+    return ToOutputFormat( pBitmap );
+}
+
+std::shared_ptr<IBitmap> SerDecoder::ReadBitmap( uint32_t i )
+{
+    if ( !_pStream )
+        throw std::runtime_error( "Stream is not attached" );
+
+    if ( i >= _frameCount )
+        throw std::out_of_range( "Frame index out of range" );
+
+    _pStream->seekg( Ser::cHeaderSize + i * _frameByteSize, std::ios_base::beg );
+    return ReadBitmap();
 }
 
 std::unordered_set <std::string> SerDecoder::GetExtensions()

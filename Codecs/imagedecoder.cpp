@@ -133,6 +133,14 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     return pDecoder;
 }
 
+std::shared_ptr<IBitmap> ImageDecoder::ReadBitmap( uint32_t i )
+{
+    if ( i != 0 )
+        throw std::out_of_range( "index exceeds the number of frames" );
+
+    return ReadBitmap();
+}
+
 std::shared_ptr<ImageDecoder> ImageDecoder::Create( std::shared_ptr<std::istream> pStream, PixelFormat outputFormat )
 {
     if ( !pStream )

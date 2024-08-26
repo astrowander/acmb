@@ -46,8 +46,10 @@ public:
     virtual void Detach();
     virtual ~ImageDecoder();
     
-    /// read whole bitmap, need to implement in the derived class
+    /// read first bitmap, need to implement in the derived class
     virtual std::shared_ptr<IBitmap> ReadBitmap() = 0;
+    /// read i-st bitmap stored in the file
+    virtual std::shared_ptr<IBitmap> ReadBitmap( uint32_t i );
     virtual std::shared_ptr<IBitmap> ReadPreview( const Size& maxSize );
     /// read a stripe (several lines), throws exception "not implemented, override this if the image format allows to read file partially.
     virtual std::shared_ptr<IBitmap> ReadStripe( uint32_t stripeHeight );

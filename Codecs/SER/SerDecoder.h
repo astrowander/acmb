@@ -44,14 +44,18 @@ class SerDecoder : public ImageDecoder
     };*/
 
     //Header header;
+    size_t _frameByteSize = 0;
+
 public:
     SerDecoder( PixelFormat outputFormat = PixelFormat::Unspecified );
 
     using ImageDecoder::Attach;
     /// attach to stream
     void Attach( std::shared_ptr<std::istream> pStream ) override;
-    /// read the whole bitmap
+    /// read the next frame
     std::shared_ptr<IBitmap> ReadBitmap() override;
+    /// read the i-th frame
+    std::shared_ptr<IBitmap> ReadBitmap( uint32_t i ) override;
     /// returns supported file extensions
     static std::unordered_set <std::string> GetExtensions();
 };
