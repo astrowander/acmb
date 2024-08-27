@@ -119,7 +119,7 @@ IBitmapPtr HaloRemovalTransform::RemoveHalo( IBitmapPtr pSrcBitmap, float intens
 
 IBitmapPtr HaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap, float intensity )
 {
-    auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );
+    auto pHistBuilder = HistogramBuilder::Create( pSrcBitmap );
     pHistBuilder->BuildHistogram();
     std::array<uint16_t, 3> medianRgb =
     {

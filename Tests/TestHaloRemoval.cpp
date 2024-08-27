@@ -13,7 +13,7 @@ BEGIN_TEST( TestRGB48 )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/halo.ppm" ) );
 pSrcBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
-auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );
+auto pHistBuilder = HistogramBuilder::Create( pSrcBitmap );
 pHistBuilder->BuildHistogram();
 std::array<uint16_t, 3> medianRgb = 
 { 
@@ -34,7 +34,7 @@ BEGIN_TEST( TestRGB24 )
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/halo.ppm" ) );
 pSrcBitmap = ChannelEqualizer::AutoEqualize( pSrcBitmap );
 pSrcBitmap = Converter::Convert( pSrcBitmap, PixelFormat::RGB24 );
-auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );
+auto pHistBuilder = HistogramBuilder::Create( pSrcBitmap );
 pHistBuilder->BuildHistogram();
 std::array<uint16_t, 3> medianRgb =
 {

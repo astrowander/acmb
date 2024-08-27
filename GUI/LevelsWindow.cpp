@@ -145,7 +145,7 @@ void LevelsWindow::DrawPipelineElementControls()
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
     auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap();
-    auto pHistogramBuilder = HistorgamBuilder::Create( pInputBitmap );
+    auto pHistogramBuilder = HistogramBuilder::Create( pInputBitmap );
     pHistogramBuilder->BuildHistogram();
 
     const auto colorSpace = GetColorSpace( pInputBitmap->GetPixelFormat() );

@@ -211,7 +211,7 @@ IBitmapPtr ChannelEqualizer::Equalize( IBitmapPtr pSrcBitmap, const std::vector<
 
 IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 {
-	auto pHistBuilder = HistorgamBuilder::Create( pSrcBitmap );
+	auto pHistBuilder = HistogramBuilder::Create( pSrcBitmap );
 	pHistBuilder->BuildHistogram();
 	std::unique_ptr<ChannelEqualizer> pEqualizer;
 	switch ( pSrcBitmap->GetPixelFormat() )

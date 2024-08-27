@@ -9,7 +9,7 @@ BEGIN_SUITE(HistogramBuilder)
 BEGIN_TEST(TestRGB48)
 
 auto pSrcBitmap = IBitmap::Create(GetPathToTestFile("PPM/halo.ppm"));
-auto pHistogramBuilder = HistorgamBuilder::Create(pSrcBitmap);
+auto pHistogramBuilder = HistogramBuilder::Create(pSrcBitmap);
 pHistogramBuilder->BuildHistogram();
 
 EXPECT_EQ( 6632, pHistogramBuilder->GetChannelStatistics( 0 ).min );
@@ -28,7 +28,7 @@ END_TEST
 BEGIN_TEST( TestRGB24 )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "PPM/IMG_8970.ppm" ) );
-auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+auto pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
 pHistogramBuilder->BuildHistogram();
 
 EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
@@ -47,7 +47,7 @@ END_TEST
 BEGIN_TEST( TestGray16 )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "/gray.pgm" ) );
-auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+auto pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
 pHistogramBuilder->BuildHistogram();
 
 EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
@@ -59,7 +59,7 @@ END_TEST
 BEGIN_TEST( TestGray8 )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "TIFF/Gray8.tiff" ) );
-auto pHistogramBuilder = HistorgamBuilder::Create( pSrcBitmap );
+auto pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
 pHistogramBuilder->BuildHistogram();
 
 EXPECT_EQ( 0, pHistogramBuilder->GetChannelStatistics( 0 ).min );
@@ -71,7 +71,7 @@ END_TEST
 BEGIN_TEST( TestNullArgs )
 auto f = []
 {
-    HistorgamBuilder::Create( nullptr );
+    HistogramBuilder::Create( nullptr );
 };
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST

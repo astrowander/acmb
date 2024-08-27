@@ -11,7 +11,7 @@
 ACMB_NAMESPACE_BEGIN
 
 template <PixelFormat pixelFormat>
-class HistogramBuilder_ final : public HistorgamBuilder
+class HistogramBuilder_ final : public HistogramBuilder
 {
 	using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 	static const auto channelCount = PixelFormatTraits<pixelFormat>::channelCount;
@@ -22,7 +22,7 @@ class HistogramBuilder_ final : public HistorgamBuilder
 
 public:
 	HistogramBuilder_( IBitmapPtr pBitmap, const Rect& roi )
-	: HistorgamBuilder( pBitmap, roi )
+	: HistogramBuilder( pBitmap, roi )
 	{
 	}
 
@@ -126,14 +126,14 @@ public:
 	}
 };
 
-HistorgamBuilder::HistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi)
+HistogramBuilder::HistogramBuilder(IBitmapPtr pBitmap, const Rect& roi)
 : _pBitmap(pBitmap)
 , _roi((roi.width&& roi.height) ? roi : Rect {0, 0, int(pBitmap->GetWidth()), int(pBitmap->GetHeight()) })
 {
 	
 }
 
-std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create(IBitmapPtr pBitmap, const Rect& roi)
+std::shared_ptr<HistogramBuilder> HistogramBuilder::Create(IBitmapPtr pBitmap, const Rect& roi)
 {
 	if ( !pBitmap )
 		throw std::invalid_argument( "pSrcBitmap is null" );
@@ -155,7 +155,7 @@ std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create(IBitmapPtr pBitmap, c
 	}
 }
 
-std::shared_ptr<HistorgamBuilder> HistorgamBuilder::Create( PixelFormat pixelFormat, const Rect& roi )
+std::shared_ptr<HistogramBuilder> HistogramBuilder::Create( PixelFormat pixelFormat, const Rect& roi )
 {
 	switch ( pixelFormat )
 	{

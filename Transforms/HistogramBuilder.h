@@ -25,7 +25,7 @@ struct HistogramStatistics
 /// <summary>
 /// Count statistics of the image and builds the histogram
 /// </summary>
-class HistorgamBuilder
+class HistogramBuilder
 {
 public:
 	using ChannelHistogram = std::vector<uint32_t>;
@@ -34,14 +34,14 @@ public:
 protected:
 	IBitmapPtr _pBitmap;
 	Rect _roi;
-	HistorgamBuilder(IBitmapPtr pBitmap, const Rect& roi);
+	HistogramBuilder(IBitmapPtr pBitmap, const Rect& roi);
 
 public:
 	/// Creates instance with source bitmap and region of interest. If it is empty transform respects the whole bitmap	
-	static std::shared_ptr<HistorgamBuilder> Create( IBitmapPtr pBitmap, const Rect& roi = {});
+	static std::shared_ptr<HistogramBuilder> Create( IBitmapPtr pBitmap, const Rect& roi = {});
 	/// Creates instance with source pixel format and region of interest. If it is empty transform respects the whole bitmap
 	/// Source bitmap must be set later
-	static std::shared_ptr<HistorgamBuilder> Create( PixelFormat pixelFormat, const Rect& roi = {} );
+	static std::shared_ptr<HistogramBuilder> Create( PixelFormat pixelFormat, const Rect& roi = {} );
 	/// Builds histograms of the source image
 	virtual void BuildHistogram() = 0;
 	/// returns histogram of the given channel

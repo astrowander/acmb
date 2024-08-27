@@ -71,7 +71,7 @@ float CalculateIntensity( std::shared_ptr<Bitmap<pixelFormat>> pSource, std::sha
     using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
     constexpr size_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
 
-    auto pHistogramBuilder = HistorgamBuilder::Create( pDarkFrame );
+    auto pHistogramBuilder = HistogramBuilder::Create( pDarkFrame );
     pHistogramBuilder->BuildHistogram();
     std::vector<uint32_t> thresholds( channelCount );    
 

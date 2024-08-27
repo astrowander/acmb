@@ -44,7 +44,7 @@ public:
             }
             else
             {
-                auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
+                auto pHistogramBuilder = HistogramBuilder::Create( pDivisor );
                 pHistogramBuilder->BuildHistogram();
                 pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
                 pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
@@ -84,7 +84,7 @@ public:
             }
             else
             {
-                auto pHistogramBuilder = HistorgamBuilder::Create( pDivisor );
+                auto pHistogramBuilder = HistogramBuilder::Create( pDivisor );
                 pHistogramBuilder->BuildHistogram();
                 pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
                 pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 1 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
