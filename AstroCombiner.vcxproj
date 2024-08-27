@@ -60,6 +60,7 @@
     <ClInclude Include="Registrator\BaseStacker.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
     <ClInclude Include="Registrator\registrator.h" />
+    <ClInclude Include="Registrator\SortingHat.h" />
     <ClInclude Include="Registrator\StackEngineConstants.h" />
     <ClInclude Include="Registrator\stacker.h" />
     <ClInclude Include="Registrator\star.h" />
@@ -120,6 +121,7 @@
     <ClCompile Include="Registrator\BaseStacker.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
+    <ClCompile Include="Registrator\SortingHat.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />

@@ -213,6 +213,9 @@
     <ClInclude Include="Transforms\MedianBlurTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registrator\SortingHat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="Core\color.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -366,6 +369,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\MedianBlurTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registrator\SortingHat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Core\color.cpp">

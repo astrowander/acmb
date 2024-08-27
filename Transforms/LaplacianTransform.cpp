@@ -108,15 +108,13 @@ IBitmapPtr ConvolutionTransform::ApplyConvolution( IBitmapPtr pSrcBitmap, const 
 
 IBitmapPtr ConvolutionTransform::ApplyLaplacian( IBitmapPtr pSrcBitmap )
 {
-    //Settings settings { .kernelSize = { 3, 3 }, .kernel = { 0.25, 0.5, 0.25, 0.5, -3, 0.5, 0.25, 0.5, 0.25 } };
-    Settings settings{ .kernelSize = { 3, 3 }, .kernel = { 1, 1, 1, 1, -8, 1, 1, 1, 1 } };
-    /*Settings settings{.kernelSize = {5, 5},
+    Settings settings{.kernelSize = {5, 5},
                        .kernel = { 0,  0, -1,  0, 0,
                                    0, -1, -2, -1, 0,
                                   -1, -2, 16, -2, -1,
                                    0, -1, -2, -1,  0,
                                    0,  0, -1,  0,  0 }
-    };*/
+    };
 
     auto pTransform = Create( pSrcBitmap, settings );
     return pTransform->RunAndGetBitmap();
