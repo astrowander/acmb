@@ -161,7 +161,7 @@ Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
         {
             _levelsSettings[0].min = pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax;
             _levelsSettings[0].max = pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax;
-            const float denom = log( (pHistogramBuilder->GetChannelStatistics( 0 ).centils[50] / absoluteMax - _levelsSettings[0].min) / (_levelsSettings[0].max - _levelsSettings[0].min) );
+            const float denom = log( (pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax - _levelsSettings[0].min) / (_levelsSettings[0].max - _levelsSettings[0].min) );
             _levelsSettings[0].gamma = logTargetMedian / denom;
             break;
         }
@@ -169,7 +169,7 @@ Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
         {
             std::array<float, 3> channelMins = { pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).min / absoluteMax };
             std::array<float, 3> channelMaxs = { pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).max / absoluteMax };
-            std::array<float, 3> channelMedians = { pHistogramBuilder->GetChannelStatistics( 0 ).centils[50] / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).centils[50] / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).centils[50] / absoluteMax };
+            std::array<float, 3> channelMedians = { pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).median / absoluteMax };
             _levelsSettings[0].min = std::min( { channelMins[0], channelMins[1], channelMins[2] } );
             _levelsSettings[0].max = std::max( { channelMaxs[0], channelMaxs[1], channelMaxs[2] } );
             const float denom = log ( (channelMedians[1] - channelMins[1]) / (channelMaxs[1] - channelMins[1]) );            

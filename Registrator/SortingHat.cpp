@@ -174,12 +174,27 @@ void SortingHat::AddFrame( IBitmapPtr pBitmap )
         throw std::runtime_error( "SortingHat: invalid bitmap" );
 
     const auto grayFormat = ConstructPixelFormat( BitsPerChannel( _imageParams.GetPixelFormat() ), 1 );    
-    auto pLaplacian = ConvolutionTransform::ApplyLaplacian( Converter::Convert( pBitmap, grayFormat ) );
-    auto pHistogramBuilder = HistogramBuilder::Create( pLaplacian );
-    pHistogramBuilder->BuildHistogram();
-    const auto& statistics = pHistogramBuilder->GetChannelStatistics( 0 );
 
-    _frames.insert_or_assign( statistics.mean + statistics.dev, Frame{ .pBitmap = pBitmap, .tempFilePath = {}, .index = uint32_t( _frames.size() ), .laplacianMean = statistics.mean, .laplacianStdDev = statistics.dev } );
+    auto pLaplacian = ConvolutionTransform::ApplyLaplacian( Converter::Convert( pBitmap, grayFormat ) );
+    const auto width = pLaplacian->GetWidth();
+    const auto height = pLaplacian->GetHeight();
+
+    float key = 0;    
+
+    auto pHistogramBuilder = HistogramBuilder::Create( pLaplacian );
+    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, 28 ) );
+    key = pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev;
+
+    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, 28 ) );
+    key = std::min( pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev, key );
+
+    pHistogramBuilder->BuildHistogram( Rect( 0, height / 2, width / 2, height - height / 2 ) );
+    key = std::min( pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev, key );
+
+    pHistogramBuilder->BuildHistogram( Rect( width / 2, height / 2, width - width / 2, height - height / 2 ) );
+    key = std::min( pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev, key );
+
+    _frames.insert_or_assign( key, Frame{ .pBitmap = pLaplacian, .tempFilePath = {}, .index = uint32_t( _frames.size() ) } );
 }
 
 std::vector<SortingHat::Frame> SortingHat::GetBestFrames() const
