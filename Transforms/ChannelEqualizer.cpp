@@ -222,7 +222,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 				[pHistBuilder]( uint8_t arg )
 				{
 					const float min = pHistBuilder->GetChannelStatistics( 0 ).min;
-					const float med = pHistBuilder->GetChannelStatistics( 0 ).centils[50];
+					const float med = pHistBuilder->GetChannelStatistics( 0 ).median;
 					const float max = pHistBuilder->GetChannelStatistics( 0 ).max;
 
 					return std::clamp(ArbitraryQuadraticInterpolation( arg, min, 0, med, 60, max, 255 ), 0.0f, 255.0f);
@@ -235,7 +235,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 				[pHistBuilder]( uint16_t arg )
 				{
 					const float min = pHistBuilder->GetChannelStatistics( 0 ).min;
-					const float med = pHistBuilder->GetChannelStatistics( 0 ).centils[50];
+					const float med = pHistBuilder->GetChannelStatistics( 0 ).median;
 					const float max = pHistBuilder->GetChannelStatistics( 0 ).max;
 
 					return std::clamp( ArbitraryQuadraticInterpolation( arg, min, 0, med, 15360, max, 65535 ), 0.0f, 65535.0f );
@@ -248,7 +248,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 				[pHistBuilder]( uint8_t arg )
 				{
 					const float min = pHistBuilder->GetChannelStatistics( 0 ).min;
-					const float med = pHistBuilder->GetChannelStatistics( 0 ).centils[50];
+					const float med = pHistBuilder->GetChannelStatistics( 0 ).median;
 					const float max = pHistBuilder->GetChannelStatistics( 0 ).max;
 
 					return std::clamp( ArbitraryQuadraticInterpolation( arg, min, 0, med, 60, max, 255 ), 0.0f, 255.0f );
@@ -256,7 +256,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 				[pHistBuilder] ( uint8_t arg )
 				{
 					const float min = pHistBuilder->GetChannelStatistics( 1 ).min;
-					const float med = pHistBuilder->GetChannelStatistics( 1 ).centils[50];
+					const float med = pHistBuilder->GetChannelStatistics( 1 ).median;
 					const float max = pHistBuilder->GetChannelStatistics( 1 ).max;
 
 					return std::clamp( ArbitraryQuadraticInterpolation( arg, min, 0, med, 60, max, 255 ), 0.0f, 255.0f );
@@ -264,7 +264,7 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 				[pHistBuilder] ( uint8_t arg )
 				{
 					const float min = pHistBuilder->GetChannelStatistics( 2 ).min;
-					const float med = pHistBuilder->GetChannelStatistics( 2 ).centils[50];
+					const float med = pHistBuilder->GetChannelStatistics( 2 ).median;
 					const float max = pHistBuilder->GetChannelStatistics( 2 ).max;
 
 					return std::clamp( ArbitraryQuadraticInterpolation( arg, min, 0, med, 60, max, 255 ), 0.0f, 255.0f );
@@ -276,15 +276,15 @@ IBitmapPtr ChannelEqualizer::AutoEqualize( IBitmapPtr pSrcBitmap )
 			{
 				[pHistBuilder]( uint16_t arg )
 				{
-					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 0 ).min, 0, pHistBuilder->GetChannelStatistics( 0 ).centils[50], 15360, pHistBuilder->GetChannelStatistics( 0 ).max, 65535 ), 0.0f, 65535.0f );
+					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 0 ).min, 0, pHistBuilder->GetChannelStatistics( 0 ).median, 15360, pHistBuilder->GetChannelStatistics( 0 ).max, 65535 ), 0.0f, 65535.0f );
 				},
 					[pHistBuilder] ( uint16_t arg )
 				{
-					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 1 ).min, 0, pHistBuilder->GetChannelStatistics( 1 ).centils[50], 15360, pHistBuilder->GetChannelStatistics( 1 ).max, 65535 ), 0.0f, 65535.0f );
+					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 1 ).min, 0, pHistBuilder->GetChannelStatistics( 1 ).median, 15360, pHistBuilder->GetChannelStatistics( 1 ).max, 65535 ), 0.0f, 65535.0f );
 				},
 					[pHistBuilder] ( uint16_t arg )
 				{
-					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 2 ).min, 0, pHistBuilder->GetChannelStatistics( 2 ).centils[50], 15360, pHistBuilder->GetChannelStatistics( 2 ).max, 65535 ), 0.0f, 65535.0f );
+					return std::clamp( ArbitraryQuadraticInterpolation( arg, pHistBuilder->GetChannelStatistics( 2 ).min, 0, pHistBuilder->GetChannelStatistics( 2 ).median, 15360, pHistBuilder->GetChannelStatistics( 2 ).max, 65535 ), 0.0f, 65535.0f );
 				}
 			} );
 			break;

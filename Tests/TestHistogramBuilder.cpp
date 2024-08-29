@@ -68,6 +68,36 @@ EXPECT_EQ( 255, pHistogramBuilder->GetChannelStatistics( 0 ).max );
 
 END_TEST
 
+BEGIN_TEST( TestROI)
+
+auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "TIFF/jupiter_best_laplacian.tif" ) );
+auto pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
+pHistogramBuilder->BuildHistogram( Rect{ 0, 0, 28, 28 } );
+
+EXPECT_EQ( 6, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 369, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 37087, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+EXPECT_EQ( 1858, pHistogramBuilder->GetChannelStatistics( 0 ).median );
+EXPECT_EQ( 30156, pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile );
+
+pHistogramBuilder->BuildHistogram( Rect{ 28, 28, 27, 25 } );
+
+EXPECT_EQ( 4, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 17574, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 37263, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+EXPECT_EQ( 3368, pHistogramBuilder->GetChannelStatistics( 0 ).median );
+EXPECT_EQ( 26616, pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile );
+
+pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
+pHistogramBuilder->BuildHistogram( Rect{ 28, 28, 27, 25 } );
+EXPECT_EQ( 4, pHistogramBuilder->GetChannelStatistics( 0 ).min );
+EXPECT_EQ( 17574, pHistogramBuilder->GetChannelStatistics( 0 ).peak );
+EXPECT_EQ( 37263, pHistogramBuilder->GetChannelStatistics( 0 ).max );
+EXPECT_EQ( 3368, pHistogramBuilder->GetChannelStatistics( 0 ).median );
+EXPECT_EQ( 26616, pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile );
+
+END_TEST
+
 BEGIN_TEST( TestNullArgs )
 auto f = []
 {

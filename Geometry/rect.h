@@ -51,6 +51,11 @@ struct RectT
         y += ty;
     }
 
+    bool IsValid()
+    {
+        return width > 0 && height > 0;
+    }
+
     inline bool operator==(const RectT& rhs) const;
     inline bool operator!=(const RectT& rhs) const;
     

@@ -123,9 +123,9 @@ IBitmapPtr HaloRemovalTransform::AutoRemove( IBitmapPtr pSrcBitmap, float intens
     pHistBuilder->BuildHistogram();
     std::array<uint16_t, 3> medianRgb =
     {
-        uint16_t( pHistBuilder->GetChannelStatistics( 0 ).centils[50] ),
-        uint16_t( pHistBuilder->GetChannelStatistics( 1 ).centils[50] ),
-        uint16_t( pHistBuilder->GetChannelStatistics( 2 ).centils[50] )
+        uint16_t( pHistBuilder->GetChannelStatistics( 0 ).median ),
+        uint16_t( pHistBuilder->GetChannelStatistics( 1 ).median ),
+        uint16_t( pHistBuilder->GetChannelStatistics( 2 ).median )
     };
     auto medianHsl = RgbToHsl<uint16_t>( std::span( medianRgb ) );
     auto pRes = HaloRemovalTransform::RemoveHalo( pSrcBitmap, intensity, medianHsl[2] * 2, 250, 10 );

@@ -46,10 +46,10 @@ public:
             {
                 auto pHistogramBuilder = HistogramBuilder::Create( pDivisor );
                 pHistogramBuilder->BuildHistogram();
-                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
-                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
-                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
-                pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
+                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
                 _cachedPivots[pDivisor] = pivots;
             }
 
@@ -86,9 +86,9 @@ public:
             {
                 auto pHistogramBuilder = HistogramBuilder::Create( pDivisor );
                 pHistogramBuilder->BuildHistogram();
-                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
-                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 1 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
-                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 2 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
+                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 1 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 2 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
                 //pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).centils[99] - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
                 _cachedPivots[pDivisor] = pivots;
             }
