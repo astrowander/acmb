@@ -1,9 +1,11 @@
 #include "WarpTransform.h"
 #include "../Core/bitmap.h"
 #include "../Tools/mathtools.h"
-#include <algorithm>
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <functional>
+
+using namespace oneapi::tbb;
 
 ACMB_NAMESPACE_BEGIN
 
@@ -31,7 +33,46 @@ public:
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >(_pSrcBitmap);
         auto pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
 
-        std::vector<PointF> topCurve( width );
+        std::array<std::function<double( double )>, 4> bernstein =
+        {
+            []( double u ) { const double inv = 1 - u; return inv * inv * inv; },
+            []( double u ) { const double inv = 1 - u; return 3 * u * inv * inv; },
+            []( double u ) { const double inv = 1 - u; return 3 * u * u * inv; },
+            []( double u ) { return u * u * u; }
+        };
+
+        Settings defaultSettings;
+
+        parallel_for( blocked_range<uint32_t>( 0, height ), [&] ( const blocked_range<uint32_t>& r )
+        {
+            for ( uint32_t y = r.begin(); y < r.end(); ++y )
+            {
+                const double v = double( y ) / (height - 1);
+                auto pDstPixel = pDstBitmap->GetScanline( y );
+                for ( uint32_t x = 0; x < width; ++x )
+                {
+                    const double u = double( x ) / (width - 1);
+
+                    PointF p;
+
+                    for ( int i = 0; i < 4; ++i )
+                    for ( int j = 0; j < 4; ++j )
+                    {
+                        p += (2.0 * defaultSettings.controls[i * 4 + j] - _settings.controls[i * 4 + j]) * bernstein[j]( u ) * bernstein[i]( v );
+                    }
+
+                    p.x *= width - 1;
+                    p.y *= height - 1;
+
+                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                        pDstPixel[ch] = pSrcBitmap->GetInterpolatedChannel( p.x, p.y, ch );
+
+                    pDstPixel += channelCount;
+                }
+            }
+        } );
+
+        /*std::vector<PointF> topCurve(width);
         std::vector<PointF> leftCurve( height );
         std::vector<PointF> rightCurve( height );
         std::vector<PointF> bottomCurve( width );
@@ -112,7 +153,7 @@ public:
 
                 pPixel += channelCount;
             }
-        }
+        }*/
 
         _pDstBitmap = pDstBitmap;
     }
