@@ -59,6 +59,7 @@
     <ClInclude Include="Geometry\triangle.h" />
     <ClInclude Include="Registrator\BaseStacker.h" />
     <ClInclude Include="Registrator\FastAligner.h" />
+    <ClInclude Include="Registrator\FastDetector.h" />
     <ClInclude Include="Registrator\registrator.h" />
     <ClInclude Include="Registrator\SortingHat.h" />
     <ClInclude Include="Registrator\StackEngineConstants.h" />
@@ -88,6 +89,7 @@
     <ClInclude Include="Transforms\MedianBlurTransform.h" />
     <ClInclude Include="Transforms\ResizeTransform.h" />
     <ClInclude Include="Transforms\SaturationTransform.h" />
+    <ClInclude Include="Transforms\WarpTransform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp" />
@@ -120,6 +122,7 @@
     <ClCompile Include="Geometry\triangle.cpp" />
     <ClCompile Include="Registrator\BaseStacker.cpp" />
     <ClCompile Include="Registrator\FastAligner.cpp" />
+    <ClCompile Include="Registrator\FastDetector.cpp" />
     <ClCompile Include="Registrator\registrator.cpp" />
     <ClCompile Include="Registrator\SortingHat.cpp" />
     <ClCompile Include="Registrator\stacker.cpp" />
@@ -142,6 +145,7 @@
     <ClCompile Include="Transforms\MedianBlurTransform.cpp" />
     <ClCompile Include="Transforms\ResizeTransform.cpp" />
     <ClCompile Include="Transforms\SaturationTransform.cpp" />
+    <ClCompile Include="Transforms\WarpTransform.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

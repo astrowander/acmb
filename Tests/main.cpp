@@ -2,5 +2,5 @@
 
 int main()
 {
-    acmb::tests::TestRunner::RunTest( "BitmapSubtractor", "TestIntensity" );
+    acmb::tests::TestRunner::RunTest( "WarpTransform", "TestRGB24" );
 }

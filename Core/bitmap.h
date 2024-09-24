@@ -99,15 +99,15 @@ public:
     {
         return reinterpret_cast<char*>(&_data[_width * i * channelCount]);
     }
-    /// returns k-th channel of j-th pixel on i-th scanline
-    uint32_t GetChannel(uint32_t i, uint32_t j, uint32_t k) const override
+    /// returns ch-th channel of x-th pixel on y-th scanline
+    uint32_t GetChannel(uint32_t x, uint32_t y, uint32_t ch) const override
     {
-        return _data[(_width * i + j) * channelCount + k];
+        return _data[(_width * y + x) * channelCount + ch];
     }
-    /// sets k-th channel of j-th pixel on i-th scanline
-    void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) override
+    /// returns ch-th channel of x-th pixel on y-th scanline
+    void SetChannel(uint32_t x, uint32_t y, uint32_t ch, uint32_t value) override
     {
-        _data[(_width * i + j) * channelCount + k] = value;
+        _data[(_width * y + x) * channelCount + ch] = value;
     }
     /// returns count of allocated bytes
     uint32_t GetByteSize() const override

@@ -1,5 +1,7 @@
 #pragma once
 #include "../Core/macros.h"
+#include "../Geometry/point.h"
+
 #include <algorithm>
 #include <tuple>
 #include <array>
@@ -84,5 +86,15 @@ void HslToRgb( const std::array<float, 3>& hsl, std::span<ChannelType, 3> & rgb 
 /// xmax and ymax are coords of maximum point
 /// sigma is standard deviation
 float NormalDist( float x, float xmax, float ymax, float sigma );
+
+template<typename T>
+PointT<T> CubicBezier( PointT<T> p0, PointT<T> p1, PointT<T> p2, PointT<T> p3, T t )
+{
+    const T oneMinusT = T( 1 ) - t;
+    return oneMinusT * oneMinusT * oneMinusT * p0
+        + 3 * t * oneMinusT * oneMinusT * p1
+        + 3 * t * t * oneMinusT * p2
+        + t * t * t * p3;
+}
 
 ACMB_NAMESPACE_END

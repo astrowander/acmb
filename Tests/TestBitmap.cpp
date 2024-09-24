@@ -56,10 +56,16 @@ END_TEST
 
 BEGIN_TEST( TestInterpolation )
 
-    auto pBitmap = std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( IBitmap::Create( GetPathToTestFile( "PPM/binary.ppm" ) ) );
+    auto pBitmap = std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >( IBitmap::Create( GetPathToTestFile( "PPM/binary.ppm" ) ) );    
     EXPECT_NEAR(28.125, pBitmap->GetInterpolatedChannel(0.5, 0.5, 0), 0.01);
     EXPECT_NEAR(147.51, pBitmap->GetInterpolatedChannel(1.75, 2.25, 2), 0.01);
     EXPECT_NEAR(189.263, pBitmap->GetInterpolatedChannel(2.85, 2.96, 1), 0.01);
+END_TEST
+
+BEGIN_TEST( TestInterpolationAtIntegerCoords )
+auto pBitmap = std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >(IBitmap::Create( GetPathToTestFile( "PPM/rgb24.ppm" ) ));
+EXPECT_NEAR( pBitmap->GetChannel(0,0,0), pBitmap->GetInterpolatedChannel(0.0, 0.0, 0), 0.01);
+EXPECT_NEAR( pBitmap->GetChannel( 5, 10, 0 ), pBitmap->GetInterpolatedChannel( 5.0, 10.0, 0 ), 0.01 );
 END_TEST
 
 BEGIN_TEST(TestZeroSize)

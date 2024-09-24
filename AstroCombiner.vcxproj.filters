@@ -222,6 +222,12 @@
     <ClInclude Include="Transforms\LaplacianTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Registrator\FastDetector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transforms\WarpTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -378,6 +384,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\LaplacianTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Registrator\FastDetector.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\WarpTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,16 +12,76 @@ struct PointT
 {
 	T x = 0;
 	T y = 0;
+
+	constexpr PointT operator+=(const PointT& rhs)
+    {
+		x += rhs.x; y += rhs.y;
+        return *this;
+    }
+
+	constexpr PointT operator+( const PointT& rhs ) const
+	{
+		PointT ret = *this;
+        return ret += rhs;
+	}
+
+    constexpr PointT operator-=(const PointT& rhs)
+    {
+		x -= rhs.x; y -= rhs.y;
+		return *this;
+    }
+
+    constexpr PointT operator-(const PointT& rhs) const
+    {
+        PointT ret = *this;
+        return ret -= rhs;
+    }
+
+	constexpr PointT operator*=( T mult )
+	{
+        x *= mult; y *= mult;
+        return *this;
+	}
+
+    constexpr PointT operator*( T mult ) const
+    {
+        PointT ret = *this;
+        return ret *= mult;
+    }
+
+    constexpr PointT operator/=( T div )
+    {
+        x /= div; y /= div;
+        return *this;
+    }
+
+    constexpr PointT operator/( T div ) const
+    {
+        PointT ret = *this;
+        return ret /= div;
+    }
+
+	//constexpr PointT( T _x, T _y ) : x(_x), y(_y) {}
 	/// returns Euclidian distance to another point
-	double Distance(PointT rhs) const
+	T Distance(PointT rhs) const
 	{
 		return sqrt((rhs.x - x) * (rhs.x - x) + (rhs.y - y) * (rhs.y - y));
 	}
 	/// returns squared Euclidian distance to another point
-	double SquaredDistance(PointT rhs) const
+	T SquaredDistance(PointT rhs) const
 	{
 		return (rhs.x - x) * (rhs.x - x) + (rhs.y - y) * (rhs.y - y);
 	}
+
+	T Length() const
+    {
+        return sqrt(x * x + y * y);
+    }
+
+    T SquaredLength() const
+    {
+        return x * x + y * y;
+    }
 
 	bool operator==(const PointT& rhs) const 
 	{
@@ -35,12 +95,21 @@ struct PointT
 	/// prints coords to a stream
 	template <typename U>
 	friend std::ostream& operator <<(std::ostream& out, const PointT<U>& point);
+
+	template <typename U>
+	friend PointT<U> operator*( U lhs, const PointT<U>& rhs );
 };
 
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const PointT<T>& point)
 {
 	return out << point.x << " " << point.y;
+}
+
+template <typename T>
+PointT<T> operator*( T lhs, const PointT<T>& rhs )
+{
+    return PointT<T>(lhs * rhs.x, lhs * rhs.y);
 }
 
 /// neede for using points in hash tables
