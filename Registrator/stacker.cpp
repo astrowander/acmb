@@ -114,7 +114,7 @@ class AddingBitmapWithAlignmentHelper
 
         for ( uint32_t x = 0; x < _stacker._width; ++x )
         {
-            PointF p{ static_cast< double >( x ), static_cast< double >( i ) };
+            PointD p{ static_cast< double >( x ), static_cast< double >( i ) };
 
             size_t hGridIndex = x / cGridPixelSize;
             size_t vGridIndex = i / cGridPixelSize;
@@ -279,7 +279,7 @@ IBitmapPtr Stacker::CallGeneratingResultHelper()
     }
 }
 
-void Stacker::ChooseTriangle(PointF p, std::pair<Triangle, agg::trans_affine>& lastPair, const Stacker::GridCell& trianglePairs)
+void Stacker::ChooseTriangle(PointD p, std::pair<Triangle, agg::trans_affine>& lastPair, const Stacker::GridCell& trianglePairs)
 {
     if (lastPair.first.IsPointInside(p))
         return;

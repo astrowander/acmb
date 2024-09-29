@@ -1,7 +1,7 @@
 #include "triangle.h"
 ACMB_NAMESPACE_BEGIN
 
-double Sign(PointF p1, PointF p2, PointF p3)
+double Sign(PointD p1, PointD p2, PointD p3)
 {
 	return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
 }
@@ -13,7 +13,7 @@ RectF Triangle::GetBoundingBox() const
 	return RectF{ x, y, std::max(vertices[0].x, std::max(vertices[1].x, vertices[2].x)) - x, std::max(vertices[0].y, std::max(vertices[1].y, vertices[2].y)) - y };
 }
 
-bool Triangle::IsPointInside(PointF p) const
+bool Triangle::IsPointInside(PointD p) const
 {
 	if (!GetBoundingBox().IsPointInside(p))
 		return false;
@@ -28,7 +28,7 @@ bool Triangle::IsPointInside(PointF p) const
 	return !(hasNeg && hasPos);
 }
 
-double Triangle::SquaredDistanceFromPoint(PointF p) const
+double Triangle::SquaredDistanceFromPoint(PointD p) const
 {
 	return std::min
 	(
@@ -41,7 +41,7 @@ double Triangle::SquaredDistanceFromPoint(PointF p) const
 	);
 }
 
-PointF Triangle::GetCenter() const
+PointD Triangle::GetCenter() const
 {
 	return  { (vertices[0].x + vertices[1].x + vertices[2].x) / 3.0, (vertices[0].y + vertices[1].y + vertices[2].y) / 3.0 };
 }

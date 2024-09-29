@@ -33,127 +33,66 @@ public:
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >(_pSrcBitmap);
         auto pDstBitmap = std::make_shared<Bitmap<pixelFormat>>( _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight() );
 
-        std::array<std::function<double( double )>, 4> bernstein =
+        std::array<std::function<float(float)>, 4> bernstein =
         {
-            []( double u ) { const double inv = 1 - u; return inv * inv * inv; },
-            []( double u ) { const double inv = 1 - u; return 3 * u * inv * inv; },
-            []( double u ) { const double inv = 1 - u; return 3 * u * u * inv; },
-            []( double u ) { return u * u * u; }
+            []( float u ) { const float inv = 1 - u; return inv * inv * inv; },
+            []( float u ) { const float inv = 1 - u; return 3 * u * inv * inv; },
+            []( float u ) { const float inv = 1 - u; return 3 * u * u * inv; },
+            []( float u ) { return u * u * u; }
         };
 
-        Settings defaultSettings;
+        std::array< std::vector<float>, 4 > uTable;
+        std::array< std::vector<float>, 4 > vTable;
+
+        for ( int i = 0; i < 4; ++i )
+        {
+            uTable[i].resize( width );
+            vTable[i].resize( height );
+
+            for ( uint32_t x = 0; x < width; ++x )
+                uTable[i][x] = bernstein[i]( float( x ) / (width - 1) );
+
+            for ( uint32_t y = 0; y < height; ++y )
+                vTable[i][y] = bernstein[i]( float( y ) / (height - 1));
+        }
+
+        Settings settings;
+        for ( int i = 0; i < 16; ++i )
+            settings.controls[i] = 2.0f * settings.controls[i] - _settings.controls[i];
 
         parallel_for( blocked_range<uint32_t>( 0, height ), [&] ( const blocked_range<uint32_t>& r )
         {
             for ( uint32_t y = r.begin(); y < r.end(); ++y )
             {
-                const double v = double( y ) / (height - 1);
                 auto pDstPixel = pDstBitmap->GetScanline( y );
                 for ( uint32_t x = 0; x < width; ++x )
                 {
-                    const double u = double( x ) / (width - 1);
-
                     PointF p;
-
                     for ( int i = 0; i < 4; ++i )
                     for ( int j = 0; j < 4; ++j )
                     {
-                        p += (2.0 * defaultSettings.controls[i * 4 + j] - _settings.controls[i * 4 + j]) * bernstein[j]( u ) * bernstein[i]( v );
+                        p += settings.controls[i * 4 + j] * uTable[j][x] * vTable[i][y];
                     }
 
-                    p.x *= width - 1;
-                    p.y *= height - 1;
+                    if ( p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1 )
+                    {
+                        for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                            pDstPixel[ch] = _settings.pBgColor->GetChannel( ch );
+                    }
+                    else
+                    {
 
-                    for ( uint32_t ch = 0; ch < channelCount; ++ch )
-                        pDstPixel[ch] = pSrcBitmap->GetInterpolatedChannel( p.x, p.y, ch );
+                        p.x *= width - 1;
+                        p.y *= height - 1;
+
+                        for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                            pDstPixel[ch] = pSrcBitmap->GetInterpolatedChannel( p.x, p.y, ch );
+                    }
 
                     pDstPixel += channelCount;
                 }
             }
         } );
-
-        /*std::vector<PointF> topCurve(width);
-        std::vector<PointF> leftCurve( height );
-        std::vector<PointF> rightCurve( height );
-        std::vector<PointF> bottomCurve( width );
-
-        auto pTopPixel = pDstBitmap->GetScanline( 0 );
-        auto pBottomPixel = pDstBitmap->GetScanline( height - 1 );
-
-        for ( uint32_t x = 0; x < width; ++x )
-        {
-            topCurve[x] = CubicBezier( _settings.controls[0], _settings.controls[1], _settings.controls[2], _settings.controls[3], double( x ) / ( width - 1 ) );            
-            bottomCurve[x] = CubicBezier( _settings.controls[8], _settings.controls[9], _settings.controls[10], _settings.controls[11], double( x ) / ( width - 1 ) );
-
-            for ( uint32_t ch = 0; ch < channelCount; ++ch )
-            {
-                *pTopPixel++ = pSrcBitmap->GetInterpolatedChannel( topCurve[x].x * ( width - 1 ), topCurve[x].y * ( height - 1 ), ch);
-                *pBottomPixel++= pSrcBitmap->GetInterpolatedChannel( bottomCurve[x].x * ( width - 1 ), bottomCurve[x].y * ( height - 1 ), ch ); 
-            }
-        }
-
-        auto pLeftPixel = pDstBitmap->GetScanline( 0 );
-        auto pRightPixel = pDstBitmap->GetScanline( 0 ) + ( width - 1 ) * channelCount;
-
-        for ( uint32_t y = 0; y < height; ++y )
-        {
-            leftCurve[y] = CubicBezier( _settings.controls[0], _settings.controls[4], _settings.controls[6], _settings.controls[8], double( y ) / ( height - 1 ) );
-            rightCurve[y] = CubicBezier( _settings.controls[3], _settings.controls[5], _settings.controls[7], _settings.controls[11], double( y ) / ( height - 1 ) );            
-
-            for ( uint32_t ch = 0; ch < channelCount; ++ch )
-            {
-                *pLeftPixel++ = pSrcBitmap->GetInterpolatedChannel( leftCurve[y].x * ( width - 1 ), leftCurve[y].y * ( height - 1 ), ch );
-                *pRightPixel++ = pSrcBitmap->GetInterpolatedChannel( rightCurve[y].x * ( width - 1 ), rightCurve[y].y * ( height - 1 ), ch );
-            }
-
-            pLeftPixel += channelCount * ( width - 1 );
-            pRightPixel += channelCount * ( width - 1 );
-        }
-
-        for (uint32_t y = 1; y < height - 1; ++y)
-        {
-            auto pPixel = pDstBitmap->GetScanline( y );
-            for (uint32_t x = 1; x < width - 1; ++x)
-            {
-                if ( x == 320 )
-                    x = x;
-
-                PointF P{ double( x ) / ( width - 1 ) , double( y ) / ( height - 1 ) };
-
-                struct Anchor
-                {
-                    PointF dr;
-                    double affinity = 0.0;
-                };
-
-                Anchor anchors[4];
-                anchors[0].dr = topCurve[x] - PointF{ P.x, 0 };
-                anchors[0].affinity = P.y;
-
-                anchors[1].dr = rightCurve[y] - PointF{ 1, P.y };
-                anchors[1].affinity = 1 - P.x;
-
-                anchors[2].dr = bottomCurve[x] - PointF{ P.x, 1 };
-                anchors[2].affinity = 1 - P.y;
-
-                anchors[3].dr = leftCurve[y] - PointF{ 0, P.y };
-                anchors[3].affinity = P.x;
-
-                PointF P1 = P;
-                for ( uint32_t i = 0; i < 4; ++i )
-                {
-                    const double length = anchors[i].dr.Length();
-                    if ( length > 0 )
-                        P1 += (1 - 1 / anchors[i].affinity) * anchors[i].dr / length;
-                }
-                for ( uint32_t ch = 0; ch < channelCount; ++ch )
-                {
-                    pPixel[ch] = pSrcBitmap->GetInterpolatedChannel( P1.x * ( width - 1 ), P1.y * ( height - 1 ), ch );
-                }
-
-                pPixel += channelCount;
-            }
-        }*/
 
         _pDstBitmap = pDstBitmap;
     }

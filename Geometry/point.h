@@ -125,10 +125,15 @@ struct PointTHasher
 /// point with integer coords
 using Point = PointT<int32_t>;
 /// point with fractional coords
-using PointF = PointT<double>;
+using PointF = PointT<float>;
+/// point with fractional coords
+using PointD = PointT<double>;
 /// alias for Point hasher
 using PointHasher = PointTHasher<int32_t>;
+/// alias for PointD hasher
+using PointDHasher = PointTHasher<double>;
 /// alias for PointF hasher
-using PointFHasher = PointTHasher<double>;
+using PointFHasher = PointTHasher<float>;
+
 
 ACMB_NAMESPACE_END

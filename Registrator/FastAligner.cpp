@@ -3,7 +3,7 @@
 
 ACMB_NAMESPACE_BEGIN
 
-using PointFPair = std::pair<PointF, PointF>;
+using PointFPair = std::pair<PointD, PointD>;
 
 agg::trans_affine CalculateTransform(const PointFPair& refPoints, const PointFPair& targetPoints)
 {

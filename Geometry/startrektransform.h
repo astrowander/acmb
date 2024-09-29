@@ -31,8 +31,8 @@ class StarTrekTransform
 	double XProjection(Vector2 sp);
 	double YProjection(Vector2 sp);
 
-	PointF GetProjection(SphericalPoint sp);
-	SphericalPoint GetInverseProjection(PointF p/*, SphericalPoint firstApproach*/);
+	PointD GetProjection(SphericalPoint sp);
+	SphericalPoint GetInverseProjection(PointD p/*, SphericalPoint firstApproach*/);
 
 public:
 	/// <summary>
@@ -43,7 +43,7 @@ public:
 	/// <param name="timeSpan">time between thwo shots</param>
 	StarTrekTransform(const agg::trans_affine& affineMatrix, double delta0, double timeSpan);
 	/// receives coords of the star in first image, returns coords of the star in second image
-	PointF Transform(PointF p);
+	PointD Transform(PointD p);
 	//for compatibility with agg::trans_affine
 	void transform(double* x, double* y);
 };

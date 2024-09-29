@@ -5,7 +5,7 @@ ACMB_NAMESPACE_BEGIN
 struct Star
 {
     Rect rect;
-    PointF center;
+    PointD center;
     double luminance = 0.0;
     uint32_t pixelCount = 0;  
 };

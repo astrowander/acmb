@@ -61,7 +61,7 @@ public:
         struct DataPerThread
         {
             float totalLuminance = 0;
-            PointF center;
+            PointD center;
         };
 
         oneapi::tbb::enumerable_thread_specific<DataPerThread> dataPerThread;
@@ -86,7 +86,7 @@ public:
         } );
 
         float totalLuminance = 0;
-        PointF center;
+        PointD center;
         for ( const auto& data : dataPerThread )
         {
             totalLuminance += data.totalLuminance;

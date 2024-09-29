@@ -16,7 +16,7 @@ constexpr uint32_t bruteForceSearchSize = 30;
 
 using StarPair = std::pair<Star, Star>;
 using IndexMap = parallel_flat_hash_map<size_t, size_t>;
-using MatchMap = parallel_flat_hash_map<PointF, PointF, PointFHasher>;
+using MatchMap = parallel_flat_hash_map<PointD, PointD, PointDHasher>;
 using BruteForceIndexMap = std::pair< std::array<uint8_t, bruteForceSearchSize>, uint8_t>;
 /// <summary>
 /// This class receives two vectors of stars and finds respective stars in them.
@@ -60,7 +60,7 @@ class FastAligner
 
 			const auto& targetStar = _targetStars[i];
 
-			PointF targetPos = targetStar.center;
+			PointD targetPos = targetStar.center;
 			transform.transform(&targetPos.x, &targetPos.y);
 			auto penalty = targetPos.Distance(refStar.center);
 			if (penalty < _eps)

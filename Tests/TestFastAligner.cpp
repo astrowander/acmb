@@ -9,8 +9,8 @@ BEGIN_SUITE(FastAligner)
 
 BEGIN_TEST(BasicTest)
 
-PointF refPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
-PointF targetPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
+PointD refPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
+PointD targetPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
 
 std::vector<Star> refStars(5);
 refStars[0].center = refPoints[0];
@@ -62,8 +62,8 @@ END_TEST
 
 BEGIN_TEST(InverseMatching)
 
-PointF targetPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
-PointF refPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
+PointD targetPoints[5] = { {70, 20}, {55, 35}, {40, 20}, {30, 30}, {20,20} };
+PointD refPoints[6] = { {10, 15}, {30, 25}, {20, 35}, {30, 45}, {15, 60}, {30, 75} };
 
 std::vector<Star> refStars(6);
 refStars[0].center = refPoints[0];

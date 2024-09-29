@@ -162,9 +162,8 @@ float GetContentRadius( std::shared_ptr<Bitmap<pixelFormat>> pBitmap )
     return (minRadius + maxRadius) * 0.5f;
 }
 
-SortingHat::SortingHat( const ImageParams& imageParams, float percentageToSelect )
+SortingHat::SortingHat( const ImageParams& imageParams )
 : _imageParams( imageParams)
-, _percentageToSelect( percentageToSelect )
 {
 }
 
@@ -182,10 +181,10 @@ void SortingHat::AddFrame( IBitmapPtr pBitmap )
     float key = 0;    
 
     auto pHistogramBuilder = HistogramBuilder::Create( pLaplacian );
-    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, 28 ) );
+    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, height / 2 ) );
     key = pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev;
 
-    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, 28 ) );
+    pHistogramBuilder->BuildHistogram( Rect( 0, 0, width, height / 2 ) );
     key = std::min( pHistogramBuilder->GetChannelStatistics(0).mean + pHistogramBuilder->GetChannelStatistics(0).dev, key );
 
     pHistogramBuilder->BuildHistogram( Rect( 0, height / 2, width / 2, height - height / 2 ) );
@@ -197,17 +196,55 @@ void SortingHat::AddFrame( IBitmapPtr pBitmap )
     _frames.insert_or_assign( key, Frame{ .pBitmap = pLaplacian, .tempFilePath = {}, .index = uint32_t( _frames.size() ) } );
 }
 
-std::vector<SortingHat::Frame> SortingHat::GetBestFrames() const
+std::vector<SortingHat::Frame> SortingHat::GetBestFrames( uint32_t frameCount ) const
 {
+    if ( frameCount == 0 )
+        return std::vector<Frame>{};
+
+    if ( frameCount > _frames.size() )
+        throw std::out_of_range( "frameCount exceeds the number of frames" );
+
     std::vector<Frame> bestFrames;
+    bestFrames.reserve( frameCount );
+
     for ( const auto& frame : _frames )
     {
-        if ( bestFrames.size() < _percentageToSelect * _frames.size() )
-            bestFrames.push_back( frame.second );
-        else
+        bestFrames.push_back( frame.second );
+        if ( bestFrames.size() >= frameCount )
             break;
     }
     return bestFrames;
+}
+
+std::vector<SortingHat::Frame> SortingHat::GetBestFramesByPercentage( float percentage ) const
+{
+    const auto frameCount = std::ceil( _frames.size() * percentage );
+    return GetBestFrames( frameCount );
+}
+
+std::vector<SortingHat::Frame> SortingHat::GetBestFramesByQualityThreshold( float qualityThreshold ) const
+{
+    if ( _frames.empty() )
+        return {};
+
+    const float bestQuality = _frames.begin()->first;
+    const float worstQuality = _frames.rbegin()->first;
+
+    uint32_t frameCount = 0;
+    for ( const auto& frame : _frames )
+    {
+        if ( frame.first < worstQuality + ( bestQuality - worstQuality ) * qualityThreshold )
+            break;
+
+        ++frameCount;
+    }
+
+    return GetBestFrames( frameCount );
+}
+
+uint32_t SortingHat::GetFrameCount() const
+{
+    return uint32_t( _frames.size() );
 }
 
 ACMB_NAMESPACE_END

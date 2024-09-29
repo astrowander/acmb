@@ -134,7 +134,7 @@ void BaseStacker::CalculateAligningGrid( const std::vector<std::vector<Star>>& s
 
     for ( std::size_t i = 0; i < d.triangles.size(); i += 3 )
     {
-        Triangle targetTriangle{ PointF {d.coords[2 * d.triangles[i]], d.coords[2 * d.triangles[i] + 1]}, PointF {d.coords[2 * d.triangles[i + 1]], d.coords[2 * d.triangles[i + 1] + 1]}, PointF {d.coords[2 * d.triangles[i + 2]], d.coords[2 * d.triangles[i + 2] + 1]} };
+        Triangle targetTriangle{ PointD {d.coords[2 * d.triangles[i]], d.coords[2 * d.triangles[i] + 1]}, PointD {d.coords[2 * d.triangles[i + 1]], d.coords[2 * d.triangles[i + 1] + 1]}, PointD {d.coords[2 * d.triangles[i + 2]], d.coords[2 * d.triangles[i + 2] + 1]} };
         Triangle refTriangle{ _matches[targetTriangle.vertices[0]], _matches[targetTriangle.vertices[1]], _matches[targetTriangle.vertices[2]] };
 
         TriangleTransformPair pair = { refTriangle, agg::trans_affine( reinterpret_cast< double* >( refTriangle.vertices.data() ), reinterpret_cast< double* >( targetTriangle.vertices.data() ) ) };

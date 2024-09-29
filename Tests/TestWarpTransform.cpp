@@ -25,6 +25,7 @@ settings.controls[1].y = 0.2;
 settings.controls[2].y = 0.2;
 settings.controls[4].x = 0.2;
 settings.controls[7].x = 1.2;
+settings.pBgColor = IColor::MakeRGB24( NamedColor32::Blue );
 
 auto pDstBitmap = WarpTransform::Warp( pSrcBitmap, settings );
 EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "WarpTransform/TestHugePicture.ppm" ), pDstBitmap ) );

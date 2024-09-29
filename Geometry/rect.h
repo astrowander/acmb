@@ -65,7 +65,7 @@ struct RectT
         return PointT<T>{ x, y };
     }
     /// returns center point
-    PointF GetCenter() const 
+    PointD GetCenter() const 
     {
         return { x + width / 2.0, y + height / 2.0 };
     }

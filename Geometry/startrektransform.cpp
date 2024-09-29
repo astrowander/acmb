@@ -28,12 +28,12 @@ double StarTrekTransform::YProjection(Vector2 sp)
 	return (_cosDecl0 * sin(sp[1]) - _sinDecl0 * cos(sp[1]) * cos(sp[0])) / CosC(sp);
 }
 
-PointF StarTrekTransform::GetProjection(SphericalPoint sp)
+PointD StarTrekTransform::GetProjection(SphericalPoint sp)
 {
 	return { XProjection({sp.rha, sp.decl}), YProjection({sp.rha, sp.decl}) };
 }
 
-SphericalPoint StarTrekTransform::GetInverseProjection(PointF p/*, SphericalPoint firstApproach*/)
+SphericalPoint StarTrekTransform::GetInverseProjection(PointD p/*, SphericalPoint firstApproach*/)
 {
 	auto res = Newton2D::Solve
 	(
@@ -51,7 +51,7 @@ SphericalPoint StarTrekTransform::GetInverseProjection(PointF p/*, SphericalPoin
 	return { res[0], res[1] };
 }
 
-PointF StarTrekTransform::Transform(PointF p)
+PointD StarTrekTransform::Transform(PointD p)
 {
 	_affineMatrix.transform(&p.x, &p.y);
 	auto sp = GetInverseProjection(p);
@@ -63,7 +63,7 @@ PointF StarTrekTransform::Transform(PointF p)
 
 void StarTrekTransform::transform(double* x, double* y)
 {
-	PointF p { *x, *y };
+	PointD p { *x, *y };
 	p = Transform(p);
 	*x = p.x;
 	*y = p.y;

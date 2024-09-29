@@ -16,9 +16,13 @@ public:
         float laplacianStdDev = 0.0f;
     };
 
-    SortingHat( const ImageParams& imageParams, float percentageToSelect = 25.0f );
+    SortingHat( const ImageParams& imageParams );
     void AddFrame( IBitmapPtr pBitmap );
-    std::vector<Frame> GetBestFrames() const;
+    std::vector<Frame> GetBestFrames( uint32_t frameCount ) const;
+    std::vector<Frame> GetBestFramesByPercentage( float percentage ) const;
+    std::vector<Frame> GetBestFramesByQualityThreshold( float qualityThreshold ) const;
+
+    uint32_t GetFrameCount() const;
 
     const auto& Frames() const
     {
@@ -29,7 +33,6 @@ private:
     //float GetContentRadius( IBitmapPtr pBitmap );
     ImageParams _imageParams;
     std::map<float, Frame, std::greater<float>> _frames;
-    float _percentageToSelect = 25.0f;
 };
 
 ACMB_NAMESPACE_END
