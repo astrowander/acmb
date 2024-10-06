@@ -29,14 +29,25 @@ public:
             return std::clamp<float>( std::pow( res, 1.0f / channelLevels.gamma ), 0.0f, 1.0f );
         };
 
+        if constexpr ( channelCount == 3)
+        { 
         _pCommonEqualizer = ChannelEqualizer::Create( pSrcBitmap,
                                                       {
                                                           [&] ( float val ) { return computePixelValue( val, levels.levels[0] ); },
                                                           [&] ( float val ) { return computePixelValue( val, levels.levels[0] ); },
                                                           [&] ( float val ) { return computePixelValue( val, levels.levels[0] ); }
                                                       } );
+        }
+        else if constexpr ( channelCount == 1 )
+        {
+            _pCommonEqualizer = ChannelEqualizer::Create( pSrcBitmap,
+                                                          {
+                                                              [&] ( float val ) { return computePixelValue( val, levels.levels[0] ); }
+                                                          } );
+        }
+        
 
-        if ( levels.adjustChannels )
+        if ( levels.adjustChannels && channelCount == 3 )
         {
             _pPerChannelEqualizer = ChannelEqualizer::Create( pSrcBitmap,
                                                              {
@@ -75,7 +86,7 @@ std::shared_ptr<LevelsTransform> LevelsTransform::Create( IBitmapPtr pSrcBitmap,
 
     for ( uint32_t i = 0; i < levels.levels.size(); ++i )
     {
-        if ( levels.levels[i].min > levels.levels[i].max )
+        if ( levels.levels[i].min >= levels.levels[i].max )
             throw std::invalid_argument( "min > max" );
 
         if ( levels.levels[i].min < 0.0f || levels.levels[i].max > 1.0f )

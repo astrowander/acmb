@@ -443,7 +443,12 @@ void PipelineElementWindow::DrawDialog()
         {
             auto previewExp = GeneratePreviewTexture();
             if ( !previewExp.has_value() )
-                UI::ShowModalMessage( { "Unable to generate preview" }, UI::ModalMessageType::Error, _showError = true );
+            {
+                _showPreview = false;
+                ImGui::CloseCurrentPopup();
+                _error = previewExp.error();
+                _showError = true;                
+            }
         }
 
         if ( _pPreviewTexture )            
