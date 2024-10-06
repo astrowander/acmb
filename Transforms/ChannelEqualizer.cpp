@@ -29,9 +29,9 @@ public:
 		auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
 		auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pDstBitmap );
 
-		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<ChannelType>( 0, channelMax ), [this] ( const oneapi::tbb::blocked_range<ChannelType>& range )
+		oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, channelMax + 1 ), [this] ( const oneapi::tbb::blocked_range<int>& range )
 		{
-            for ( ChannelType i = range.begin(); i < range.end(); ++i )
+            for ( int i = range.begin(); i < range.end(); ++i )
             {
                 for ( uint32_t ch = 0; ch < channelCount; ++ch )
                 {
@@ -73,7 +73,7 @@ ChannelEqualizer::ChannelEqualizer(IBitmapPtr pSrcBitmap)
 
 }
 
-std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t( uint32_t )>>& channelTransforms )
+/*std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap, const std::vector< std::function<uint32_t(uint32_t)>>& channelTransforms)
 {
 	if ( !pSrcBitmap )
 		throw std::invalid_argument( "pSrcBitmap is null" );
@@ -136,7 +136,7 @@ std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create(IBitmapPtr pSrcBitmap
 	default:
 		throw std::runtime_error("unsupported pixel format");
 	}
-}
+}*/
 
 std::shared_ptr<ChannelEqualizer> ChannelEqualizer::Create( IBitmapPtr pSrcBitmap, const std::vector< std::function<float( float )>>& channelTransforms )
 {

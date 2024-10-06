@@ -228,6 +228,9 @@
     <ClInclude Include="Transforms\WarpTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms\LevelsTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -390,6 +393,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\WarpTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\LevelsTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
