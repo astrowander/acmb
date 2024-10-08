@@ -3,9 +3,6 @@
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
 
-#include "./../Transforms/HistogramBuilder.h"
-#include "./../Transforms/converter.h"
-
 ACMB_GUI_NAMESPACE_BEGIN
 
 LevelsWindow::LevelsWindow( const Point& gridPos )
@@ -133,55 +130,15 @@ void LevelsWindow::DrawPipelineElementControls()
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
     auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap();
-    auto pHistogramBuilder = HistogramBuilder::Create( pInputBitmap );
-    pHistogramBuilder->BuildHistogram();
-
-    const auto colorSpace = GetColorSpace( pInputBitmap->GetPixelFormat() );
-    const auto pixelFormat = pInputBitmap->GetPixelFormat();
-    const auto bytesPerChannel = BytesPerChannel( pixelFormat );
-    const float absoluteMax = (bytesPerChannel == 1) ? 255.0f : 65535.0f;
-    
-    constexpr float logTargetMedian = -2.14f;
-
-    switch ( colorSpace )
+    try
     {
-        case ColorSpace::Gray:
-        {
-            _levelsSettings.levels[0].min = pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax;
-            _levelsSettings.levels[0].max = pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax;
-            const float denom = log( (pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax - _levelsSettings.levels[0].min) / (_levelsSettings.levels[0].max - _levelsSettings.levels[0].min) );
-            _levelsSettings.levels[0].gamma = denom / logTargetMedian;
-            break;
-        }
-        case ColorSpace::RGB:
-        {
-            std::array<float, 3> channelMins = { pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).min / absoluteMax };
-            std::array<float, 3> channelMaxs = { pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).max / absoluteMax };
-            std::array<float, 3> channelMedians = { pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).median / absoluteMax };
-            _levelsSettings.levels[0].min = std::min( { channelMins[0], channelMins[1], channelMins[2] } );
-            _levelsSettings.levels[0].max = std::max( { channelMaxs[0], channelMaxs[1], channelMaxs[2] } );
-            const float denom = log ( (channelMedians[1] - channelMins[1]) / (channelMaxs[1] - channelMins[1]) );            
-            _levelsSettings.levels[0].gamma = denom / logTargetMedian;
-
-            if ( _levelsSettings.adjustChannels )
-            {
-                const float range = _levelsSettings.levels[0].max - _levelsSettings.levels[0].min;
-                _levelsSettings.levels[1].min = (channelMins[0] - _levelsSettings.levels[0].min ) / range;
-                _levelsSettings.levels[1].max = (channelMaxs[0] - _levelsSettings.levels[0].min ) / range;
-                _levelsSettings.levels[2].min = (channelMins[1] - _levelsSettings.levels[0].min ) / range;
-                _levelsSettings.levels[2].max = (channelMaxs[1] - _levelsSettings.levels[0].min ) / range;
-                _levelsSettings.levels[3].min = (channelMins[2] - _levelsSettings.levels[0].min ) / range;
-                _levelsSettings.levels[3].max = (channelMaxs[2] - _levelsSettings.levels[0].min ) / range;
-
-
-                _levelsSettings.levels[1].gamma = log( (channelMedians[0] - channelMins[0]) / (channelMaxs[0] - channelMins[0]) ) / denom;
-                _levelsSettings.levels[3].gamma = log( (channelMedians[2] - channelMins[2]) / (channelMaxs[2] - channelMins[2]) ) / denom;
-            }
-            break;
-        }
-        default:
-            return unexpected( "unsupported pixel format" );
+        _levelsSettings = LevelsTransform::GetAutoSettings( pInputBitmap, _levelsSettings.adjustChannels );
     }
+    catch ( const std::exception& ex )
+    {
+        return unexpected( ex.what() );
+    }
+
     return {};
 }
 
@@ -207,14 +164,12 @@ int LevelsWindow::GetSerializedStringSize() const
 Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
 {
     auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
-    const auto colorSpace = GetColorSpace( pInputBitmap->GetPixelFormat() );
     _pPreviewBitmap = LevelsTransform::ApplyLevels( pInputBitmap, _levelsSettings );
     return {};
 }
 
 IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
-    const auto colorSpace = GetColorSpace( pSource->GetPixelFormat() );
     return LevelsTransform::ApplyLevels( pSource, _levelsSettings );
 }
 

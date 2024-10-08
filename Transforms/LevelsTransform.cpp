@@ -1,5 +1,6 @@
 #include "LevelsTransform.h"
 #include "ChannelEqualizer.h"
+#include "HistogramBuilder.h"
 
 ACMB_NAMESPACE_BEGIN
 
@@ -119,6 +120,62 @@ std::shared_ptr<LevelsTransform> LevelsTransform::Create( PixelFormat pixelForma
 IBitmapPtr LevelsTransform::ApplyLevels( IBitmapPtr pSrcBitmap, const Settings& levels )
 {
     return LevelsTransform::Create( pSrcBitmap, levels )->RunAndGetBitmap();
+}
+
+LevelsTransform::Settings LevelsTransform::GetAutoSettings( IBitmapPtr pSrcBitmap, bool adjustChannels )
+{
+    auto pHistogramBuilder = HistogramBuilder::Create( pSrcBitmap );
+    pHistogramBuilder->BuildHistogram();
+
+    const auto colorSpace = GetColorSpace( pSrcBitmap->GetPixelFormat() );
+    const auto pixelFormat = pSrcBitmap->GetPixelFormat();
+    const auto bytesPerChannel = BytesPerChannel( pixelFormat );
+    const float absoluteMax = (bytesPerChannel == 1) ? 255.0f : 65535.0f;
+
+    constexpr float logTargetMedian = -2.14f;
+
+    Settings result { .adjustChannels = adjustChannels };
+
+    switch ( colorSpace )
+    {
+        case ColorSpace::Gray:
+        {
+            result.levels[0].min = pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax;
+            result.levels[0].max = pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax;
+            const float denom = log( (pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax - result.levels[0].min) / (result.levels[0].max - result.levels[0].min) );
+            result.levels[0].gamma = denom / logTargetMedian;
+            break;
+        }
+        case ColorSpace::RGB:
+        {
+            std::array<float, 3> channelMins = { pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).min / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).min / absoluteMax };
+            std::array<float, 3> channelMaxs = { pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).max / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).max / absoluteMax };
+            std::array<float, 3> channelMedians = { pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 1 ).median / absoluteMax, pHistogramBuilder->GetChannelStatistics( 2 ).median / absoluteMax };
+            result.levels[0].min = std::min( { channelMins[0], channelMins[1], channelMins[2] } );
+            result.levels[0].max = std::max( { channelMaxs[0], channelMaxs[1], channelMaxs[2] } );
+            const float denom = log( (channelMedians[1] - channelMins[1]) / (channelMaxs[1] - channelMins[1]) );
+            result.levels[0].gamma = denom / logTargetMedian;
+
+            if ( adjustChannels )
+            {
+                const float range = result.levels[0].max - result.levels[0].min;
+                result.levels[1].min = (channelMins[0] - result.levels[0].min) / range;
+                result.levels[1].max = (channelMaxs[0] - result.levels[0].min) / range;
+                result.levels[2].min = (channelMins[1] - result.levels[0].min) / range;
+                result.levels[2].max = (channelMaxs[1] - result.levels[0].min) / range;
+                result.levels[3].min = (channelMins[2] - result.levels[0].min) / range;
+                result.levels[3].max = (channelMaxs[2] - result.levels[0].min) / range;
+
+                result.levels[1].gamma = log( (channelMedians[0] - channelMins[0]) / (channelMaxs[0] - channelMins[0]) ) / denom;
+                result.levels[3].gamma = log( (channelMedians[2] - channelMins[2]) / (channelMaxs[2] - channelMins[2]) ) / denom;
+            }
+            break;
+        }
+        default:
+            throw std::invalid_argument( "LevelsTransform: unsupported color space" );
+    }
+
+    return result;
 }
 
 ACMB_NAMESPACE_END

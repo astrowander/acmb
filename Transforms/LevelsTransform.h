@@ -33,6 +33,8 @@ public:
     static std::shared_ptr<LevelsTransform> Create( PixelFormat pixelFormat, const Settings& levels );
 
     static IBitmapPtr ApplyLevels( IBitmapPtr pSrcBitmap, const Settings& levels );
+
+    static Settings GetAutoSettings( IBitmapPtr pSrcBitmap, bool adjustChannels = false );
 };
 
 ACMB_NAMESPACE_END

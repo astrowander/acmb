@@ -76,6 +76,33 @@ auto f = []
 ASSERT_THROWS( f, std::invalid_argument );
 END_TEST
 
+BEGIN_TEST( TestAutoSettings )
+auto pBitmap = IBitmap::Create( GetPathToTestFile( "PPM/jupiter.ppm" ) );
+auto settings = LevelsTransform::GetAutoSettings( pBitmap, true );
+EXPECT_NEAR( settings.levels[0].min, 0.01318f, 0.0001f );
+EXPECT_NEAR( settings.levels[0].gamma, 1.4193f, 0.0001f );
+EXPECT_NEAR( settings.levels[0].max, 1.0f, 0.0001f );
+
+EXPECT_NEAR( settings.levels[1].min, 0.0404f, 0.0001f );
+EXPECT_NEAR( settings.levels[1].gamma, 1.0114f, 0.0001f );
+EXPECT_NEAR( settings.levels[1].max, 0.9287f, 0.0001f );
+
+EXPECT_NEAR( settings.levels[2].min, 0.0f, 0.0001f );
+EXPECT_NEAR( settings.levels[2].gamma, 1.0f, 0.0001f );
+EXPECT_NEAR( settings.levels[2].max, 0.8966f, 0.0001f );
+
+EXPECT_NEAR( settings.levels[3].min, 0.0547f, 0.0001f );
+EXPECT_NEAR( settings.levels[3].gamma, 0.8902f, 0.0001f );
+EXPECT_NEAR( settings.levels[3].max, 1.0f, 0.0001f );
+END_TEST
+
+BEGIN_TEST( TestAutoSettingsGray )
+auto pBitmap = IBitmap::Create( GetPathToTestFile( "TIFF/gray8.tiff" ) );
+auto settings = LevelsTransform::GetAutoSettings( pBitmap, true );
+EXPECT_NEAR( settings.levels[0].min, 0.0f, 0.0001f );
+EXPECT_NEAR( settings.levels[0].gamma, 0.5718f, 0.0001f );
+EXPECT_NEAR( settings.levels[0].max, 1.0f, 0.0001f );
+END_TEST
 END_SUITE
 
 ACMB_TESTS_NAMESPACE_END
