@@ -82,10 +82,10 @@ public:
 	/// Creates object with reference vector of stars
 	FastAligner(const std::vector<Star>& refStars);
 	/// Receives the target vector of stars and finds respective stars to the reference vector
-	void Align(const std::vector<Star>& targetStars, double eps = 5.0);
+	void Align(const std::vector<Star>& targetStars, bool simpleMode = false, double eps = 5.0);
 
 	/// Receives the target vector of stars, applies given transform and finds respective stars to the reference vector
-	template<class TransformType>
+	/*template<class TransformType>
 	void Align(const std::vector<Star>& targetStars, const TransformType& transform, double eps = 5.0)
 	{
 		_eps = eps;
@@ -98,7 +98,7 @@ public:
 			if (TryRefStar(i, temp, transform))
 				return;
 		}
-	}
+	}*/
 	/// Returns map of respective stars
 	MatchMap GetMatches() const;
 	/// Returns found transform

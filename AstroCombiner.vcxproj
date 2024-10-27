@@ -68,6 +68,7 @@
     <ClInclude Include="Tools\mathtools.h" />
     <ClInclude Include="Tools\Newton2D.h" />
     <ClInclude Include="Tools\SystemTools.h" />
+    <ClInclude Include="Transforms\AffineTransform.h" />
     <ClInclude Include="Transforms\avir\avir.h" />
     <ClInclude Include="Transforms\avir\avir_dil.h" />
     <ClInclude Include="Transforms\avir\avir_float4_sse.h" />
@@ -130,6 +131,7 @@
     <ClCompile Include="Tools\mathtools.cpp" />
     <ClCompile Include="Tools\Newton2D.cpp" />
     <ClCompile Include="Tools\SystemTools.cpp" />
+    <ClCompile Include="Transforms\AffineTransform.cpp" />
     <ClCompile Include="Transforms\basetransform.cpp" />
     <ClCompile Include="Transforms\binningtransform.cpp" />
     <ClCompile Include="Transforms\BitmapDivisor.cpp" />

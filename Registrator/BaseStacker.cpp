@@ -4,6 +4,7 @@
 #include "../Core/log.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Transforms/DebayerTransform.h"
+#include "../Transforms/AffineTransform.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -47,15 +48,10 @@ public:
     }
 };
 
-BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
-    : _stackMode( stackMode )
+IStacker::IStacker( const std::vector<Pipeline>& pipelines )
 {
     for ( const auto& pipeline : pipelines )
-    {
         _stackingData.push_back( { pipeline, {}, {} } );
-        if ( ( stackMode == StackMode::Light ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
-            _stackingData.back().pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
-    }
 
     if ( pipelines.empty() )
         throw std::invalid_argument( "no pipelines" );
@@ -69,28 +65,16 @@ BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stac
     _width = finalParams->GetWidth();
     _height = finalParams->GetHeight();
     _pixelFormat = finalParams->GetPixelFormat();
-    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
-        _pixelFormat = PixelFormat::RGB48;
-
-    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
-    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
 
-BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
-: _stackMode(stackMode)
+IStacker::IStacker( const ImageParams& imageParams )
 {
     _width = imageParams.GetWidth();
     _height = imageParams.GetHeight();
-
     _pixelFormat = imageParams.GetPixelFormat();
-    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
-        _pixelFormat = PixelFormat::RGB48;
-
-    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
-    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
 }
 
-void BaseStacker::Registrate()
+void IStacker::Registrate()
 {
     auto pRegistrator = std::make_unique<Registrator>( _threshold, _minStarSize, _maxStarSize );
     for ( auto& dsPair : _stackingData )
@@ -110,6 +94,212 @@ void BaseStacker::Registrate()
     }
 
     //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
+}
+
+std::shared_ptr<IBitmap>  IStacker::RegistrateAndStack()
+{
+    if ( _stackingData.size() == 0 )
+        return nullptr;
+
+    for ( uint32_t i = 0; i < _stackingData.size(); ++i )
+    {
+        AddBitmap( _stackingData[i].pipeline );
+    }
+
+    return GetResult();
+}
+
+void IStacker::AddBitmap( std::shared_ptr<IBitmap> pBitmap )
+{
+    if ( !pBitmap )
+        throw std::invalid_argument( "no bitmap" );
+
+    if ( !_pCameraSettings )
+        _pCameraSettings = pBitmap->GetCameraSettings();
+
+    Pipeline pipeline{ pBitmap };
+    return AddBitmap( pipeline );
+}
+
+IBitmapPtr IStacker::Stack()
+{
+    if ( _stackingData.size() == 0 )
+        return nullptr;
+
+    for ( uint32_t i = 0; i < _stackingData.size(); ++i )
+    {
+        AddBitmap( _stackingData[i].pipeline );
+    }
+
+    return GetResult();
+}
+
+template<PixelFormat pixelFormat>
+void AddBitmapInternal( std::shared_ptr <Bitmap <pixelFormat>> pBitmap, std::vector<float>& means, std::vector<float>& devs, std::vector<uint16_t>& counts )
+{
+if ( !pBitmap )
+        throw std::invalid_argument( "no bitmap" );
+
+using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+
+oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<uint32_t>( 0u, pBitmap->GetHeight() ), [&]( const oneapi::tbb::blocked_range<uint32_t>& range )
+{
+
+    for ( uint32_t i = range.begin(); i < range.end(); ++i )
+    {        
+        for ( uint32_t j = 0; j < pBitmap->GetWidth() * channelCount; ++j )
+        {
+            const auto index = i * pBitmap->GetWidth() * channelCount + j;
+            auto& mean = means[index];
+
+            auto& dev = devs[index];
+            auto& n = counts[index];
+            auto& channel = pBitmap->GetScanline( 0 )[index];
+
+            const auto sigma = sqrt( dev );
+            const auto kappa = 3.0;
+
+            if ( n <= 5 || fabs( mean - channel ) < kappa * sigma )
+            {
+                dev = n * (dev + (channel - mean) * (channel - mean) / (n + 1)) / (n + 1);
+                mean = std::clamp( (n * mean + channel) / (n + 1), 0.0f, static_cast< float >(std::numeric_limits<ChannelType>::max()) );
+                ++n;
+            }
+        }
+    }
+} );
+}
+
+template<PixelFormat pixelFormat>
+std::shared_ptr<Bitmap<pixelFormat>> GetResultInternal(  uint32_t width, uint32_t height, std::vector<float>& means )
+{
+    static const uint32_t channelCount = PixelFormatTraits<pixelFormat>::channelCount;
+    using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
+
+    auto pBitmap = std::make_shared<Bitmap<pixelFormat>>( width, height );
+    oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<uint32_t>( 0u, pBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<uint32_t>& range )
+    {
+        for ( uint32_t i = range.begin(); i < range.end(); ++i )
+        {
+            auto* pScanline = pBitmap->GetScanline( i );
+            for ( uint32_t j = 0; j < pBitmap->GetWidth() * channelCount; ++j )
+            {
+                const auto index = i * pBitmap->GetWidth() * channelCount + j;
+                pScanline[j] = FastRound<ChannelType>( means[index] );
+            }
+        }
+    } );
+
+    return pBitmap;
+}
+
+SimpleStacker::SimpleStacker( const std::vector<Pipeline>& pipelines )
+: IStacker( pipelines )
+{
+    if ( _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
+
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );
+
+}
+
+SimpleStacker::SimpleStacker( const ImageParams& imageParams )
+: IStacker( imageParams )
+{
+    if ( _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
+
+    const size_t size = _width * _height * ChannelCount( _pixelFormat );
+    _means.resize( size );
+    _devs.resize( size );
+    _counts.resize( size );    
+}
+
+void SimpleStacker::AddBitmap( Pipeline& pipeline )
+{
+    Log( pipeline.GetFileName() + " in process" );
+    if ( pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
+        pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
+
+    auto pBitmap = pipeline.RunAndGetBitmap();
+    Log( pipeline.GetFileName() + " is read" );
+
+    auto pRegistrator = std::make_shared<Registrator>( _threshold, _minStarSize, _maxStarSize );
+    pRegistrator->Registrate( pBitmap );
+    std::vector<Star> planarStars;
+    for ( const auto& starVector : pRegistrator->GetStars() )
+    {
+        planarStars.insert( planarStars.end(), starVector.begin(), starVector.end() );
+    }
+
+    if ( !aligner_ )
+    {
+        aligner_ = std::make_unique<FastAligner>( planarStars );        
+        
+    }
+    else
+    {
+        aligner_->Align( planarStars, true );
+        const auto transform = aligner_->GetTransform();
+        pBitmap = AffineTransform::ApplyTransform( pBitmap, {.transform = transform} );
+    }
+
+    switch ( _pixelFormat )
+    {
+        case PixelFormat::Gray8:
+            return AddBitmapInternal<PixelFormat::Gray8>( std::static_pointer_cast< Bitmap<PixelFormat::Gray8> >(pBitmap), _means, _devs, _counts );
+        case PixelFormat::Gray16:
+            return AddBitmapInternal<PixelFormat::Gray16>( std::static_pointer_cast< Bitmap<PixelFormat::Gray16> >(pBitmap), _means, _devs, _counts );
+        case PixelFormat::RGB24:
+            return AddBitmapInternal<PixelFormat::RGB24>( std::static_pointer_cast< Bitmap<PixelFormat::RGB24> >(pBitmap), _means, _devs, _counts );
+        case PixelFormat::RGB48:
+            return AddBitmapInternal<PixelFormat::RGB48>( std::static_pointer_cast< Bitmap<PixelFormat::RGB48> >(pBitmap), _means, _devs, _counts );
+        default:
+            throw std::invalid_argument( "unsupported pixel format" );
+    }
+}
+
+std::shared_ptr<IBitmap> SimpleStacker::GetResult()
+{
+    switch ( _pixelFormat )
+    {
+    case PixelFormat::Gray8:
+        return GetResultInternal<PixelFormat::Gray8>( _width, _height, _means );
+    case PixelFormat::Gray16:
+        return GetResultInternal<PixelFormat::Gray16>( _width, _height, _means );
+    case PixelFormat::RGB24:
+        return GetResultInternal<PixelFormat::RGB24>( _width, _height, _means );
+    case PixelFormat::RGB48:
+        return GetResultInternal<PixelFormat::RGB48>( _width, _height, _means );
+    default:
+        throw std::invalid_argument( "unsupported pixel format" );
+    }
+}
+
+BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
+: IStacker( pipelines )
+, _stackMode( stackMode )
+{    
+    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
+
+    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
+    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
+}
+
+BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
+    : IStacker( imageParams )
+    , _stackMode( stackMode )
+{
+    if ( (_stackMode == StackMode::Light) && _pixelFormat == PixelFormat::Bayer16 )
+        _pixelFormat = PixelFormat::RGB48;
+
+    _gridWidth = _width / cGridPixelSize + ((_width % cGridPixelSize) ? 1 : 0);
+    _gridHeight = _height / cGridPixelSize + ((_height % cGridPixelSize) ? 1 : 0);
 }
 
 void BaseStacker::CalculateAligningGrid( const std::vector<std::vector<Star>>& stars )
@@ -193,15 +383,6 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
     return GetResult();
 }
 
-void BaseStacker::AddBitmap( IBitmapPtr pBitmap )
-{
-    if ( !_pCameraSettings )
-        _pCameraSettings = pBitmap->GetCameraSettings();
-
-    Pipeline pipeline{ pBitmap };
-    return AddBitmap( pipeline );
-}
-
 void BaseStacker::AddBitmap(Pipeline& pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );
@@ -245,17 +426,9 @@ IBitmapPtr BaseStacker::GetResult()
     return pRes;
 }
 
-std::shared_ptr<IBitmap>  BaseStacker::RegistrateAndStack()
+IBitmapPtr IStacker::ProcessBitmap( IBitmapPtr )
 {
-    if (_stackingData.size() == 0)
-        return nullptr;
-
-    for ( uint32_t i = 0; i < _stackingData.size(); ++i )
-    {
-        AddBitmap( _stackingData[i].pipeline );
-    }
-
-    return GetResult();
+    return RegistrateAndStack();
 }
 
 IBitmapPtr BaseStacker::ProcessBitmap( IBitmapPtr )

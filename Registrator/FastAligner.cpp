@@ -37,7 +37,7 @@ FastAligner::FastAligner(const std::vector<Star>& refStars)
 
 
 
-void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
+void FastAligner::Align(const std::vector<Star>& targetStars, bool simpleMode, double eps)
 {
 	_eps = eps;
 	_targetStars = targetStars;
@@ -46,6 +46,8 @@ void FastAligner::Align(const std::vector<Star>& targetStars, double eps)
 	auto res = BruteForceSearch(bruteForceSearchSize);
 	_matches = res.first;
 	_transform = res.second;
+	if ( simpleMode )
+		return;
 
 	for (size_t i = bruteForceSearchSize + 1; i < _refStars.size(); ++i)
 	{

@@ -163,7 +163,8 @@ enum class StackMode
     Light,
     LightNoAlign,
     DarkOrFlat,
-    StarTrails
+    StarTrails,
+    Simple
 };
 
 ACMB_NAMESPACE_END

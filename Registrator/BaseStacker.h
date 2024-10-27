@@ -15,7 +15,67 @@ struct StackingDatum
     uint64_t totalStarCount;
 };
 
-class BaseStacker : public IPipelineFirstElement
+class IStacker : public IPipelineFirstElement
+{
+protected:
+    std::vector<StackingDatum> _stackingData;
+    double _threshold = 25.0;
+    uint32_t _minStarSize = 5;
+    uint32_t _maxStarSize = 25;
+
+public:
+    /// creates an instance with the given images
+    IStacker( const std::vector<Pipeline>& pipelines );
+
+    /// creates an instance with one image
+    IStacker( const ImageParams& imageParams );
+
+    virtual ~IStacker() = default;
+
+    /// detects stars in the images
+    void Registrate();
+    
+    
+    virtual void AddBitmap( Pipeline& pipeline ) = 0;
+    virtual std::shared_ptr<IBitmap> GetResult() = 0;
+
+    virtual std::shared_ptr<IBitmap> Stack();
+    /// detects stars and stacks images in one time
+    std::shared_ptr<IBitmap>  RegistrateAndStack();
+    /// stacks registered images
+    void AddBitmap( std::shared_ptr<IBitmap> pBitmap );
+    
+
+    double GetThreshold() const { return _threshold; }
+    void SetThreshold( double threshold ) { _threshold = threshold; };
+    double GetMinStarSize() const { return _minStarSize; }
+    void SetMinStarSize( uint32_t minStarSize ) { _minStarSize = minStarSize; };
+    double GetMaxStarSize() const { return _threshold; }
+    void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
+
+
+    /// needed for compatibility with pipeline API
+    virtual std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr );
+};
+
+class SimpleStacker : public IStacker
+{
+    std::vector<float> _means;
+    std::vector<float> _devs;
+    std::vector<uint16_t> _counts;
+
+    std::unique_ptr<FastAligner> aligner_;
+
+public:
+    SimpleStacker( const std::vector<Pipeline>& pipelines );
+    SimpleStacker( const ImageParams& imageParams );
+
+    using IStacker::AddBitmap;
+    void AddBitmap( Pipeline& pipeline ) override;
+    std::shared_ptr<IBitmap> GetResult() override;
+};
+
+class BaseStacker : public IStacker
 {
     friend class AlignmentHelper;
 
@@ -26,17 +86,12 @@ public:
 
 protected:
     Grid _grid;
-    std::vector<StackingDatum> _stackingData;
 
     uint32_t _gridWidth = 0;
     uint32_t _gridHeight = 0;
 
     std::vector<std::shared_ptr<FastAligner>> _aligners;
     MatchMap _matches;
-
-    double _threshold = 25.0;
-    uint32_t _minStarSize = 5;
-    uint32_t _maxStarSize = 25;
 
     StackMode _stackMode;
 
@@ -49,30 +104,19 @@ public:
     /// creates an instance with one image
     BaseStacker( const ImageParams& imageParams, StackMode stackMode );
 
-    /// detects stars in the images
-    void Registrate();
-    /// detects stars and stacks images in one time
-    std::shared_ptr<IBitmap>  RegistrateAndStack();
     /// stacks registered images
-    std::shared_ptr<IBitmap> Stack();
+    virtual std::shared_ptr<IBitmap> Stack() override;
 
+    using IStacker::AddBitmap;
     void AddBitmap( Pipeline& pipeline );
-    void AddBitmap( std::shared_ptr<IBitmap> pBitmap );
-    std::shared_ptr<IBitmap> GetResult();
+    virtual std::shared_ptr<IBitmap> GetResult() override;
 
     virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
     virtual void CallAddBitmapWithAlignmentHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;
     virtual std::shared_ptr<IBitmap> CallGeneratingResultHelper() = 0;
 
-    double GetThreshold() const { return _threshold; }
-    void SetThreshold( double threshold ) { _threshold = threshold; };
-    double GetMinStarSize() const { return _minStarSize; }
-    void SetMinStarSize( uint32_t minStarSize ) { _minStarSize = minStarSize; };
-    double GetMaxStarSize() const { return _threshold; }
-    void SetMaxStarSize( uint32_t maxStarSize ) { _maxStarSize = maxStarSize; };
+    std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr ) override;
 
-    /// needed for compatibility with pipeline API
-    std::shared_ptr<IBitmap> ProcessBitmap( std::shared_ptr<IBitmap> pSrcBitmap = nullptr );
 };
 
 ACMB_NAMESPACE_END

@@ -2,6 +2,7 @@
 #include "MainWindow.h"
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
+#include "./../Registrator/basestacker.h"
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaStacker.h"
 #include "./../Transforms/ChannelEqualizer.h"
@@ -21,9 +22,10 @@ void StackerWindow::DrawPipelineElementControls()
     UI::RadioButton( "Light (w/o alignment)", ( int* ) (&_stackMode), int( StackMode::LightNoAlign ), "Input images will be stacked without alignment and then debayered" );
     UI::RadioButton( "Dark/Flat Frames", ( int* ) (&_stackMode), int( StackMode::DarkOrFlat ), "Input images will be stacked as-is, without alignment and debayerization" );
     UI::RadioButton( "Star Trails", ( int* ) (&_stackMode), int( StackMode::StarTrails ), "Generates image with star trails" );
+    UI::RadioButton( "Simple", ( int* ) (&_stackMode), int( StackMode::Simple ), "Input images will be debayered and roughly aligned by stars before stacking" );
     
     ImGui::Separator();    
-    if ( _stackMode == StackMode::Light )
+    if ( _stackMode == StackMode::Light || _stackMode == StackMode::Simple )
     {
         ImGui::Text( "Star Detection Threshold" );
         UI::DragFloat( "##StarDetectionThreshold", &_threshold, 0.1f, 0.0f, 100.0f,
@@ -49,9 +51,17 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
         if ( !pBitmap )
             return unexpected( pBitmap.error() );
 
-        std::shared_ptr<BaseStacker> pStacker = MainWindow::GetInstance( FontRegistry::Instance() ).isCudaEnabled() ? std::shared_ptr<BaseStacker>(new cuda::Stacker(**pBitmap, _stackMode)) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
-
+        std::shared_ptr<IStacker> pStacker;
+        if ( _stackMode == StackMode::Simple )
+        {
+            pStacker = std::make_shared<SimpleStacker>( **pBitmap );
+        }
+        else
+        {
+            pStacker = MainWindow::GetInstance( FontRegistry::Instance() ).isCudaEnabled() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, _stackMode ) ) :
+                std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, _stackMode ) );
+        }
+        //pStacker->SetMaxStarSize( 50.0f );
         pStacker->SetThreshold( _threshold );
         pStacker->AddBitmap( *pBitmap );
         _taskReadiness = 1.0f / (inputTaskCount + 1);
