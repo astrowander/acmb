@@ -85,6 +85,7 @@ std::shared_ptr<IBitmap> SerDecoder::ReadBitmap()
 
     uint64_t oldPos = _pStream->tellg();
     auto pBitmap = IBitmap::Create( _width, _height, _decodedFormat );
+    pBitmap->SetCameraSettings( _pCameraSettings );
     _pStream->read( pBitmap->GetPlanarScanline(0), _frameByteSize );
 
     if ( _pStream->tellg() != oldPos + _frameByteSize )

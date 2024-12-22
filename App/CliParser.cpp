@@ -10,7 +10,6 @@
 #include "./../Transforms/ChannelEqualizer.h"
 #include "./../Transforms/deaberratetransform.h"
 #include "./../Transforms/DebayerTransform.h"
-#include "./../Transforms/HaloRemovalTransform.h"
 #include "./../Transforms/ResizeTransform.h"
 #include "./../Transforms/CropTransform.h"
 #include "./../Tools/SystemTools.h"
@@ -55,7 +54,13 @@ CliParser::CliParser( int argc, const char** argv )
 
     _createStackerCallback = [] ( const std::vector<Pipeline>& pipelines, StackMode stackMode, bool )
     {
-        return std::make_shared<Stacker>( pipelines, stackMode );
+        auto params = pipelines.front().GetFinalParams();
+        if ( !params )
+            throw std::runtime_error( "cannot calculate params" );
+
+        auto pStacker = std::make_shared<Stacker>( *params, stackMode );
+        pStacker->AddBitmaps( pipelines );
+        return pStacker;
     };
 }
 
@@ -218,26 +223,6 @@ std::tuple<int, std::string> CliParser::Parse( bool testMode )
                 for ( auto& pipeline : _pipelinesBeforeStacker )
                 {
                     pipeline.AddTransform<DeaberrateTransform>( _pipelineAfterStacker.GetCameraSettings() );
-                }
-            }
-        }
-        else if ( key == "--removehalo" )
-        {
-            float intensity = 75.0f;
-            if ( values.size() > 1 )
-                return { 1, "--removehalo requires 0 or 1 argument" };
-            else if ( values.size() == 1 )
-                intensity = std::stof( values[0] );
-
-            if ( isStackerFound )
-            {
-                _pipelineAfterStacker.AddTransform<AutoHaloRemoval>( intensity );
-            }
-            else
-            {
-                for ( auto& pipeline : _pipelinesBeforeStacker )
-                {
-                    pipeline.AddTransform<AutoHaloRemoval>( intensity );
                 }
             }
         }

@@ -16,9 +16,13 @@ std::vector<Pipeline> pipelines;
 pipelines.emplace_back( std::make_shared<Bitmap<PixelFormat::RGB24>>( 10, 10, IColor::MakeRGB24( 254, 0, 0 ) ) );
 pipelines.emplace_back( std::make_shared<Bitmap<PixelFormat::RGB24>>( 10, 10, IColor::MakeRGB24( 0, 0, 254 ) ) );
 
-Stacker stacker( pipelines, StackMode::DarkOrFlat );
-cuda::Stacker cudaStacker( pipelines, StackMode::DarkOrFlat );
-EXPECT_TRUE( BitmapsAreEqual( stacker.Stack(), cudaStacker.Stack() ) );
+const auto & params = *pipelines[0].GetFinalParams();
+Stacker stacker( params, StackMode::DarkOrFlat);
+stacker.AddBitmaps( pipelines );
+cuda::Stacker cudaStacker( params, StackMode::DarkOrFlat );
+cudaStacker.AddBitmaps( pipelines );
+
+EXPECT_TRUE( BitmapsAreEqual( stacker.GetResult(), cudaStacker.GetResult()));
 
 END_TEST
 
@@ -27,9 +31,14 @@ std::vector<Pipeline> pipelines;
 pipelines.emplace_back( IBitmap::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8944.CR2" ) ) );
 pipelines.emplace_back( IBitmap::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8945.CR2" ) ) );
 pipelines.emplace_back( IBitmap::Create( GetPathToTestFile( "RAW/MilkyWayCR2/IMG_8946.CR2" ) ) );
-Stacker stacker( pipelines, StackMode::StarTrails );
-cuda::Stacker cudaStacker( pipelines, StackMode::StarTrails );
-EXPECT_TRUE( BitmapsAreEqual( stacker.Stack(), cudaStacker.Stack() ) );
+
+const auto& params = *pipelines[0].GetFinalParams();
+Stacker stacker( params, StackMode::StarTrails );
+stacker.AddBitmaps( pipelines );
+cuda::Stacker cudaStacker( params, StackMode::StarTrails );
+cudaStacker.AddBitmaps( pipelines );
+
+EXPECT_TRUE( BitmapsAreEqual( stacker.GetResult(), cudaStacker.GetResult()));
 END_TEST
 
 END_SUITE

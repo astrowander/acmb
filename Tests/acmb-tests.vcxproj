@@ -126,6 +126,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestAffineTransform.cpp" />
     <ClCompile Include="TestBitmapDivisor.cpp" />
     <ClCompile Include="TestCenterObjectTransform.cpp" />
     <ClCompile Include="TestColors.cpp" />
@@ -151,7 +152,6 @@
     <ClCompile Include="TestConverter.cpp" />
     <ClCompile Include="TestDeaberrateTransform.cpp" />
     <ClCompile Include="TestFastAligner.cpp" />
-    <ClCompile Include="TestHaloRemoval.cpp" />
     <ClCompile Include="TestHistogramBuilder.cpp" />
     <ClCompile Include="TestImageDecoder.cpp" />
     <ClCompile Include="TestImageEncoder.cpp" />

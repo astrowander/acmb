@@ -113,7 +113,7 @@ std::shared_ptr<IBitmap> PpmDecoder::ReadTextStripe(uint32_t stripeHeight)
             {
                 uint32_t v;
                 *_pStream >> v;
-                pStripe->SetChannel(i, j, k, v);
+                pStripe->SetChannel(j, i, k, v);
             }
         }
     }

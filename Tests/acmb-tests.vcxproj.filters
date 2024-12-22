@@ -33,9 +33,6 @@
     <ClCompile Include="TestFastAligner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestHaloRemoval.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TestHistogramBuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -145,6 +142,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestLevels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestAffineTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

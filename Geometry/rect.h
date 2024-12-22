@@ -106,4 +106,6 @@ using Rect = RectT<int32_t>;
 /// rect with fractional coords
 using RectF = RectT<double>;
 
+using RectD = RectT<double>;
+
 ACMB_NAMESPACE_END

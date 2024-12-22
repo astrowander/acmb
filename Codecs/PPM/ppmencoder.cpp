@@ -71,13 +71,13 @@ std::set<std::string> PpmEncoder::GetExtensions()
 
 void PpmEncoder::WriteText(std::shared_ptr<IBitmap> pBitmap)
 {
-    for (uint32_t i = 0; i < pBitmap->GetHeight(); ++i)
+    for (uint32_t y = 0; y < pBitmap->GetHeight(); ++y)
     {
         *_pStream << std::endl;
-        for (uint32_t j = 0; j < pBitmap->GetWidth(); ++j)
+        for (uint32_t x = 0; x < pBitmap->GetWidth(); ++x)
         {
             for (uint32_t k = 0; k < ChannelCount(pBitmap->GetPixelFormat()); ++k)
-                *_pStream << pBitmap->GetChannel(i, j, k) << " ";
+                *_pStream << pBitmap->GetChannel(x, y, k) << " ";
         }
     }
 }

@@ -84,7 +84,6 @@
     <ClInclude Include="Transforms\CropTransform.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
     <ClInclude Include="Transforms\DebayerTransform.h" />
-    <ClInclude Include="Transforms\HaloRemovalTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
     <ClInclude Include="Transforms\LaplacianTransform.h" />
     <ClInclude Include="Transforms\LevelsTransform.h" />
@@ -142,7 +141,6 @@
     <ClCompile Include="Transforms\CropTransform.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
     <ClCompile Include="Transforms\DebayerTransform.cpp" />
-    <ClCompile Include="Transforms\HaloRemovalTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
     <ClCompile Include="Transforms\LaplacianTransform.cpp" />
     <ClCompile Include="Transforms\LevelsTransform.cpp" />

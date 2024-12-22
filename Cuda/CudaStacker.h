@@ -24,7 +24,6 @@ class Stacker : public BaseStacker
     void Init();
 
 public:
-    Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
     Stacker( const ImageParams& imageParams, StackMode stackMode );
 };
 

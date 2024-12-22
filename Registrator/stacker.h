@@ -30,7 +30,6 @@ class Stacker : public BaseStacker
 
 public:
     /// creates an instance with the given images
-    Stacker(const std::vector<Pipeline>& pipelines, StackMode stackMode);
 
     Stacker( const ImageParams& imageParams, StackMode stackMode );
 

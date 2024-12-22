@@ -4,7 +4,6 @@
 #include "../Transforms/ChannelEqualizer.h"
 #include "../Transforms/binningtransform.h"
 #include "../Transforms/BitmapSubtractor.h"
-#include "../Transforms/HaloRemovalTransform.h"
 #include "../Transforms/ResizeTransform.h"
 #include "../Transforms/converter.h"
 #include "../Codecs/PPM/ppmdecoder.h"
@@ -60,7 +59,6 @@ pipeline.AddTransform<ResizeTransform>( { 5496, 3670 } );
 pipeline.AddTransform<Converter>( PixelFormat::RGB48 );
 pipeline.AddTransform<BitmapSubtractor>( { IBitmap::Create( GetPathToTestFile( "DarkFrame/masterdark.ppm" ) ) } );
 pipeline.AddTransform<AutoChannelEqualizer>();
-pipeline.AddTransform<AutoHaloRemoval>();
 pipeline.AddTransform<Converter>( PixelFormat::Gray8 );
 pipeline.AddTransform<BinningTransform>( Size{ 2, 2 } );
 

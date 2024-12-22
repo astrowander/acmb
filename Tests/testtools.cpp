@@ -8,30 +8,33 @@
 
 ACMB_TESTS_NAMESPACE_BEGIN
 
-bool BitmapsAreEqual(std::shared_ptr<IBitmap> lhs, std::shared_ptr<IBitmap> rhs)
+bool BitmapsAreEqual(std::shared_ptr<IBitmap> expected, std::shared_ptr<IBitmap> actual)
 {
     if
-    (    lhs->GetPixelFormat() != rhs->GetPixelFormat() ||
-            lhs->GetWidth() != rhs->GetWidth() ||
-            lhs->GetHeight() != rhs->GetHeight() ||
-            lhs->GetByteSize() != rhs->GetByteSize()
+    (    expected->GetPixelFormat() != actual->GetPixelFormat() ||
+            expected->GetWidth() != actual->GetWidth() ||
+            expected->GetHeight() != actual->GetHeight() ||
+            expected->GetByteSize() != actual->GetByteSize()
     )
         return false;
 
-    return !static_cast<bool>(memcmp(lhs->GetPlanarScanline(0), rhs->GetPlanarScanline(0), lhs->GetByteSize()));
+    return !static_cast<bool>(memcmp(expected->GetPlanarScanline(0), actual->GetPlanarScanline(0), expected->GetByteSize()));
 }
 
-bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> rhs)
+bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> actual)
 {
 #ifdef GENERATE_PATTERNS
     const auto dir = fileName.substr(0, fileName.find_last_of("/\\"));
     if ( !std::filesystem::exists(dir) && !std::filesystem::create_directories( dir ))
         throw std::runtime_error(std::string("unable to create directory") + dir);
 
-    IBitmap::Save(rhs, fileName);
+    IBitmap::Save( actual, fileName);
     return true;
 #else
-    return BitmapsAreEqual(IBitmap::Create(fileName, rhs->GetPixelFormat()), rhs);
+    auto res = BitmapsAreEqual( IBitmap::Create( fileName, actual->GetPixelFormat() ), actual );
+    if ( !res )
+        IBitmap::Save( actual, fileName + ".actual.ppm");
+    return res;
 #endif
 }
 

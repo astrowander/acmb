@@ -165,6 +165,7 @@
     <ClCompile Include="StackerWindow.cpp" />
     <ClCompile Include="DarkFrameWindow.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="WarpWindow.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +201,7 @@
     <ClInclude Include="DarkFrameWindow.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tl\expected.hpp" />
+    <ClInclude Include="WarpWindow.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>

@@ -128,6 +128,9 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     if ( !pDecoder )
         throw std::runtime_error( std::string( "unable to open file" ) + fileName );
 
+    if ( !pDecoder->_pCameraSettings )
+        pDecoder->_pCameraSettings = std::make_shared<CameraSettings>();
+
     pDecoder->_frameCount = 1;
     pDecoder->Attach(fileName);
     return pDecoder;

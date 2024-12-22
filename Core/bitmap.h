@@ -25,10 +25,10 @@ public:
     virtual ~IBitmap() = default;
     /// returns given scanline casted to char*
     virtual char* GetPlanarScanline(uint32_t i) = 0;
-    /// returns k-th channel of j-th pixel on i-th scanline
-    virtual uint32_t GetChannel(uint32_t i, uint32_t j, uint32_t k) const = 0;
-    /// sets k-th channel of j-th pixel on i-th scanline
-    virtual void SetChannel(uint32_t i, uint32_t j, uint32_t k, uint32_t value) = 0;
+    /// returns k-th channel of x-th pixel on y-th scanline
+    virtual uint32_t GetChannel(uint32_t x, uint32_t y, uint32_t k) const = 0;
+    /// sets k-th channel of x-th pixel on y-th scanline
+    virtual void SetChannel(uint32_t x, uint32_t y, uint32_t k, uint32_t value) = 0;
     /// returns count of allocated bytes
     virtual uint32_t GetByteSize() const = 0;
     /// returns deep copy of a bitmap

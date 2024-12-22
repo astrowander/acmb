@@ -212,15 +212,6 @@ public:
     }
 };
 
-Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
-: BaseStacker( pipelines, stackMode )
-{
-    const size_t size = _width * _height * ChannelCount( _pixelFormat );
-    _means.resize( size );
-    _devs.resize( size );
-    _counts.resize( size );
-}
-
 Stacker::Stacker( const ImageParams& imageParams, StackMode stackMode )
 :BaseStacker(imageParams, stackMode)
 {

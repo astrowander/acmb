@@ -15,12 +15,6 @@ struct StackData
     std::variant<DynamicArrayU8, DynamicArrayU16> _cudaBitmap;
 };
 
-Stacker::Stacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
-: BaseStacker(pipelines, stackMode)
-{ 
-    Init();
-}
-
 Stacker::Stacker( const ImageParams& imageParams, StackMode stackMode )
 : BaseStacker(imageParams, stackMode)
 {

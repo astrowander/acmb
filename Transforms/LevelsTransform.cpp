@@ -61,6 +61,7 @@ public:
 
     virtual void Run() override
     {
+        _pCommonEqualizer->SetSrcBitmap( _pSrcBitmap );
         _pDstBitmap = _pCommonEqualizer->RunAndGetBitmap();
         if ( _pPerChannelEqualizer )
         {

@@ -24,27 +24,23 @@ protected:
     uint32_t _maxStarSize = 25;
 
 public:
-    /// creates an instance with the given images
-    IStacker( const std::vector<Pipeline>& pipelines );
-
-    /// creates an instance with one image
+    /// creates an instance without images (only with image parameters)
     IStacker( const ImageParams& imageParams );
 
-    virtual ~IStacker() = default;
-
-    /// detects stars in the images
-    void Registrate();
+    virtual ~IStacker() = default;    
     
-    
-    virtual void AddBitmap( Pipeline& pipeline ) = 0;
+    virtual void AddBitmap( Pipeline pipeline );
     virtual std::shared_ptr<IBitmap> GetResult() = 0;
 
-    virtual std::shared_ptr<IBitmap> Stack();
+    void ValidateFrameParams( const ImageParams& imageParams );
+
     /// detects stars and stacks images in one time
-    std::shared_ptr<IBitmap>  RegistrateAndStack();
+    //std::shared_ptr<IBitmap>  RegistrateAndStack();
     /// stacks registered images
     void AddBitmap( std::shared_ptr<IBitmap> pBitmap );
-    
+
+    void AddBitmaps( const std::vector<std::shared_ptr<IBitmap>>& bitmaps );
+    void AddBitmaps( const std::vector<Pipeline>& pipelines );    
 
     double GetThreshold() const { return _threshold; }
     void SetThreshold( double threshold ) { _threshold = threshold; };
@@ -67,11 +63,11 @@ class SimpleStacker : public IStacker
     std::unique_ptr<FastAligner> aligner_;
 
 public:
-    SimpleStacker( const std::vector<Pipeline>& pipelines );
+    //SimpleStacker( const std::vector<Pipeline>& pipelines );
     SimpleStacker( const ImageParams& imageParams );
 
     using IStacker::AddBitmap;
-    void AddBitmap( Pipeline& pipeline ) override;
+    void AddBitmap( Pipeline pipeline ) override;
     std::shared_ptr<IBitmap> GetResult() override;
 };
 
@@ -99,16 +95,16 @@ protected:
 
 public:
     /// creates an instance with the given images
-    BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
+    //BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode );
 
     /// creates an instance with one image
     BaseStacker( const ImageParams& imageParams, StackMode stackMode );
 
     /// stacks registered images
-    virtual std::shared_ptr<IBitmap> Stack() override;
+    ///virtual std::shared_ptr<IBitmap> Stack() override;
 
     using IStacker::AddBitmap;
-    void AddBitmap( Pipeline& pipeline );
+    void AddBitmap( Pipeline pipeline );
     virtual std::shared_ptr<IBitmap> GetResult() override;
 
     virtual void CallAddBitmapHelper( std::shared_ptr<IBitmap> pBitmap ) = 0;

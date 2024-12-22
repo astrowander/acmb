@@ -48,25 +48,6 @@ public:
     }
 };
 
-IStacker::IStacker( const std::vector<Pipeline>& pipelines )
-{
-    for ( const auto& pipeline : pipelines )
-        _stackingData.push_back( { pipeline, {}, {} } );
-
-    if ( pipelines.empty() )
-        throw std::invalid_argument( "no pipelines" );
-
-    auto finalParams = _stackingData[0].pipeline.GetFinalParams();
-    if ( !finalParams )
-        throw std::invalid_argument( "cannot calculate image params" );
-
-    _pCameraSettings = pipelines[0].GetCameraSettings();
-
-    _width = finalParams->GetWidth();
-    _height = finalParams->GetHeight();
-    _pixelFormat = finalParams->GetPixelFormat();
-}
-
 IStacker::IStacker( const ImageParams& imageParams )
 {
     _width = imageParams.GetWidth();
@@ -74,39 +55,23 @@ IStacker::IStacker( const ImageParams& imageParams )
     _pixelFormat = imageParams.GetPixelFormat();
 }
 
-void IStacker::Registrate()
+void IStacker::ValidateFrameParams( const ImageParams& imageParams )
 {
-    auto pRegistrator = std::make_unique<Registrator>( _threshold, _minStarSize, _maxStarSize );
-    for ( auto& dsPair : _stackingData )
+    if ( imageParams.GetHeight() != _height ||
+         imageParams.GetWidth() != _width ||
+         imageParams.GetPixelFormat() != _pixelFormat )
     {
-        auto pBitmap = dsPair.pipeline.RunAndGetBitmap();
-
-        pRegistrator->Registrate( pBitmap );
-        dsPair.stars = pRegistrator->GetStars();
-
-        for ( const auto& starVector : dsPair.stars )
-        {
-            dsPair.totalStarCount += starVector.size();
-        }
-
-        Log( dsPair.pipeline.GetFileName() + " is registered" );
-        Log( std::to_string( dsPair.totalStarCount ) + " stars are found" );
+        throw std::invalid_argument( "incompatible image params" );
     }
-
-    //std::sort(std::begin(_stackingData), std::end(_stackingData), [](const auto& a, const auto& b) { return a.stars.size() > b.stars.size(); });
 }
 
-std::shared_ptr<IBitmap>  IStacker::RegistrateAndStack()
+void IStacker::AddBitmap( Pipeline pipeline )
 {
-    if ( _stackingData.size() == 0 )
-        return nullptr;
+    auto finalParams = pipeline.GetFinalParams();
+    if ( !finalParams )
+        throw std::invalid_argument( "cannot calculate image params" );
 
-    for ( uint32_t i = 0; i < _stackingData.size(); ++i )
-    {
-        AddBitmap( _stackingData[i].pipeline );
-    }
-
-    return GetResult();
+    ValidateFrameParams( *finalParams );
 }
 
 void IStacker::AddBitmap( std::shared_ptr<IBitmap> pBitmap )
@@ -121,7 +86,23 @@ void IStacker::AddBitmap( std::shared_ptr<IBitmap> pBitmap )
     return AddBitmap( pipeline );
 }
 
-IBitmapPtr IStacker::Stack()
+void IStacker::AddBitmaps( const std::vector<std::shared_ptr<IBitmap>>& pBitmaps )
+{
+    for ( auto pBitmap : pBitmaps )
+    {
+        AddBitmap( pBitmap );
+    }
+}
+
+void IStacker::AddBitmaps( const std::vector<Pipeline>& pipelines )
+{
+    for ( auto& pipeline : pipelines )
+    {
+        AddBitmap( pipeline );
+    }
+}
+
+/*IBitmapPtr IStacker::Stack()
 {
     if ( _stackingData.size() == 0 )
         return nullptr;
@@ -132,7 +113,7 @@ IBitmapPtr IStacker::Stack()
     }
 
     return GetResult();
-}
+}*/
 
 template<PixelFormat pixelFormat>
 void AddBitmapInternal( std::shared_ptr <Bitmap <pixelFormat>> pBitmap, std::vector<float>& means, std::vector<float>& devs, std::vector<uint16_t>& counts )
@@ -194,19 +175,6 @@ std::shared_ptr<Bitmap<pixelFormat>> GetResultInternal(  uint32_t width, uint32_
     return pBitmap;
 }
 
-SimpleStacker::SimpleStacker( const std::vector<Pipeline>& pipelines )
-: IStacker( pipelines )
-{
-    if ( _pixelFormat == PixelFormat::Bayer16 )
-        _pixelFormat = PixelFormat::RGB48;
-
-    const size_t size = _width * _height * ChannelCount( _pixelFormat );
-    _means.resize( size );
-    _devs.resize( size );
-    _counts.resize( size );
-
-}
-
 SimpleStacker::SimpleStacker( const ImageParams& imageParams )
 : IStacker( imageParams )
 {
@@ -219,8 +187,10 @@ SimpleStacker::SimpleStacker( const ImageParams& imageParams )
     _counts.resize( size );    
 }
 
-void SimpleStacker::AddBitmap( Pipeline& pipeline )
+void SimpleStacker::AddBitmap( Pipeline pipeline )
 {
+    IStacker::AddBitmap( pipeline );
+
     Log( pipeline.GetFileName() + " in process" );
     if ( pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
         pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
@@ -280,17 +250,6 @@ std::shared_ptr<IBitmap> SimpleStacker::GetResult()
     }
 }
 
-BaseStacker::BaseStacker( const std::vector<Pipeline>& pipelines, StackMode stackMode )
-: IStacker( pipelines )
-, _stackMode( stackMode )
-{    
-    if ( ( _stackMode == StackMode::Light ) && _pixelFormat == PixelFormat::Bayer16 )
-        _pixelFormat = PixelFormat::RGB48;
-
-    _gridWidth = _width / cGridPixelSize + ( ( _width % cGridPixelSize ) ? 1 : 0 );
-    _gridHeight = _height / cGridPixelSize + ( ( _height % cGridPixelSize ) ? 1 : 0 );
-}
-
 BaseStacker::BaseStacker( const ImageParams& imageParams, StackMode stackMode )
     : IStacker( imageParams )
     , _stackMode( stackMode )
@@ -347,7 +306,7 @@ void BaseStacker::CalculateAligningGrid( const std::vector<std::vector<Star>>& s
     }
 }
 
-std::shared_ptr<IBitmap> BaseStacker::Stack()
+/*std::shared_ptr<IBitmap> BaseStacker::Stack()
 {
     if (_stackingData.size() == 0)
         return nullptr;
@@ -381,15 +340,21 @@ std::shared_ptr<IBitmap> BaseStacker::Stack()
     }
 
     return GetResult();
-}
+}*/
 
-void BaseStacker::AddBitmap(Pipeline& pipeline)
+void BaseStacker::AddBitmap(Pipeline pipeline)
 {
     Log( pipeline.GetFileName() + " in process" );
     if ( ( _stackMode == StackMode::Light ) && pipeline.GetFinalParams()->GetPixelFormat() == PixelFormat::Bayer16 )
         pipeline.AddTransform<DebayerTransform>( pipeline.GetCameraSettings() );
 
+
+    IStacker::AddBitmap( pipeline );
+
     auto pBitmap = pipeline.RunAndGetBitmap();
+    if ( !_pCameraSettings )
+        _pCameraSettings = pBitmap->GetCameraSettings();
+
     Log( pipeline.GetFileName() + " is read" );
     if ( _stackMode != StackMode::Light )
     {
@@ -428,12 +393,12 @@ IBitmapPtr BaseStacker::GetResult()
 
 IBitmapPtr IStacker::ProcessBitmap( IBitmapPtr )
 {
-    return RegistrateAndStack();
+    return nullptr;
 }
 
-IBitmapPtr BaseStacker::ProcessBitmap( IBitmapPtr )
+IBitmapPtr BaseStacker::ProcessBitmap(IBitmapPtr)
 {
-    return ( _stackMode == StackMode::Light ) ? RegistrateAndStack() : Stack();
+    return nullptr;
 }
 
 ACMB_NAMESPACE_END

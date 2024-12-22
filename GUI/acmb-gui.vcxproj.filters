@@ -112,6 +112,9 @@
     <ClCompile Include="MedianBlurWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
+    <ClCompile Include="WarpWindow.cpp">
+      <Filter>ToolWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -209,6 +212,9 @@
       <Filter>ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="MedianBlurWindow.h">
+      <Filter>ToolWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="WarpWindow.h">
       <Filter>ToolWindows</Filter>
     </ClInclude>
   </ItemGroup>

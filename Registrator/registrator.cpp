@@ -1,5 +1,6 @@
 #include "registrator.h"
 #include "./../Transforms/converter.h"
+#include "./../Transforms/debayertransform.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 
@@ -41,6 +42,13 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
     {
         _pBitmap = pBitmap->Clone();
     }
+    else if (GetColorSpace(pBitmap->GetPixelFormat()) == ColorSpace::Bayer)
+    {
+        auto pDebayer = DebayerTransform::Create(pBitmap, pBitmap->GetCameraSettings());
+        _pBitmap = pDebayer->RunAndGetBitmap();
+        auto pConverter = Converter::Create( _pBitmap, PixelFormat::Gray16 );
+        _pBitmap = pConverter->RunAndGetBitmap();
+    }   
     else
     {
         auto pConverter = Converter::Create(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);

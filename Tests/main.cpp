@@ -2,5 +2,5 @@
 
 int main()
 {
-    acmb::tests::TestRunner::RunSuite( "WarpTransform" );
+    acmb::tests::TestRunner::RunAllTests();
 }
