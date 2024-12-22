@@ -16,53 +16,62 @@ public:
     BitmapHealerImpl( std::shared_ptr<Bitmap<pixelFormat>> pSrcBitmap, const Settings& settings )
     : BitmapHealer( pSrcBitmap, settings )
     {
+        _pDstBitmap = pSrcBitmap->Clone();
     }
 
     void ApplyPatch( const Patch& patch )
     {
-        std::vector<float> coeffs( patch.radius + 1 );
-        for ( int i = 0; i < patch.radius; ++i )
-            coeffs[i] = pow( float ( i + 1 ) / ( patch.radius + 1 ), patch.gamma );
-        
-        coeffs[patch.radius] = 1.0f;
 
-        auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
+        auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );        
+        auto pDstBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >(_pDstBitmap);
 
-        for ( int dy = -patch.radius; dy <= patch.radius; ++dy )
+        parallel_for( blocked_range<int>( -patch.radius, patch.radius + 1 ), [&] ( const blocked_range<int>& r )
         {
-            for ( int dx = -patch.radius; dx <= patch.radius; ++dx )
+            for ( int dy = r.begin(); dy < r.end(); ++dy )
             {
-                Point srcPos = patch.from + Point( dx, dy );
-                if ( srcPos.x < 0 || srcPos.y < 0 || srcPos.x >= int( pSrcBitmap->GetWidth() ) || srcPos.y >= int( pSrcBitmap->GetHeight() ) )
-                    continue;
-
-                Point dstPos = patch.to + Point( dx, dy );
-
-                if ( dstPos.x < 0 || dstPos.y < 0 || dstPos.x >= int( pSrcBitmap->GetWidth() ) || dstPos.y >= int( pSrcBitmap->GetHeight() ) )
-                    continue;
-
-                int layer = patch.radius - std::max( std::abs( dx ), std::abs( dy ) );
-
-                const ChannelType* pSrcScanline = pSrcBitmap->GetScanline( srcPos.y );
-                ChannelType* pDstScanline = pSrcBitmap->GetScanline( dstPos.y );
-
-                for ( int i = 0; i < channelCount; ++i )
+                for ( int dx = -patch.radius; dx <= patch.radius; ++dx )
                 {
-                    pDstScanline[dstPos.x * channelCount + i] = 
-                        ChannelType( std::clamp<float>( pSrcScanline[srcPos.x * channelCount + i] * coeffs[layer] + 
-                        pDstScanline[dstPos.x * channelCount + i] * ( 1 - coeffs[layer] ), 0, channelMax ) );
-                }
+                    Point srcPos = patch.from + Point( dx, dy );
+                    if ( srcPos.x < 0 || srcPos.y < 0 || srcPos.x >= int( pSrcBitmap->GetWidth() ) || srcPos.y >= int( pSrcBitmap->GetHeight() ) )
+                        continue;
 
+                    Point dstPos = patch.to + Point( dx, dy );
+
+                    if ( dstPos.x < 0 || dstPos.y < 0 || dstPos.x >= int( pDstBitmap->GetWidth() ) || dstPos.y >= int( pDstBitmap->GetHeight() ) )
+                        continue;
+
+                    const float dist = sqrt( dx * dx + dy * dy );
+
+                    if ( dist >= patch.radius )
+                        continue;
+
+                    float coeff = 1.0f;
+
+                    if ( dist > patch.radius * 0.5f )
+                        coeff = pow( 2.0f * (patch.radius - dist) / patch.radius, patch.gamma );
+
+                    const ChannelType* pSrcScanline = pSrcBitmap->GetScanline( srcPos.y );
+                    ChannelType* pDstScanline = pDstBitmap->GetScanline( dstPos.y );
+
+                    for ( int i = 0; i < channelCount; ++i )
+                    {
+                        ChannelType dstValue = pDstScanline[dstPos.x * channelCount + i];
+                        ChannelType srcValue = pSrcScanline[srcPos.x * channelCount + i];
+
+                        pDstScanline[dstPos.x * channelCount + i] =
+                            ChannelType( std::clamp<float>( srcValue * coeff +
+                                                            dstValue * (1 - coeff) + 0.5f, 0, channelMax ) );
+                    }
+
+                }
             }
-        }
+        } );
     }
 
     virtual void Run() override
     {
         for ( const auto& patch : _patches )
             ApplyPatch( patch );
-
-        _pDstBitmap = _pSrcBitmap;
     }
 
     virtual void ValidateSettings() override

@@ -10,10 +10,10 @@ BEGIN_TEST ( TestRGB24 )
 
 auto pSrcBitmap = IBitmap::Create( GetPathToTestFile( "JPEG/IMG_4175.JPG" ) );
 
-std::vector <BitmapHealer::Patch > patches = { {.from = { 4984, 435 }, .to = { 4904, 435 }, .radius = 50, .gamma = 0.1f } };
+std::vector <BitmapHealer::Patch > patches = { {.from = { 5104, 545 }, .to = { 4904, 435 }, .radius = 80, .gamma = 1.0f } };
 
 auto pDstBitmap = BitmapHealer::ApplyTransform( pSrcBitmap, patches );
-EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapHealer/TestRGB48.ppm" ), pDstBitmap ) );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapHealer/TestRGB24.ppm" ), pDstBitmap ) );
 
 END_TEST
 
