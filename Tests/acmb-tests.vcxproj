@@ -128,6 +128,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="TestAffineTransform.cpp" />
     <ClCompile Include="TestBitmapDivisor.cpp" />
+    <ClCompile Include="TestBitmapHealer.cpp" />
     <ClCompile Include="TestCenterObjectTransform.cpp" />
     <ClCompile Include="TestColors.cpp" />
     <ClCompile Include="TestCropTransform.cpp" />
