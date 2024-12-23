@@ -115,6 +115,7 @@
     <ClCompile Include="WarpWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
+    <ClCompile Include="BitmapHealerWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -215,6 +216,9 @@
       <Filter>ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="WarpWindow.h">
+      <Filter>ToolWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapHealerWindow.h">
       <Filter>ToolWindows</Filter>
     </ClInclude>
   </ItemGroup>

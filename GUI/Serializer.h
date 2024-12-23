@@ -1,5 +1,7 @@
 #pragma once
 #include "./../Core/macros.h"
+#include "./../Transforms/BitmapHealer.h"
+
 #include <istream>
 #include <ostream>
 #include <vector>
@@ -18,6 +20,14 @@ int GetSerializedStringSize( const T& val )
         int res = sizeof( int );
         for ( const auto& str : val )
             res += GetSerializedStringSize( str );
+        return res;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    {
+        int res = sizeof( int );
+        for ( const auto& patch : val )
+            res += GetSerializedStringSize( patch );
         return res;
     }
 
@@ -44,6 +54,14 @@ void Serialize( T&& val, std::ostream& out )
         Serialize( int( val.size() ), out );
         for ( auto& str : val )
             Serialize( std::move( str ), out );
+        return;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    {
+        Serialize( int( val.size() ), out );
+        for ( auto& patch : val )
+            Serialize( std::move( patch ), out );
         return;
     }
 
@@ -105,6 +123,29 @@ T Deserialize( std::istream& in, int& remainingBytes )
         std::vector<std::string> vec( size );
         for ( int i = 0; i < size; ++i )
             vec[i] = Deserialize<std::string>( in, remainingBytes );
+
+        return vec;
+    }
+
+    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    {
+        if ( remainingBytes < int( sizeof( int ) ) )
+        {
+            in.seekg( remainingBytes, std::ios_base::cur );
+            remainingBytes = 0;
+            return {};
+        }
+
+        int size = Deserialize<int>( in, remainingBytes );
+        if ( size <= 0 )
+        {
+            remainingBytes = 0;
+            return {};
+        }
+
+        std::vector<BitmapHealer::Patch> vec( size );
+        for ( int i = 0; i < size; ++i )
+            vec[i] = Deserialize<BitmapHealer::Patch>( in, remainingBytes );
 
         return vec;
     }

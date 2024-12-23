@@ -136,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BitmapHealerWindow.cpp" />
     <ClCompile Include="CenterObjectWindow.cpp" />
     <ClCompile Include="ConverterWindow.cpp" />
     <ClCompile Include="CropWindow.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BitmapHealerWindow.h" />
     <ClInclude Include="CenterObjectWindow.h" />
     <ClInclude Include="ConverterWindow.h" />
     <ClInclude Include="CropWindow.h" />
