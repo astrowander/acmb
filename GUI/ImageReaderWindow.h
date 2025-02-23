@@ -33,6 +33,8 @@ public:
     virtual int GetSerializedStringSize() const override;
     virtual size_t GetTaskCount() override;
 
+    virtual void ResetTasks() override;
+
     std::string GetTaskName( size_t taskNumber ) const override;
 
     SET_MENU_PARAMS( "\xef\x87\x85", "Import", "Choose images to import and pass them to another tools", 1 );

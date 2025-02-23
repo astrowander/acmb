@@ -279,6 +279,12 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
     return res;
 }
 
+void ImageWriterWindow::ResetTasks()
+{
+    PipelineElementWindow::ResetTasks();
+    _pEncoder.reset();
+}
+
 Expected<void, std::string> ImageWriterWindow::GeneratePreviewBitmap()
 {
     _pPreviewBitmap = GetPrimaryInput()->GetPreviewBitmap();

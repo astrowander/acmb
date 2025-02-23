@@ -12,13 +12,15 @@ struct MenuItem
     std::string caption;
     std::string tooltip;
     std::function<void(Point)> action;
+    bool unlockable = false;
 
 
-    MenuItem( const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(Point)> action )
+    MenuItem( const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(Point)> action, bool unlockable = false )
     : icon( icon )
     , caption( caption )
     , tooltip( tooltip )
     , action( action )
+    , unlockable( unlockable )
     { }
 };
 

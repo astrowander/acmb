@@ -32,6 +32,8 @@ public:
     virtual bool Deserialize( std::istream& in ) override;
     virtual int GetSerializedStringSize() const override;
 
+    virtual void ResetTasks() override;
+
     std::vector<std::string> ExportAllImages();
 
     SET_MENU_PARAMS( "\xef\x95\xad", "Export", "Choose a file or a directory where to save the results", 2 );

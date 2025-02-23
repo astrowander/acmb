@@ -111,6 +111,12 @@ void ImageReaderWindow::DrawPipelineElementControls()
     }
 }
 
+void ImageReaderWindow::ResetTasks()
+{
+    PipelineElementWindow::ResetTasks();
+    _pDecoder.reset();
+}
+
 Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
 {
     if ( _fileNames.empty() )
@@ -197,9 +203,19 @@ bool ImageReaderWindow::Deserialize( std::istream& in )
 
     for ( size_t i = 0; i < _fileNames.size(); ++i )
     {
-        auto& fileName = _fileNames[i];        
-        _frameCount += ImageDecoder::Create( fileName )->GetFrameCount();
-        _taskNumberToFileIndex[int( _frameCount - 1)] = int( i );
+        auto& fileName = _fileNames[i];
+        try
+        {
+            auto pDecoder = ImageDecoder::Create( fileName );
+            _frameCount += pDecoder->GetFrameCount();
+            _taskNumberToFileIndex[int( _frameCount - 1 )] = int( i );
+        }
+        catch ( std::exception& e )
+        {
+            _error = e.what();
+            _showError = true;
+            return false;
+        }        
     }
     return true;
 }

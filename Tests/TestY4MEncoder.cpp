@@ -2,6 +2,7 @@
 #include "testtools.h"
 #include "../Codecs/Y4M/Y4MEncoder.h"
 #include "../Codecs/JPEG/JpegDecoder.h"
+#include "../Transforms/converter.h"
 #include "../Transforms/ResizeTransform.h"
 
 #include <sstream>
@@ -21,13 +22,15 @@ BEGIN_TEST( TestRGB24 )
     for ( int i = 0; i < 25; ++i )
     {
         const uint8_t l = uint8_t( std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) ) );
+        auto pRgbBitmap = std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) );
+        encoder.WriteBitmap( Converter::Convert( pRgbBitmap, PixelFormat::YUV24 ) );
     }
 
     for ( int i = 0; i < 25; ++i )
     {
         const uint8_t l = uint8_t( 255 - std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
-        encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) ) );
+        auto pRgbBitmap = std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( l, l, l ) ) );
+        encoder.WriteBitmap( Converter::Convert( pRgbBitmap, PixelFormat::YUV24 ) );
     }
 
     encoder.Detach();
@@ -82,8 +85,8 @@ auto f = []
     Y4MEncoder encoder;
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, IColor::MakeRGB24( 255, 255, 255 ) ) ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, IColor::MakeRGB24( 255, 255, 255 ) ) ), PixelFormat::YUV24 ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, IColor::MakeRGB24( 255, 255, 255 ) ) ), PixelFormat::YUV24 ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );

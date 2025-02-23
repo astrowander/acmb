@@ -63,6 +63,12 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
+    MenuItemsHolder::GetInstance().AddItem( "Run", 2, "\xef\x81\x8D", "Stop", "Stop processing", [this] ( Point )
+    {
+        _errors.clear();
+        _isBusy = false;
+    }, true );
+
     const auto acmbPath = GetAcmbPath();
 
     MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [acmbPath] (Point)
@@ -366,12 +372,23 @@ void MainWindow::DrawMenu()
             ImGui::PushFont( _fontRegistry.icons );
 
             const auto oldPos = ImGui::GetCursorPos();
-            const bool isAnyPopupOpen = ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId );
-            UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
+
+            if ( item.second->unlockable )
             {
-                if ( !isAnyPopupOpen )
+                UI::UnlockableButton( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
+                {
                     item.second->action( _activeCell );
-            }, isAnyPopupOpen ? "Menu is disabled while any ancillary window is opened" : item.second->tooltip );
+                }, item.second->tooltip );
+            }
+            else
+            {
+                const bool isAnyPopupOpen = ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId );
+                UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
+                {
+                    if ( !isAnyPopupOpen )
+                        item.second->action( _activeCell );
+                }, isAnyPopupOpen ? "Menu is disabled while any ancillary window is opened" : item.second->tooltip );
+            }
 
             ImGui::PopFont();
 

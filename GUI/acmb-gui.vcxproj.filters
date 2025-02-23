@@ -116,6 +116,9 @@
       <Filter>ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="BitmapHealerWindow.cpp" />
+    <ClCompile Include="DeflickerWindow.cpp">
+      <Filter>ToolWindows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -219,6 +222,9 @@
       <Filter>ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="BitmapHealerWindow.h">
+      <Filter>ToolWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="DeflickerWindow.h">
       <Filter>ToolWindows</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,8 +11,8 @@ public:
     {
         Point from;
         Point to;
-        int radius;
-        float gamma;
+        int radius = 1;
+        float gamma = 1.0f;
     };
 
     using Settings = std::vector<Patch>;

@@ -6,6 +6,7 @@
 #include "FITS/FitsDecoder.h"
 #include "JPEG/JpegDecoder.h"
 #include "SER/SerDecoder.h"
+#include "Y4M/Y4MDecoder.h"
 
 #include "./../Transforms/DebayerTransform.h"
 #include "./../Transforms/ResizeTransform.h"
@@ -71,8 +72,14 @@ ImageDecoder::~ImageDecoder()
 
 std::shared_ptr<IBitmap> ImageDecoder::ReadPreview( const Size& maxSize )
 {
-    auto pBitmap = ReadBitmap();
+    auto pBitmap = ReadBitmap( 0 );
     Pipeline pipeline( pBitmap );
+    const auto colorSpace = GetColorSpace( pBitmap->GetPixelFormat() );
+    if ( colorSpace == ColorSpace::Bayer )
+        pipeline.AddTransform<DebayerTransform>();
+    else if ( colorSpace == ColorSpace::YUV )
+        pipeline.AddTransform<Converter>( PixelFormat::RGB24 );
+
     if ( int( _width ) > maxSize.width || int( _height ) > maxSize.height )
         pipeline.AddTransform<ResizeTransform>( ResizeTransform::GetSizeWithPreservedRatio( Size{int( _width ), int( _height )}, maxSize ) );
     return pipeline.RunAndGetBitmap();
@@ -123,6 +130,10 @@ std::shared_ptr<ImageDecoder> ImageDecoder::Create(const std::string &fileName, 
     else if ( SerDecoder::GetExtensions().contains( extension ) )
     {
         pDecoder.reset( new SerDecoder( outputFormat ) );
+    }
+    else if ( Y4MDecoder::GetExtensions().contains( extension ) )
+    {
+        pDecoder.reset( new Y4MDecoder( outputFormat ) );
     }
 
     if ( !pDecoder )

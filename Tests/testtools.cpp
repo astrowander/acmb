@@ -1,4 +1,4 @@
-//#define GENERATE_PATTERNS
+#define GENERATE_PATTERNS
 #include "testtools.h"
 #include "../Core/bitmap.h"
 #include "../Tools/SystemTools.h"
@@ -18,7 +18,8 @@ bool BitmapsAreEqual(std::shared_ptr<IBitmap> expected, std::shared_ptr<IBitmap>
     )
         return false;
 
-    return !static_cast<bool>(memcmp(expected->GetPlanarScanline(0), actual->GetPlanarScanline(0), expected->GetByteSize()));
+    const auto res = memcmp( expected->GetPlanarScanline( 0 ), actual->GetPlanarScanline( 0 ), expected->GetByteSize() );
+    return !static_cast<bool>(res);
 }
 
 bool BitmapsAreEqual(const std::string& fileName, std::shared_ptr<IBitmap> actual)

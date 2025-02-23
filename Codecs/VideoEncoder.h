@@ -12,7 +12,6 @@ protected:
     uint32_t _totalFrames = 0;
     std::vector<uint8_t> _yuv;
 
-    void BitmapToYuv( std::shared_ptr<IBitmap> pBitmap );
 
 public:
     void SetFrameRate( uint32_t frameRate );

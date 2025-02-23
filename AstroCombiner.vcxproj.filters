@@ -234,6 +234,15 @@
     <ClInclude Include="Transforms\BitmapHealer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transforms\DeflickerTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Codecs\Y4M\Y4MDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools\BitmapTools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AGG\agg_trans_affine.cpp">
@@ -402,6 +411,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Transforms\BitmapHealer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transforms\DeflickerTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Codecs\Y4M\Y4MDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools\BitmapTools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

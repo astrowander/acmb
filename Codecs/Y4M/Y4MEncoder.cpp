@@ -1,5 +1,6 @@
 #include "Y4MEncoder.h"
 #include "./../../Core/bitmap.h"
+#include "./../../Tools/BitmapTools.h"
 #include "./../../Tools/SystemTools.h"
 
 #include <filesystem>
@@ -26,7 +27,7 @@ void Y4MEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     if ( !pBitmap )
         throw std::invalid_argument( "pBitmap is null" );
 
-    if ( pBitmap->GetPixelFormat() != PixelFormat::RGB24 )
+    if ( pBitmap->GetPixelFormat() != PixelFormat::YUV24 )
         throw std::invalid_argument( "unsupported pixel format" );
 
     if ( _width == 0 && _height == 0 )
@@ -39,14 +40,14 @@ void Y4MEncoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
         *_pStream << "F" << _frameRate << ":1 ";
         *_pStream << "Ip ";
         *_pStream << "A1:1 ";
-        *_pStream << "C420\x0a";      
-        _yuv.resize( _width * _height / 2 * 3 );
+        *_pStream << "C420\x0a";
+        _yuv.resize( _width * _height * 3 / 2 );
     }
 
     if ( _width != pBitmap->GetWidth() || _height != pBitmap->GetHeight() )
         throw std::runtime_error( "bitmap size mismatch" );
 
-    BitmapToYuv( pBitmap );
+    PlanarDataFromYUVBitmap( std::static_pointer_cast<Bitmap<PixelFormat::YUV24>>( pBitmap ), _yuv );
 
     _pStream->write( "FRAME\x0a", 6 );
     _pStream->write( (const char*)_yuv.data(), _yuv.size() );

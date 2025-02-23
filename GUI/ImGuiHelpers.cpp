@@ -138,6 +138,18 @@ namespace UI
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
     }
 
+    void UnlockableButton( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
+    {
+        if ( ImGui::Button( name.c_str(), size ) )
+        {
+            action();
+            if ( parent )
+                parent->ResetPreview();
+        }
+
+        SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+    }
+
     void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool pressed = ImGui::RadioButton( label.c_str(), *v == v_button) && !MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked();
@@ -184,7 +196,7 @@ namespace UI
     void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.3f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
+        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.4f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
             parent->ResetPreview();
         }

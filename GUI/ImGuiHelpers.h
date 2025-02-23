@@ -27,6 +27,8 @@ namespace UI
 
     void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string & tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
+    void UnlockableButton( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
+
     void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
     void Checkbox( const std::string& label, bool* v, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );

@@ -1,5 +1,7 @@
 #include "H265Encoder.h"
 #include "./../../Core/bitmap.h"
+#include "./../../Tools/BitmapTools.h"
+
 #include "x265.h"
 
 ACMB_NAMESPACE_BEGIN
@@ -41,6 +43,12 @@ H265Encoder::H265Encoder( Preset preset, Tune tune, Profile profile )
     {
         throw std::runtime_error( "unable to apply profile" );
     }
+
+    _params->pParam->rc.rfConstant = 19;
+    _params->pParam->psyRd = 2.0f;
+    _params->pParam->psyRdoq = 2.0f;
+    _params->pParam->rc.aqMode = 1;
+    _params->pParam->rc.aqStrength = 1.5;
 }
 
 void H265Encoder::Detach()
@@ -67,8 +75,8 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     if ( !pBitmap )
         throw std::invalid_argument( "pBitmap is null" );
 
-    if ( pBitmap->GetPixelFormat() != PixelFormat::RGB24 )
-        throw std::invalid_argument( "unsupported pixel format" );
+    if ( pBitmap->GetPixelFormat() != PixelFormat::YUV24 )
+        throw std::invalid_argument( "H265Encoder: unsupported pixel format" );
 
     if ( _width == 0 && _height == 0 )
     {
@@ -80,6 +88,7 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
         _params->pParam->fpsDenom = 1;
 
         _yuv.resize( _width * _height * 3 / 2 );
+
         x265_picture_init( _params->pParam.get(), _params->pPic.get() );
         _params->pPic->planes[0] = _yuv.data();
         _params->pPic->planes[1] = _yuv.data() + _width * _height;
@@ -99,8 +108,8 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     if ( pBitmap->GetWidth() != _width || pBitmap->GetHeight() != _height )
         throw std::runtime_error( "bitmap size mismatch" );
 
-    BitmapToYuv( pBitmap );
-
+    PlanarDataFromYUVBitmap( std::static_pointer_cast< Bitmap<PixelFormat::YUV24> >(pBitmap), _yuv );
+    _params->pPic->pts = _params->iFrame++;
     const auto res = x265_encoder_encode( _params->pEncoder.get(), &_params->pNal, &_params->iNal, _params->pPic.get(), _params->pPicOut.get() );
     if ( res < 0 )
     {

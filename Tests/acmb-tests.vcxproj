@@ -134,6 +134,7 @@
     <ClCompile Include="TestCropTransform.cpp" />
     <ClCompile Include="TestCudaStacker.cpp" />
     <ClCompile Include="TestDebayerTransform.cpp" />
+    <ClCompile Include="TestDeflickerTransform.cpp" />
     <ClCompile Include="TestFitsDecoder.cpp" />
     <ClCompile Include="TestFitsEncoder.cpp" />
     <ClCompile Include="TestH265Encoder.cpp" />
@@ -144,6 +145,7 @@
     <ClCompile Include="TestSerDecoder.cpp" />
     <ClCompile Include="TestSerEncoder.cpp" />
     <ClCompile Include="TestWarpTransform.cpp" />
+    <ClCompile Include="TestY4MDecoder.cpp" />
     <ClCompile Include="TestY4MEncoder.cpp" />
     <ClCompile Include="TestPipeline.cpp" />
     <ClCompile Include="TestBinningTransform.cpp" />

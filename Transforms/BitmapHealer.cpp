@@ -45,10 +45,7 @@ public:
                     if ( dist >= patch.radius )
                         continue;
 
-                    float coeff = 1.0f;
-
-                    if ( dist > patch.radius * 0.5f )
-                        coeff = pow( 2.0f * (patch.radius - dist) / patch.radius, patch.gamma );
+                    float coeff = pow( 1.0f * (patch.radius - dist) / patch.radius, patch.gamma );
 
                     const ChannelType* pSrcScanline = pSrcBitmap->GetScanline( srcPos.y );
                     ChannelType* pDstScanline = pDstBitmap->GetScanline( dstPos.y );

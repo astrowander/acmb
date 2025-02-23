@@ -52,6 +52,8 @@ void DebayerTransform::Run()
     libRaw.imgdata.params.no_auto_bright = 1;
     libRaw.imgdata.params.half_size = false;
     libRaw.imgdata.params.user_qual = 0;
+    libRaw.imgdata.params.adjust_maximum_thr = 0;
+
     const auto black = _pCameraSettings->blackLevel;
     if ( libRaw.open_bayer( ( uint8_t* ) _pSrcBitmap->GetPlanarScanline( 0 ),
                             _pSrcBitmap->GetByteSize(), _pSrcBitmap->GetWidth(), _pSrcBitmap->GetHeight(), 0, 0, 0, 0, 0, LIBRAW_OPENBAYER_RGGB, 0, 0, black ) != LIBRAW_SUCCESS )

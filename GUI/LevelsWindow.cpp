@@ -38,15 +38,15 @@ void LevelsWindow::DrawPipelineElementControls()
     ImGui::TableNextColumn();
     ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetStyle().FramePadding.y );
     ImGui::SetNextItemWidth( colWidth );
-    UI::DragFloat( "##LMin", &_levelsSettings.levels[0].min, 0.001f, 0.0f, 1.0f, "Minimum value of the input image", this);
+    UI::DragFloat( "##LMin", &_levelsSettings.levels[0].min, 0.0001f, 0.0f, 1.0f, "Minimum value of the input image", this);
     ImGui::TableNextColumn();
     ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetStyle().FramePadding.y );
     ImGui::SetNextItemWidth( colWidth );
-    UI::DragFloat( "##LGamma", &_levelsSettings.levels[0].gamma, 0.001f, 0.1f, 10.0f, "Gamma", this );
+    UI::DragFloat( "##LGamma", &_levelsSettings.levels[0].gamma, 0.0001f, 0.1f, 10.0f, "Gamma", this );
     ImGui::TableNextColumn();
     ImGui::SetCursorPosY( ImGui::GetCursorPosY() - ImGui::GetStyle().FramePadding.y );
     ImGui::SetNextItemWidth( colWidth );
-    UI::DragFloat( "##LMax", &_levelsSettings.levels[0].max, 0.001f, 0.0f, 1.0f, "Maximum value of the input image", this );
+    UI::DragFloat( "##LMax", &_levelsSettings.levels[0].max, 0.0001f, 0.0f, 1.0f, "Maximum value of the input image", this );
 
 
     if ( _levelsSettings.adjustChannels )

@@ -30,13 +30,13 @@ public:
         return _items;
     }    
 
-    bool AddItem( const std::string& category, uint8_t order, const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(Point)>& action)
+    bool AddItem( const std::string& category, uint8_t order, const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(Point)>& action, bool unlockable = false )
     {
         auto it = _items.find( category );
         if ( it == _items.end() )
             it = _items.insert_or_assign( category, std::map<int, std::unique_ptr<MenuItem>>{} ).first;
 
-        it->second.insert_or_assign(order, std::make_unique<MenuItem>( icon, caption, tooltip, action ) );
+        it->second.insert_or_assign(order, std::make_unique<MenuItem>( icon, caption, tooltip, action, unlockable ) );
         return true;
     }
 

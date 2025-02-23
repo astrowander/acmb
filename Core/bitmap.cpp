@@ -40,6 +40,8 @@ std::shared_ptr<IBitmap> IBitmap::Create(uint32_t width, uint32_t height, PixelF
         return std::make_shared<Bitmap<PixelFormat::Gray8>>(width, height);
     case PixelFormat::Gray16:
         return std::make_shared<Bitmap<PixelFormat::Gray16>>(width, height);
+    case PixelFormat::YUV24:
+        return std::make_shared<Bitmap<PixelFormat::YUV24>>( width, height );
     case PixelFormat::RGB24:
         return std::make_shared<Bitmap<PixelFormat::RGB24>>(width, height);
     case PixelFormat::RGB48:
@@ -66,6 +68,8 @@ std::shared_ptr<IBitmap> IBitmap::Create( uint32_t width, uint32_t height, IColo
         return std::make_shared<Bitmap<PixelFormat::Gray16>>(width, height, std::static_pointer_cast< Color<PixelFormat::Gray16> >(pColor) );
     case PixelFormat::RGB24:
         return std::make_shared<Bitmap<PixelFormat::RGB24>>(width, height, std::static_pointer_cast< Color<PixelFormat::RGB24> >(pColor) );
+    case PixelFormat::YUV24:
+        return std::make_shared<Bitmap<PixelFormat::YUV24>>( width, height, std::static_pointer_cast< Color<PixelFormat::YUV24> >(pColor) );
     case PixelFormat::RGB48:
         return std::make_shared<Bitmap<PixelFormat::RGB48>>(width, height, std::static_pointer_cast< Color<PixelFormat::RGB48> >(pColor) );
     case PixelFormat::RGBA32:

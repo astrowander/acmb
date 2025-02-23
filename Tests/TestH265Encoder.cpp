@@ -1,6 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Codecs/H265/H265Encoder.h"
+#include "../Transforms/converter.h"
 
 #include <sstream>
 #include <fstream>
@@ -20,14 +21,14 @@ for ( int i = 0; i < 25; ++i )
 {
     const uint8_t l = uint8_t( std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
     const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( l, l, l );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ), PixelFormat::YUV24 ) );
 }
 
 for ( int i = 0; i < 25; ++i )
 {
     const uint8_t l = uint8_t( 255 - std::clamp( float( i ) / 24.0f * 255.0f, 0.0f, 255.0f ) );
     const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( l, l, l );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ), PixelFormat::YUV24 ) );
 }
 
 encoder.Detach();
@@ -84,8 +85,8 @@ auto f = []
     std::shared_ptr<std::stringstream> pStream( new std::stringstream );
     encoder.Attach( pStream );
     const auto fillColor = std::make_shared<Color<PixelFormat::RGB24>>( 255, 255, 255 );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ) );
-    encoder.WriteBitmap( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, fillColor ) ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 64, 64, fillColor ) ), PixelFormat::YUV24 ) );
+    encoder.WriteBitmap( Converter::Convert( std::shared_ptr<Bitmap<PixelFormat::RGB24>>( new Bitmap<PixelFormat::RGB24>( 65, 65, fillColor ) ), PixelFormat::YUV24 ) );
 };
 
 ASSERT_THROWS( f, std::runtime_error );

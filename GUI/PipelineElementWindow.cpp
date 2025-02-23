@@ -25,6 +25,8 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
     try
     {
         res = RunTask( i );
+        if ( !MainWindow::GetInstance().IsInterfaceLocked() )
+            throw std::runtime_error( "Processing was interrupted" );
     }
     catch ( std::exception& e )
     {
@@ -296,7 +298,7 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
     if ( int( dir ) & int( PropagationDir::Backward ) )
     {
         auto pPrimaryInput = GetPrimaryInput();
-        if ( pPrimaryInput )
+        if ( pPrimaryInput && pPrimaryInput->GetCompletedTaskCount() > 0 )
             pPrimaryInput->ResetProgress( dir );
     }
     
@@ -306,7 +308,7 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
         if ( !pOutput )
             pOutput = GetBottomOutput();
         
-        if ( pOutput )
+        if ( pOutput && pOutput->GetCompletedTaskCount() > 0 )
         {
             //if ( pOutput->GetPrimaryInput().get() == this && std::dynamic_pointer_cast< StackerWindow >(pOutput) == nullptr )
                 //pOutput->_taskCount = _taskCount;

@@ -3,6 +3,6 @@
 
 ACMB_NAMESPACE_BEGIN
 
-std::vector<Point> DetectFeatures( IBitmapPtr pBitmap, float threshold = 0.1f, int minChannel = 100 );
+std::vector<PointD> DetectFeatures( IBitmapPtr pBitmap, float threshold = 0.1f, int minChannel = 100 );
 
 ACMB_NAMESPACE_END

@@ -19,6 +19,7 @@ void ConverterWindow::DrawPipelineElementControls()
     UI::RadioButton( "Gray16", ( int* ) &_dstPixelFormat, int( PixelFormat::Gray16 ), "Grayscale, 16 bits per channel", this );
     UI::RadioButton( "RGB24", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB24 ), "RGB colors, 8 bits per channel", this );
     UI::RadioButton( "RGB48", ( int* ) &_dstPixelFormat, int( PixelFormat::RGB48 ), "RGB colors, 16 bits per channel", this );
+    UI::RadioButton( "YUV444", ( int* ) &_dstPixelFormat, int( PixelFormat::YUV24 ), "YUV colors, 8 bits per channel", this );
 }
 
 IBitmapPtr ConverterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

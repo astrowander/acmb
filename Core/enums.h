@@ -20,7 +20,8 @@ enum class PixelFormat : uint32_t
    // Agray16 = 0x010202,
     Gray16 = 0x020201,
    // Agray32 = 0x020202
-   Bayer16 = 0x020301
+   Bayer16 = 0x020301,
+   YUV24 = 0x010403
 };
 /// prints pixel format to stream
 std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat);
@@ -29,7 +30,8 @@ enum class ColorSpace : uint32_t
 {
     RGB = 1,
     Gray = 2,
-    Bayer = 3
+    Bayer = 3,
+    YUV = 4
 };
 /// returns color space of given pixel format
 inline constexpr ColorSpace GetColorSpace( PixelFormat pixelFormat )

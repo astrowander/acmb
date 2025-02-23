@@ -8,7 +8,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 BitmapHealerWindow::BitmapHealerWindow( const Point& gridPos )
 : PipelineElementWindow( "Bitmap Healer", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
 {
-    _patches.resize( 1 );
+    _patches.emplace_back();
     _currentPatch = 0;
 }
 
@@ -17,16 +17,19 @@ void BitmapHealerWindow::DrawPipelineElementControls()
     ImGui::PushItemWidth( _itemWidth );
 
     ImGui::Text( "Copy From Coords" );
+
+    auto& currentPatch = _patches[_currentPatch];
+    currentPatch.gamma = 1.0f;
     //ImGui::SameLine();
-    UI::DragInt2( "##copyfrom", (int*) & _patches[_currentPatch].from, 1.0f, 0, 65535, "Coordinates of the copy source", this);
+    UI::DragInt2( "##copyfrom", (int*) &currentPatch.from, 1.0f, 0, 65535, "Coordinates of the copy source", this);
     ImGui::Text( "Paste To Coords" );
-    UI::DragInt2( "##pasteto", (int*) & _patches[_currentPatch].to, 1.0f, 0, 65535, "Coordinates of the copy destination", this);
+    UI::DragInt2( "##pasteto", (int*) &currentPatch.to, 1.0f, 0, 65535, "Coordinates of the copy destination", this);
     ImGui::Text( "Radius of Patch" );
-    UI::DragInt( "##radius", &_patches[_currentPatch].radius, 1.0f, 1, 65535, "Radius of the copy", this );
+    UI::DragInt( "##radius", &currentPatch.radius, 1.0f, 1, 65535, "Radius of the copy", this );
     ImGui::Text( "Index of Patch" );
     UI::InputInt( "##indexofpatch", &_currentPatch, 1, 0, 0, int( _patches.size() ), "Patch number", this );
     if ( _currentPatch == _patches.size() )
-        _patches.resize( _currentPatch + 1 );
+        _patches.emplace_back();
 
     ImGui::PopItemWidth();
 }

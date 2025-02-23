@@ -140,6 +140,7 @@
     <ClCompile Include="CenterObjectWindow.cpp" />
     <ClCompile Include="ConverterWindow.cpp" />
     <ClCompile Include="CropWindow.cpp" />
+    <ClCompile Include="DeflickerWindow.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="FlatFieldWindow.cpp" />
     <ClCompile Include="FontRegistry.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="CenterObjectWindow.h" />
     <ClInclude Include="ConverterWindow.h" />
     <ClInclude Include="CropWindow.h" />
+    <ClInclude Include="DeflickerWindow.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FlatFieldWindow.h" />
     <ClInclude Include="FontRegistry.h" />

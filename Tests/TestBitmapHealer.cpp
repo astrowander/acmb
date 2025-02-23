@@ -1,6 +1,7 @@
 #include "test.h"
 #include "testtools.h"
 #include "../Transforms/BitmapHealer.h"
+#include "../Transforms/CropTransform.h"
 #include "../Transforms/converter.h"
 
 ACMB_TESTS_NAMESPACE_BEGIN
@@ -20,6 +21,16 @@ TEST_PIXEL_FORMAT( RGB24 )
 TEST_PIXEL_FORMAT( RGB48 )
 TEST_PIXEL_FORMAT( Gray8 )
 TEST_PIXEL_FORMAT( Gray16 )
+
+BEGIN_TEST( TestTransparency )
+
+auto pSrcBitmap = IBitmap::Create( 500, 500, IColor::MakeRGB24( NamedColor32::White ) );
+pSrcBitmap = CropTransform::CropAndFill( pSrcBitmap, { -250, 0, 500, 500 }, IColor::MakeRGB24( NamedColor32::Blue ) );
+std::vector <BitmapHealer::Patch > patches = { {.from = { 350, 250 }, .to = { 150, 250 }, .radius = 25, .gamma = 1.0f } };
+pSrcBitmap = BitmapHealer::ApplyTransform( pSrcBitmap, patches );
+EXPECT_TRUE( BitmapsAreEqual( GetPathToPattern( "BitmapHealer/TestTransparency.ppm" ), pSrcBitmap ) );
+
+END_TEST
 
 END_SUITE
 
