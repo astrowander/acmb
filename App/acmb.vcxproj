@@ -107,16 +107,16 @@
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/x64;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
     </Link>
     <ClCompile>
