@@ -81,6 +81,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;acmb-cuda.lib;cudart_static.lib;tbb12_debug.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/Win32;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -97,6 +99,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);d3d11.lib;acmb-cuda.lib;cudart_static.lib;tbb12.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/Win32;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
