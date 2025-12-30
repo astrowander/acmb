@@ -47,7 +47,19 @@ int FlatFieldWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> FlatFieldWindow::GeneratePreviewBitmap()
 {
-    _pPreviewBitmap = BitmapDivisor::Divide( GetPrimaryInput()->GetPreviewBitmap()->Clone(), { .pDivisor = GetSecondaryInput()->GetPreviewBitmap(), .intensity = _intensity});
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+
+    auto pSecondaryInputBitmapOrErr = GetSecondaryInput()->GetPreviewBitmap();
+    if ( !pSecondaryInputBitmapOrErr )
+        return unexpected(pSecondaryInputBitmapOrErr.error());
+
+    auto pSecondaryInputBitmap = pSecondaryInputBitmapOrErr.value()->Clone();
+
+    _pPreviewBitmap = BitmapDivisor::Divide(pInputBitmap, { .pDivisor = pSecondaryInputBitmap, .intensity = _intensity});
     return {};
 }
 

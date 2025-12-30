@@ -42,7 +42,11 @@ int ResizeWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
 {
-    const auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
     const auto inputSizeExp = GetBitmapSize();
     if ( !inputSizeExp )

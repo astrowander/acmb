@@ -66,7 +66,12 @@ int DeflickerWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> DeflickerWindow::GeneratePreviewBitmap()
 {
-    _pPreviewBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    _pPreviewBitmap = pInputBitmap;
     return {};
 }
 

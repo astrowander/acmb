@@ -129,7 +129,12 @@ void LevelsWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
-    auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    
     try
     {
         _levelsSettings = LevelsTransform::GetAutoSettings( pInputBitmap, _levelsSettings.adjustChannels );
@@ -163,7 +168,11 @@ int LevelsWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
     _pPreviewBitmap = LevelsTransform::ApplyLevels( pInputBitmap, _levelsSettings );
     return {};
 }

@@ -50,7 +50,12 @@ int CropWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> CropWindow::GeneratePreviewBitmap()
 {
-    const auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
     const auto inputSizeExp = GetPrimaryInput()->GetBitmapSize();
     if ( !inputSizeExp )
@@ -67,7 +72,7 @@ Expected<void, std::string> CropWindow::GeneratePreviewBitmap()
         .width = std::clamp( int( _dstRect.width * xFactor ), 1, inputPreviewSize.width - cropArea.x ),
         .height = std::clamp( int( _dstRect.height * yFactor ), 1, inputPreviewSize.height - cropArea.y )
     };
-    _pPreviewBitmap = CropTransform::Crop( GetPrimaryInput()->GetPreviewBitmap()->Clone(), cropArea );
+    _pPreviewBitmap = CropTransform::Crop(pInputBitmap, cropArea );
     return {};
 }
 

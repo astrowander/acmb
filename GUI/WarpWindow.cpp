@@ -52,7 +52,11 @@ void WarpWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> WarpWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
     _pPreviewBitmap = WarpTransform::Warp( pInputBitmap, _settings );
     return {};
 }

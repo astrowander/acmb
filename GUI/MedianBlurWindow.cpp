@@ -19,7 +19,11 @@ void MedianBlurWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> MedianBlurWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
     _pPreviewBitmap = MedianBlurTransform::MedianBlur( pInputBitmap, 2 * _radius + 1 );
     return {};
 }

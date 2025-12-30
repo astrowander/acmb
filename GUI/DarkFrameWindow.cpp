@@ -185,8 +185,20 @@ Expected<float, std::string> DarkFrameWindow::AutoAdjustMultiplier()
 }
 
 Expected<void, std::string> DarkFrameWindow::GeneratePreviewBitmap()
-{    
-    _pPreviewBitmap = BitmapSubtractor::Subtract( GetPrimaryInput()->GetPreviewBitmap()->Clone(), {.pBitmapToSubtract = GetSecondaryInput()->GetPreviewBitmap(), .multiplier = _multiplier});
+{
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    
+    auto pSecondaryInputBitmapOrErr = GetSecondaryInput()->GetPreviewBitmap();
+    if ( !pSecondaryInputBitmapOrErr )
+        return unexpected(pSecondaryInputBitmapOrErr.error());
+
+    auto pSecondaryInputBitmap = pSecondaryInputBitmapOrErr.value()->Clone();
+
+    _pPreviewBitmap = BitmapSubtractor::Subtract( pInputBitmap, {.pBitmapToSubtract = pSecondaryInputBitmap, .multiplier = _multiplier});
     _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
     return {};
 }

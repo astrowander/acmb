@@ -46,8 +46,14 @@ int ConverterWindow::GetSerializedStringSize() const
 }
 
 Expected<void, std::string> ConverterWindow::GeneratePreviewBitmap()
-{    
-    _pPreviewBitmap = Converter::Convert( GetPrimaryInput()->GetPreviewBitmap()->Clone(), _dstPixelFormat);
+{
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+
+    _pPreviewBitmap = Converter::Convert(pInputBitmap->Clone(), _dstPixelFormat);
     return {};
 }
 
