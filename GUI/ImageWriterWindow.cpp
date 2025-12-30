@@ -13,6 +13,8 @@
 #include "./../Transforms/ResizeTransform.h"
 
 #include <sstream>
+#include <algorithm>
+#include <vector>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -31,8 +33,17 @@ static std::string GetFilters()
 static std::string GetFormatList( bool excludeVideoFormats = false )
 {
     const auto extensions = ImageEncoder::GetAllExtensions();
+    std::vector<std::string> orderedExtensions( extensions.begin(), extensions.end() );
+    std::stable_sort( orderedExtensions.begin(), orderedExtensions.end(), []( const std::string& lhs, const std::string& rhs )
+    {
+        // Prefer MP4 when available so users default to the containerized H.265 output.
+        if ( lhs == ".mp4" ) return true;
+        if ( rhs == ".mp4" ) return false;
+        return lhs < rhs;
+    } );
+
     std::ostringstream ss;
-    for ( const auto& extension : extensions )
+    for ( const auto& extension : orderedExtensions )
     {
         if ( excludeVideoFormats && (H265Encoder::GetExtensions().contains( extension ) || Y4MEncoder::GetExtensions().contains( extension )) )
             continue;

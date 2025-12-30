@@ -233,6 +233,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>%(AdditionalDependencies);avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -251,8 +253,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libraw.lib;libraw_static.lib;;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libraw.lib;libraw_static.lib;;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avformat.lib;avcodec.lib;avutil.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -268,13 +270,13 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug; ./Libs/TinyTIFF/build/src/Debug;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TinyTIFFShared_Debug.lib;TinyTIFF_Debug.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug; ./Libs/TinyTIFF/build/src/Debug;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TinyTIFFShared_Debug.lib;TinyTIFF_Debug.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avformat.lib;avcodec.lib;avutil.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackReserveSize>4194304</StackReserveSize>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/debug-x86_64;./Libs/lensfun/build/libs/lensfun/Debug; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/; ./Libs/TinyTIFF/build/src/Debug;./Libs/CCfits/build/Debug/;./Libs/cfitsio/lib/;./Libs/x265_git/build/vc17-x86_64/Debug;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Debug.lib;lensfun.lib;libraw.lib;ccfits.lib;cfitsio.lib;x265-static.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/debug-x86_64;./Libs/lensfun/build/libs/lensfun/Debug; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/; ./Libs/TinyTIFF/build/src/Debug;./Libs/CCfits/build/Debug/;./Libs/cfitsio/lib/;./Libs/x265_git/build/vc17-x86_64/Debug;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Debug.lib;lensfun.lib;libraw.lib;ccfits.lib;cfitsio.lib;x265-static.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -298,12 +300,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release; ./Libs/TinyTIFF/build/src/Release;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>TinyTIFFShared_Release.lib;TinyTIFF_Release.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.20.2/lib;./Libs/lensfun/build/libs/lensfun/Release; ./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release; ./Libs/TinyTIFF/build/src/Release;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>TinyTIFFShared_Release.lib;TinyTIFF_Release.lib;lensfun.lib;libraw.lib;libraw_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;avformat.lib;avcodec.lib;avutil.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/release-x86_64;./Libs/lensfun/build/libs/lensfun/Release;./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/; ./Libs/TinyTIFF/build/src/Release;./Libs/CCfits/build/Release/;./Libs/cfitsio/lib/;./Libs/x265_git/build/vc17-x86_64\Release;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Release.lib;lensfun.lib;libraw.lib;ccfits.lib;cfitsio.lib;libx265.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./Libs/Libraw-0.21.1/buildfiles/release-x86_64;./Libs/lensfun/build/libs/lensfun/Release;./Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/; ./Libs/TinyTIFF/build/src/Release;./Libs/CCfits/build/Release/;./Libs/cfitsio/lib/;./Libs/x265_git/build/vc17-x86_64\Release;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);TinyTiffShared_Release.lib;lensfun.lib;libraw.lib;ccfits.lib;cfitsio.lib;libx265.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
       <AdditionalOptions>/ignore:4006 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>

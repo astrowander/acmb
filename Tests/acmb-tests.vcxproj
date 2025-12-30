@@ -81,6 +81,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;cudart_static.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/Win32;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -96,6 +98,8 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;cudart_static.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>./../Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/Win32;C:\Adalisk\vcpkg\installed\x86-windows\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -105,16 +109,16 @@
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;cudart_static.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;cudart_static.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;cudart_static.lib;</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);./../x64/Debug;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_debug/;$(CUDA_PATH_V12_0)/lib/x64;C:\Adalisk\vcpkg\installed\x64-windows\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12_debug.lib;cudart_static.lib;avformat.lib;avcodec.lib;avutil.lib;</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <ClCompile>
