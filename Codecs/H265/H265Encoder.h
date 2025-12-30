@@ -8,6 +8,7 @@ struct H265EncoderParams;
 class H265Encoder : public VideoEncoder
 {
     std::shared_ptr<H265EncoderParams> _params;
+    bool _useMp4 = false;
 
 public:
     enum class Preset
@@ -63,6 +64,7 @@ public:
     H265Encoder( Preset preset, Tune tune = Tune::None, Profile profile = Profile::None );
 
     using ImageEncoder::Attach;
+    virtual void Attach( const std::string& fileName ) override;
     virtual void Detach() override;
 
     virtual void WriteBitmap( std::shared_ptr<IBitmap> pBitmap ) override;
