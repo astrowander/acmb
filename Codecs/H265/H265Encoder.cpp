@@ -44,7 +44,7 @@ namespace
 
     // Custom AVIO callback that forwards muxer writes straight into the existing std::ostream
     // so the rest of the code can keep using the ImageEncoder stream abstraction.
-    int WritePacketToStream( void* opaque, uint8_t* buf, int bufSize )
+    int WritePacketToStream( void* opaque, const uint8_t* buf, int bufSize )
     {
         auto stream = static_cast<std::ostream*>( opaque );
         stream->write( reinterpret_cast<const char*>( buf ), bufSize );
@@ -139,19 +139,21 @@ void H265Encoder::Detach()
 
             if ( _useMp4 && _params->pFormatContext && _params->pStream )
             {
-                AVPacket packet;
-                av_init_packet( &packet );
+                AVPacket* packet = av_packet_alloc();
+                if ( !packet )
+                    throw std::runtime_error( "unable to allocate packet" );
+
                 // av_interleaved_write_frame takes ownership and will free this buffer.
-                packet.data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
-                packet.size = static_cast<int>( packetData.size() );
-                packet.stream_index = _params->pStream->index;
-                packet.pts = packet.dts = _params->pPicOut->pts;
-                packet.duration = 1;
+                packet->data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
+                packet->size = static_cast<int>( packetData.size() );
+                packet->stream_index = _params->pStream->index;
+                packet->pts = packet->dts = _params->pPicOut->pts;
+                packet->duration = 1;
 
                 AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
-                av_packet_rescale_ts( &packet, encoderTimeBase, _params->pStream->time_base );
-                av_interleaved_write_frame( _params->pFormatContext.get(), &packet );
-                av_packet_unref( &packet );
+                av_packet_rescale_ts( packet, encoderTimeBase, _params->pStream->time_base );
+                av_interleaved_write_frame( _params->pFormatContext.get(), packet );
+                av_packet_free( &packet );
             }
             else if ( _pStream )
             {
@@ -301,19 +303,21 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
 
         if ( _useMp4 && _params->pFormatContext && _params->pStream )
         {
-            AVPacket packet;
-            av_init_packet( &packet );
+            AVPacket* packet = av_packet_alloc();
+            if ( !packet )
+                throw std::runtime_error( "unable to allocate packet" );
+
             // av_interleaved_write_frame takes ownership and will free this buffer.
-            packet.data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
-            packet.size = static_cast<int>( packetData.size() );
-            packet.stream_index = _params->pStream->index;
-            packet.pts = packet.dts = _params->pPicOut->pts;
-            packet.duration = 1;
+            packet->data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
+            packet->size = static_cast<int>( packetData.size() );
+            packet->stream_index = _params->pStream->index;
+            packet->pts = packet->dts = _params->pPicOut->pts;
+            packet->duration = 1;
 
             AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
-            av_packet_rescale_ts( &packet, encoderTimeBase, _params->pStream->time_base );
-            av_interleaved_write_frame( _params->pFormatContext.get(), &packet );
-            av_packet_unref( &packet );
+            av_packet_rescale_ts( packet, encoderTimeBase, _params->pStream->time_base );
+            av_interleaved_write_frame( _params->pFormatContext.get(), packet );
+            av_packet_free( &packet );
         }
         else
         {
