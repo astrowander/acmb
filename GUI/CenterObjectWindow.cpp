@@ -45,7 +45,12 @@ int CenterObjectWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> CenterObjectWindow::GeneratePreviewBitmap()
 {
-    _pPreviewBitmap = CenterObjectTransform::CenterObject( GetPrimaryInput()->GetPreviewBitmap()->Clone(), { .dstSize = _dstSize, .threshold = _threshold } );
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    _pPreviewBitmap = CenterObjectTransform::CenterObject( pInputBitmap, { .dstSize = _dstSize, .threshold = _threshold } );
     return {};
 }
 

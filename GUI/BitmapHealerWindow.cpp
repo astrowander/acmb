@@ -36,7 +36,11 @@ void BitmapHealerWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> BitmapHealerWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmap = GetPrimaryInput()->GetPreviewBitmap()->Clone();
+    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    if ( !pInputBitmapOrErr )
+        return unexpected( pInputBitmapOrErr.error() );
+
+    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
     auto bitmapSize = GetPrimaryInput()->GetBitmapSize();
     if ( !bitmapSize )
         return unexpected( bitmapSize.error() );
