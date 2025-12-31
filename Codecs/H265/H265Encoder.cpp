@@ -151,7 +151,8 @@ void H265Encoder::Detach()
                 packet->data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
                 packet->size = static_cast<int>( packetData.size() );
                 packet->stream_index = _params->pStream->index;
-                packet->pts = packet->dts = _params->pPicOut->pts;
+                packet->pts = _params->pPicOut->pts;
+                packet->dts = _params->pPicOut->pts;
                 packet->duration = 1;
 
                 AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
@@ -197,6 +198,7 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
     {
         _width = pBitmap->GetWidth();
         _height = pBitmap->GetHeight();
+        _params->iFrame = 0;
         _params->pParam->sourceWidth = _width;
         _params->pParam->sourceHeight = _height;
         _params->pParam->fpsNum = _frameRate;
@@ -315,7 +317,8 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
             packet->data = static_cast<uint8_t*>( av_memdup( packetData.data(), packetData.size() ) );
             packet->size = static_cast<int>( packetData.size() );
             packet->stream_index = _params->pStream->index;
-            packet->pts = packet->dts = _params->pPicOut->pts;
+            packet->pts = _params->pPicOut->pts;
+            packet->dts = _params->pPicOut->pts;
             packet->duration = 1;
 
             AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
