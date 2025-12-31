@@ -31,7 +31,7 @@ public:
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;
     virtual int GetSerializedStringSize() const override;
-    virtual size_t GetTaskCount() override;
+    virtual size_t GetTaskCount(bool update = false) override;
 
     virtual void ResetTasks() override;
 

@@ -72,6 +72,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -108,7 +111,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies);acmb-cuda.lib;tbb12.lib;</AdditionalDependencies>
-      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>./../x64/Release;./../Libs/oneTBB/build/msvc_19.32_cxx_64_md_release/;$(CUDA_PATH_V12_0)/lib/x64;</AdditionalLibraryDirectories>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
     </Link>

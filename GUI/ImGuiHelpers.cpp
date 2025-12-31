@@ -46,6 +46,18 @@ namespace UI
     static constexpr float cButtonPadding = 8.0f;
     static constexpr ImGuiSliderFlags ImGuiSliderFlags_ReadOnly = 1 << 21;
 
+    static void ResetParentWindow(PipelineElementWindow* parent)
+    {
+        parent->ResetPreview();
+
+        if ( parent->GetInOutFlags() & PEFlags::PEFlags_NoInput )
+            parent->ResetProgress(PipelineElementWindow::PropagationDir::Forward);
+        else if ( parent->GetInOutFlags() & PEFlags::PEFlags_NoOutput )
+            parent->ResetProgress(PipelineElementWindow::PropagationDir::Backward);
+        else
+            parent->ResetProgress(PipelineElementWindow::PropagationDir::Both);
+    }
+
     void ShowModalMessage( const std::vector<std::string>& msgs, ModalMessageType msgType, bool& isEnabled )
     {
         ImGui::PushStyleColor( ImGuiCol_ModalWindowDimBg, ImVec4( 1, 0.125f, 0.125f, ImGui::GetStyle().Colors[ImGuiCol_ModalWindowDimBg].w ) );
@@ -125,94 +137,117 @@ namespace UI
         ImGui::PopStyleColor();
     }
 
-    void Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, PipelineElementWindow* parent )
+    bool Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
         {
             action();
             if ( parent )
-                parent->ResetPreview();
+                ResetParentWindow( parent );
+
+            return true;
         }
 
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void UnlockableButton( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
+    bool UnlockableButton( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         if ( ImGui::Button( name.c_str(), size ) )
         {
             action();
             if ( parent )
-                parent->ResetPreview();
+                ResetParentWindow(parent);
+
+            return true;
         }
 
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, PipelineElementWindow* parent )
+    bool RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool pressed = ImGui::RadioButton( label.c_str(), *v == v_button) && !MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked();
         if ( pressed )
         { 
             *v = v_button;
             if ( parent )
-                parent->ResetPreview();
+                ResetParentWindow(parent);
+
+            return true;
         }
         
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void Checkbox( const std::string& label, bool* v, const std::string& tooltip, PipelineElementWindow* parent )
+    bool Checkbox( const std::string& label, bool* v, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::Checkbox( label.c_str(), v, isInterfaceLocked ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
+
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip, PipelineElementWindow* parent )
+    bool DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
+
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void DragInt2( const std::string& label, int v[2], float v_speed, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
+    bool DragInt2( const std::string& label, int v[2], float v_speed, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragInt2( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
+
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
+    bool DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.4f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
+
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
-    void InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
+    bool InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::InputInt( label.c_str(), v, step, step_fast, isInterfaceLocked ? ImGuiInputTextFlags_ReadOnly : 0 ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
 
         *v = std::clamp( *v, min, max );
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 
     static bool Items_SingleStringGetter( void* data, int idx, const char** out_text )
@@ -235,7 +270,7 @@ namespace UI
         return true;
     }
 
-    void Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, PipelineElementWindow* parent )
+    bool Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
 
@@ -252,8 +287,11 @@ namespace UI
 
         if ( ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count ) && parent )
         {
-            parent->ResetPreview();
+            ResetParentWindow(parent);
+            return true;
         }
+
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
     }
 }

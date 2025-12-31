@@ -235,7 +235,7 @@ std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
     return ( it == _taskNumberToFileIndex.end() ) ? std::string{} : _fileNames[it->second];
 }
 
-size_t ImageReaderWindow::GetTaskCount()
+size_t ImageReaderWindow::GetTaskCount( bool )
 {
     return _frameCount;
 }

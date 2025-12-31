@@ -3,9 +3,13 @@
 #include "./../../Tools/BitmapTools.h"
 
 #include "x265.h"
+
+extern "C" {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/mem.h>
+}
+
 #include <filesystem>
 #include <vector>
 #include <cstring>

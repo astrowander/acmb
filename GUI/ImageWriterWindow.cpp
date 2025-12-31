@@ -67,6 +67,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
 {
     UI::Checkbox( "Keep Original Name", &_keepOriginalFileName,
                   "If checked then the images will be saved with their original names. Otherwise the custom name will be used (with number postfixes for multiple images)" );
+
     ImGui::Separator();
 
     const float itemWidth = 100.0f * cMenuScaling;
@@ -101,9 +102,12 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
     if ( H265Encoder::GetExtensions().contains( _extension ) || Y4MEncoder::GetExtensions().contains( _extension ) )
     {
-        UI::DragInt( "Frame Rate", &_frameRate, 0.1f, 1, 144, "Frame rate of the output video" );
-        if ( H265Encoder::GetExtensions().contains( _extension ) )
-            UI::DragInt( "Quality", &_quality, 0.1f, 1, 9, "1 - worst quality, fastest speed\n9 - best quality, slowest speed" );
+        UI::DragInt("Frame Rate", &_frameRate, 0.1f, 1, 144, "Frame rate of the output video");
+
+        if ( H265Encoder::GetExtensions().contains(_extension) )
+        {
+            UI::DragInt("Quality", &_quality, 0.1f, 1, 9, "1 - worst quality, fastest speed\n9 - best quality, slowest speed");
+        }
     }
 
     if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -240,7 +244,7 @@ std::vector<std::string> ImageWriterWindow::ExportAllImages()
 
     ResetProgress( PropagationDir::Backward );
 
-    _taskCount = pPrimaryInput->GetTaskCount();
+    _taskCount = pPrimaryInput->GetTaskCount(/*update = */ true);
     if ( _taskCount == 0 )
         return { "No input frames for the'" + _name + "' element" };
 

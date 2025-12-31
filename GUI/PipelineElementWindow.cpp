@@ -267,9 +267,9 @@ bool PipelineElementWindow::HasFreeOutputs()
     return true;
 }
 
-size_t PipelineElementWindow::GetTaskCount()
+size_t PipelineElementWindow::GetTaskCount(bool update)
 {
-    if ( _taskCount == 0 )
+    if ( update || _taskCount == 0 )
     {
         auto pPrimaryInput = GetPrimaryInput();
         if ( pPrimaryInput )
