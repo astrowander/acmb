@@ -36,6 +36,7 @@ struct H265EncoderParams
 
     uint32_t iNal = 0;
     uint32_t iFrame = 0;
+    int64_t nextDts = 0;
     std::unique_ptr<AVFormatContext, decltype(&avformat_free_context)> pFormatContext{ nullptr, avformat_free_context };
     AVStream* pStream = nullptr;
     AVIOContext* pIoContext = nullptr;
@@ -152,7 +153,7 @@ void H265Encoder::Detach()
                 packet->size = static_cast<int>( packetData.size() );
                 packet->stream_index = _params->pStream->index;
                 packet->pts = _params->pPicOut->pts;
-                packet->dts = _params->pPicOut->pts;
+                packet->dts = _params->nextDts++;
                 packet->duration = 1;
 
                 AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
@@ -199,6 +200,7 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
         _width = pBitmap->GetWidth();
         _height = pBitmap->GetHeight();
         _params->iFrame = 0;
+        _params->nextDts = 0;
         _params->pParam->sourceWidth = _width;
         _params->pParam->sourceHeight = _height;
         _params->pParam->fpsNum = _frameRate;
@@ -318,7 +320,7 @@ void H265Encoder::WriteBitmap( std::shared_ptr<IBitmap> pBitmap )
             packet->size = static_cast<int>( packetData.size() );
             packet->stream_index = _params->pStream->index;
             packet->pts = _params->pPicOut->pts;
-            packet->dts = _params->pPicOut->pts;
+            packet->dts = _params->nextDts++;
             packet->duration = 1;
 
             AVRational encoderTimeBase{ 1, static_cast<int>( _frameRate ) };
