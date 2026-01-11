@@ -204,6 +204,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="SaturationWindow.h" />
     <ClInclude Include="Serializer.h" />
+    <ClInclude Include="SettingsInterpolationUser.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />
     <ClInclude Include="Texture.h" />

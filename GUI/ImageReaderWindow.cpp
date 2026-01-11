@@ -37,12 +37,11 @@ void ImageReaderWindow::DrawPipelineElementControls()
     {
         for ( int i = 0; i < int( _fileNames.size() ); ++i )
         {
-            const bool is_selected = (_selectedItemIdx == i);
+            const bool is_selected = (_previewedFrameNumber == i);
             const std::string shortName = _fileNames[i].substr( _fileNames[i].find_last_of( "\\/" ) + 1 );
             if ( ImGui::Selectable( shortName.c_str(), is_selected ) )
             {
-                _selectedItemIdx = i;
-                ResetPreview();
+                OnPreviewedFrameNumberChanged( i );
             }
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
             if ( is_selected )
@@ -51,7 +50,7 @@ void ImageReaderWindow::DrawPipelineElementControls()
         ImGui::EndListBox();
     }
 
-    ImGui::Text( "%d frames in %d files", int( _frameCount ), int( _fileNames.size() ) );
+    ImGui::Text( "%d frames in %d files", int( _taskCount ), int( _fileNames.size() ) );
 
     auto fileDialog = FileDialog::Instance();
     const auto openDialogName = "SelectImagesDialog##" + _name;
@@ -72,8 +71,8 @@ void ImageReaderWindow::DrawPipelineElementControls()
         ImGui::CloseCurrentPopup();
 
         _fileNames.clear();
-        _frameCount = 0;
-        _selectedItemIdx = 0;
+        _taskCount = 0;
+        _previewedFrameNumber = 0;
         _taskNumberToFileIndex.clear();
         ResetProgress( PropagationDir::Forward );
     }, "Delete all images from the importing list", this );
@@ -95,8 +94,8 @@ void ImageReaderWindow::DrawPipelineElementControls()
                 {
                     auto pDecoder = ImageDecoder::Create( path );
                     _fileNames.push_back( path );
-                    _frameCount += pDecoder->GetFrameCount();
-                    _taskNumberToFileIndex[int( _frameCount - 1 )] = int( _fileNames.size() - 1 );
+                    _taskCount += pDecoder->GetFrameCount();
+                    _taskNumberToFileIndex[int( _taskCount - 1 )] = int( _fileNames.size() - 1 );
                 }
                 catch ( std::exception& e )
                 {
@@ -122,13 +121,13 @@ Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
     if ( _fileNames.empty() )
         return unexpected( "No images in the list" );
 
-    if ( _selectedItemIdx >= int( _fileNames.size() ) )
+    if ( _previewedFrameNumber >= int( _fileNames.size() ) || _previewedFrameNumber < 0 )
         return unexpected( "No image selected" );
 
-    if ( _fileNames[_selectedItemIdx].empty() )
+    if ( _fileNames[_previewedFrameNumber].empty() )
         return unexpected( "Selected file name is empty" );
     
-    auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+    auto pDecoder = ImageDecoder::Create( _fileNames[_previewedFrameNumber] );
     const auto mainWindow = ImGui::FindWindowByName( "acmb" );
     _pPreviewBitmap = pDecoder->ReadPreview( Size{ std::min( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::min( int( mainWindow->Size.y * 0.5f ), 720 ) } );
     return {};
@@ -165,15 +164,15 @@ Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
     if ( _fileNames.empty() )
         return unexpected( "No images in the list" );
 
-    if ( _selectedItemIdx >= int( _fileNames.size() ) )
+    if ( _previewedFrameNumber >= int( _fileNames.size() ) )
         return unexpected( "No image selected" );
 
-    if ( _fileNames[_selectedItemIdx].empty() )
+    if ( _fileNames[_previewedFrameNumber].empty() )
         return unexpected( "Selected file name is empty" );
     
     try
     {
-        auto pDecoder = ImageDecoder::Create( _fileNames[_selectedItemIdx] );
+        auto pDecoder = ImageDecoder::Create( _fileNames[_previewedFrameNumber] );
         const auto res = Size{ int( pDecoder->GetWidth() ), int( pDecoder->GetHeight() ) };
         pDecoder->Detach();
         return res;
@@ -188,8 +187,7 @@ void ImageReaderWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _workingDirectory, out );
-    gui::Serialize( _fileNames, out );
-    gui::Serialize( _selectedItemIdx, out );
+    gui::Serialize( _fileNames, out );    
     gui::Serialize( _invertOrder, out );
 }
 
@@ -198,7 +196,6 @@ bool ImageReaderWindow::Deserialize( std::istream& in )
     if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _workingDirectory = gui::Deserialize<std::string>( in, _remainingBytes );
     _fileNames = gui::Deserialize<std::vector<std::string>>( in, _remainingBytes );
-    _selectedItemIdx = gui::Deserialize<int>( in, _remainingBytes );
     _invertOrder = gui::Deserialize<bool>( in, _remainingBytes );
 
     for ( size_t i = 0; i < _fileNames.size(); ++i )
@@ -207,8 +204,8 @@ bool ImageReaderWindow::Deserialize( std::istream& in )
         try
         {
             auto pDecoder = ImageDecoder::Create( fileName );
-            _frameCount += pDecoder->GetFrameCount();
-            _taskNumberToFileIndex[int( _frameCount - 1 )] = int( i );
+            _taskCount += pDecoder->GetFrameCount();
+            _taskNumberToFileIndex[int( _taskCount - 1 )] = int( i );
         }
         catch ( std::exception& e )
         {
@@ -225,7 +222,6 @@ int ImageReaderWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize()
         + gui::GetSerializedStringSize( _workingDirectory )
         + gui::GetSerializedStringSize( _fileNames )
-        + gui::GetSerializedStringSize( _selectedItemIdx )
         + gui::GetSerializedStringSize( _invertOrder );
 }
 
@@ -237,7 +233,7 @@ std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
 
 size_t ImageReaderWindow::GetTaskCount( bool )
 {
-    return _frameCount;
+    return _taskCount;
 }
 
 REGISTER_TOOLS_ITEM( ImageReaderWindow )
