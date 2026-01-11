@@ -25,6 +25,8 @@ public:
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
 
     static Size GetSizeWithPreservedRatio( Size srcSize, Size dstSize );
+
+    static Settings Interpolate( const Settings& a, const Settings& b, double t );
 };
 
 ACMB_NAMESPACE_END

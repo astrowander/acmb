@@ -124,4 +124,22 @@ IBitmapPtr BitmapHealer::ApplyTransform( IBitmapPtr pSrcBitmap, const Settings& 
     return pBitmapHealer->RunAndGetBitmap();
 }
 
+BitmapHealer::Settings BitmapHealer::Interpolate(const BitmapHealer::Settings& a, const BitmapHealer::Settings& b, double t)
+{
+    if ( a.size() != b.size() )
+        throw std::invalid_argument( "BitmapHealer: Settings must have the same size" );
+
+    BitmapHealer::Settings result( a.size() );
+
+    for ( size_t i = 0; i < a.size(); ++i )
+    {
+        result[i].from = a[i].from + (b[i].from - a[i].from) * t;
+        result[i].to = a[i].to + (b[i].to - a[i].to) * t;
+        result[i].radius = a[i].radius + (b[i].radius - a[i].radius) * t;
+        result[i].gamma = a[i].gamma + (b[i].gamma - a[i].gamma) * t;
+    }
+
+    return result;
+}
+
 ACMB_NAMESPACE_END

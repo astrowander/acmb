@@ -22,6 +22,8 @@ public:
     static std::shared_ptr<AffineTransform> Create( IBitmapPtr pSrcBitmap, const Settings& settings );
     static std::shared_ptr<AffineTransform> Create( PixelFormat, const Settings& settings );
     static IBitmapPtr ApplyTransform( IBitmapPtr pSrcBitmap, const Settings& settings );
+
+    static Settings Interpolate( const Settings& a, const Settings& b, double t );
 };
 
 ACMB_NAMESPACE_END

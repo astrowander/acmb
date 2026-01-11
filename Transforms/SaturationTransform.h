@@ -16,6 +16,8 @@ public:
     static std::shared_ptr<SaturationTransform> Create( IBitmapPtr pSrcBitmap, float intensity );
     static std::shared_ptr<SaturationTransform> Create( PixelFormat pixelFormat, float intensity );
     static IBitmapPtr Saturate( IBitmapPtr pSrcBitmap, float intensity );
+
+    static Settings Interpolate( const Settings& a, const Settings& b, double t );
 };
 
 ACMB_NAMESPACE_END

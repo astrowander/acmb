@@ -35,6 +35,8 @@ public:
     static IBitmapPtr ApplyLevels( IBitmapPtr pSrcBitmap, const Settings& levels );
 
     static Settings GetAutoSettings( IBitmapPtr pSrcBitmap, bool adjustChannels = false );
+
+    static Settings Interpolate( const Settings& a, const Settings& b, double t );
 };
 
 ACMB_NAMESPACE_END

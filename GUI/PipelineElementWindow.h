@@ -63,6 +63,7 @@ public:
 
     enum class PropagationDir
     {
+        None = 0,
         Forward = 1,
         Backward = 2,
         Both = 3
@@ -91,6 +92,8 @@ protected:
     IBitmapPtr _pSecondaryInputResult;
 
     int _remainingBytes{};
+
+    int _previewedFrameNumber = -1;
 
     bool _showError = false;
     std::string _error;
@@ -176,9 +179,17 @@ public:
     }
     Expected<void, std::string> GeneratePreviewTexture();
     
-    void ResetPreview();
+    void ResetPreview(PropagationDir dir);
 
     virtual Expected<Size, std::string> GetBitmapSize();
+
+    virtual void OnPreviewedFrameNumberChanged( int val );
+
+    virtual void OnKeyframeCommited() 
+    {
+    }
+
+    int GetPreviewedFrameNumber() const { return _previewedFrameNumber; }
 
 protected:
     virtual void DrawDialog() override;

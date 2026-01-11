@@ -7,6 +7,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 LevelsWindow::LevelsWindow( const Point& gridPos )
 : PipelineElementWindow( "Levels", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+, SettingsInterpolationUser<LevelsTransform>(this, LevelsTransform::Settings{})
 {   
 }
 
@@ -125,6 +126,8 @@ void LevelsWindow::DrawPipelineElementControls()
     }, "Automatically adjust levels", this );
 
     ImGui::PopStyleVar();
+
+    DrawFrameCounter();
 }
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
@@ -147,23 +150,37 @@ Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
     return {};
 }
 
+void LevelsWindow::OnPreviewedFrameNumberChanged(int val)
+{
+    PipelineElementWindow::OnPreviewedFrameNumberChanged(val);
+    _levelsSettings = GetInterpolatedSettings(_previewedFrameNumber);
+}
+
+void LevelsWindow::OnKeyframeCommited()
+{
+    AddSettings(_previewedFrameNumber, _levelsSettings);
+}
+
 void LevelsWindow::Serialize( std::ostream& out ) const
 {
     PipelineElementWindow::Serialize( out );
     gui::Serialize( _levelsSettings, out );
+    SettingsInterpolationUser<LevelsTransform>::Serialize(out);
 }
 
 bool LevelsWindow::Deserialize( std::istream& in )
 {
     if ( !PipelineElementWindow::Deserialize( in ) ) return false;
     _levelsSettings = gui::Deserialize<decltype(_levelsSettings)>( in, _remainingBytes );
+    SettingsInterpolationUser<LevelsTransform>::Deserialize(in, _remainingBytes);
     return true;
 }
 
 int LevelsWindow::GetSerializedStringSize() const
 {
     return PipelineElementWindow::GetSerializedStringSize() 
-    + gui::GetSerializedStringSize( _levelsSettings );
+    + gui::GetSerializedStringSize( _levelsSettings )
+    + SettingsInterpolationUser<LevelsTransform>::GetSerializedStringSize();
 }
 
 Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
@@ -177,9 +194,10 @@ Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
     return {};
 }
 
-IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
+IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex)
 {
-    return LevelsTransform::ApplyLevels( pSource, _levelsSettings );
+    auto interpolatedSettings = GetInterpolatedSettings(int(frameIndex));
+    return LevelsTransform::ApplyLevels( pSource, interpolatedSettings);
 }
 
 REGISTER_TOOLS_ITEM( LevelsWindow );

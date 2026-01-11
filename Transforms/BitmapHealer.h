@@ -27,6 +27,8 @@ public:
     static std::shared_ptr<BitmapHealer> Create( IBitmapPtr pSrcBitmap, const Settings& settings );
     static std::shared_ptr<BitmapHealer> Create( PixelFormat, const Settings& settings );
     static IBitmapPtr ApplyTransform( IBitmapPtr pSrcBitmap, const Settings& settings );
+
+    static Settings Interpolate(const Settings& a, const Settings& b, double t);
 };
 
 ACMB_NAMESPACE_END

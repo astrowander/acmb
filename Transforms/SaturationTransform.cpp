@@ -94,4 +94,10 @@ IBitmapPtr SaturationTransform::Saturate( IBitmapPtr srcBitmap, float intensity 
     return pTransform->RunAndGetBitmap();
 }
 
+SaturationTransform::Settings SaturationTransform::Interpolate(const Settings& a, const Settings& b, double t)
+{
+    return a + t * (b - a);
+}
+
+
 ACMB_NAMESPACE_END

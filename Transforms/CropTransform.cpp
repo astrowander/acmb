@@ -1,4 +1,5 @@
 #include "CropTransform.h"
+#include "./math.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
 #include <cstring>
@@ -148,6 +149,24 @@ void CropTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
     _width = _dstRect.width;
     _height = _dstRect.height;
     _pixelFormat = pParams->GetPixelFormat();
+}
+
+CropTransform::Settings CropTransform::Interpolate(const CropTransform::Settings& a, const CropTransform::Settings& b, double t)
+{
+    PointD aCenter = a.GetCenter();
+    PointD bCenter = b.GetCenter();
+
+    PointD resultCenter = aCenter * ( 1 - t ) + bCenter * t;
+    double resultWidth = a.width * ( 1 - t ) + b.width * t;
+    double resultHeight = a.height * ( 1 - t ) + b.height * t;
+
+    return CropTransform::Settings
+    {
+        .x = int( resultCenter.x - resultWidth / 2 + 0.5),
+        .y = int( resultCenter.y - resultHeight / 2 + 0.5),
+        .width = int( resultWidth + 0.5),
+        .height = int( resultHeight + 0.5)
+    };
 }
 
 ACMB_NAMESPACE_END

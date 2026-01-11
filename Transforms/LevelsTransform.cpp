@@ -179,4 +179,18 @@ LevelsTransform::Settings LevelsTransform::GetAutoSettings( IBitmapPtr pSrcBitma
     return result;
 }
 
+LevelsTransform::Settings LevelsTransform::Interpolate(const LevelsTransform::Settings& a, const LevelsTransform::Settings& b, double t)
+{
+    Settings result;
+    for ( size_t i = 0; i < 4; ++i )
+    {
+        result.levels[i].min = a.levels[i].min + (b.levels[i].min - a.levels[i].min) * t;
+        result.levels[i].max = a.levels[i].max + (b.levels[i].max - a.levels[i].max) * t;
+        result.levels[i].gamma = a.levels[i].gamma + (b.levels[i].gamma - a.levels[i].gamma) * t;
+    }
+
+    result.adjustChannels = a.adjustChannels || b.adjustChannels;
+    return result;
+}
+
 ACMB_NAMESPACE_END
