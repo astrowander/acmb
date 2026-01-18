@@ -1,9 +1,16 @@
 #include "BitmapSubtractor.h"
+#include "HistogramBuilder.h"
+
 #include "../Core/camerasettings.h"
 #include <tbb/blocked_range.h>
 #include <tbb/parallel_for.h>
+#include <tbb/enumerable_thread_specific.h>
+
+#undef min
+#undef max
 
 ACMB_NAMESPACE_BEGIN
+
 template <PixelFormat pixelFormat>
 class BitmapSubtractor_ final : public BitmapSubtractor
 {
@@ -118,6 +125,102 @@ IBitmapPtr BitmapSubtractor::Subtract( IBitmapPtr pSrcBitmap, const Settings& se
 {
     auto pSubtractor = Create( pSrcBitmap, settings );
     return pSubtractor->RunAndGetBitmap();
+}
+
+float BitmapSubtractor::AutoAdjustMultiplier(IBitmapPtr pSource, IBitmapPtr pDarkFrame)
+{
+    if ( !pSource )
+        throw std::invalid_argument( "pSource is null" );
+
+    if ( !pDarkFrame )
+        throw std::invalid_argument( "pDarkFrame is null" );
+
+    if ( !ArePixelFormatsCompatible( pSource->GetPixelFormat(), pDarkFrame->GetPixelFormat() ) )
+        throw std::invalid_argument( "bitmaps should have the same pixel format" );
+
+    const PixelFormat pixelFormat = pSource->GetPixelFormat();
+    const size_t channelCount = ChannelCount(pixelFormat);
+
+    auto pHistogramBuilder = HistogramBuilder::Create(pDarkFrame);
+    pHistogramBuilder->BuildHistogram();
+    std::vector<uint32_t> thresholds(channelCount);
+
+    //// Calculate thresholds finding 100 most bright pixels in each channel of dark frame
+    for ( uint32_t ch = 0; ch < channelCount; ++ch )
+    {
+        const auto& histogram = pHistogramBuilder->GetChannelHistogram(ch);
+        const auto& statistics = pHistogramBuilder->GetChannelStatistics(ch);
+
+        uint32_t count = 0;
+
+        for ( int32_t val = statistics.max; val >= 0; --val )
+        {
+            count += histogram[val];
+            if ( count >= 100 )
+            {
+                thresholds[ch] = val;
+                break;
+            }
+        }
+    }
+
+    tbb::enumerable_thread_specific<std::vector<float>> multipliers;
+
+    auto sourceBlackLevel = pSource->GetCameraSettings()->blackLevel;
+    auto darkBlackLevel = pDarkFrame->GetCameraSettings()->blackLevel;
+
+    tbb::parallel_for(tbb::blocked_range<uint32_t>(0, pSource->GetHeight()), [&](const tbb::blocked_range<uint32_t>& range)
+    {
+        auto& local = multipliers.local();
+
+        for ( uint32_t i = range.begin(); i < range.end(); ++i )
+        {
+            auto processScanline = [&]<typename ChannelType>(ChannelType * scanline, ChannelType * darkScanline)
+            {
+                for ( size_t j = 0; j < pSource->GetWidth(); ++j )
+                {
+                    for ( size_t ch = 0; ch < channelCount; ++ch )
+                    {
+                        const auto darkValue = *darkScanline;
+                        if ( darkValue >= thresholds[ch] )
+                        {
+                            const auto value = *scanline;
+                            const auto multiplier = float(value - sourceBlackLevel) / float(darkValue - darkBlackLevel);
+                            local.push_back(multiplier);
+                        }
+
+                        ++scanline;
+                        ++darkScanline;
+                    }
+                }
+            };
+
+            auto scanline = pSource->GetPlanarScanline(i);
+            auto darkScanline = pDarkFrame->GetPlanarScanline(i);
+           
+            if ( BytesPerChannel(pixelFormat) == 1 )
+            {
+                processScanline(reinterpret_cast<uint8_t*>(scanline), reinterpret_cast<uint8_t*>(darkScanline));
+            }
+            else
+            {
+                processScanline(reinterpret_cast<uint16_t*>(scanline), reinterpret_cast<uint16_t*>(darkScanline));
+            }
+        }
+    });
+
+    float result = 0.0f;
+    size_t count = 0;
+    for ( const auto& multipliersPerThread : multipliers )
+    {
+        for ( const float multiplier : multipliersPerThread )
+        {
+            result += multiplier;
+            ++count;
+        }
+    }
+
+    return result / count;
 }
 
 ACMB_NAMESPACE_END

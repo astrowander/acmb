@@ -121,6 +121,9 @@
     <ClCompile Include="BitmapHealerWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
+    <ClCompile Include="FileListUser.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="imgui\imconfig.h">
@@ -230,6 +233,9 @@
       <Filter>ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="SettingsInterpolationUser.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="FileListUser.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PipelineElementWindow.h"
+#include "FileListUser.h"
 
 ACMB_NAMESPACE_BEGIN
 class ImageDecoder;
@@ -8,20 +8,19 @@ ACMB_NAMESPACE_END
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-class ImageReaderWindow : public PipelineElementWindow
+class ImageReaderWindow : public PipelineElementWindow, public FileListUser
 {
-    std::shared_ptr<ImageDecoder> _pDecoder;
-
-    std::string _workingDirectory;
-    std::vector<std::string> _fileNames;
-    std::map<int, int> _taskNumberToFileIndex;
-
-    bool _invertOrder = false;
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }
 
     virtual Expected<void, std::string> GeneratePreviewBitmap() override;
     virtual Expected<Size, std::string> GetBitmapSize() override;
+
+    virtual void OnSelectedFrameChanged(int idx) override;
+    virtual void OnFileListChanged() override;
+    virtual std::string GetWindowName() const override;
+    virtual std::string GetFileFilters() const;
+
 public:
     ImageReaderWindow( const Point& gridPos );
     virtual void DrawPipelineElementControls() override;

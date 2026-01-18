@@ -73,6 +73,8 @@ public:
     /// returns all supported extensions by all decoders
     static const std::unordered_set<std::string>& GetAllExtensions();
 
+    static std::string GetFilters();
+
     uint32_t GetFrameCount() const { return _frameCount; }
 
 protected:

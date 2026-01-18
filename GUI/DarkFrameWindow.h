@@ -1,16 +1,19 @@
 #pragma once
-#include "PipelineElementWindow.h"
+#include "FileListUser.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-class DarkFrameWindow : public PipelineElementWindow
+class DarkFrameWindow : public PipelineElementWindow, public FileListUser
 {
     float _multiplier = 1.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
-    Expected<float, std::string> AutoAdjustMultiplier();
-
     virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+
+    virtual void OnSelectedFrameChanged(int idx) override {}
+
+    virtual std::string GetWindowName() const override;
+    virtual std::string GetFileFilters() const;
 
 public:
 

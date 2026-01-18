@@ -25,7 +25,7 @@ class FileDialog;
 class MainWindow : public Window
 {
 public:
-    static constexpr Size cGridSize = { 26, 26 };
+    static constexpr Size cGridSize = { 26, 1 };
 private:
     std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
     std::vector<std::string> _errors;    

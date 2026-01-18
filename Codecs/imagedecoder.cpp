@@ -258,6 +258,18 @@ const std::unordered_set<std::string>& ImageDecoder::GetAllExtensions()
     return _allExtensions;
 }
 
+std::string ImageDecoder::GetFilters()
+{
+    const auto extensions = ImageDecoder::GetAllExtensions();
+    std::ostringstream ss;
+    ss << ".*";
+    for ( const auto& extension : extensions )
+    {
+        ss << "," << extension;
+    }
+    return ss.str();
+}
+
 IBitmapPtr ImageDecoder::ToOutputFormat( IBitmapPtr pSrcBitmap )
 {
     if ( _pixelFormat == PixelFormat::Unspecified || _pixelFormat == pSrcBitmap->GetPixelFormat() )

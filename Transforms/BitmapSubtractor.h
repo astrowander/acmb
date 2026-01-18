@@ -24,6 +24,8 @@ public:
     static std::shared_ptr<BitmapSubtractor> Create( PixelFormat srcPixelFormat, const Settings& settings );
     /// Subtracts given bitmap from the source and returns result
     static IBitmapPtr Subtract( IBitmapPtr pSrcBitmap, const Settings& settings );
+
+    static float AutoAdjustMultiplier(IBitmapPtr pSource, IBitmapPtr pDarkFrame);
 };
 
 ACMB_NAMESPACE_END

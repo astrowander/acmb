@@ -477,8 +477,9 @@ int main(int, char**)
         {
             CleanupRenderTarget();
             g_pSwapChain->ResizeBuffers(0, g_ResizeWidth, g_ResizeHeight, DXGI_FORMAT_UNKNOWN, 0);
+            mainWindow.SetSize(ImVec2{ float(g_ResizeWidth), float(g_ResizeHeight) });
             g_ResizeWidth = g_ResizeHeight = 0;
-            CreateRenderTarget();
+            CreateRenderTarget();            
         }
 
         // Start the Dear ImGui frame

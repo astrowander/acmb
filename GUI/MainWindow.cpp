@@ -452,14 +452,17 @@ void MainWindow::DrawDialog()
 
     ImGui::PushFont( _fontRegistry.byDefault );
 
-    ImGui::SetCursorPos( { 0, cGridTop - cHeadRowHeight } );
+    auto drawList = ImGui::GetWindowDrawList();
+    drawList->AddLine({ 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ 0, _size.y - 3 - ImGui::GetTextLineHeightWithSpacing() }, { _size.x, _size.y - 3 - ImGui::GetTextLineHeightWithSpacing() }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+
+    /*ImGui::SetCursorPos({0, cGridTop - cHeadRowHeight});
     UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [this]
     {
         ClearTable();
     }, "Clear table" );
 
-    auto drawList = ImGui::GetWindowDrawList();
-    drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32( ImGui::GetStyleColorVec4( ImGuiCol_Separator ) ), 3.0f );
+    
     drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 1 }, { _size.x, cGridTop - cHeadRowHeight - 1 }, ImU32( UIColor::TableBorders ) );
     drawList->AddLine( { 1, cGridTop - cHeadRowHeight - 1 }, { 1, _size.y }, ImU32( UIColor::TableBorders ), 2.0f );
 
@@ -479,7 +482,7 @@ void MainWindow::DrawDialog()
     topLeft.x = float( cGridLeft + _viewportSize.width * cGridCellWidth );
     drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, _size.y }, ImU32( UIColor::TableBorders ) );
 
-    for ( int y = 0; y < int( _viewportSize.height ); ++y )
+    for ( int y = 0; y < 1; ++y )
     {
         topLeft.y = float( cGridTop + y * cGridCellHeight );
         bottomRight.y = topLeft.y + cGridCellHeight;
@@ -602,7 +605,7 @@ void MainWindow::DrawDialog()
     }
 
     topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
-    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
+    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );*/
 
     ImGui::PopFont();
 
@@ -672,7 +675,14 @@ MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
 
 void MainWindow::Show()
 {
-    Window::Show();
+    ImGui::SetNextWindowPos(_pos, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(_size, ImGuiCond_FirstUseEver);
+
+    if ( !DrawHeader() )
+        return ImGui::End();
+
+    DrawDialog();
+    ImGui::End();
 
     for ( int i = 0; i < int( _grid.size() ); ++i )
     {
