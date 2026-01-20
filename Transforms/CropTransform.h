@@ -27,6 +27,8 @@ public:
 
     /// returns size of destination image
     virtual void CalcParams( std::shared_ptr<ImageParams> pParams ) override;
+
+    static Settings Interpolate(const Settings& a, const Settings& b, double t);
 };
 
 ACMB_NAMESPACE_END

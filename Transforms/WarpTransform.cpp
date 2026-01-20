@@ -148,4 +148,29 @@ IBitmapPtr WarpTransform::Warp( IBitmapPtr pSrcBitmap, const Settings& controls 
     auto pWarpTransform = Create( pSrcBitmap, controls );
     return pWarpTransform->RunAndGetBitmap();
 }
+
+WarpTransform::Settings WarpTransform::Interpolate(const Settings& a, const Settings& b, double t)
+{
+    Settings settings;
+
+    auto colorA = a.pBgColor;
+    auto colorB = b.pBgColor;
+
+    if ( colorA->GetPixelFormat() != colorB->GetPixelFormat() )
+        throw std::invalid_argument("background colors should have the same pixel format");
+
+    auto pColor = IColor::Create(colorA->GetPixelFormat(), { 0, 0, 0, 0 });
+
+
+    for ( uint32_t i = 0; i < ChannelCount(colorA->GetPixelFormat()); ++i )
+    {
+        pColor->SetChannel(i, colorA->GetChannel(i) + (colorB->GetChannel(i) - colorA->GetChannel(i)) * t);
+    }
+
+    for ( int i = 0; i < 16; ++i )
+        settings.controls[i] = a.controls[i] + (b.controls[i] - a.controls[i]) * t;
+
+    settings.pBgColor = pColor;
+    return settings;
+}
 ACMB_NAMESPACE_END

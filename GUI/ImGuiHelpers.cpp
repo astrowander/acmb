@@ -48,7 +48,10 @@ namespace UI
 
     static void ResetParentWindow(PipelineElementWindow* parent)
     {
-        parent->ResetPreview();
+        if ( !parent )
+            return;
+
+        parent->ResetPreview(PipelineElementWindow::PropagationDir::Forward );
 
         if ( parent->GetInOutFlags() & PEFlags::PEFlags_NoInput )
             parent->ResetProgress(PipelineElementWindow::PropagationDir::Forward);
@@ -143,8 +146,7 @@ namespace UI
         if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
         {
             action();
-            if ( parent )
-                ResetParentWindow( parent );
+            ResetParentWindow( parent );
 
             return true;
         }
@@ -158,8 +160,7 @@ namespace UI
         if ( ImGui::Button( name.c_str(), size ) )
         {
             action();
-            if ( parent )
-                ResetParentWindow(parent);
+            ResetParentWindow(parent);
 
             return true;
         }
@@ -174,8 +175,7 @@ namespace UI
         if ( pressed )
         { 
             *v = v_button;
-            if ( parent )
-                ResetParentWindow(parent);
+            ResetParentWindow(parent);
 
             return true;
         }
@@ -187,7 +187,7 @@ namespace UI
     bool Checkbox( const std::string& label, bool* v, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::Checkbox( label.c_str(), v, isInterfaceLocked ) && parent )
+        if ( ImGui::Checkbox( label.c_str(), v, isInterfaceLocked ) )
         {
             ResetParentWindow(parent);
             return true;
@@ -200,7 +200,7 @@ namespace UI
     bool DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
+        if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) )
         {
             ResetParentWindow(parent);
             return true;
@@ -213,7 +213,7 @@ namespace UI
     bool DragInt2( const std::string& label, int v[2], float v_speed, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragInt2( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
+        if ( ImGui::DragInt2( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) )
         {
             ResetParentWindow(parent);
             return true;
@@ -226,7 +226,7 @@ namespace UI
     bool DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.4f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) && parent )
+        if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.4f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) )
         {
             ResetParentWindow(parent);
             return true;
@@ -239,7 +239,7 @@ namespace UI
     bool InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::InputInt( label.c_str(), v, step, step_fast, isInterfaceLocked ? ImGuiInputTextFlags_ReadOnly : 0 ) && parent )
+        if ( ImGui::InputInt( label.c_str(), v, step, step_fast, isInterfaceLocked ? ImGuiInputTextFlags_ReadOnly : 0 ) )
         {
             ResetParentWindow(parent);
             return true;

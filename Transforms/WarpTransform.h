@@ -24,6 +24,8 @@ public:
     static std::shared_ptr<WarpTransform> Create( IBitmapPtr pSrcBitmap, const Settings& controls );
     static std::shared_ptr<WarpTransform> Create( PixelFormat, const Settings& controls );
     static IBitmapPtr Warp( IBitmapPtr pSrcBitmap, const Settings& controls );
+
+    static Settings Interpolate( const Settings& a, const Settings& b, double t );
 };
 
 

@@ -145,10 +145,21 @@ void ResizeTransform::CalcParams( std::shared_ptr<ImageParams> pParams )
     _pixelFormat = pParams->GetPixelFormat();
 }
 
-Size ResizeTransform::GetSizeWithPreservedRatio( Size srcSize, Size dstSize )
+Size ResizeTransform::GetSizeWithPreservedRatio( Size srcSize, Size maxSize )
 {
-    const auto srcRatio = static_cast< float >(srcSize.width) / srcSize.height;
-    const auto dstRatio = static_cast< float >(dstSize.width) / dstSize.height;
-    return (srcRatio < dstRatio) ? Size{ int( dstSize.height* srcRatio + 0.5f ), dstSize.height } : Size{ dstSize.width, int( dstSize.height* srcRatio ) };
+    const float widthRatio = static_cast<float>( maxSize.width ) / static_cast<float>( srcSize.width );
+    const float heightRatio = static_cast<float>( maxSize.height ) / static_cast<float>( srcSize.height );
+    const float ratio = std::min( widthRatio, heightRatio );
+    return Size( static_cast<uint32_t>( srcSize.width * ratio ), static_cast<uint32_t>( srcSize.height * ratio ) );
+}
+
+ResizeTransform::Settings ResizeTransform::Interpolate(const Settings& a, const Settings& b, double t)
+{
+    ResizeTransform::Settings result;
+
+    result.width = a.width + t * ( b.width - a.width );
+    result.height = a.height + t * ( b.height - a.height );
+
+    return result;
 }
 ACMB_NAMESPACE_END

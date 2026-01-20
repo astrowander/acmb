@@ -103,4 +103,44 @@ IBitmapPtr AffineTransform::ApplyTransform( IBitmapPtr pSrcBitmap, const Setting
     return pAffineTransform->RunAndGetBitmap();
 }
 
+AffineTransform::Settings AffineTransform::Interpolate(const Settings& a, const Settings& b, double t)
+{
+    auto colorA = a.pBgColor;
+    auto colorB = b.pBgColor;
+
+    if ( colorA->GetPixelFormat() != colorB->GetPixelFormat() )
+        throw std::invalid_argument("background colors should have the same pixel format");
+
+    auto pColor = IColor::Create( colorA->GetPixelFormat(), { 0, 0, 0, 0 } );
+
+    for ( int i = 0; i < ChannelCount(colorA->GetPixelFormat()); ++i )
+    {
+        pColor->SetChannel( i, colorA->GetChannel( i ) + (colorB->GetChannel( i ) - colorA->GetChannel( i )) * t );
+    }
+
+    PointD translationA;
+    PointD translationB;
+    a.transform.translation( &translationA.x, &translationA.y );
+    b.transform.translation( &translationB.x, &translationB.y );
+
+    PointD scalingA;
+    PointD scalingB;
+    a.transform.scaling( &scalingA.x, &scalingA.y );
+    b.transform.scaling( &scalingB.x, &scalingB.y );
+
+    double rotationA = a.transform.rotation();
+    double rotationB = b.transform.rotation();
+
+    PointD translation = translationA + (translationB - translationA) * t;
+    PointD scaling = scalingA + (scalingB - scalingA) * t;
+
+    double rotation = rotationA + (rotationB - rotationA) * t;    
+
+    AffineTransform::Settings result;
+    result.pBgColor = pColor;
+    result.transform = agg::trans_affine_scaling( scaling.x, scaling.y ) * agg::trans_affine_rotation( rotation ) * agg::trans_affine_translation( translation.x, translation.y );
+
+    return result;
+}
+
 ACMB_NAMESPACE_END

@@ -115,8 +115,10 @@
     <ClCompile Include="WarpWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
-    <ClCompile Include="BitmapHealerWindow.cpp" />
     <ClCompile Include="DeflickerWindow.cpp">
+      <Filter>ToolWindows</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapHealerWindow.cpp">
       <Filter>ToolWindows</Filter>
     </ClCompile>
   </ItemGroup>
@@ -226,6 +228,9 @@
     </ClInclude>
     <ClInclude Include="DeflickerWindow.h">
       <Filter>ToolWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="SettingsInterpolationUser.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

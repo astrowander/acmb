@@ -1,6 +1,5 @@
 #pragma once
 #include "./../Core/macros.h"
-#include "./../Transforms/BitmapHealer.h"
 
 #include <istream>
 #include <ostream>
@@ -10,182 +9,169 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 template<typename T>
+struct is_vector : std::false_type
+{
+};
+
+template<typename T, typename Alloc>
+struct is_vector<std::vector<T, Alloc>> : std::true_type
+{
+};
+
+template<typename T>
+inline constexpr bool is_vector_v = is_vector<T>::value;
+
+
+template<typename T>
+struct is_map : std::false_type
+{
+};
+
+template<typename K, typename V, typename Cmp, typename Alloc>
+struct is_map<std::map<K, V, Cmp, Alloc>> : std::true_type
+{
+};
+
+template<typename T>
+inline constexpr bool is_map_v = is_map<T>::value;
+
+template<typename T>
 int GetSerializedStringSize( const T& val )
 {
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
-        return int( val.size() ) + sizeof( int );
+    using U = std::remove_cvref_t<T>;
 
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
+    if constexpr ( std::is_same_v<U, std::string> )
     {
-        int res = sizeof( int );
-        for ( const auto& str : val )
-            res += GetSerializedStringSize( str );
+        return sizeof(int) + int(val.size());
+    }
+    else if constexpr ( is_vector_v<U> )
+    {
+        int res = sizeof(int);
+        for ( const auto& e : val )
+            res += GetSerializedStringSize(e);
         return res;
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    else if constexpr ( is_map_v<U> )
     {
-        int res = sizeof( int );
-        for ( const auto& patch : val )
-            res += GetSerializedStringSize( patch );
+        int res = sizeof(int);
+        for ( const auto& [k, v] : val )
+        {
+            res += GetSerializedStringSize(k);
+            res += GetSerializedStringSize(v);
+        }
         return res;
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
+    else
     {
-        return int( sizeof( int ) * (2 * val.size() + 1) );
+        return sizeof(U);
     }
-
-    return sizeof( T );
 }
 
 template<typename T>
 void Serialize( T&& val, std::ostream& out )
 {
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
-    {
-        Serialize( int( val.size() ), out );
-        out.write( val.data(), val.size() );
-        return;
-    }
+    using U = std::remove_cvref_t<T>;
 
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
+    if constexpr ( std::is_same_v<U, std::string> )
     {
-        Serialize( int( val.size() ), out );
-        for ( auto& str : val )
-            Serialize( std::move( str ), out );
-        return;
+        Serialize(int(val.size()), out);
+        out.write(val.data(), val.size());
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    else if constexpr ( is_vector_v<U> )
     {
-        Serialize( int( val.size() ), out );
-        for ( auto& patch : val )
-            Serialize( std::move( patch ), out );
-        return;
+        Serialize(int(val.size()), out);
+        for ( auto& e : val )
+            Serialize(e, out);
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
+    else if constexpr ( is_map_v<U> )
     {
-        Serialize( int( val.size() ), out );
-        for ( auto it : val )
+        Serialize(int(val.size()), out);
+        for ( auto& [k, v] : val )
         {
-            Serialize( it.first, out );
-            Serialize( it.second, out );
+            Serialize(k, out);
+            Serialize(v, out);
         }
-        return;
     }
-
-    out.write( ( char* ) (&val), sizeof( T ) );
+    else
+    {
+        out.write(reinterpret_cast<const char*>(&val), sizeof(U));
+    }
 }
 
 template<typename T>
 T Deserialize( std::istream& in, int& remainingBytes )
 {
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::string> )
+    using U = std::remove_cvref_t<T>;
+
+    auto require = [&](int bytes)
     {
-        if ( remainingBytes < int( sizeof( int ) ) )
+        if ( remainingBytes < bytes )
         {
-            in.seekg( remainingBytes, std::ios_base::cur );
+            in.seekg(remainingBytes, std::ios_base::cur);
             remainingBytes = 0;
-            return {};
+            return false;
         }
+        return true;
+    };
 
-        int cachedRemainingBytes = remainingBytes;
-        int size = std::min( Deserialize<int>( in, remainingBytes ), cachedRemainingBytes );
-        if ( size <= 0 )
-            remainingBytes = 0;
-
-        if ( remainingBytes == 0 )
+    if constexpr ( std::is_same_v<U, std::string> )
+    {
+        if ( !require(sizeof(int)) )
             return {};
 
-        std::string str( size, '\0' );
-        in.read( &str[0], size );
+        int size = Deserialize<int>(in, remainingBytes);
+        if ( size <= 0 || !require(size) )
+            return {};
+
+        std::string s(size, '\0');
+        in.read(s.data(), size);
         remainingBytes -= size;
-        return str;
+        return s;
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<std::string>> )
+    else if constexpr ( is_vector_v<U> )
     {
-        if ( remainingBytes < int( sizeof( int ) ) )
-        {
-            in.seekg( remainingBytes, std::ios_base::cur );
-            remainingBytes = 0;
+        if ( !require(sizeof(int)) )
             return {};
-        }
 
-        int size = Deserialize<int>( in, remainingBytes );
+        int size = Deserialize<int>(in, remainingBytes);
         if ( size <= 0 )
-        {
-            remainingBytes = 0;
             return {};
-        }
-        std::vector<std::string> vec( size );
+
+        U vec;
+        vec.reserve(size);
         for ( int i = 0; i < size; ++i )
-            vec[i] = Deserialize<std::string>( in, remainingBytes );
+            vec.push_back(Deserialize<typename U::value_type>(in, remainingBytes));
 
         return vec;
     }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::vector<BitmapHealer::Patch>> )
+    else if constexpr ( is_map_v<U> )
     {
-        if ( remainingBytes < int( sizeof( int ) ) )
-        {
-            in.seekg( remainingBytes, std::ios_base::cur );
-            remainingBytes = 0;
+        if ( !require(sizeof(int)) )
             return {};
-        }
 
-        int size = Deserialize<int>( in, remainingBytes );
+        int size = Deserialize<int>(in, remainingBytes);
         if ( size <= 0 )
-        {
-            remainingBytes = 0;
             return {};
-        }
 
-        std::vector<BitmapHealer::Patch> vec( size );
-        for ( int i = 0; i < size; ++i )
-            vec[i] = Deserialize<BitmapHealer::Patch>( in, remainingBytes );
-
-        return vec;
-    }
-
-    if constexpr ( std::is_same_v<std::remove_cvref_t<T>, std::map<int, int>> )
-    {
-        if ( remainingBytes < int( sizeof( int ) ) )
-        {
-            in.seekg( remainingBytes, std::ios_base::cur );
-            remainingBytes = 0;
-            return {};
-        }
-
-        int size = Deserialize<int>( in, remainingBytes );
-        if ( size <= 0 )
-        {
-            remainingBytes = 0;
-            return {};
-        }
-        std::map<int, int> map;
+        U map;
         for ( int i = 0; i < size; ++i )
         {
-            int key = Deserialize<int>( in, remainingBytes );
-            int value = Deserialize<int>( in, remainingBytes );
-            map.insert_or_assign( key, value );
+            auto key = Deserialize<typename U::key_type>(in, remainingBytes);
+            auto val = Deserialize<typename U::mapped_type>(in, remainingBytes);
+            map.insert_or_assign(std::move(key), std::move(val));
         }
         return map;
     }
-
-    if ( remainingBytes < int( sizeof( T )  ) )
+    else
     {
-        in.seekg( remainingBytes, std::ios_base::cur );
-        remainingBytes = 0;
-        return {};
-    }
+        if ( !require(sizeof(U)) )
+            return {};
 
-    T res;
-    in.read( ( char* ) (&res), sizeof( T ) );
-    remainingBytes -= sizeof( T );
-    return res;
+        U res;
+        in.read(reinterpret_cast<char*>(&res), sizeof(U));
+        remainingBytes -= sizeof(U);
+        return res;
+    }
 }
 
 ACMB_GUI_NAMESPACE_END

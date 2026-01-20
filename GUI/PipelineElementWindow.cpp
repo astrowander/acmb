@@ -273,7 +273,7 @@ size_t PipelineElementWindow::GetTaskCount(bool update)
     {
         auto pPrimaryInput = GetPrimaryInput();
         if ( pPrimaryInput )
-            _taskCount = pPrimaryInput->GetTaskCount();
+            _taskCount = pPrimaryInput->GetTaskCount(update);
     }
 
     return _taskCount;
@@ -286,7 +286,6 @@ size_t PipelineElementWindow::GetCompletedTaskCount()
 
 void PipelineElementWindow::ResetTasks()
 {
-    _taskCount = 0;
     _completedTaskCount = 0;
     _taskReadiness = 0;
 }
@@ -308,7 +307,7 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
         if ( !pOutput )
             pOutput = GetBottomOutput();
         
-        if ( pOutput && pOutput->GetCompletedTaskCount() > 0 )
+        if ( pOutput )
         {
             //if ( pOutput->GetPrimaryInput().get() == this && std::dynamic_pointer_cast< StackerWindow >(pOutput) == nullptr )
                 //pOutput->_taskCount = _taskCount;
@@ -379,13 +378,12 @@ bool PipelineElementWindow::DrawHeader()
 
 void PipelineElementWindow::DrawDialog()
 {
+    const auto taskCount = GetTaskCount();
+    ImGui::ProgressBar(taskCount > 0 ? (float(_completedTaskCount) + _taskReadiness) / float(taskCount) : 0.0f, { _itemWidth, 0 });
+
     ImGui::PushItemWidth( 50.0f * cMenuScaling );
     DrawPipelineElementControls();
     ImGui::PopItemWidth();
-
-    ImGui::SetCursorPosY( cElementHeight - ImGui::GetStyle().WindowPadding.y - ImGui::GetTextLineHeight() - 2 * ImGui::GetStyle().FramePadding.y );
-    const auto taskCount = GetTaskCount();
-    ImGui::ProgressBar( taskCount > 0 ? ( float( _completedTaskCount ) + _taskReadiness ) / float( taskCount ) : 0.0f, { _itemWidth, 0 } );
 
     auto& mainWindow = MainWindow::GetInstance();
     if ( !mainWindow.IsInterfaceLocked() && ImGui::IsMouseClicked( ImGuiMouseButton_Right ) )
@@ -429,10 +427,10 @@ void PipelineElementWindow::DrawDialog()
         ImGui::EndPopup();
     }
 
-    if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) )
+    if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) && _pPreviewTexture )
     {
         ImGui::OpenPopup( cPreviewPopupName.c_str() );
-        ImVec2 previewPos;        
+        ImVec2 previewPos;
         if ( const auto mainWindow = ImGui::FindWindowByName( "acmb" ); ImGui::GetMousePos().x < mainWindow->Size.x / 2 )
             previewPos.x = mainWindow->Size.x - _pPreviewTexture->GetWidth();
         
@@ -474,6 +472,7 @@ void PipelineElementWindow::Serialize( std::ostream& out ) const
     gui::Serialize( _name, out );
     gui::Serialize( _serializedInputs, out );
     gui::Serialize( _primaryInputIsOnTop, out );
+    gui::Serialize(_previewedFrameNumber, out);
 }
 
 bool PipelineElementWindow::Deserialize( std::istream& in )
@@ -488,12 +487,16 @@ bool PipelineElementWindow::Deserialize( std::istream& in )
     _name = std::move( savedName );
     _serializedInputs = gui::Deserialize<SerializedInputs>( in, _remainingBytes );
     _primaryInputIsOnTop = gui::Deserialize<bool>( in, _remainingBytes );
+    _previewedFrameNumber = gui::Deserialize<int>( in, _remainingBytes );
     return true;
 }
 
 int PipelineElementWindow::GetSerializedStringSize() const
 {
-    return gui::GetSerializedStringSize( _name ) + gui::GetSerializedStringSize( _serializedInputs ) + gui::GetSerializedStringSize( _primaryInputIsOnTop );
+    return gui::GetSerializedStringSize( _name ) 
+    + gui::GetSerializedStringSize( _serializedInputs ) 
+    + gui::GetSerializedStringSize( _primaryInputIsOnTop ) 
+    + gui::GetSerializedStringSize( _previewedFrameNumber );
 }
 
 Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
@@ -541,16 +544,30 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
     }
 }
 
-void PipelineElementWindow::ResetPreview()
+void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
     _pPreviewBitmap.reset();
     _pPreviewTexture.reset();
-    auto output = GetRightOutput();
-    if ( !output )
-        output = GetBottomOutput();
 
-    if ( output )
-        output->ResetPreview();
+    if ( int(dir) & int(PropagationDir::Forward) )
+    {
+        auto output = GetRightOutput();
+        if ( !output )
+            output = GetBottomOutput();
+
+        if ( output )
+            output->ResetPreview(PropagationDir::Forward);
+    }
+
+    if ( int(dir) & int(PropagationDir::Backward) )
+    {
+        auto input = GetLeftInput();
+        if ( !input )
+            input = GetTopInput();
+
+        if ( input )
+            input->ResetPreview(PropagationDir::Backward);
+    }
 }
 
 Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
@@ -560,6 +577,40 @@ Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
         return unexpected( "no primary input element" );
 
     return pPrimaryInput->GetBitmapSize();
+}
+
+void PipelineElementWindow::OnPreviewedFrameNumberChanged(int val)
+{
+    if ( _previewedFrameNumber == val || val < 0 || val >= _taskCount )
+        return;
+
+    _previewedFrameNumber = val;
+    ResetPreview(PropagationDir::None);
+
+    auto pPrimaryInput = GetPrimaryInput();
+    while ( pPrimaryInput )
+    {
+        pPrimaryInput->OnPreviewedFrameNumberChanged(val);        
+        pPrimaryInput->ResetPreview(PropagationDir::None);
+
+        pPrimaryInput = pPrimaryInput->GetPrimaryInput();
+    }
+
+    auto pPrimaryOutput = GetRightOutput();
+    if ( !pPrimaryOutput )
+        pPrimaryOutput = GetBottomOutput();
+
+    while ( pPrimaryOutput )
+    {
+        pPrimaryOutput->ResetPreview(PropagationDir::None);
+        pPrimaryOutput->OnPreviewedFrameNumberChanged(val);
+        
+        auto pNextPrimaryOutput = pPrimaryOutput->GetRightOutput();
+        if ( !pNextPrimaryOutput )
+            pNextPrimaryOutput = pPrimaryOutput->GetBottomOutput();
+
+        pPrimaryOutput = pNextPrimaryOutput;
+    }
 }
 
 ACMB_GUI_NAMESPACE_END
