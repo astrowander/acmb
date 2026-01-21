@@ -28,6 +28,8 @@ std::ostream& operator<<(std::ostream& out, const SizeT<T>& size)
 /// size with integer params
 using Size = SizeT<int>;
 /// size with fractional params
-using SizeF = SizeT<double>;
+using SizeF = SizeT<float>;
+/// size with fractional params
+using SizeD = SizeT<double>;
 
 ACMB_NAMESPACE_END

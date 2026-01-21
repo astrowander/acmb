@@ -11,7 +11,7 @@ struct CameraSettings
 	std::string lensMakerName;
 	std::string lensModelName;
 
-	SizeF sensorSizeMm = {};
+	SizeD sensorSizeMm = {};
 	double cropFactor = 1.0;
 	double focalLength = 0.0;
 	double radiansPerPixel = 0.0;

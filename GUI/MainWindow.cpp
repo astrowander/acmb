@@ -20,20 +20,21 @@ ACMB_GUI_NAMESPACE_BEGIN
 static constexpr float cMenuButtonSize = 60.0f;
 
 static constexpr float cHeadRowHeight = 25;
-static constexpr float cGridTop = cMenuButtonSize + 105.0f;
+static constexpr float cMenuBottom = cMenuButtonSize + 65.0f;
 
 static constexpr float cGridLeft = 30;
 static constexpr float cGridCellPadding = 25.0f;
 
-static constexpr float cGridCellWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
+static constexpr float cGridCellMinWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
 static constexpr float cGridCellHeight = PipelineElementWindow::cElementHeight + 2.0f * cGridCellPadding;
 
 MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry )
     : Window( "acmb", size )
     , _fontRegistry( fontRegistry )
+    , _gridCellSize( { cGridCellMinWidth, cGridCellHeight } )
 {
     SetPos( pos );
-    _viewportSize = { (  int( size.x ) - int( cGridLeft ) ) / int( cGridCellWidth ), ( int( size.y ) - int(cGridTop)) / int(cGridCellHeight)};
+    _viewportSize = { (  int( size.x ) - int( cGridLeft ) ) / int(cGridCellMinWidth), ( int( size.y ) - int(cMenuBottom)) / int(cGridCellHeight)};
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (Point)
     {
@@ -150,6 +151,9 @@ void MainWindow::ProcessMouseEvents()
     if ( !isMouseClicked && !isMouseDoubleClicked )
         return;
 
+    const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
+    const float cGridTop = cGridBottom - cGridCellHeight;
+
     auto mousePos = ImGui::GetMousePos();
     mousePos.x -= cGridLeft;
     mousePos.y -= cGridTop;
@@ -157,16 +161,16 @@ void MainWindow::ProcessMouseEvents()
     if ( mousePos.x < 0 || mousePos.y < 0 )
         return;
 
-    int col = int( mousePos.x ) / int( cGridCellWidth ) + _viewportStart.x;
-    int row = int( mousePos.y ) / int( cGridCellHeight ) + _viewportStart.y;
+    int col = int( mousePos.x ) / int( _gridCellSize.width ) + _viewportStart.x;
+    int row = int( mousePos.y ) / int( _gridCellSize.height) + _viewportStart.y;
 
     const auto gridIdx = row * cGridSize.width + col;
     std::shared_ptr<PipelineElementWindow> pElement;
     if (gridIdx >=0 && gridIdx < cGridSize.width * cGridSize.height )
         pElement = _grid[gridIdx];
     
-    mousePos.x -= ( col - _viewportStart.x ) * cGridCellWidth;
-    mousePos.y -= ( row - _viewportStart.y ) * cGridCellHeight;
+    mousePos.x -= ( col - _viewportStart.x ) * _gridCellSize.width;
+    mousePos.y -= ( row - _viewportStart.y ) * _gridCellSize.height;
 
     if ( isMouseDoubleClicked  )
     { 
@@ -180,7 +184,7 @@ void MainWindow::ProcessMouseEvents()
             pLeft->SetRightRelationType( newRelationType );
         }
 
-        if ( auto pRight = ( ( col < cGridSize.width - 1 ) ? _grid[gridIdx + 1] : nullptr ); pRight && pElement->GetRightOutput() == pRight && mousePos.x > cGridCellWidth - cGridCellPadding )
+        if ( auto pRight = ( ( col < cGridSize.width - 1 ) ? _grid[gridIdx + 1] : nullptr ); pRight && pElement->GetRightOutput() == pRight && mousePos.x > _gridCellSize.width - cGridCellPadding )
         {
             const auto newRelationType = pElement->GetRightRelationType() == PipelineElementWindow::RelationType::Batch ? PipelineElementWindow::RelationType::Join : PipelineElementWindow::RelationType::Batch;
             pElement->SetRightRelationType( newRelationType );
@@ -206,7 +210,7 @@ void MainWindow::ProcessMouseEvents()
         if ( col < 0 || col >= cGridSize.width || row < 0 || row >= cGridSize.height )
             return;
 
-        if ( mousePos.x < cGridCellPadding || mousePos.y < cGridCellPadding || mousePos.x > cGridCellWidth - cGridCellPadding || mousePos.y > cGridCellHeight - cGridCellPadding )
+        if ( mousePos.x < cGridCellPadding || mousePos.y < cGridCellPadding || mousePos.x > _gridCellSize.width - cGridCellPadding || mousePos.y > cGridCellHeight - cGridCellPadding )
             return;
 
         _activeCell = { .x = col, .y = row };
@@ -452,160 +456,164 @@ void MainWindow::DrawDialog()
 
     ImGui::PushFont( _fontRegistry.byDefault );
 
-    auto drawList = ImGui::GetWindowDrawList();
-    drawList->AddLine({ 0, cGridTop - cHeadRowHeight - 20 }, { _size.x, cGridTop - cHeadRowHeight - 20 }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
-    drawList->AddLine({ 0, _size.y - 3 - ImGui::GetTextLineHeightWithSpacing() }, { _size.x, _size.y - 3 - ImGui::GetTextLineHeightWithSpacing() }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
+    const float cGridTop = cGridBottom - cGridCellHeight;
+    const float cBoldLineThickness = 3.0f;
 
-    /*ImGui::SetCursorPos({0, cGridTop - cHeadRowHeight});
-    UI::Button( "##ClearTable", { cGridLeft, cHeadRowHeight }, [this]
+    auto drawList = ImGui::GetWindowDrawList();
+    drawList->AddLine({ 0, cMenuBottom }, { _size.x, cMenuBottom }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ 0, cGridTop - cBoldLineThickness }, { _size.x - 6, cGridTop - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ 0, cGridTop - cHeadRowHeight - cBoldLineThickness }, { _size.x - 6, cGridTop - cHeadRowHeight - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ 0, cGridBottom }, { _size.x - 6, cGridBottom }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+
+    drawList->AddLine({ 5, cGridTop - cHeadRowHeight - 1 }, { 5, cGridBottom }, ImU32(UIColor::TableBorders), 3.0f);
+
+
+    ImGui::SetCursorPos({5, cGridTop - cHeadRowHeight - cBoldLineThickness * 0.5f });
+    UI::Button( "##ClearTable", { cGridLeft - 5, cHeadRowHeight - cBoldLineThickness * 0.5f }, [this]
     {
         ClearTable();
-    }, "Clear table" );
-
-    
-    drawList->AddLine( { 0, cGridTop - cHeadRowHeight - 1 }, { _size.x, cGridTop - cHeadRowHeight - 1 }, ImU32( UIColor::TableBorders ) );
-    drawList->AddLine( { 1, cGridTop - cHeadRowHeight - 1 }, { 1, _size.y }, ImU32( UIColor::TableBorders ), 2.0f );
+    }, "Clear table" );    
 
     ImVec2 topLeft;
     ImVec2 bottomRight;
 
-    for ( int x = 0; x < int( _viewportSize.width ); ++x )
-    {
-        topLeft.x = float( cGridLeft + x * cGridCellWidth );
-        drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, _size.y }, ImU32( UIColor::TableBorders ) );
-        ImGui::SetCursorPos( { topLeft.x + cGridCellWidth * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f } );
+    _gridCellSize.width = (_size.x - cGridLeft) / ( _viewportSize.width );
 
-        std::string columnHeader( 1, 'A' + x + _viewportStart.x );
+    for ( int x = 0; x < int(_viewportSize.width); ++x )
+    {
+        topLeft.x = float( cGridLeft + x * _gridCellSize.width);
+        drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, cGridBottom }, ImU32( UIColor::TableBorders ) );
+        ImGui::SetCursorPos( { topLeft.x + _gridCellSize.width * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f } );
+
+        std::string columnHeader = std::to_string( x + _viewportStart.x + 1 );
         ImGui::Text( "%s", columnHeader.c_str() );
     }
 
-    topLeft.x = float( cGridLeft + _viewportSize.width * cGridCellWidth );
-    drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, _size.y }, ImU32( UIColor::TableBorders ) );
+    topLeft.x = float(cGridLeft + _viewportSize.width * _gridCellSize.width);
+    drawList->AddLine( { _size.x - 8, cGridTop - cHeadRowHeight - 1 }, { _size.x - 8, cGridBottom }, ImU32( UIColor::TableBorders ), 3.0f );
 
-    for ( int y = 0; y < 1; ++y )
+    
+    topLeft.y = cGridTop;
+    bottomRight.y = topLeft.y + cGridCellHeight;
+    
+    ImGui::SetCursorPos( { cGridLeft * 0.5f, topLeft.y + cGridCellHeight * 0.5f - ImGui::GetTextLineHeightWithSpacing() * 0.5f } );    
+    ImGui::Text("%s", "1");
+
+    const float gridCellPaddingX = ( _gridCellSize.width - PipelineElementWindow::cElementWidth ) * 0.5f;
+
+    for ( int x = 0; x < int( _viewportSize.width ); ++x )
     {
-        topLeft.y = float( cGridTop + y * cGridCellHeight );
-        bottomRight.y = topLeft.y + cGridCellHeight;
+        topLeft.x = float( cGridLeft + x * _gridCellSize.width);
+        bottomRight.x = topLeft.x + _gridCellSize.width;
 
-        drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
-        ImGui::SetCursorPos( { cGridLeft * 0.5f, topLeft.y + cGridCellHeight * 0.5f - ImGui::GetTextLineHeightWithSpacing() * 0.5f } );
-        std::string rowHeader = std::to_string( y + _viewportStart.y + 1 );
-        ImGui::Text( "%s", rowHeader.c_str() );
+        const Point gridPos = { x + _viewportStart.x, 0 };
+        const size_t gridIdx = gridPos.y * cGridSize.width + gridPos.x;
 
+        ImGui::PushClipRect( { topLeft.x - 1, topLeft.y - 1 }, bottomRight, false );
 
-        for ( int x = 0; x < int( _viewportSize.width ); ++x )
+        if ( _activeCell == gridPos )
+            drawList->AddRect( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
+
+        if ( !_grid[gridIdx] )
         {
-            topLeft.x = float( cGridLeft + x * cGridCellWidth );
-            bottomRight.x = topLeft.x + cGridCellWidth;
-
-            const Point gridPos = { x + _viewportStart.x, y + _viewportStart.y };
-            const size_t gridIdx = gridPos.y * cGridSize.width + gridPos.x;
-
-            ImGui::PushClipRect( { topLeft.x - 1, topLeft.y - 1 }, bottomRight, false );
-
+            drawList->AddRectFilled( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::EmptyCell ) );
             if ( _activeCell == gridPos )
-                drawList->AddRect( { topLeft.x + cGridCellPadding - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - cGridCellPadding + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
-
-            if ( !_grid[gridIdx] )
-            {
-                drawList->AddRectFilled( { topLeft.x + cGridCellPadding - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - cGridCellPadding + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::EmptyCell ) );
-                if ( _activeCell == gridPos )
-                    drawList->AddRect( { topLeft.x + cGridCellPadding - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - cGridCellPadding + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
-                ImGui::PopClipRect();
-                continue;
-            }
-
-            _grid[gridIdx]->SetPos( { topLeft.x + cGridCellPadding, topLeft.y + cGridCellPadding } );
-
-            const float topArrowY = topLeft.y + cGridCellHeight * 0.5f - 2.0f * cGridCellPadding;
-            const float centerArrowY = topLeft.y + cGridCellHeight * 0.5f;
-            const float bottomArrowY = topLeft.y + cGridCellHeight * 0.5f + 2.0f * cGridCellPadding;
-            
-            if ( gridPos.x < int( cGridSize.width - 1 ) && _grid[gridIdx + 1] && _grid[gridIdx + 1]->GetLeftInput() == _grid[gridIdx] )
-            {
-                const float xStart = bottomRight.x - cGridCellPadding;
-                drawList->AddLine( { xStart, topArrowY }, { bottomRight.x, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { xStart, centerArrowY }, { bottomRight.x, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { xStart, bottomArrowY }, { bottomRight.x, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            }
-
-            if ( gridPos.x > 0 && _grid[gridIdx - 1] && _grid[gridIdx]->GetLeftInput() == _grid[gridIdx - 1] )
-            {
-                const float tipEnd = topLeft.x + cGridCellPadding;
-                const float tipStart = tipEnd - 10.0f;
-
-                if ( _grid[gridIdx]->GetLeftRelationType() == PipelineElementWindow::RelationType::Batch )
-                {
-                    const float lineEnd = tipEnd - 3.0f * cMenuScaling;
-
-                    drawList->AddLine( { topLeft.x, topArrowY }, { lineEnd, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { tipStart, topArrowY - 10.0f }, { tipEnd, topArrowY }, { tipStart, topArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-
-                    drawList->AddLine( { topLeft.x, centerArrowY }, { lineEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { tipStart, centerArrowY - 10.0f }, { tipEnd, centerArrowY }, { tipStart, centerArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-
-                    drawList->AddLine( { topLeft.x, bottomArrowY }, { lineEnd, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { tipStart, bottomArrowY - 10.0f }, { tipEnd, bottomArrowY }, { tipStart, bottomArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-                }
-                else
-                {
-                    const float startX = topLeft.x - 2.0f * cMenuScaling;
-
-                    drawList->AddLine( { startX, topArrowY - 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                    drawList->AddLine( { startX, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { startX, bottomArrowY + 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                }
-            }
-
-            const float leftArrowX = topLeft.x + cGridCellWidth * 0.5f - 2.0f * cGridCellPadding;
-            const float centerArrowX = topLeft.x + cGridCellWidth * 0.5f;
-            const float rightArrowX = topLeft.x + cGridCellWidth * 0.5f + 2.0f * cGridCellPadding;
-
-            if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
-            {
-                const float yStart = bottomRight.y - cGridCellPadding;
-                drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            }
-
-            if ( gridPos.y > 0 && _grid[gridIdx - cGridSize.width] && _grid[gridIdx]->GetTopInput() == _grid[gridIdx - cGridSize.width] )
-            {
-                const float tipEnd = topLeft.y + cGridCellPadding;
-                const float tipStart = tipEnd - 10.0f;
-
-                if ( _grid[gridIdx]->GetTopRelationType() == PipelineElementWindow::RelationType::Batch )
-                {
-                    const float yStart = topLeft.y - 1.0f * cMenuScaling;
-                    const float lineEnd = tipEnd - 3.0f * cMenuScaling;
-
-                    drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { leftArrowX - 10.0f, tipStart }, { leftArrowX, tipEnd }, { leftArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-
-                    drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { centerArrowX - 10.0f, tipStart }, { centerArrowX, tipEnd }, { centerArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-
-                    drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddTriangleFilled( { rightArrowX - 10.0f, tipStart }, { rightArrowX, tipEnd }, { rightArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-                }
-                else
-                {
-                    const float yStart = topLeft.y - 2.0f * cMenuScaling;
-                    drawList->AddLine( { leftArrowX - 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                    drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                    drawList->AddLine( { rightArrowX + 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                }
-            }
-
-            if ( _activeCell == gridPos )
-                drawList->AddRect( { topLeft.x + 24, topLeft.y + 24 }, { bottomRight.x - 24, bottomRight.y - 24 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
-
+                drawList->AddRect( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
             ImGui::PopClipRect();
+            continue;
         }
+
+        _grid[gridIdx]->SetPos( { topLeft.x + gridCellPaddingX, topLeft.y + cGridCellPadding } );
+
+        /*const float topArrowY = topLeft.y + cGridCellHeight * 0.5f - 2.0f * cGridCellPadding;
+        const float centerArrowY = topLeft.y + cGridCellHeight * 0.5f;
+        const float bottomArrowY = topLeft.y + cGridCellHeight * 0.5f + 2.0f * cGridCellPadding;
+            
+        if ( gridPos.x < int( cGridSize.width - 1 ) && _grid[gridIdx + 1] && _grid[gridIdx + 1]->GetLeftInput() == _grid[gridIdx] )
+        {
+            const float xStart = bottomRight.x - gridCellPaddingX;
+            drawList->AddLine( { xStart, topArrowY }, { bottomRight.x, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+            drawList->AddLine( { xStart, centerArrowY }, { bottomRight.x, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+            drawList->AddLine( { xStart, bottomArrowY }, { bottomRight.x, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+        }
+
+        if ( gridPos.x > 0 && _grid[gridIdx - 1] && _grid[gridIdx]->GetLeftInput() == _grid[gridIdx - 1] )
+        {
+            const float tipEnd = topLeft.x + gridCellPaddingX;
+            const float tipStart = tipEnd - 10.0f;
+
+            if ( _grid[gridIdx]->GetLeftRelationType() == PipelineElementWindow::RelationType::Batch )
+            {
+                const float lineEnd = tipEnd - 3.0f * cMenuScaling;
+
+                drawList->AddLine( { topLeft.x, topArrowY }, { lineEnd, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { tipStart, topArrowY - 10.0f }, { tipEnd, topArrowY }, { tipStart, topArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
+
+                drawList->AddLine( { topLeft.x, centerArrowY }, { lineEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { tipStart, centerArrowY - 10.0f }, { tipEnd, centerArrowY }, { tipStart, centerArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
+
+                drawList->AddLine( { topLeft.x, bottomArrowY }, { lineEnd, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { tipStart, bottomArrowY - 10.0f }, { tipEnd, bottomArrowY }, { tipStart, bottomArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
+            }
+            else
+            {
+                const float startX = topLeft.x - 2.0f * cMenuScaling;
+
+                drawList->AddLine( { startX, topArrowY - 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+                drawList->AddLine( { startX, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddLine( { startX, bottomArrowY + 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+            }
+        }
+
+        const float leftArrowX = topLeft.x + _gridCellSize.width * 0.5f - 2.0f * gridCellPaddingX;
+        const float centerArrowX = topLeft.x + _gridCellSize.width * 0.5f;
+        const float rightArrowX = topLeft.x + _gridCellSize.width * 0.5f + 2.0f * cGridCellPadding;
+
+        if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
+        {
+            const float yStart = bottomRight.y - cGridCellPadding;
+            drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+            drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+            drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+        }
+
+        if ( gridPos.y > 0 && _grid[gridIdx - cGridSize.width] && _grid[gridIdx]->GetTopInput() == _grid[gridIdx - cGridSize.width] )
+        {
+            const float tipEnd = topLeft.y + cGridCellPadding;
+            const float tipStart = tipEnd - 10.0f;
+
+            if ( _grid[gridIdx]->GetTopRelationType() == PipelineElementWindow::RelationType::Batch )
+            {
+                const float yStart = topLeft.y - 1.0f * cMenuScaling;
+                const float lineEnd = tipEnd - 3.0f * cMenuScaling;
+
+                drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { leftArrowX - 10.0f, tipStart }, { leftArrowX, tipEnd }, { leftArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
+
+                drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { centerArrowX - 10.0f, tipStart }, { centerArrowX, tipEnd }, { centerArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
+
+                drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddTriangleFilled( { rightArrowX - 10.0f, tipStart }, { rightArrowX, tipEnd }, { rightArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
+            }
+            else
+            {
+                const float yStart = topLeft.y - 2.0f * cMenuScaling;
+                drawList->AddLine( { leftArrowX - 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+                drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
+                drawList->AddLine( { rightArrowX + 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
+            }
+        }*/
+
+       // if ( _activeCell == gridPos )
+         //   drawList->AddRect( { topLeft.x + 24, topLeft.y + 24 }, { bottomRight.x - 24, bottomRight.y - 24 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
+
+        ImGui::PopClipRect();
     }
 
     topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
-    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );*/
+    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
 
     ImGui::PopFont();
 

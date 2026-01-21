@@ -24,11 +24,9 @@ ACMB_GUI_NAMESPACE_BEGIN
 enum PEFlags : int
 {
     PEFlags_NoOutput = 1,
-    PEFlags_StrictlyOneOutput = 2,
-    // gap for possible StrictlyTwoOutputs
+    PEFlags_StrictlyOneOutput = 2,    
     PEFlags_NoInput = 8,
-    PEFlags_StrictlyOneInput = 16,
-    PEFlags_StrictlyTwoInputs = 32
+    PEFlags_StrictlyOneInput = 16
 };
 
 class PipelineElementWindow : public Window

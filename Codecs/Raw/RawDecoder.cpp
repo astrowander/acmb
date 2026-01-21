@@ -96,7 +96,7 @@ const double cropFactors[9] =
 	2.08
 };
 
-const SizeF sensorSizes[9] =
+const SizeD sensorSizes[9] =
 {
 	{},
 	{22.3, 14.9}, //APS-C

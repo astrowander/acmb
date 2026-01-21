@@ -46,6 +46,8 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> _startTime;
     std::string _durationString;
 
+    SizeF _gridCellSize = { 1.0f, 1.0f };
+
     MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry );
     MainWindow( const MainWindow& ) = delete;
     MainWindow( MainWindow&& ) = delete;
@@ -86,7 +88,7 @@ public:
         const auto pLeft = pos.x > 0 ? _grid[ind - 1] : nullptr;
         const auto pTop = pos.y > 0 ? _grid[ind - cGridSize.width] : nullptr;
         const auto pRight = pos.x < cGridSize.width - 1 ? _grid[ind + 1] : nullptr;
-        const auto pBottom = pos.y < cGridSize.width - 1 ? _grid[ind + cGridSize.width] : nullptr;
+        const auto pBottom = pos.y < cGridSize.height - 1 ? _grid[ind + cGridSize.width] : nullptr;
 
         const auto flags = pElement->GetInOutFlags();
 
