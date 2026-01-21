@@ -24,13 +24,12 @@ class FileDialog;
 
 class MainWindow : public Window
 {
-public:
-    static constexpr Size cGridSize = { 26, 1 };
 private:
-    std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
+    //std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
     std::vector<std::string> _errors;    
     Size _actualGridSize = {};
-    std::array<std::shared_ptr< PipelineElementWindow>, cGridSize.width * cGridSize.height> _grid;
+    //std::array<std::shared_ptr< PipelineElementWindow>, cGridSize.width * cGridSize.height> _grid;
+    std::vector<std::shared_ptr<PipelineElementWindow>> _pipeline;
 
     Size _viewportSize;
     Point _viewportStart;
@@ -140,9 +139,7 @@ public:
 
     void ClearTable()
     {
-        _writers.clear();
-        for ( auto& pElement : _grid )
-            pElement.reset();
+        _pipeline.clear();
     }
 
 #ifdef _WIN32

@@ -11,11 +11,11 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-PipelineElementWindow::PipelineElementWindow( const std::string& name, const Point& gridPos, int inOutFlags )
-    : Window( name + "##R" + std::to_string( gridPos.y ) + "C" + std::to_string( gridPos.x ), { cElementWidth, cElementHeight } )
+PipelineElementWindow::PipelineElementWindow( const std::string& name, int positionInPipeline, int inOutFlags )
+    : Window( name + "C" + std::to_string(positionInPipeline), { cElementWidth, cElementHeight } )
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
     , _inOutFlags( inOutFlags )
-    , _gridPos( gridPos )
+    , _positionInPipeline( positionInPipeline )
 {
 }
 
@@ -40,57 +40,13 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
 
 Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 {
-    const auto pPrimaryInput = GetPrimaryInput();
+    const auto pPrimaryInput = GetInput();
     if ( !pPrimaryInput )
         return unexpected( "Primary input of the '" + _name + "' element is not set" );
 
     const size_t primaryInputTaskCount = pPrimaryInput->GetTaskCount();
     if ( primaryInputTaskCount == 0 )
         return unexpected( "No input frames for the'" + _name + "' element" );
-
-    if ( _completedTaskCount == 0 && (_inOutFlags & PEFlags_StrictlyTwoInputs) )
-    {
-        auto temp = ProcessSecondaryInput();
-        if ( !temp.has_value() )
-            return unexpected( temp.error() );
-
-        if ( temp.value() )
-            _pSecondaryInputResult = temp.value();
-    }
-
-    auto relationType = (pPrimaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
-    if ( relationType == RelationType::Join )
-    {
-        auto pBitmap = pPrimaryInput->RunTaskAndReportProgress( 0 );
-        if ( !pBitmap )
-            return unexpected( pBitmap.error() );
-
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
-
-        try
-        {
-            for ( size_t i = 1; i < primaryInputTaskCount; ++i )
-            {
-                pBitmap = pPrimaryInput->RunTaskAndReportProgress( i );
-                if ( !pBitmap )
-                    return unexpected( pBitmap.error() );
-
-                pStacker->AddBitmap( *pBitmap );
-
-                _taskReadiness = float( i ) / (primaryInputTaskCount + 1);
-            }
-
-            const auto res = ProcessBitmapFromPrimaryInput( pStacker->GetResult() );
-            _completedTaskCount = 1;
-            _taskReadiness = 0.0f;
-            return res;
-        }
-        catch ( std::exception& e )
-        {
-            return unexpected( e.what() );
-        }
-    }
 
     const auto taskRes = pPrimaryInput->RunTaskAndReportProgress( i );
     if ( !taskRes.has_value() )
@@ -111,128 +67,28 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 
 }
 
-Expected<IBitmapPtr, std::string> PipelineElementWindow::ProcessSecondaryInput()
-{
-    if ( !(_inOutFlags & PEFlags_StrictlyTwoInputs) )
-        return nullptr;
-
-    auto pSecondaryInput = GetSecondaryInput();
-    if ( !pSecondaryInput )
-        return unexpected( "Secondary input of the '" + _name + "' element is not set" );
-
-    if ( pSecondaryInput->GetCompletedTaskCount() > 0 )
-        return nullptr;
-
-    auto relationType = (pSecondaryInput == GetLeftInput()) ? _leftInput.relationType : _topInput.relationType;
-    if ( relationType == RelationType::Join )
-    {
-        auto pBitmap = pSecondaryInput->RunTaskAndReportProgress( 0 );
-        if ( !pBitmap )
-            return unexpected( pBitmap.error() );
-
-        std::shared_ptr<BaseStacker> pStacker = cuda::isCudaAvailable() ? std::shared_ptr<BaseStacker>( new cuda::Stacker( **pBitmap, StackMode::DarkOrFlat ) ) :
-            std::shared_ptr<BaseStacker>( new Stacker( **pBitmap, StackMode::DarkOrFlat ) );
-
-        const size_t inputTaskCount = pSecondaryInput->GetTaskCount();
-        if ( inputTaskCount == 0 )
-            return unexpected( "No input frames for the'" + _name + "' element" );
-
-        try
-        {
-            for ( size_t i = 1; i < inputTaskCount; ++i )
-            {
-                pBitmap = pSecondaryInput->RunTaskAndReportProgress( i );
-                if ( !pBitmap )
-                    return unexpected( pBitmap.error() );
-
-                pStacker->AddBitmap( *pBitmap );
-
-                _taskReadiness = float( i ) / (inputTaskCount + 1);
-            }
-
-            const auto res = pStacker->GetResult();
-            _completedTaskCount = 1;
-            _taskReadiness = 0.0f;
-            return res;
-        }
-        catch ( std::exception& e )
-        {
-            return unexpected( e.what() );
-        }
-    }
-
-    const auto taskRes = pSecondaryInput->RunTaskAndReportProgress( 0 );
-    if ( !taskRes.has_value() )
-        return unexpected( taskRes.error() );
-
-    return taskRes.value();
-}
-
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetPrimaryInput() const
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetInput() const
 {
     if ( _inOutFlags & PEFlags_NoInput )
         return nullptr;
 
-    if ( _inOutFlags & PEFlags_StrictlyOneInput )
-    {
-        std::shared_ptr<PipelineElementWindow> res = GetLeftInput();
-        if ( !res )
-            res = GetTopInput();
+    return _input.lock();
 
-        return res;
-    }
-
-    return _primaryInputIsOnTop ? GetTopInput() : GetLeftInput();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetSecondaryInput() const
+void PipelineElementWindow::SetInput( std::shared_ptr<PipelineElementWindow> pLeftInput )
 {
-    if ( ! (_inOutFlags & PEFlags_StrictlyTwoInputs ) )
-        return nullptr;
-
-    return _primaryInputIsOnTop ? GetLeftInput() : GetTopInput();
+    _input = pLeftInput;
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetLeftInput() const
+std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetOutput() const
 {
-    return _leftInput.pElement.lock();
+    return _output.lock();
 }
 
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetTopInput() const
+void PipelineElementWindow::SetOutput( std::shared_ptr<PipelineElementWindow> pElement )
 {
-    return _topInput.pElement.lock();
-}
-
-void PipelineElementWindow::SetLeftInput( std::shared_ptr<PipelineElementWindow> pLeftInput )
-{
-    _leftInput.pElement = pLeftInput;
-    _serializedInputs.left = pLeftInput ? _leftInput.relationType : RelationType::None;
-}
-
-void PipelineElementWindow::SetTopInput( std::shared_ptr<PipelineElementWindow> pTopInput )
-{
-    _topInput.pElement = pTopInput;
-    _serializedInputs.top = pTopInput ? _topInput.relationType : RelationType::None;
-}
-
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetRightOutput() const
-{
-    return _rightOutput.pElement.lock();
-}
-
-std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetBottomOutput() const
-{
-    return _bottomOutput.pElement.lock();
-}
-
-void PipelineElementWindow::SetRightOutput( std::shared_ptr<PipelineElementWindow> pElement )
-{
-    _rightOutput.pElement = pElement;
-}
-
-void PipelineElementWindow::SetBottomOutput( std::shared_ptr<PipelineElementWindow> pElement )
-{
-    _bottomOutput.pElement = pElement;
+    _output = pElement;
 }
 
 int PipelineElementWindow::GetInOutFlags() const
@@ -240,38 +96,11 @@ int PipelineElementWindow::GetInOutFlags() const
     return _inOutFlags;
 }
 
-bool PipelineElementWindow::HasFreeInputs()
-{
-    const auto flags = GetInOutFlags();
-    if ( flags & int( PEFlags_NoInput ) )
-        return false;
-
-    if ( ( flags & PEFlags_StrictlyOneInput ) && ( GetTopInput() || GetLeftInput() ) )
-        return false;
-
-    if ( ( flags & PEFlags_StrictlyTwoInputs ) && ( GetTopInput() && GetLeftInput() ) )
-        return false;
-
-    return true;
-}
-
-bool PipelineElementWindow::HasFreeOutputs()
-{
-    const auto flags = GetInOutFlags();
-    if ( flags & PEFlags_NoOutput )
-        return false;
-
-    if ( ( flags & PEFlags_StrictlyOneOutput ) && ( GetBottomOutput() || GetRightOutput() ) )
-        return false;
-
-    return true;
-}
-
 size_t PipelineElementWindow::GetTaskCount(bool update)
 {
     if ( update || _taskCount == 0 )
     {
-        auto pPrimaryInput = GetPrimaryInput();
+        auto pPrimaryInput = GetInput();
         if ( pPrimaryInput )
             _taskCount = pPrimaryInput->GetTaskCount(update);
     }
@@ -296,20 +125,16 @@ void PipelineElementWindow::ResetProgress( PropagationDir dir )
 
     if ( int( dir ) & int( PropagationDir::Backward ) )
     {
-        auto pPrimaryInput = GetPrimaryInput();
+        auto pPrimaryInput = GetInput();
         if ( pPrimaryInput && pPrimaryInput->GetCompletedTaskCount() > 0 )
             pPrimaryInput->ResetProgress( dir );
     }
     
     if ( int( dir ) & int( PropagationDir::Forward ) )
-    {
-        auto pOutput = GetRightOutput();
-        if ( !pOutput )
-            pOutput = GetBottomOutput();
-        
-        if ( pOutput )
+    {        
+        if ( auto pOutput = GetOutput() )
         {
-            //if ( pOutput->GetPrimaryInput().get() == this && std::dynamic_pointer_cast< StackerWindow >(pOutput) == nullptr )
+            //if ( pOutput->GetInput().get() == this && std::dynamic_pointer_cast< StackerWindow >(pOutput) == nullptr )
                 //pOutput->_taskCount = _taskCount;
 
             pOutput->ResetProgress( dir );
@@ -411,7 +236,7 @@ void PipelineElementWindow::DrawDialog()
         {
             const size_t length = strlen( _renameBuf.data() );
             if ( length > 0 )
-                _name = std::string( _renameBuf.data(), length ) + "##R" + std::to_string( _gridPos.y ) + "C" + std::to_string( _gridPos.x );
+                _name = std::string( _renameBuf.data(), length ) +  "C" + std::to_string( _positionInPipeline );
 
             mainWindow.UnlockInterface();
             ImGui::CloseCurrentPopup();
@@ -470,8 +295,6 @@ void PipelineElementWindow::Serialize( std::ostream& out ) const
 {
     gui::Serialize( GetSerializedStringSize(), out );
     gui::Serialize( _name, out );
-    gui::Serialize( _serializedInputs, out );
-    gui::Serialize( _primaryInputIsOnTop, out );
     gui::Serialize(_previewedFrameNumber, out);
 }
 
@@ -485,29 +308,21 @@ bool PipelineElementWindow::Deserialize( std::istream& in )
         return false;
     
     _name = std::move( savedName );
-    _serializedInputs = gui::Deserialize<SerializedInputs>( in, _remainingBytes );
-    _primaryInputIsOnTop = gui::Deserialize<bool>( in, _remainingBytes );
     _previewedFrameNumber = gui::Deserialize<int>( in, _remainingBytes );
     return true;
 }
 
 int PipelineElementWindow::GetSerializedStringSize() const
 {
-    return gui::GetSerializedStringSize( _name ) 
-    + gui::GetSerializedStringSize( _serializedInputs ) 
-    + gui::GetSerializedStringSize( _primaryInputIsOnTop ) 
+    return gui::GetSerializedStringSize( _name )
     + gui::GetSerializedStringSize( _previewedFrameNumber );
 }
 
 Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
-    auto pPrimaryInput = GetPrimaryInput();
-    auto pSecondaryInput = GetSecondaryInput();
+    auto pPrimaryInput = GetInput();
     if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
-        return unexpected( "no primary input element" );
-
-    if ( (_inOutFlags & PEFlags_StrictlyTwoInputs) && (!pSecondaryInput || pSecondaryInput->GetTaskCount() == 0) )
-        return unexpected( "no secondary input element" );
+        return unexpected( _name + ": no input element" );
 
     MainWindow::GetInstance().LockInterface();
 
@@ -516,14 +331,7 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
         {
             MainWindow::GetInstance().UnlockInterface();
              return unexpected( res.error() );
-        }
-
-    if ( pSecondaryInput && !pSecondaryInput->GetPreviewBitmap() )
-        if ( auto res = pSecondaryInput->GeneratePreviewTexture(); !res )
-        {
-            MainWindow::GetInstance().UnlockInterface();
-            return unexpected( res.error() );
-        }
+        }   
 
     try
     {
@@ -551,28 +359,20 @@ void PipelineElementWindow::ResetPreview( PropagationDir dir )
 
     if ( int(dir) & int(PropagationDir::Forward) )
     {
-        auto output = GetRightOutput();
-        if ( !output )
-            output = GetBottomOutput();
-
-        if ( output )
+        if ( auto output = GetOutput() )
             output->ResetPreview(PropagationDir::Forward);
     }
 
     if ( int(dir) & int(PropagationDir::Backward) )
     {
-        auto input = GetLeftInput();
-        if ( !input )
-            input = GetTopInput();
-
-        if ( input )
+        if ( auto input = GetInput() )
             input->ResetPreview(PropagationDir::Backward);
     }
 }
 
 Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
 {
-    auto pPrimaryInput = GetPrimaryInput();
+    auto pPrimaryInput = GetInput();
     if ( !pPrimaryInput )
         return unexpected( "no primary input element" );
 
@@ -587,29 +387,22 @@ void PipelineElementWindow::OnPreviewedFrameNumberChanged(int val)
     _previewedFrameNumber = val;
     ResetPreview(PropagationDir::None);
 
-    auto pPrimaryInput = GetPrimaryInput();
-    while ( pPrimaryInput )
+    auto pInput = GetInput();
+    while ( pInput )
     {
-        pPrimaryInput->OnPreviewedFrameNumberChanged(val);        
-        pPrimaryInput->ResetPreview(PropagationDir::None);
+        pInput->OnPreviewedFrameNumberChanged(val);
+        pInput->ResetPreview(PropagationDir::None);
 
-        pPrimaryInput = pPrimaryInput->GetPrimaryInput();
+        pInput = pInput->GetInput();
     }
 
-    auto pPrimaryOutput = GetRightOutput();
-    if ( !pPrimaryOutput )
-        pPrimaryOutput = GetBottomOutput();
-
-    while ( pPrimaryOutput )
+    auto pOutput = GetOutput();
+    while ( pOutput)
     {
-        pPrimaryOutput->ResetPreview(PropagationDir::None);
-        pPrimaryOutput->OnPreviewedFrameNumberChanged(val);
-        
-        auto pNextPrimaryOutput = pPrimaryOutput->GetRightOutput();
-        if ( !pNextPrimaryOutput )
-            pNextPrimaryOutput = pPrimaryOutput->GetBottomOutput();
+        pOutput->ResetPreview(PropagationDir::None);
+        pOutput->OnPreviewedFrameNumberChanged(val);
 
-        pPrimaryOutput = pNextPrimaryOutput;
+        pOutput = pOutput->GetOutput();
     }
 }
 
