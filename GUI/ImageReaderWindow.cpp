@@ -133,6 +133,11 @@ std::string ImageReaderWindow::GetTaskName( size_t taskNumber ) const
 
 size_t ImageReaderWindow::GetTaskCount( bool )
 {
+    if ( _taskCount == 0 )
+    {
+        _taskCount = GetTotalFrameCount();
+    }
+
     return _taskCount;
 }
 

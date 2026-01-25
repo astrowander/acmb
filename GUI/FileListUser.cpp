@@ -25,7 +25,7 @@ void FileListUser::PrepareFrameForReading(int frameIdx) const
         return;
 
     _lastDecodedFileIdx = fileIdx;
-    _pDecoder = ImageDecoder::Create( _fileNames[fileIdx] );    
+    _pDecoder = ImageDecoder::Create( _fileNames[fileIdx] );
 }
 
 Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
@@ -65,6 +65,8 @@ Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
 
 Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     PrepareFrameForReading(idx);
     if ( !_pDecoder )
         return unexpected( "FileListUser::GetFrameSize: No decoder" );
@@ -74,15 +76,19 @@ Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 
 Expected<IBitmapPtr, std::string>  FileListUser::ReadFrame(int idx) const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     PrepareFrameForReading(idx);
     if ( !_pDecoder )
         return unexpected( "FileListUser::ReadFrame: No decoder" );
 
-    return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_currentFrameIdx] );
+    return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_lastDecodedFileIdx] );
 }
 
 Expected<IBitmapPtr, std::string> FileListUser::ReadFramePreview(int idx, Size size) const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     PrepareFrameForReading(idx);
     if ( !_pDecoder )
         return unexpected("FileListUser::ReadFrame: No decoder");
@@ -92,6 +98,8 @@ Expected<IBitmapPtr, std::string> FileListUser::ReadFramePreview(int idx, Size s
 
 Expected<std::string, std::string> FileListUser::GetFrameSourceName(int idx) const
 {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     PrepareFrameForReading(idx);
     if ( !_pDecoder )
         return unexpected( "FileListUser::GetFrameSourceName: No decoder" );
@@ -198,6 +206,8 @@ IBitmapPtr FileListUser::GetBitmapOfStackedFrames()
 {
     if ( _pStackedFrames )
         return _pStackedFrames;
+    
+    std::lock_guard<std::mutex> lock(_mutex);
 
     PrepareFrameForReading(0);
     Stacker stacker(_imageParams, acmb::StackMode::DarkOrFlat);
@@ -215,6 +225,8 @@ void FileListUser::OnFileListChanged()
 
 void FileListUser::CleanUp()
 {
+    std::lock_guard<std::mutex> lock(_mutex);
+
     _pStackedFrames = nullptr;
     _totalFrameCount = 0;
     _frameIndicesStartsWith.clear();

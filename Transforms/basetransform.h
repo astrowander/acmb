@@ -3,6 +3,30 @@
 #include "../Core/pipeline.h"
 
 ACMB_NAMESPACE_BEGIN
+
+enum class TransformTypeEnum
+{
+    Unknown,
+    Binning,
+    BitmapDivisor,
+    BitmapHealer,
+    BitmapSubtractor,
+    CenterObjectTransform,
+    ChannelEqualizer,
+    Converter,
+    Crop,
+    Deabberate,
+    Debayer,
+    Deflicker,    
+    HistogramBuilder,
+    Laplacian,
+    Levels,
+    MedianBlur,
+    Resize,
+    Saturation,
+    Warp
+};
+
 /// <summary>
 /// Abstract class for an image transformation
 /// </summary>

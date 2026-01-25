@@ -29,8 +29,6 @@ void CropWindow::DrawPipelineElementControls()
     UI::DragInt( "Top", &_dstRect.y, 1.0f, 0, inputBitmapSize.height - 1,"Top boundary of the crop area", this );
     UI::DragInt( "Width", &_dstRect.width, 1.0f, 1, inputBitmapSize.width - _dstRect.x,  "Width of the crop area", this );
     UI::DragInt( "Height", &_dstRect.height, 1.0f, 1, inputBitmapSize.height - _dstRect.y, "Height of the crop area", this );
-
-    DrawFrameCounter();
 }
 
 void CropWindow::OnPreviewedFrameNumberChanged(int val)
@@ -41,7 +39,7 @@ void CropWindow::OnPreviewedFrameNumberChanged(int val)
 
 void CropWindow::OnKeyframeCommited()
 {
-    AddSettings(GetPreviewedFrameNumber(), _dstRect );
+    InsertOrAssignSettings(GetPreviewedFrameNumber(), _dstRect );
 }
 
 IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex )

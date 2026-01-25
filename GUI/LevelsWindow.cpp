@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -126,8 +127,6 @@ void LevelsWindow::DrawPipelineElementControls()
     }, "Automatically adjust levels", this );
 
     ImGui::PopStyleVar();
-
-    DrawFrameCounter();
 }
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
@@ -158,7 +157,7 @@ void LevelsWindow::OnPreviewedFrameNumberChanged(int val)
 
 void LevelsWindow::OnKeyframeCommited()
 {
-    AddSettings(GetPreviewedFrameNumber(), _levelsSettings);
+    InsertOrAssignSettings(GetPreviewedFrameNumber(), _levelsSettings);
 }
 
 void LevelsWindow::Serialize( std::ostream& out ) const
@@ -201,6 +200,12 @@ Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
 IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex)
 {
     auto interpolatedSettings = GetInterpolatedSettings(int(frameIndex));
+
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+    {
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+    }
+
     return LevelsTransform::ApplyLevels( pSource, interpolatedSettings);
 }
 

@@ -14,7 +14,6 @@ SaturationWindow::SaturationWindow(  )
 void SaturationWindow::DrawPipelineElementControls()
 {
     UI::DragFloat( "Saturation", &_saturationSettings, 0.01f, 0.0f, 4.0f, "Saturation factor", this );
-    DrawFrameCounter();
 }
 
 Expected<void, std::string> SaturationWindow::GeneratePreviewBitmap()
@@ -42,7 +41,7 @@ void SaturationWindow::OnPreviewedFrameNumberChanged(int val)
 
 void SaturationWindow::OnKeyframeCommited()
 {
-    AddSettings(GetPreviewedFrameNumber(), _saturationSettings);
+    InsertOrAssignSettings(GetPreviewedFrameNumber(), _saturationSettings);
 }
 
 void SaturationWindow::Serialize( std::ostream& out ) const

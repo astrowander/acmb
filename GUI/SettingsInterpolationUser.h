@@ -5,22 +5,32 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-template<typename TransformType>
-class SettingsInterpolationUser
+class ISettingsInterpolationUser
 {
+public:
+    virtual ~ISettingsInterpolationUser() = default;
+    virtual void DrawFrameCounter() = 0;
+};
+
+template<typename TransformType>
+class SettingsInterpolationUser : public ISettingsInterpolationUser
+{
+public:
+    using Transform = TransformType;
     using Settings = typename TransformType::Settings;
+
+private:
     std::map<int, Settings> _mSettings;
     PipelineElementWindow* _pHostWindow = nullptr;
 
-public:
-
+protected:
     SettingsInterpolationUser(PipelineElementWindow* pHostWindow, Settings defaultSettings)
     : _pHostWindow( pHostWindow ) 
     {
         _mSettings[0] = defaultSettings;
     }
 
-    void AddSettings(int index, const Settings& settings)
+    void InsertOrAssignSettings(int index, const Settings& settings)
     {
         _mSettings[index] = settings;
     }
@@ -47,16 +57,15 @@ public:
     {
         ImGui::Separator();
 
-        int currentFrame = _pHostWindow->GetPreviewedFrameNumber();
-        if ( UI::InputInt( "Frame #", &currentFrame, 1, 10, 0, std::max(0, int( _pHostWindow->GetTaskCount(/*update=*/true)) - 1), "Frame number", nullptr) )
-        {
-            _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
-        }
+        const float buttonWidth = 150.0f;
+        const float spacing = ImGui::GetStyle().ItemSpacing.x;
+        const float totalWidth = buttonWidth * 2 + spacing;
 
+        int currentFrame = _pHostWindow->GetPreviewedFrameNumber();
         auto it = _mSettings.find(currentFrame);
         if ( it != _mSettings.end() )
         {
-            UI::Button("Commit KF", { 64, 0 }, [&]
+            UI::Button("Commit Keyframe", { buttonWidth, 0 }, [&]
             {
                 _pHostWindow->OnKeyframeCommited();
             }, "Commit this keyframe", nullptr);
@@ -66,7 +75,7 @@ public:
             {
                 ImGui::SameLine();
 
-                UI::Button("Delete Keyframe", { 64, 0 }, [&]
+                UI::Button("Delete Keyframe", { buttonWidth, 0 }, [&]
                 {
                     _mSettings.erase(it);
                 }, "Delete this keyframe", nullptr);
@@ -74,13 +83,13 @@ public:
         }
         else
         {
-            UI::Button("Add Keyframe", { -1, 0 }, [&]
+            UI::Button("Add Keyframe", { totalWidth, 0 }, [&]
             {
                 _pHostWindow->OnKeyframeCommited();
             }, "Add this keyframe", nullptr );
         }
 
-        UI::Button("Prev KF", { 64, 0 },
+        UI::Button("Previous Keyframe", { buttonWidth, 0 },
                    [&]
         {
             auto it = _mSettings.lower_bound(currentFrame);
@@ -89,11 +98,11 @@ public:
 
             currentFrame = it->first;
             _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
-        }, "Previous keyframe", nullptr);
+        }, "Go to previous keyframe", nullptr);
 
         ImGui::SameLine();
 
-        UI::Button("Next KF", { 64, 0 },
+        UI::Button("Next Keyframe", { buttonWidth, 0 },
                    [&]
         {
             auto it = _mSettings.upper_bound(currentFrame);
@@ -102,7 +111,7 @@ public:
                 currentFrame = it->first;
                 _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
             }
-        }, "Next keyframe", nullptr);
+        }, "Go to next keyframe", nullptr);
                 
     }
 

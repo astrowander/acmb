@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "ImageReaderWindow.h"
 #include "ImageWriterWindow.h"
+#include "SettingsInterpolationUser.h"
 #include "FontRegistry.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
@@ -21,7 +22,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 static constexpr float cMenuButtonSize = 60.0f;
 constexpr int cItemCountInRow = 5;
 const float cMenuWidth = cItemCountInRow * cMenuButtonSize + (cItemCountInRow - 1) * 5.0f;
-const float cImageControlsRegionWidth = 600.0f;
+const float cImageControlsRegionWidth = 340.0f;
 
 static constexpr float cHeadRowHeight = 25;
 static constexpr float cMenuRowHeight = cMenuButtonSize + 30.0f;
@@ -65,7 +66,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
             while ( pTailElement && pTailElement->GetOutput() != nullptr )
             {
                 pTailElement = pTailElement->GetOutput();
-                if ( std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
+                if ( std::dynamic_pointer_cast<ImageReaderWindow>(pTailElement) )
                 {
                     _errors.push_back( "Image reader can only be the first element in the pipeline" );
                     break;
@@ -441,54 +442,64 @@ void MainWindow::DrawDialog()
     drawList->AddLine({ cMenuWidth + 4.0f * ImGui::GetStyle().ItemSpacing.x, 0}, { cMenuWidth + 4.0f * ImGui::GetStyle().ItemSpacing.x, cGridTop - cHeadRowHeight - ImGui::GetStyle().ItemSpacing.x}, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
     drawList->AddLine({ _size.x -  cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 }, { _size.x - cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, cGridTop - cHeadRowHeight - ImGui::GetStyle().ItemSpacing.x }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
 
-    auto pElement = GetActiveElement();
+    auto pElement = GetActiveElement();    
+    const auto imageRegionAvail = GetImageRegionAvail();
+
+    if ( pElement )
     {
-
-        if ( pElement )
+        if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
         {
-            if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
+            auto pTexture = textureOpt.value();
+            const uint32_t width = pTexture->GetWidth();
+            const uint32_t height = pTexture->GetHeight();
+
+            const float aspectRatio = float(width) / float(height);
+            const float imageRegionAspect = float(imageRegionAvail.width) / float(imageRegionAvail.height);
+
+            if ( aspectRatio > imageRegionAspect )
             {
-                auto pTexture = textureOpt.value();
-                const uint32_t width = pTexture->GetWidth();
-                const uint32_t height = pTexture->GetHeight();
-                const float aspectRatio = float(width) / float(height);
-
-                const auto imageRegionAvail = GetImageRegionAvail();
-                const float imageRegionAspect = float( imageRegionAvail.width ) / float( imageRegionAvail.height );
-                
-                
-                if ( aspectRatio > imageRegionAspect )
-                {
-                    ImGui::SetCursorPos( { float( imageRegionAvail.x ), float( imageRegionAvail.y + ( imageRegionAvail.height - height) ) * 0.5f });
-                    //ImGui::Image( pTexture->GetTexture(), {float( width) , float( height) } );
-                }
-                else
-                {
-                    ImGui::SetCursorPos( { float( imageRegionAvail.x + ( imageRegionAvail.width - width) * 0.5f), float( imageRegionAvail.y ) });
-                    //ImGui::Image(pTexture->GetTexture(), { float( width), float( height) });
-                }
-
-                ImGui::BeginChild("##PreviewSection", { imageRegionAvail.width, imageRegionAvail.height });
-                if ( pTexture && pTexture->GetTexture() != nullptr )
-                {
-                    ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
-                }
-                ImGui::EndChild();
+                ImGui::SetCursorPos({ float(imageRegionAvail.x), float(imageRegionAvail.y + (imageRegionAvail.height - height)) * 0.5f });
+            }
+            else
+            {
+                ImGui::SetCursorPos({ float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f), float(imageRegionAvail.y) });
             }
 
-            ImGui::SetCursorPos({ float(_size.x - cImageControlsRegionWidth + 2.0f * ImGui::GetStyle().ItemSpacing.x), ImGui::GetStyle().ItemSpacing.y });
-
-            if ( pElement->GetTaskCount() > 1 )
+            if ( pTexture && pTexture->GetTexture() != nullptr )
             {
-                int frameNumber = pElement->GetPreviewedFrameNumber();
-                ImGui::SetNextItemWidth(150.0f);
-                if ( UI::SliderInt("Frame Number", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
-                {
-                    pElement->OnPreviewedFrameNumberChanged(frameNumber);
-                }
+                ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
             }
         }
     }
+
+    ImGui::SetCursorPos({ float(_size.x - cImageControlsRegionWidth + 2.0f * ImGui::GetStyle().ItemSpacing.x), ImGui::GetStyle().ItemSpacing.y });
+    ImGui::BeginChild("##FrameCounterSection", { cImageControlsRegionWidth - 4.0f * ImGui::GetStyle().ItemSpacing.x, imageRegionAvail.height });
+
+    ImGui::PushFont(_fontRegistry.bold);
+    ImGui::SeparatorText("Frame Number Selection");
+    ImGui::PopFont();
+
+    if ( pElement && pElement->GetTaskCount() > 1 )
+    {
+        const float buttonWidth = 150.0f;
+        const float spacing = ImGui::GetStyle().ItemSpacing.x;
+        const float totalWidth = buttonWidth * 2 + spacing;
+
+        int frameNumber = pElement->GetPreviewedFrameNumber();
+        ImGui::SetNextItemWidth(totalWidth - ImGui::CalcTextSize("Frame Number").x - spacing);
+        if ( UI::SliderInt("Frame Number", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
+        {
+            pElement->OnPreviewedFrameNumberChanged(frameNumber);
+        }
+
+        if ( auto pSettingsInterpolationUser = dynamic_cast<ISettingsInterpolationUser*>(pElement) )
+        {
+            pSettingsInterpolationUser->DrawFrameCounter();
+        }                
+    }
+
+    ImGui::EndChild();
+    
 
     drawList->AddLine({ 0, cGridTop - cBoldLineThickness }, { _size.x - 6, cGridTop - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
     drawList->AddLine({ 0, cGridTop - cHeadRowHeight - cBoldLineThickness }, { _size.x - 6, cGridTop - cHeadRowHeight - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);

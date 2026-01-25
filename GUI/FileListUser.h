@@ -2,6 +2,8 @@
 #include "ImGuiHelpers.h"
 #include "PipelineElementWindow.h"
 
+#include <mutex>
+
 ACMB_NAMESPACE_BEGIN
 class ImageDecoder;
 ACMB_NAMESPACE_END
@@ -12,7 +14,9 @@ class FileListUser
 {    
     PipelineElementWindow* _pHost = nullptr;
 
-    mutable std::shared_ptr<ImageDecoder> _pDecoder;    
+    mutable std::shared_ptr<ImageDecoder> _pDecoder;
+    mutable std::mutex _mutex;
+
     int _totalFrameCount = 0;
     std::string _workingDirectory = ".";
     std::vector<int> _frameIndicesStartsWith;

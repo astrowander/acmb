@@ -189,6 +189,12 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
 {
     if ( _pEncoder )
     {
+        if ( (std::dynamic_pointer_cast<H265Encoder>(_pEncoder) || std::dynamic_pointer_cast<Y4MEncoder>(_pEncoder)) &&
+            pSource->GetPixelFormat() != PixelFormat::YUV24 )
+        {
+            pSource = Converter::Convert( pSource, PixelFormat::YUV24 );
+        }
+
         _pEncoder->WriteBitmap( pSource );
         return nullptr;
     }
