@@ -12,9 +12,7 @@ class FileListUser
 {    
     PipelineElementWindow* _pHost = nullptr;
 
-    mutable std::shared_ptr<ImageDecoder> _pDecoder;
-
-    mutable int _currentFileNumber = -1; // -1 means no current    
+    mutable std::shared_ptr<ImageDecoder> _pDecoder;    
     int _totalFrameCount = 0;
     std::string _workingDirectory = ".";
     std::vector<int> _frameIndicesStartsWith;
@@ -22,10 +20,13 @@ class FileListUser
     IBitmapPtr _pStackedFrames;
     ImageParams _imageParams;
 
+protected:
+    mutable int _currentFrameIdx = -1; // -1 means no current
+    mutable int _lastDecodedFileIdx = -1;
+
 private:
     void PrepareFrameForReading(int idx) const;
     Expected<void, std::string> AddFile(const std::string& fileName);
-    Expected<void, std::string> AddFiles(const std::vector<std::string>& fileNames);
 
     virtual void OnSelectedFrameChanged(int idx) = 0;
     

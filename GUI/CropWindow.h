@@ -16,7 +16,7 @@ private:
     virtual Expected<Size, std::string> GetBitmapSize() override;
 public:
 
-    CropWindow( const Point& gridPos );
+    CropWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

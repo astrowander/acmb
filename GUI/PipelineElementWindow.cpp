@@ -9,13 +9,12 @@
 
 #include "imgui/imgui_internal.h"
 
+static int uniqueId = 0;
 ACMB_GUI_NAMESPACE_BEGIN
 
-PipelineElementWindow::PipelineElementWindow( const std::string& name, int positionInPipeline, int inOutFlags )
-    : Window( name + "C" + std::to_string(positionInPipeline), { cElementWidth, cElementHeight } )
+PipelineElementWindow::PipelineElementWindow(const std::string& name)
+    : Window( name + "##C" + std::to_string(uniqueId++), { cElementWidth, cElementHeight } )
     , _itemWidth( cElementWidth - ImGui::GetStyle().WindowPadding.x * cMenuScaling )
-    , _inOutFlags( inOutFlags )
-    , _positionInPipeline( positionInPipeline )
 {
 }
 
@@ -69,11 +68,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetInput() const
 {
-    if ( _inOutFlags & PEFlags_NoInput )
-        return nullptr;
-
     return _input.lock();
-
 }
 
 void PipelineElementWindow::SetInput( std::shared_ptr<PipelineElementWindow> pLeftInput )
@@ -83,7 +78,7 @@ void PipelineElementWindow::SetInput( std::shared_ptr<PipelineElementWindow> pLe
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetOutput() const
 {
-    return _output.lock();
+    return _output;
 }
 
 void PipelineElementWindow::SetOutput( std::shared_ptr<PipelineElementWindow> pElement )
@@ -91,9 +86,15 @@ void PipelineElementWindow::SetOutput( std::shared_ptr<PipelineElementWindow> pE
     _output = pElement;
 }
 
-int PipelineElementWindow::GetInOutFlags() const
+int PipelineElementWindow::GetFollowingElementsCount() const
 {
-    return _inOutFlags;
+    int count = 1;
+    auto pOutput = this;
+    while ( pOutput = pOutput->GetOutput().get() )
+    {
+        ++count;
+    }
+    return count;
 }
 
 size_t PipelineElementWindow::GetTaskCount(bool update)
@@ -201,6 +202,17 @@ bool PipelineElementWindow::DrawHeader()
     return true;
 }
 
+size_t PipelineElementWindow::GetElementsCount() const
+{
+    size_t count = 1;
+    auto pOutput = this;
+    while ( pOutput = pOutput->GetOutput().get() )
+    {
+        ++count;
+    }
+    return count;
+}
+
 void PipelineElementWindow::DrawDialog()
 {
     const auto taskCount = GetTaskCount();
@@ -236,7 +248,7 @@ void PipelineElementWindow::DrawDialog()
         {
             const size_t length = strlen( _renameBuf.data() );
             if ( length > 0 )
-                _name = std::string( _renameBuf.data(), length ) +  "C" + std::to_string( _positionInPipeline );
+                _name = std::string( _renameBuf.data(), length ) +  "##C" + std::to_string( uniqueId++ );
 
             mainWindow.UnlockInterface();
             ImGui::CloseCurrentPopup();
@@ -295,7 +307,6 @@ void PipelineElementWindow::Serialize( std::ostream& out ) const
 {
     gui::Serialize( GetSerializedStringSize(), out );
     gui::Serialize( _name, out );
-    gui::Serialize(_previewedFrameNumber, out);
 }
 
 bool PipelineElementWindow::Deserialize( std::istream& in )
@@ -308,39 +319,57 @@ bool PipelineElementWindow::Deserialize( std::istream& in )
         return false;
     
     _name = std::move( savedName );
-    _previewedFrameNumber = gui::Deserialize<int>( in, _remainingBytes );
     return true;
 }
 
 int PipelineElementWindow::GetSerializedStringSize() const
 {
-    return gui::GetSerializedStringSize( _name )
-    + gui::GetSerializedStringSize( _previewedFrameNumber );
+    return gui::GetSerializedStringSize(_name);
+}
+
+std::string PipelineElementWindow::GetTaskName(size_t taskNumber) const
+{
+    auto pPrimaryInput = GetInput();
+    return pPrimaryInput ? pPrimaryInput->GetTaskName(taskNumber) : std::string{};
+}
+
+Expected<IBitmapPtr, std::string> PipelineElementWindow::GetPreviewBitmap()
+{
+    if ( !_pPreviewBitmap )
+    {
+        auto res = GeneratePreviewBitmap();
+        if ( !res.has_value() )
+            return unexpected(res.error());
+    }
+
+    return _pPreviewBitmap;
+}
+
+Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPreviewTexture()
+{
+    if ( !_pPreviewTexture )
+    {
+        auto res = GeneratePreviewTexture();
+        if ( !res.has_value() )
+            return unexpected( res.error() );
+    }
+
+    return _pPreviewTexture;
 }
 
 Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
-    auto pPrimaryInput = GetInput();
-    if ( !(_inOutFlags & PEFlags_NoInput) && (!pPrimaryInput || pPrimaryInput->GetTaskCount() == 0) )
-        return unexpected( _name + ": no input element" );
-
-    MainWindow::GetInstance().LockInterface();
-
-    if ( pPrimaryInput && !pPrimaryInput->GetPreviewBitmap() )
-        if ( auto res = pPrimaryInput->GeneratePreviewTexture(); !res )
-        {
-            MainWindow::GetInstance().UnlockInterface();
-             return unexpected( res.error() );
-        }   
-
     try
     {
-        if ( auto res = GeneratePreviewBitmap(); !res )
+        MainWindow::GetInstance().LockInterface();
+
+        auto pPreviewBitmap = GetPreviewBitmap();
+        if ( !pPreviewBitmap )
         {
             MainWindow::GetInstance().UnlockInterface();
-            return unexpected( res.error() );
+            return unexpected(pPreviewBitmap.error());
         }
-
+        
         _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
         MainWindow::GetInstance().UnlockInterface();
         return {};
@@ -381,10 +410,10 @@ Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
 
 void PipelineElementWindow::OnPreviewedFrameNumberChanged(int val)
 {
-    if ( _previewedFrameNumber == val || val < 0 || val >= _taskCount )
+    if ( GetPreviewedFrameNumber() == val || val < 0 || val >= _taskCount )
         return;
 
-    _previewedFrameNumber = val;
+    SetPreviewedFrameNumber(val);
     ResetPreview(PropagationDir::None);
 
     auto pInput = GetInput();

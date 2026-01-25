@@ -30,7 +30,7 @@ public:
         return _items;
     }    
 
-    bool AddItem( const std::string& category, uint8_t order, const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(Point)>& action, bool unlockable = false )
+    bool AddItem( const std::string& category, uint8_t order, const std::string& icon, const std::string& caption, const std::string& tooltip, const std::function<void(size_t, bool)>& action, bool unlockable = false )
     {
         auto it = _items.find( category );
         if ( it == _items.end() )
@@ -46,7 +46,7 @@ public:
 static inline bool handle = MenuItemsHolder::GetInstance().AddItem( category, order, icon, caption, tooltip, action ); \
 
 #define REGISTER_TOOLS_ITEM( ToolClassType ) \
-static inline bool handle = MenuItemsHolder::GetInstance().AddItem( "Tools", ToolClassType::order, ToolClassType::icon,  ToolClassType::caption, ToolClassType::tooltip, [](Point p){ MainWindow::GetInstance( FontRegistry::Instance() ).AddElementToGrid<ToolClassType>( p ); } );
+static inline bool handle = MenuItemsHolder::GetInstance().AddItem( "Tools", ToolClassType::order, ToolClassType::icon,  ToolClassType::caption, ToolClassType::tooltip, [](size_t pos, bool replace){ MainWindow::GetInstance( FontRegistry::Instance() ).AddElementToGrid<ToolClassType>( pos, replace ); } );
 
 
 ACMB_GUI_NAMESPACE_END

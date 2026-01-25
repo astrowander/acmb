@@ -10,8 +10,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-DarkFrameWindow::DarkFrameWindow( const Point& gridPos )
-: PipelineElementWindow( "Subtract Dark Frame", gridPos, PEFlags::PEFlags_StrictlyOneInput | PEFlags::PEFlags_StrictlyOneOutput )
+DarkFrameWindow::DarkFrameWindow(  )
+: PipelineElementWindow( "Subtract Dark Frame" )
 , FileListUser(this)
 {
 }
@@ -23,7 +23,7 @@ void DarkFrameWindow::DrawPipelineElementControls()
     {
         auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
         mainWindow.LockInterface();
-        IBitmapPtr pLightFrame = GetPrimaryInput()->RunTaskAndReportProgress(0).value_or( nullptr );
+        IBitmapPtr pLightFrame = GetInput()->RunTaskAndReportProgress(0).value_or( nullptr );
         _multiplier = BitmapSubtractor::AutoAdjustMultiplier(pLightFrame, FileListUser::ReadFrame(0).value_or(nullptr));
         mainWindow.UnlockInterface();
     }, "Calculate appropriate multiplier automatically", this );
@@ -72,7 +72,7 @@ bool DarkFrameWindow::Deserialize( std::istream& in )
 
 Expected<void, std::string> DarkFrameWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

@@ -104,7 +104,7 @@ bool RectT<T>::operator!=(const RectT<T>& rhs) const
 /// rect with integer coords
 using Rect = RectT<int32_t>;
 /// rect with fractional coords
-using RectF = RectT<double>;
+using RectF = RectT<float>;
 
 using RectD = RectT<double>;
 

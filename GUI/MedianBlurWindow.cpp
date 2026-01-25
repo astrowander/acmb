@@ -7,8 +7,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-MedianBlurWindow::MedianBlurWindow( const Point& gridPos )
-: PipelineElementWindow( "Median Blur", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+MedianBlurWindow::MedianBlurWindow(  )
+: PipelineElementWindow( "Median Blur" )
 {
 }
 
@@ -19,7 +19,7 @@ void MedianBlurWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> MedianBlurWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

@@ -51,14 +51,9 @@ namespace UI
         if ( !parent )
             return;
 
-        parent->ResetPreview(PipelineElementWindow::PropagationDir::Forward );
-
-        if ( parent->GetInOutFlags() & PEFlags::PEFlags_NoInput )
-            parent->ResetProgress(PipelineElementWindow::PropagationDir::Forward);
-        else if ( parent->GetInOutFlags() & PEFlags::PEFlags_NoOutput )
-            parent->ResetProgress(PipelineElementWindow::PropagationDir::Backward);
-        else
-            parent->ResetProgress(PipelineElementWindow::PropagationDir::Both);
+        size_t oldFrameNumber = parent->GetPreviewedFrameNumber();
+        parent->ResetPreview(PipelineElementWindow::PropagationDir::Forward);
+        parent->ResetProgress(PipelineElementWindow::PropagationDir::Both);
     }
 
     void ShowModalMessage( const std::vector<std::string>& msgs, ModalMessageType msgType, bool& isEnabled )
@@ -247,6 +242,19 @@ namespace UI
 
         *v = std::clamp( *v, min, max );
         SetTooltipIfHovered( tooltip, MainWindow::cMenuScaling );
+        return false;
+    }
+
+    bool SliderInt(const std::string& label, int* v, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent)
+    {
+        const bool isInterfaceLocked = MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked();
+        if (ImGui::SliderInt(label.c_str(), v, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp))
+        {
+            ResetParentWindow(parent);
+            return true;
+        }
+
+        SetTooltipIfHovered(tooltip, MainWindow::cMenuScaling);
         return false;
     }
 

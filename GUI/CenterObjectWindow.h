@@ -13,7 +13,7 @@ class CenterObjectWindow : public PipelineElementWindow
 
 public:
 
-    CenterObjectWindow( const Point& gridPos );
+    CenterObjectWindow();
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

@@ -1,4 +1,5 @@
 #include "MainWindow.h"
+#include "ImageReaderWindow.h"
 #include "ImageWriterWindow.h"
 #include "FontRegistry.h"
 #include "FileDialog.h"
@@ -18,9 +19,12 @@
 ACMB_GUI_NAMESPACE_BEGIN
 
 static constexpr float cMenuButtonSize = 60.0f;
+constexpr int cItemCountInRow = 5;
+const float cMenuWidth = cItemCountInRow * cMenuButtonSize + (cItemCountInRow - 1) * 5.0f;
+const float cImageControlsRegionWidth = 600.0f;
 
 static constexpr float cHeadRowHeight = 25;
-static constexpr float cMenuBottom = cMenuButtonSize + 65.0f;
+static constexpr float cMenuRowHeight = cMenuButtonSize + 30.0f;
 
 static constexpr float cGridLeft = 30;
 static constexpr float cGridCellPadding = 25.0f;
@@ -34,9 +38,9 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     , _gridCellSize( { cGridCellMinWidth, cGridCellHeight } )
 {
     SetPos( pos );
-    _viewportSize = { (  int( size.x ) - int( cGridLeft ) ) / int(cGridCellMinWidth), ( int( size.y ) - int(cMenuBottom)) / int(cGridCellHeight)};
+    _visibleCellsCount = (int(size.x) - int( cGridLeft ) )/ int(cGridCellMinWidth);
 
-    MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (Point)
+    MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (size_t, bool)
     {
         _errors.clear();
         _isBusy = true;
@@ -47,14 +51,44 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
             _startTime = std::chrono::high_resolution_clock::now();
             _durationString.clear();
 
-            if ( _writers.empty() )
-                _errors.emplace_back( "There are not 'Export' tools in the scheme" );
-
-            for ( auto pWriter : _writers )
+            if ( _pPipelineHead == nullptr )
             {
-                pWriter.second.lock()->ResetTasks();
-                const auto errors = pWriter.second.lock()->ExportAllImages();
-                _errors.insert( _errors.end(), errors.begin(), errors.end() );
+                _errors.push_back( "Pipeline is empty" );
+            }
+            
+            if ( !std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
+            {
+                _errors.push_back( "First element must be an image reader" );
+            }
+
+            auto pTailElement = _pPipelineHead;
+            while ( pTailElement && pTailElement->GetOutput() != nullptr )
+            {
+                pTailElement = pTailElement->GetOutput();
+                if ( std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
+                {
+                    _errors.push_back( "Image reader can only be the first element in the pipeline" );
+                    break;
+                }
+
+                if ( std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement) && pTailElement->GetOutput() != nullptr )
+                {
+                    _errors.push_back( "Image writer can only be the last element in the pipeline" );
+                    break;
+                }
+            }
+
+            auto pWriter = std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement);
+            if ( !pWriter )
+            {
+                _errors.push_back( "Last element must be an image writer" );
+            }
+
+            if ( _errors.empty() )
+            {
+                pWriter->ResetTasks();
+                const auto errors = pWriter->ExportAllImages();
+                _errors.insert(_errors.end(), errors.begin(), errors.end());
             }
 
             _isBusy = false;
@@ -64,7 +98,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         process.detach();
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Run", 2, "\xef\x81\x8D", "Stop", "Stop processing", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Run", 2, "\xef\x81\x8D", "Stop", "Stop processing", [this] (size_t, bool)
     {
         _errors.clear();
         _isBusy = false;
@@ -72,17 +106,17 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
     const auto acmbPath = GetAcmbPath();
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [acmbPath] (Point)
+    MenuItemsHolder::GetInstance().AddItem( "Project", 2, "\xef\x83\x87", "Save", "Write the project to an .acmb file", [acmbPath] (size_t, bool)
     {
         FileDialog::Instance().OpenDialog( "SaveProjectDialog", "Save Table", ".acmb", ( acmbPath + "/GUI/presets/" ).c_str(), 1 );
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [acmbPath] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Project", 1, "\xef\x81\xbc", "Open", "Read the project from an .acmb file", [acmbPath] (size_t, bool)
     {
         FileDialog::Instance().OpenDialog( "OpenProjectDialog", "Load Table", ".acmb", ( acmbPath + "/GUI/presets/" ).c_str(), 1 );
     } );
 
-    MenuItemsHolder::GetInstance().AddItem( "Help", 1, "\xef\x84\xa8", "Help", "Show modal window with instructions", [this] ( Point )
+    MenuItemsHolder::GetInstance().AddItem( "Help", 1, "\xef\x84\xa8", "Help", "Show modal window with instructions", [this] (size_t, bool)
     {
         _showHelpPopup = true;
     } );
@@ -102,126 +136,94 @@ enum class UIColor : ImU32
 
 void MainWindow::ProcessKeyboardEvents()
 {
+    const size_t pipelineSize = GetPipelineSize();
+
     if ( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) )
     {
-        _activeCell.x = std::max<int>( _activeCell.x - 1, 0 );
-        if ( _activeCell.x < _viewportStart.x )
-            _viewportStart.x = _activeCell.x;
+        if ( _activeElement == pipelineSize && pipelineSize > 0 )
+        {
+            --_activeElement;
+            return;
+        }
+
+        if ( _isElementSelected )
+        {
+            _isElementSelected = false;
+            return;
+        }
+
+        if ( _activeElement == 0 )
+            return;
+
+        _isElementSelected = true;
+        --_activeElement;
+        if ( _activeElement < _firstVisibleElement )
+            _firstVisibleElement = _activeElement;
     }
 
     if ( ImGui::IsKeyPressed( ImGuiKey_RightArrow ) )
     {
-        _activeCell.x = std::min<int>( _activeCell.x + 1, cGridSize.width - 1 );
-        if ( _activeCell.x >= _viewportStart.x + _viewportSize.width )
-            _viewportStart.x = _activeCell.x - _viewportSize.width + 1;
+        if ( !_isElementSelected )
+        {
+            _isElementSelected = true;
+            return;
+        }
+
+        if ( _activeElement + 1 >= pipelineSize )
+        {
+            _activeElement = pipelineSize;
+            return;
+        }
+
+        _isElementSelected = false;
+        ++_activeElement;
+        if ( _activeElement >= _firstVisibleElement + _visibleCellsCount )
+            _firstVisibleElement = _activeElement - _visibleCellsCount + 1;
     }
 
-    if ( ImGui::IsKeyPressed( ImGuiKey_UpArrow ) )
+    if ( _isElementSelected && ImGui::IsKeyPressed( ImGuiKey_Delete ) )
     {
-        _activeCell.y = std::max<int>( _activeCell.y - 1, 0 );
-        if ( _activeCell.y < _viewportStart.y )
-            _viewportStart.y = _activeCell.y;
-    }
+        auto pElement = _pPipelineHead;
+        for ( size_t i = 0; i < _activeElement; ++i )
+            pElement = pElement->GetOutput();
 
-    if ( ImGui::IsKeyPressed( ImGuiKey_DownArrow ) )
-    {
-        _activeCell.y = std::min<int>( _activeCell.y + 1, cGridSize.height - 1 );
-        if ( _activeCell.y >= _viewportStart.y + _viewportSize.height )
-            _viewportStart.y = _activeCell.y - _viewportSize.height + 1;
-    }
+        if ( !pElement )
+            return;
 
-    const size_t gridIdx = _activeCell.y * cGridSize.width + _activeCell.x;
-    if ( ImGui::IsKeyPressed( ImGuiKey_Delete ) )
-    {
-        if ( _activeCell.x < cGridSize.width - 1 && _grid[gridIdx + 1] )
-            _grid[gridIdx + 1]->SetLeftInput( nullptr );
+        auto pNext = pElement->GetOutput();
+        auto pPrev = pElement->GetInput();
 
-        if ( _writers.contains( gridIdx ) )
-            _writers.erase( gridIdx );
+        if ( pPrev )
+            pPrev->SetOutput( pNext );
+        else
+            _pPipelineHead = pNext;
 
-        _grid[gridIdx].reset();
+        if ( pNext )
+            pNext->SetInput( pPrev );
+
+        pElement.reset();
     }
 }
 
 void MainWindow::ProcessMouseEvents()
 {
-    const bool isMouseDoubleClicked = ImGui::IsMouseDoubleClicked( ImGuiMouseButton_Left );
-    const bool isMouseClicked = ImGui::IsMouseClicked( ImGuiMouseButton_Left );
-
-    if ( !isMouseClicked && !isMouseDoubleClicked )
+    if ( !ImGui::IsMouseClicked(ImGuiMouseButton_Left) )
         return;
 
     const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
     const float cGridTop = cGridBottom - cGridCellHeight;
 
     auto mousePos = ImGui::GetMousePos();
-    mousePos.x -= cGridLeft;
-    mousePos.y -= cGridTop;
-
-    if ( mousePos.x < 0 || mousePos.y < 0 )
+    if ( mousePos.y < cGridTop || mousePos.y > cGridBottom )
         return;
 
-    int col = int( mousePos.x ) / int( _gridCellSize.width ) + _viewportStart.x;
-    int row = int( mousePos.y ) / int( _gridCellSize.height) + _viewportStart.y;
+    int col = int( mousePos.x - cGridLeft) / int( _gridCellSize.width );    
 
-    const auto gridIdx = row * cGridSize.width + col;
-    std::shared_ptr<PipelineElementWindow> pElement;
-    if (gridIdx >=0 && gridIdx < cGridSize.width * cGridSize.height )
-        pElement = _grid[gridIdx];
-    
-    mousePos.x -= ( col - _viewportStart.x ) * _gridCellSize.width;
-    mousePos.y -= ( row - _viewportStart.y ) * _gridCellSize.height;
-
-    if ( isMouseDoubleClicked  )
-    { 
-        if ( !pElement )
-            return;
-
-        if ( auto pLeft = ( ( col > 0 ) ? _grid[gridIdx - 1] : nullptr ); pLeft && pElement->GetLeftInput() == pLeft && mousePos.x < cGridCellPadding )
-        {
-            const auto newRelationType = pElement->GetLeftRelationType() == PipelineElementWindow::RelationType::Batch ? PipelineElementWindow::RelationType::Join : PipelineElementWindow::RelationType::Batch;
-            pElement->SetLeftRelationType( newRelationType );
-            pLeft->SetRightRelationType( newRelationType );
-        }
-
-        if ( auto pRight = ( ( col < cGridSize.width - 1 ) ? _grid[gridIdx + 1] : nullptr ); pRight && pElement->GetRightOutput() == pRight && mousePos.x > _gridCellSize.width - cGridCellPadding )
-        {
-            const auto newRelationType = pElement->GetRightRelationType() == PipelineElementWindow::RelationType::Batch ? PipelineElementWindow::RelationType::Join : PipelineElementWindow::RelationType::Batch;
-            pElement->SetRightRelationType( newRelationType );
-            pRight->SetLeftRelationType( newRelationType );
-        }
-
-        if ( auto pTop = ( ( row > 0 ) ? _grid[gridIdx - cGridSize.width] : nullptr ); pTop && pElement->GetTopInput() == pTop && mousePos.y < cGridCellPadding )
-        {
-            const auto newRelationType = pElement->GetTopRelationType() == PipelineElementWindow::RelationType::Batch ? PipelineElementWindow::RelationType::Join : PipelineElementWindow::RelationType::Batch;
-            pElement->SetTopRelationType( newRelationType );
-            pTop->SetBottomRelationType( newRelationType );
-        }
-
-        if ( auto pBottom = ( ( row < cGridSize.height - 1 ) ? _grid[gridIdx + cGridSize.width] : nullptr ); pBottom && pElement->GetBottomOutput() == pBottom && mousePos.y > cGridCellHeight - cGridCellPadding )
-        {
-            const auto newRelationType = pElement->GetBottomRelationType() == PipelineElementWindow::RelationType::Batch ? PipelineElementWindow::RelationType::Join : PipelineElementWindow::RelationType::Batch;
-            pElement->SetBottomRelationType( newRelationType );
-            pBottom->SetTopRelationType( newRelationType );
-        }
-    }
-    else if ( isMouseClicked )
-    {
-        if ( col < 0 || col >= cGridSize.width || row < 0 || row >= cGridSize.height )
-            return;
-
-        if ( mousePos.x < cGridCellPadding || mousePos.y < cGridCellPadding || mousePos.x > _gridCellSize.width - cGridCellPadding || mousePos.y > cGridCellHeight - cGridCellPadding )
-            return;
-
-        _activeCell = { .x = col, .y = row };
-    }
+    _activeElement = col + _firstVisibleElement;
 }
 
 void MainWindow::OpenProject()
 {
-    for ( auto& pElement : _grid )
-        pElement.reset();
-
     auto reportError = [this] ( const std::string msg )
     {
         _errors.push_back( msg );
@@ -247,60 +249,25 @@ void MainWindow::OpenProject()
     if ( header != "ACMB" )
         return reportError( "File is corrupted" );
 
-    Size actualGridSize;
-    actualGridSize.width = fin.get();
-    actualGridSize.height = fin.get();
+    uint8_t pipelineSize = fin.get();
 
-    if ( actualGridSize.width > cGridSize.width || actualGridSize.height > cGridSize.height )
-        return reportError( "Schema is too large" );
-
-    int charCount = actualGridSize.width * actualGridSize.height;
-    if ( streamSize < charCount + 6 )
+    if ( streamSize < pipelineSize + 6 )
         return reportError( "File is corrupted" );
 
-    std::string serialized( charCount, '\0' );
-    fin.read( serialized.data(), charCount );
+    std::string serialized(pipelineSize, '\0' );
+    fin.read( serialized.data(), pipelineSize);
 
-    for ( int i = 0; i < actualGridSize.height; ++i )
-    for ( int j = 0; j < actualGridSize.width; ++j )
+    std::shared_ptr<PipelineElementWindow> pElement = nullptr;
+    for ( size_t i = 0; i < pipelineSize; ++i )
     {
-        if ( uint8_t menuOrder = serialized[i * actualGridSize.width + j] )
-        {
-            MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action( Point{ .x = int( j ), .y = int( i ) } );
-            if ( streamSize > charCount + 6 )
-            {
-                _grid[i * cGridSize.height + j]->Deserialize( fin );
-                const auto serializedInputs = _grid[i * cGridSize.height + j]->GetActualInputs();
+        const uint8_t menuOrder = serialized[i];
+        MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action(i, true);
+        if ( i == 0 )
+            pElement = _pPipelineHead;
+        else
+            pElement = pElement->GetOutput();
 
-                if ( serializedInputs.left != PipelineElementWindow::RelationType::None )
-                {
-                    _grid[i * cGridSize.height + j]->SetLeftInput( _grid[i * cGridSize.height + j - 1] );
-                    _grid[i * cGridSize.height + j]->SetLeftRelationType( serializedInputs.left );
-                    _grid[i * cGridSize.height + j - 1]->SetRightOutput( _grid[i * cGridSize.height + j] );
-                    _grid[i * cGridSize.height + j - 1]->SetRightRelationType( serializedInputs.left );
-                }
-                else if ( j > 0 )
-                {
-                    _grid[i * cGridSize.height + j]->SetLeftInput( nullptr );
-                    if ( _grid[i * cGridSize.height + j - 1] )
-                        _grid[i * cGridSize.height + j - 1]->SetRightOutput( nullptr );
-                }
-
-                if ( serializedInputs.top != PipelineElementWindow::RelationType::None )
-                {
-                    _grid[i * cGridSize.height + j]->SetTopInput( _grid[( i - 1 ) * cGridSize.height + j] );
-                    _grid[i * cGridSize.height + j]->SetTopRelationType( serializedInputs.top );
-                    _grid[( i - 1 ) * cGridSize.height + j]->SetBottomOutput( _grid[i * cGridSize.height + j] );
-                    _grid[(i - 1) * cGridSize.height + j]->SetBottomRelationType( serializedInputs.top );
-                }
-                else if ( i > 0 )
-                {
-                    _grid[i * cGridSize.height + j]->SetTopInput( nullptr );
-                    if ( _grid[( i - 1 ) * cGridSize.height + j] )
-                        _grid[( i - 1 ) * cGridSize.height + j]->SetBottomOutput( nullptr );
-                }
-            }
-        }
+        pElement->Deserialize( fin );
     }
 }
 
@@ -319,69 +286,78 @@ void MainWindow::SaveProject()
 
     fout.write( "ACMB", 4 );
 
-    Size actualGridSize;
+    const size_t pipelineSize = GetPipelineSize();    
+    fout.put( char(pipelineSize) );
 
-    for ( int i = 0; i < cGridSize.height; ++i )
-        for ( int j = 0; j < cGridSize.width; ++j )
-        {
-            if ( _grid[i * cGridSize.width + j] )
-            {
-                if ( i >= actualGridSize.height )
-                    actualGridSize.height = i + 1;
+    std::string chars(pipelineSize, '\0' );
 
-                if ( j >= actualGridSize.width )
-                    actualGridSize.width = j + 1;
-            }
-        }
-
-    fout.put( char( actualGridSize.width ) );
-    fout.put( char( actualGridSize.height ) );
-
-    std::string chars( actualGridSize.width * actualGridSize.height, '\0' );
-
-    for ( int i = 0; i < actualGridSize.height; ++i )
-        for ( int j = 0; j < actualGridSize.width; ++j )
-        {
-            chars[i * actualGridSize.width + j] = ( ( _grid[i * cGridSize.height + j] ) ? _grid[i * cGridSize.height + j]->GetMenuOrder() : 0 );
-        }
+    auto pElement = _pPipelineHead;
+    for ( int i = 0; i < pipelineSize; ++i )
+    {
+        chars[i] = pElement->GetMenuOrder();
+        pElement = pElement->GetOutput();
+    }        
 
     fout.write( chars.data(), chars.size() );
+    
+    pElement = _pPipelineHead;
+    for ( int i = 0; i < pipelineSize; ++i )
+    {
+        pElement->Serialize( fout );
+        pElement = pElement->GetOutput();
+    }
+}
 
-    for ( int i = 0; i < actualGridSize.height; ++i )
-        for ( int j = 0; j < actualGridSize.width; ++j )
-        {
-            if ( _grid[i * cGridSize.height + j] )
-                _grid[i * cGridSize.height + j]->Serialize( fout );
-        }
+PipelineElementWindow* MainWindow::GetActiveElement() const
+{
+    std::shared_ptr<PipelineElementWindow> pNode = _pPipelineHead;
+    for ( size_t i = 0; i < _activeElement; ++i )
+    {
+        if ( !pNode )
+            return nullptr;
+        pNode = pNode->GetOutput();
+    }
+    return pNode.get();
+}
+
+void MainWindow::SetSize(const ImVec2& size)
+{
+    Window::SetSize(size);
+    _visibleCellsCount = (int(size.x) - int(cGridLeft)) / int(cGridCellMinWidth);
 }
 
 void MainWindow::DrawMenu()
-{
+{    
+    ImGui::BeginChild("##ToolboxSection", {cMenuWidth + 2.0f * ImGui::GetStyle().ItemSpacing.x, 0});
+
+    ImVec2 cachedPos = ImGui::GetCursorPos();
+
     for ( const auto& it : MenuItemsHolder::GetInstance().GetItems() )
     {
-        const auto& category = it.first;
+        const std::string &category = it.first;
         const auto& items = it.second;
-
-        const auto itemCount = items.size();
-        const float menuWidth = itemCount * cMenuButtonSize + ( itemCount - 1 ) * ImGui::GetStyle().ItemSpacing.x;
-
-        ImGui::BeginChild( category.c_str(), { menuWidth, 0 } );
 
         ImGui::PushFont( _fontRegistry.bold );
         ImGui::SeparatorText( category.c_str() );
         ImGui::PopFont();
 
-        for ( auto& item : items )
+        const size_t itemCount = items.size();
+        for ( size_t i = 0; i < itemCount; ++i)
         {
+            const auto& item = *(std::next(items.begin(), i));
+            if ( i > 0 && i % cItemCountInRow == 0 )
+            {
+                ImGui::SetCursorPos( {0, cachedPos.y + cMenuRowHeight});
+            }
             ImGui::PushFont( _fontRegistry.icons );
 
-            const auto oldPos = ImGui::GetCursorPos();
+            cachedPos = ImGui::GetCursorPos();
 
             if ( item.second->unlockable )
             {
                 UI::UnlockableButton( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
                 {
-                    item.second->action( _activeCell );
+                    item.second->action(_activeElement, _isElementSelected);
                 }, item.second->tooltip );
             }
             else
@@ -390,26 +366,25 @@ void MainWindow::DrawMenu()
                 UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
                 {
                     if ( !isAnyPopupOpen )
-                        item.second->action( _activeCell );
+                        item.second->action(_activeElement, _isElementSelected);
                 }, isAnyPopupOpen ? "Menu is disabled while any ancillary window is opened" : item.second->tooltip );
             }
 
             ImGui::PopFont();
 
             const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
-            ImGui::SetCursorPos( { oldPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, oldPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
+            ImGui::SetCursorPos( { cachedPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, cachedPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
             ImGui::Text( "%s", item.second->caption.c_str() );
-            ImGui::SetCursorPos( { oldPos.x + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.x, oldPos.y});
-        }
+            ImGui::SetCursorPos( { cachedPos.x + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.x, cachedPos.y});
 
-        ImGui::EndChild();
+            cachedPos = ImGui::GetCursorPos();
+        }       
 
-        ImGui::SameLine();
-        ImGui::Dummy( { 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 } );
-        ImGui::SameLine();
-    }
+        ImGui::SetCursorPos({ 0, cachedPos.y + cMenuRowHeight + 3.0f * ImGui::GetStyle().ItemSpacing.y });
+        cachedPos = ImGui::GetCursorPos();
+    }    
 
-    const auto cachedPos = ImGui::GetCursorPos();
+    
 
     if ( _fontRegistry.bold )
         ImGui::PushFont( _fontRegistry.bold );
@@ -422,6 +397,8 @@ void MainWindow::DrawMenu()
     ImGui::SetCursorPos( { cachedPos.x, cachedPos.y + ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y } );
     if ( cuda::isCudaAvailable() )
         UI::Checkbox( "Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available" );
+
+    ImGui::EndChild();
 
     auto fileDialog = FileDialog::Instance();
     if ( fileDialog.Display( "OpenProjectDialog", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
@@ -461,7 +438,58 @@ void MainWindow::DrawDialog()
     const float cBoldLineThickness = 3.0f;
 
     auto drawList = ImGui::GetWindowDrawList();
-    drawList->AddLine({ 0, cMenuBottom }, { _size.x, cMenuBottom }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ cMenuWidth + 4.0f * ImGui::GetStyle().ItemSpacing.x, 0}, { cMenuWidth + 4.0f * ImGui::GetStyle().ItemSpacing.x, cGridTop - cHeadRowHeight - ImGui::GetStyle().ItemSpacing.x}, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    drawList->AddLine({ _size.x -  cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 }, { _size.x - cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, cGridTop - cHeadRowHeight - ImGui::GetStyle().ItemSpacing.x }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+
+    auto pElement = GetActiveElement();
+    {
+
+        if ( pElement )
+        {
+            if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
+            {
+                auto pTexture = textureOpt.value();
+                const uint32_t width = pTexture->GetWidth();
+                const uint32_t height = pTexture->GetHeight();
+                const float aspectRatio = float(width) / float(height);
+
+                const auto imageRegionAvail = GetImageRegionAvail();
+                const float imageRegionAspect = float( imageRegionAvail.width ) / float( imageRegionAvail.height );
+                
+                
+                if ( aspectRatio > imageRegionAspect )
+                {
+                    ImGui::SetCursorPos( { float( imageRegionAvail.x ), float( imageRegionAvail.y + ( imageRegionAvail.height - height) ) * 0.5f });
+                    //ImGui::Image( pTexture->GetTexture(), {float( width) , float( height) } );
+                }
+                else
+                {
+                    ImGui::SetCursorPos( { float( imageRegionAvail.x + ( imageRegionAvail.width - width) * 0.5f), float( imageRegionAvail.y ) });
+                    //ImGui::Image(pTexture->GetTexture(), { float( width), float( height) });
+                }
+
+                ImGui::BeginChild("##PreviewSection", { imageRegionAvail.width, imageRegionAvail.height });
+                if ( pTexture && pTexture->GetTexture() != nullptr )
+                {
+                    ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
+                }
+                ImGui::EndChild();
+            }
+
+            ImGui::SetCursorPos({ float(_size.x - cImageControlsRegionWidth + 2.0f * ImGui::GetStyle().ItemSpacing.x), ImGui::GetStyle().ItemSpacing.y });
+
+            if ( pElement->GetTaskCount() > 1 )
+            {
+                int frameNumber = pElement->GetPreviewedFrameNumber();
+                ImGui::SetNextItemWidth(150.0f);
+                if ( UI::SliderInt("Frame Number", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
+                {
+                    pElement->OnPreviewedFrameNumberChanged(frameNumber);
+                }
+            }
+        }
+    }
+
     drawList->AddLine({ 0, cGridTop - cBoldLineThickness }, { _size.x - 6, cGridTop - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
     drawList->AddLine({ 0, cGridTop - cHeadRowHeight - cBoldLineThickness }, { _size.x - 6, cGridTop - cHeadRowHeight - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
     drawList->AddLine({ 0, cGridBottom }, { _size.x - 6, cGridBottom }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
@@ -470,27 +498,27 @@ void MainWindow::DrawDialog()
 
 
     ImGui::SetCursorPos({5, cGridTop - cHeadRowHeight - cBoldLineThickness * 0.5f });
-    UI::Button( "##ClearTable", { cGridLeft - 5, cHeadRowHeight - cBoldLineThickness * 0.5f }, [this]
+    UI::Button( "##ClearPipeline", { cGridLeft - 5, cHeadRowHeight - cBoldLineThickness * 0.5f }, [this]
     {
-        ClearTable();
-    }, "Clear table" );    
+        ClearPipeline();
+    }, "Clear pipeline" );
 
     ImVec2 topLeft;
     ImVec2 bottomRight;
 
-    _gridCellSize.width = (_size.x - cGridLeft) / ( _viewportSize.width );
+    _gridCellSize.width = (_size.x - cGridLeft) / (_visibleCellsCount);
 
-    for ( int x = 0; x < int(_viewportSize.width); ++x )
+    for ( int x = 0; x < int(_visibleCellsCount); ++x )
     {
         topLeft.x = float( cGridLeft + x * _gridCellSize.width);
         drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, cGridBottom }, ImU32( UIColor::TableBorders ) );
         ImGui::SetCursorPos( { topLeft.x + _gridCellSize.width * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f } );
 
-        std::string columnHeader = std::to_string( x + _viewportStart.x + 1 );
+        std::string columnHeader = std::to_string( x + _firstVisibleElement + 1 );
         ImGui::Text( "%s", columnHeader.c_str() );
     }
 
-    topLeft.x = float(cGridLeft + _viewportSize.width * _gridCellSize.width);
+    topLeft.x = float(cGridLeft + _visibleCellsCount * _gridCellSize.width);
     drawList->AddLine( { _size.x - 8, cGridTop - cHeadRowHeight - 1 }, { _size.x - 8, cGridBottom }, ImU32( UIColor::TableBorders ), 3.0f );
 
     
@@ -502,118 +530,52 @@ void MainWindow::DrawDialog()
 
     const float gridCellPaddingX = ( _gridCellSize.width - PipelineElementWindow::cElementWidth ) * 0.5f;
 
-    for ( int x = 0; x < int( _viewportSize.width ); ++x )
+    pElement = _pPipelineHead.get();
+    for ( int i = 0; i < _firstVisibleElement; ++i )
+    {
+        pElement = pElement->GetOutput().get();
+    }
+
+    for ( int x = 0; x < int(_visibleCellsCount); ++x )
     {
         topLeft.x = float( cGridLeft + x * _gridCellSize.width);
         bottomRight.x = topLeft.x + _gridCellSize.width;
 
-        const Point gridPos = { x + _viewportStart.x, 0 };
-        const size_t gridIdx = gridPos.y * cGridSize.width + gridPos.x;
+        const size_t elementIdx = x + _firstVisibleElement;
 
         ImGui::PushClipRect( { topLeft.x - 1, topLeft.y - 1 }, bottomRight, false );
 
-        if ( _activeCell == gridPos )
-            drawList->AddRect( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
-
-        if ( !_grid[gridIdx] )
+        if ( _activeElement == elementIdx )
         {
-            drawList->AddRectFilled( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::EmptyCell ) );
-            if ( _activeCell == gridPos )
-                drawList->AddRect( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
+            if ( _isElementSelected )
+                drawList->AddRect({ topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32(UIColor::ActiveCellBorder), 0, 0, 2.0f);
+            else
+                drawList->AddLine( { topLeft.x, topLeft.y}, { topLeft.x, bottomRight.y }, ImU32( UIColor::ActiveCellBorder ), 2.0f );
+        }
+
+        if ( pElement )
+        {
+            pElement->SetPos( { topLeft.x + gridCellPaddingX, topLeft.y + cGridCellPadding } );
+            pElement = pElement->GetOutput().get();
             ImGui::PopClipRect();
             continue;
         }
-
-        _grid[gridIdx]->SetPos( { topLeft.x + gridCellPaddingX, topLeft.y + cGridCellPadding } );
-
-        /*const float topArrowY = topLeft.y + cGridCellHeight * 0.5f - 2.0f * cGridCellPadding;
-        const float centerArrowY = topLeft.y + cGridCellHeight * 0.5f;
-        const float bottomArrowY = topLeft.y + cGridCellHeight * 0.5f + 2.0f * cGridCellPadding;
-            
-        if ( gridPos.x < int( cGridSize.width - 1 ) && _grid[gridIdx + 1] && _grid[gridIdx + 1]->GetLeftInput() == _grid[gridIdx] )
+        
+        drawList->AddRectFilled( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::EmptyCell ) );           
+        
+        if ( _activeElement == elementIdx )
         {
-            const float xStart = bottomRight.x - gridCellPaddingX;
-            drawList->AddLine( { xStart, topArrowY }, { bottomRight.x, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            drawList->AddLine( { xStart, centerArrowY }, { bottomRight.x, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            drawList->AddLine( { xStart, bottomArrowY }, { bottomRight.x, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-        }
-
-        if ( gridPos.x > 0 && _grid[gridIdx - 1] && _grid[gridIdx]->GetLeftInput() == _grid[gridIdx - 1] )
-        {
-            const float tipEnd = topLeft.x + gridCellPaddingX;
-            const float tipStart = tipEnd - 10.0f;
-
-            if ( _grid[gridIdx]->GetLeftRelationType() == PipelineElementWindow::RelationType::Batch )
-            {
-                const float lineEnd = tipEnd - 3.0f * cMenuScaling;
-
-                drawList->AddLine( { topLeft.x, topArrowY }, { lineEnd, topArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { tipStart, topArrowY - 10.0f }, { tipEnd, topArrowY }, { tipStart, topArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-
-                drawList->AddLine( { topLeft.x, centerArrowY }, { lineEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { tipStart, centerArrowY - 10.0f }, { tipEnd, centerArrowY }, { tipStart, centerArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-
-                drawList->AddLine( { topLeft.x, bottomArrowY }, { lineEnd, bottomArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { tipStart, bottomArrowY - 10.0f }, { tipEnd, bottomArrowY }, { tipStart, bottomArrowY + 10.0f }, ImU32( UIColor::Arrow ) );
-            }
+            if ( _isElementSelected )
+                drawList->AddRect({ topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32(UIColor::ActiveCellBorder), 0, 0, 2.0f);
             else
-            {
-                const float startX = topLeft.x - 2.0f * cMenuScaling;
-
-                drawList->AddLine( { startX, topArrowY - 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                drawList->AddLine( { startX, centerArrowY }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { startX, bottomArrowY + 2.0f * cMenuScaling }, { tipEnd, centerArrowY }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-            }
+                drawList->AddLine({ topLeft.x, topLeft.y }, { topLeft.x, bottomRight.y }, ImU32(UIColor::ActiveCellBorder), 2.0f);
         }
-
-        const float leftArrowX = topLeft.x + _gridCellSize.width * 0.5f - 2.0f * gridCellPaddingX;
-        const float centerArrowX = topLeft.x + _gridCellSize.width * 0.5f;
-        const float rightArrowX = topLeft.x + _gridCellSize.width * 0.5f + 2.0f * cGridCellPadding;
-
-        if ( gridPos.y < int( cGridSize.height - 1 ) && _grid[gridIdx + cGridSize.width] && _grid[gridIdx]->GetBottomOutput() == _grid[gridIdx + cGridSize.width] )
-        {
-            const float yStart = bottomRight.y - cGridCellPadding;
-            drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-            drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, bottomRight.y }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-        }
-
-        if ( gridPos.y > 0 && _grid[gridIdx - cGridSize.width] && _grid[gridIdx]->GetTopInput() == _grid[gridIdx - cGridSize.width] )
-        {
-            const float tipEnd = topLeft.y + cGridCellPadding;
-            const float tipStart = tipEnd - 10.0f;
-
-            if ( _grid[gridIdx]->GetTopRelationType() == PipelineElementWindow::RelationType::Batch )
-            {
-                const float yStart = topLeft.y - 1.0f * cMenuScaling;
-                const float lineEnd = tipEnd - 3.0f * cMenuScaling;
-
-                drawList->AddLine( { leftArrowX, yStart }, { leftArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { leftArrowX - 10.0f, tipStart }, { leftArrowX, tipEnd }, { leftArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-
-                drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { centerArrowX - 10.0f, tipStart }, { centerArrowX, tipEnd }, { centerArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-
-                drawList->AddLine( { rightArrowX, yStart }, { rightArrowX, lineEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddTriangleFilled( { rightArrowX - 10.0f, tipStart }, { rightArrowX, tipEnd }, { rightArrowX + 10.0f, tipStart }, ImU32( UIColor::Arrow ) );
-            }
-            else
-            {
-                const float yStart = topLeft.y - 2.0f * cMenuScaling;
-                drawList->AddLine( { leftArrowX - 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-                drawList->AddLine( { centerArrowX, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 3.0f * cMenuScaling );
-                drawList->AddLine( { rightArrowX + 2.0f * cMenuScaling, yStart }, { centerArrowX, tipEnd }, ImU32( UIColor::Arrow ), 2.0f * cMenuScaling );
-            }
-        }*/
-
-       // if ( _activeCell == gridPos )
-         //   drawList->AddRect( { topLeft.x + 24, topLeft.y + 24 }, { bottomRight.x - 24, bottomRight.y - 24 }, ImU32( UIColor::ActiveCellBorder ), 0, 0, 2.0f );
 
         ImGui::PopClipRect();
     }
 
-    topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
-    drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
+    //topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
+    //drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
 
     ImGui::PopFont();
 
@@ -681,31 +643,44 @@ MainWindow& MainWindow::GetInstance( const FontRegistry& fontRegistry )
     return *pInstance;
 }
 
+RectF MainWindow::GetImageRegionAvail() const
+{
+    const float left = cMenuWidth + 6.0f * ImGui::GetStyle().ItemSpacing.x;
+    const float top = 2.0f * ImGui::GetStyle().ItemSpacing.y;
+    const float right = _size.x - cImageControlsRegionWidth - 4.0f * ImGui::GetStyle().ItemSpacing.x;
+
+    const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
+    const float cGridTop = cGridBottom - cGridCellHeight - cHeadRowHeight;
+
+    const float bottom = cGridTop - 2.0f * ImGui::GetStyle().ItemSpacing.y;
+
+    return RectF{ left, top, right - left, bottom - top };
+}
+
 void MainWindow::Show()
 {
-    ImGui::SetNextWindowPos(_pos, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(_size, ImGuiCond_FirstUseEver);
-
     if ( !DrawHeader() )
         return ImGui::End();
 
-    DrawDialog();
-    ImGui::End();
+    const size_t pipelineSize = GetPipelineSize();
+    auto pElement = _pPipelineHead;
 
-    for ( int i = 0; i < int( _grid.size() ); ++i )
+    for ( size_t i = 0; i < _firstVisibleElement; ++i )
     {
-        const int x = i % cGridSize.width;
-        const int y = i / cGridSize.width;
-
-        if ( x < _viewportStart.x || x >= _viewportStart.x + _viewportSize.width ||
-             y < _viewportStart.y || y >= _viewportStart.y + _viewportSize.height )
-        {
-            continue;
-        }
-
-        if ( _grid[i] )
-            _grid[i]->Show();
+        pElement = pElement->GetOutput();
     }
+
+    for ( size_t i = 0; i < std::min(_visibleCellsCount, pipelineSize - _firstVisibleElement); ++i )
+    {
+        pElement->Show();
+        pElement = pElement->GetOutput();
+    }
+
+    ImGui::SetNextWindowPos(_pos, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(_size, ImGuiCond_FirstUseEver);
+
+    DrawDialog();
+    ImGui::End();   
 }
 
 ACMB_GUI_NAMESPACE_END

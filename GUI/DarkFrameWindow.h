@@ -17,7 +17,7 @@ class DarkFrameWindow : public PipelineElementWindow, public FileListUser
 
 public:
 
-    DarkFrameWindow( const Point& gridPos );
+    DarkFrameWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

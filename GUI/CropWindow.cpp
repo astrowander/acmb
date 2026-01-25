@@ -7,8 +7,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-CropWindow::CropWindow( const Point& gridPos )
-: PipelineElementWindow( "Crop", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+CropWindow::CropWindow(  )
+: PipelineElementWindow( "Crop" )
 , SettingsInterpolationUser<CropTransform>( this, { 0, 0, 10000, 10000 })
 {
 }
@@ -16,7 +16,7 @@ CropWindow::CropWindow( const Point& gridPos )
 void CropWindow::DrawPipelineElementControls()
 {
     Size inputBitmapSize = { 65535, 65535 };
-    if ( auto pPrimaryInput = GetPrimaryInput(); pPrimaryInput && pPrimaryInput->GetPreviewedFrameNumber() >=0 )
+    if ( auto pPrimaryInput = GetInput(); pPrimaryInput && pPrimaryInput->GetPreviewedFrameNumber() >=0 )
         if ( auto inputBitmapSizeExp = pPrimaryInput->GetBitmapSize() )
             inputBitmapSize = inputBitmapSizeExp.value();
 
@@ -36,12 +36,12 @@ void CropWindow::DrawPipelineElementControls()
 void CropWindow::OnPreviewedFrameNumberChanged(int val)
 {
     PipelineElementWindow::OnPreviewedFrameNumberChanged(val);
-    _dstRect = GetInterpolatedSettings(_previewedFrameNumber);
+    _dstRect = GetInterpolatedSettings(GetPreviewedFrameNumber());
 }
 
 void CropWindow::OnKeyframeCommited()
 {
-    AddSettings(_previewedFrameNumber, _dstRect );
+    AddSettings(GetPreviewedFrameNumber(), _dstRect );
 }
 
 IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex )
@@ -74,14 +74,14 @@ int CropWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> CropWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
     auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
 
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
-    const auto inputSizeExp = GetPrimaryInput()->GetBitmapSize();
+    const auto inputSizeExp = GetInput()->GetBitmapSize();
     if ( !inputSizeExp )
         return unexpected( inputSizeExp.error() );
 

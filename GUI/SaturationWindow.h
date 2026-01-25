@@ -11,7 +11,7 @@ class SaturationWindow : public PipelineElementWindow, public SettingsInterpolat
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
     virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 public:
-    SaturationWindow( const Point& gridPos );
+    SaturationWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

@@ -57,8 +57,8 @@ static std::string GetFormatList( bool excludeVideoFormats = false )
     return { res.begin(), endIt };
 }
 
-ImageWriterWindow::ImageWriterWindow( const Point& gridPos )
-    : PipelineElementWindow( "Export Images", gridPos, PEFlags_StrictlyOneInput | PEFlags_NoOutput )
+ImageWriterWindow::ImageWriterWindow(  )
+    : PipelineElementWindow( "Export Images" )
 {
     _formatList = GetFormatList( false );
 }
@@ -238,7 +238,7 @@ IBitmapPtr ImageWriterWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource,
 
 std::vector<std::string> ImageWriterWindow::ExportAllImages()
 {
-    auto pPrimaryInput = GetPrimaryInput();
+    auto pPrimaryInput = GetInput();
     if ( !pPrimaryInput )
         return { "No primary input for the'" + _name + "' element" };
 
@@ -302,7 +302,7 @@ void ImageWriterWindow::ResetTasks()
 
 Expected<void, std::string> ImageWriterWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

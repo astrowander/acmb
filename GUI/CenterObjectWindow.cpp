@@ -6,8 +6,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-CenterObjectWindow::CenterObjectWindow( const Point& gridPos )
-    : PipelineElementWindow( "Center Object", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+CenterObjectWindow::CenterObjectWindow()
+    : PipelineElementWindow( "Center Object" )
 {
 }
 
@@ -45,7 +45,7 @@ int CenterObjectWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> CenterObjectWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

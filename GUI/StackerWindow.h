@@ -14,7 +14,7 @@ class StackerWindow : public PipelineElementWindow
 
 public:
 
-    StackerWindow( const Point& gridPos );
+    StackerWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

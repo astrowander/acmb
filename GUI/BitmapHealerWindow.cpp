@@ -5,8 +5,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-BitmapHealerWindow::BitmapHealerWindow( const Point& gridPos )
-: PipelineElementWindow( "Bitmap Healer", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+BitmapHealerWindow::BitmapHealerWindow()
+: PipelineElementWindow( "Bitmap Healer" )
 {
     _patches.emplace_back();
     _currentPatch = 0;
@@ -36,12 +36,12 @@ void BitmapHealerWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> BitmapHealerWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected( pInputBitmapOrErr.error() );
 
     auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    auto bitmapSize = GetPrimaryInput()->GetBitmapSize();
+    auto bitmapSize = GetInput()->GetBitmapSize();
     if ( !bitmapSize )
         return unexpected( bitmapSize.error() );
 

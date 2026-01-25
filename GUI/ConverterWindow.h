@@ -13,7 +13,7 @@ class ConverterWindow : public PipelineElementWindow
 
 public:
 
-    ConverterWindow( const Point& gridPos );
+    ConverterWindow();
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

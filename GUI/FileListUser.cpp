@@ -14,53 +14,54 @@ void FileListUser::PrepareFrameForReading(int frameIdx) const
     auto it = std::upper_bound(_frameIndicesStartsWith.begin(), _frameIndicesStartsWith.end(), frameIdx);
     if ( it == _frameIndicesStartsWith.begin() )
     {
-        _currentFileNumber = -1;
+        _lastDecodedFileIdx = -1;
         _pDecoder.reset();
         return;
     }
 
     int fileIdx = int(std::distance(_frameIndicesStartsWith.begin(), it)) - 1;
 
-    if ( _currentFileNumber == fileIdx )
+    if ( _pDecoder && _lastDecodedFileIdx == fileIdx )
         return;
 
-    _currentFileNumber = fileIdx;
+    _lastDecodedFileIdx = fileIdx;
     _pDecoder = ImageDecoder::Create( _fileNames[fileIdx] );    
 }
 
 Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
 {
-    return AddFiles( { fileName } );
+    try
+    {
+        _fileNames.push_back(fileName);
+
+        int indicesStartsWith = _frameIndicesStartsWith.empty() ? 0 : _frameIndicesStartsWith.back();
+        if ( _pDecoder )
+            indicesStartsWith += _pDecoder->GetFrameCount();
+
+        _frameIndicesStartsWith.push_back(indicesStartsWith);
+        _pDecoder = ImageDecoder::Create(fileName);
+        _totalFrameCount += _pDecoder->GetFrameCount();
+        if ( _imageParams.GetPixelFormat() == PixelFormat::Unspecified )
+            _imageParams = *_pDecoder;
+
+        return {};
+    }
+    catch ( std::exception& e )
+    {
+        return unexpected(e.what());
+    }
 }
 
-Expected<void, std::string> FileListUser::AddFiles(const std::vector<std::string>& fileNames)
+/*Expected<void, std::string> FileListUser::AddFiles(const std::vector<std::string>& fileNames)
 {
     PrepareFrameForReading( GetTotalFrameCount() - 1 );
 
     for ( const auto& fileName : fileNames )
     {
-        try
-        {
-            if ( !_fileNames.empty() )
-
-            _fileNames.push_back(fileName);
-
-            int indicesStartsWith = _frameIndicesStartsWith.empty() ? 0 : _frameIndicesStartsWith.back();
-            if ( _pDecoder )
-                indicesStartsWith += _pDecoder->GetFrameCount();
-
-            _frameIndicesStartsWith.push_back(indicesStartsWith);
-            _pDecoder = ImageDecoder::Create(fileName);
-            if ( _imageParams.GetPixelFormat() == PixelFormat::Unspecified )
-                _imageParams = *_pDecoder;
-        }
-        catch ( std::exception& e )
-        {
-            return unexpected( e.what() );
-        }
+        
     }
     return {};
-}
+}*/
 
 Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 {
@@ -77,7 +78,7 @@ Expected<IBitmapPtr, std::string>  FileListUser::ReadFrame(int idx) const
     if ( !_pDecoder )
         return unexpected( "FileListUser::ReadFrame: No decoder" );
 
-    return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_currentFileNumber] );
+    return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_currentFrameIdx] );
 }
 
 Expected<IBitmapPtr, std::string> FileListUser::ReadFramePreview(int idx, Size size) const
@@ -95,7 +96,7 @@ Expected<std::string, std::string> FileListUser::GetFrameSourceName(int idx) con
     if ( !_pDecoder )
         return unexpected( "FileListUser::GetFrameSourceName: No decoder" );
 
-    return _fileNames[_currentFileNumber];
+    return _fileNames[_currentFrameIdx];
 }
 
 int FileListUser::GetTotalFrameCount() const
@@ -112,7 +113,7 @@ void FileListUser::DrawControls()
     {
         for ( int i = 0; i < int(_fileNames.size()); ++i )
         {
-            const bool is_selected = (_currentFileNumber == i);
+            const bool is_selected = (_currentFrameIdx == i);
             const std::string shortName = _fileNames[i].substr(_fileNames[i].find_last_of("\\/") + 1);
             if ( ImGui::Selectable(shortName.c_str(), is_selected) )
             {
@@ -135,7 +136,6 @@ void FileListUser::DrawControls()
 
         static auto filters = GetFileFilters();
         fileDialog.OpenDialog(openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
-        OnFileListChanged();
     }, "Add images to the importing list", _pHost);
 
     UI::Button("Clear List", { itemWidth, 0 }, [&]
@@ -160,7 +160,7 @@ void FileListUser::DrawControls()
                 AddFile(path);
             }
         }
-
+        OnFileListChanged();
         // close
         fileDialog.Close();
     }
@@ -171,7 +171,7 @@ void FileListUser::Serialize(std::ostream& out) const
     gui::Serialize(_fileNames, out);
     gui::Serialize(_frameIndicesStartsWith, out);
     gui::Serialize(_totalFrameCount, out);
-    gui::Serialize(_currentFileNumber, out);
+    gui::Serialize(_currentFrameIdx, out);
     gui::Serialize(_workingDirectory, out);
 }
 
@@ -180,7 +180,7 @@ bool FileListUser::Deserialize(std::istream& in, int& remainingBytes)
     _fileNames = gui::Deserialize<std::vector<std::string>>( in, remainingBytes );
     _frameIndicesStartsWith = gui::Deserialize<std::vector<int>>( in, remainingBytes );
     _totalFrameCount = gui::Deserialize<int>( in, remainingBytes );
-    _currentFileNumber = gui::Deserialize<int>( in, remainingBytes );
+    _currentFrameIdx = gui::Deserialize<int>( in, remainingBytes );
     _workingDirectory = gui::Deserialize<std::string>( in, remainingBytes );
     return true;
 }
@@ -190,7 +190,7 @@ int FileListUser::GetSerializedStringSize() const
     return gui::GetSerializedStringSize( _fileNames )
         + gui::GetSerializedStringSize( _frameIndicesStartsWith )
         + gui::GetSerializedStringSize( _totalFrameCount )
-        + gui::GetSerializedStringSize( _currentFileNumber )
+        + gui::GetSerializedStringSize( _currentFrameIdx )
         + gui::GetSerializedStringSize( _workingDirectory );
 }
 
@@ -210,7 +210,7 @@ IBitmapPtr FileListUser::GetBitmapOfStackedFrames()
 
 void FileListUser::OnFileListChanged()
 {
-    CleanUp();
+    OnSelectedFrameChanged( GetTotalFrameCount() - 1 );
 }
 
 void FileListUser::CleanUp()
@@ -218,7 +218,7 @@ void FileListUser::CleanUp()
     _pStackedFrames = nullptr;
     _totalFrameCount = 0;
     _frameIndicesStartsWith.clear();
-    _currentFileNumber = -1;
+    _currentFrameIdx = -1;
     _pDecoder = nullptr;
     _imageParams = {};
 }

@@ -21,8 +21,21 @@ class ImageReaderWindow : public PipelineElementWindow, public FileListUser
     virtual std::string GetWindowName() const override;
     virtual std::string GetFileFilters() const;
 
+    virtual int GetPreviewedFrameNumber() const override
+    { 
+        return _currentFrameIdx;
+    }
+
+    virtual void SetPreviewedFrameNumber( int val ) override
+    {
+        if ( val >= 0 && val < GetTotalFrameCount() )
+        {
+            _currentFrameIdx = val;
+        }
+    }
+
 public:
-    ImageReaderWindow( const Point& gridPos );
+    ImageReaderWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

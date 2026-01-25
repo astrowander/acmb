@@ -5,8 +5,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-SaturationWindow::SaturationWindow( const Point& gridPos )
-: PipelineElementWindow( "Saturation", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+SaturationWindow::SaturationWindow(  )
+: PipelineElementWindow( "Saturation" )
 , SettingsInterpolationUser<SaturationTransform>(this, SaturationTransform::Settings{})
 {
 }
@@ -19,7 +19,7 @@ void SaturationWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> SaturationWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -37,12 +37,12 @@ IBitmapPtr SaturationWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, 
 void SaturationWindow::OnPreviewedFrameNumberChanged(int val)
 {
     PipelineElementWindow::OnPreviewedFrameNumberChanged(val);
-    _saturationSettings = GetInterpolatedSettings(_previewedFrameNumber);
+    _saturationSettings = GetInterpolatedSettings(GetPreviewedFrameNumber());
 }
 
 void SaturationWindow::OnKeyframeCommited()
 {
-    AddSettings(_previewedFrameNumber, _saturationSettings);
+    AddSettings(GetPreviewedFrameNumber(), _saturationSettings);
 }
 
 void SaturationWindow::Serialize( std::ostream& out ) const

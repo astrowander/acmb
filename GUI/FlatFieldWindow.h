@@ -15,7 +15,7 @@ class FlatFieldWindow : public PipelineElementWindow, public FileListUser
     virtual std::string GetFileFilters() const;
 public:
 
-    FlatFieldWindow( const Point& gridPos );
+    FlatFieldWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

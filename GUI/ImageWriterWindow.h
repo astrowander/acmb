@@ -26,7 +26,7 @@ class ImageWriterWindow : public PipelineElementWindow
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
     virtual Expected<void, std::string> GeneratePreviewBitmap() override;
 public:
-    ImageWriterWindow( const Point& gridPos );
+    ImageWriterWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

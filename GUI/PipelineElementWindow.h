@@ -56,25 +56,19 @@ protected:
     size_t _completedTaskCount = 0;
     float _taskReadiness = 0.0f;
 
-    std::weak_ptr<PipelineElementWindow> _output;
-    std::weak_ptr<PipelineElementWindow> _input;
-
-    int _inOutFlags{};
-
-    int _positionInPipeline = 0;
-
     int _remainingBytes{};
-
-    int _previewedFrameNumber = -1;
 
     bool _showError = false;
     std::string _error;
 
-    std::unique_ptr<Texture> _pPreviewTexture;
+    std::shared_ptr<Texture> _pPreviewTexture;
     IBitmapPtr _pPreviewBitmap;
     bool _showPreview = false;
 
-    PipelineElementWindow( const std::string& name, int positionInPipeline, int inOutFlags );
+    std::shared_ptr<PipelineElementWindow> _output;
+    std::weak_ptr<PipelineElementWindow> _input;
+
+    PipelineElementWindow( const std::string& name );
 
     virtual void DrawPipelineElementControls() = 0;
     
@@ -93,18 +87,7 @@ public:
     std::shared_ptr<PipelineElementWindow> GetOutput() const;
     void SetOutput( std::shared_ptr<PipelineElementWindow> pElement );
 
-    int GetInOutFlags() const;
-
-    int GetFollowingElementsCount() const
-    {
-        int count = 1;
-        auto pOutput = this;
-        while ( pOutput = pOutput->GetOutput().get() )
-        {
-            ++count;
-        }
-        return count;
-    }
+    int GetFollowingElementsCount() const;
 
 
     virtual size_t GetTaskCount(bool update = false);
@@ -119,23 +102,10 @@ public:
     virtual bool Deserialize(std::istream& in);
     virtual int GetSerializedStringSize() const;
 
-    virtual std::string GetTaskName( size_t taskNumber ) const
-    {
-        auto pPrimaryInput = GetInput();
-        return pPrimaryInput ? pPrimaryInput->GetTaskName( taskNumber ) : std::string{};
-    }
+    virtual std::string GetTaskName( size_t taskNumber ) const;
 
-    Expected<IBitmapPtr, std::string> GetPreviewBitmap()
-    { 
-        if ( !_pPreviewBitmap )
-        {
-            auto res = GeneratePreviewBitmap();
-            if ( !res.has_value() )
-                return unexpected( res.error() );
-        }
-
-        return _pPreviewBitmap;
-    }
+    Expected<IBitmapPtr, std::string> GetPreviewBitmap();
+    Expected<std::shared_ptr<Texture>, std::string> GetPreviewTexture();
     Expected<void, std::string> GeneratePreviewTexture();
     
     void ResetPreview(PropagationDir dir);
@@ -148,7 +118,21 @@ public:
     {
     }
 
-    int GetPreviewedFrameNumber() const { return _previewedFrameNumber; }
+    virtual int GetPreviewedFrameNumber() const 
+    { 
+        if ( auto pInput = GetInput() ) 
+            return pInput->GetPreviewedFrameNumber(); 
+        else 
+            return -1; 
+    }
+
+    virtual void SetPreviewedFrameNumber( int val ) 
+    { 
+        if ( auto pInput = GetInput() ) 
+            pInput->SetPreviewedFrameNumber( val ); 
+    }
+
+    size_t GetElementsCount() const;
 
 protected:
     virtual void DrawDialog() override;

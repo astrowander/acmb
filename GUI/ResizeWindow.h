@@ -12,7 +12,7 @@ class ResizeWindow : public PipelineElementWindow
     virtual Expected<Size, std::string> GetBitmapSize() override;
 public:
 
-    ResizeWindow( const Point& gridPos );
+    ResizeWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize(std::ostream& out) const override;
     virtual bool Deserialize(std::istream& in) override;

@@ -5,8 +5,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-WarpWindow::WarpWindow( const Point& gridPos )
-    : PipelineElementWindow( "Warp", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+WarpWindow::WarpWindow(  )
+    : PipelineElementWindow( "Warp" )
 {
 }
 
@@ -52,7 +52,7 @@ void WarpWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> WarpWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

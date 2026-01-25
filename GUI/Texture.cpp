@@ -264,7 +264,7 @@ Texture::Texture( IBitmapPtr pBitmap )
     if ( !pBitmap )
         return;
 
-    auto pTextureBitmap = Converter::Convert( pBitmap, PixelFormat::RGBA32 );
+    _pTextureBitmap = Converter::Convert(pBitmap, PixelFormat::RGBA32);
 #ifdef _WIN32
     // Create texture
     D3D11_TEXTURE2D_DESC desc;
@@ -281,7 +281,7 @@ Texture::Texture( IBitmapPtr pBitmap )
 
     ID3D11Texture2D* pTexture = NULL;
     D3D11_SUBRESOURCE_DATA subResource;
-    subResource.pSysMem = pTextureBitmap->GetPlanarScanline( 0 );
+    subResource.pSysMem = _pTextureBitmap->GetPlanarScanline( 0 );
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
     auto pd3dDevice = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() ).GetD3D11Device();

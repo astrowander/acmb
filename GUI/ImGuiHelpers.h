@@ -41,4 +41,6 @@ namespace UI
     bool Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
     bool InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
+
+    bool SliderInt(const std::string& label, int* v, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr);
 }

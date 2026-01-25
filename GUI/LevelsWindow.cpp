@@ -5,8 +5,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-LevelsWindow::LevelsWindow( const Point& gridPos )
-: PipelineElementWindow( "Levels", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+LevelsWindow::LevelsWindow(  )
+: PipelineElementWindow( "Levels" )
 , SettingsInterpolationUser<LevelsTransform>(this, LevelsTransform::Settings{})
 {   
 }
@@ -132,7 +132,7 @@ void LevelsWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -153,12 +153,12 @@ Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 void LevelsWindow::OnPreviewedFrameNumberChanged(int val)
 {
     PipelineElementWindow::OnPreviewedFrameNumberChanged(val);
-    _levelsSettings = GetInterpolatedSettings(_previewedFrameNumber);
+    _levelsSettings = GetInterpolatedSettings(GetPreviewedFrameNumber());
 }
 
 void LevelsWindow::OnKeyframeCommited()
 {
-    AddSettings(_previewedFrameNumber, _levelsSettings);
+    AddSettings(GetPreviewedFrameNumber(), _levelsSettings);
 }
 
 void LevelsWindow::Serialize( std::ostream& out ) const
@@ -185,12 +185,16 @@ int LevelsWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInput = GetInput();
+    if ( !pInput )
+        return unexpected("No input connected");
+
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
     auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = LevelsTransform::ApplyLevels( pInputBitmap, _levelsSettings );
+    _pPreviewBitmap = LevelsTransform::ApplyLevels(pInputBitmap, _levelsSettings);
     return {};
 }
 

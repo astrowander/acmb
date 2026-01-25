@@ -9,8 +9,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-StackerWindow::StackerWindow( const Point& gridPos )
-    : PipelineElementWindow( "Stacker", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+StackerWindow::StackerWindow(  )
+    : PipelineElementWindow( "Stacker" )
 {
     _taskCount = 1;
 }
@@ -37,7 +37,7 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
 {
     _completedTaskCount = 0;
 
-    auto pInput = GetPrimaryInput();
+    auto pInput = GetInput();
     if ( !pInput )
         return unexpected( "No primary input for the'" + _name + "' element" );
 
@@ -118,7 +118,7 @@ void StackerWindow::ResetTasks()
 
 Expected<void, std::string> StackerWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

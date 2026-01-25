@@ -6,8 +6,8 @@
 #include "./../Transforms/DeflickerTransform.h"
 ACMB_GUI_NAMESPACE_BEGIN
 
-DeflickerWindow::DeflickerWindow( const Point& gridPos )
-: PipelineElementWindow( "Deflicker", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+DeflickerWindow::DeflickerWindow(  )
+: PipelineElementWindow( "Deflicker" )
 {
     _bitmaps.resize( _framesPerChunk );
 }
@@ -22,7 +22,7 @@ void DeflickerWindow::DrawPipelineElementControls()
 
 Expected<IBitmapPtr, std::string> DeflickerWindow::RunTask( size_t i )
 {
-    auto pInput = GetPrimaryInput();
+    auto pInput = GetInput();
     if ( !pInput )
         return unexpected( "No primary input for the'" + _name + "' element" );
 
@@ -66,7 +66,7 @@ int DeflickerWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> DeflickerWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

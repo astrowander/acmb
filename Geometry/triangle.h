@@ -12,7 +12,7 @@ struct Triangle
 {
 	std::array<PointD, 3> vertices;
 	/// returns bounding rectagle
-	RectF GetBoundingBox() const;
+	RectD GetBoundingBox() const;
 	/// checks if given point lies inside the triangle
 	bool IsPointInside(PointD p) const;
 	/// returns squared distance from the given point to the nearest edge

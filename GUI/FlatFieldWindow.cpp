@@ -8,8 +8,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-FlatFieldWindow::FlatFieldWindow( const Point& gridPos )
-    : PipelineElementWindow( "Apply Flat Field", gridPos, PEFlags::PEFlags_StrictlyOneInput | PEFlags::PEFlags_StrictlyOneOutput )
+FlatFieldWindow::FlatFieldWindow(  )
+    : PipelineElementWindow( "Apply Flat Field" )
     , FileListUser(this)
 {
 }
@@ -51,7 +51,7 @@ int FlatFieldWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> FlatFieldWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

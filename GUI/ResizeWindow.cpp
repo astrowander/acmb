@@ -5,8 +5,8 @@
 #include "./../Transforms/ResizeTransform.h"
 ACMB_GUI_NAMESPACE_BEGIN
 
-ResizeWindow::ResizeWindow( const Point& gridPos )
-    : PipelineElementWindow( "Resize", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+ResizeWindow::ResizeWindow(  )
+    : PipelineElementWindow( "Resize" )
 {
 }
 
@@ -42,7 +42,7 @@ int ResizeWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

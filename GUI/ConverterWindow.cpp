@@ -6,8 +6,8 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-ConverterWindow::ConverterWindow( const Point& gridPos )
-: PipelineElementWindow( "Converter", gridPos, PEFlags_StrictlyOneInput | PEFlags_StrictlyOneOutput )
+ConverterWindow::ConverterWindow(  )
+: PipelineElementWindow( "Converter" )
 {
 
 }
@@ -47,7 +47,7 @@ int ConverterWindow::GetSerializedStringSize() const
 
 Expected<void, std::string> ConverterWindow::GeneratePreviewBitmap()
 {
-    auto pInputBitmapOrErr = GetPrimaryInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

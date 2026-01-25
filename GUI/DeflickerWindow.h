@@ -17,7 +17,7 @@ class DeflickerWindow : public PipelineElementWindow
 
 public:
 
-    DeflickerWindow( const Point& gridPos );
+    DeflickerWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

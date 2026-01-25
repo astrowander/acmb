@@ -290,7 +290,7 @@ void BaseStacker::CalculateAligningGrid( const std::vector<std::vector<Star>>& s
 
         for ( size_t j = 0; j < _gridWidth * _gridHeight; ++j )
         {
-            RectF cell =
+            RectD cell =
             {
                 static_cast< double >( ( j % _gridWidth ) * cGridPixelSize ),
                 static_cast< double >( ( j / _gridWidth ) * cGridPixelSize ),

@@ -35,7 +35,7 @@ public:
 
     void SetPos( const ImVec2& pos );
 
-    void SetSize( const ImVec2& size ) { _size = size; }
+    virtual void SetSize( const ImVec2& size );
 };
 
 ACMB_GUI_NAMESPACE_END

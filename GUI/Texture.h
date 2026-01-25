@@ -13,7 +13,10 @@ struct VulkanTextureData;
 
 class Texture
 {
+    IBitmapPtr _pTextureBitmap = nullptr;
+
 #ifdef _WIN32
+    
     ID3D11ShaderResourceView* _pSRV = nullptr;
 #elif defined( __linux__ )
     std::shared_ptr<VulkanTextureData> _pTextureData = nullptr;

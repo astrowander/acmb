@@ -27,13 +27,13 @@ class MainWindow : public Window
 private:
     //std::unordered_map<size_t, std::weak_ptr<ImageWriterWindow>> _writers;
     std::vector<std::string> _errors;    
-    Size _actualGridSize = {};
-    //std::array<std::shared_ptr< PipelineElementWindow>, cGridSize.width * cGridSize.height> _grid;
-    std::vector<std::shared_ptr<PipelineElementWindow>> _pipeline;
+    //Size _actualGridSize = {};
+    std::shared_ptr<PipelineElementWindow> _pPipelineHead;
 
-    Size _viewportSize;
-    Point _viewportStart;
-    Point _activeCell;
+    size_t _visibleCellsCount = 0;
+    size_t _firstVisibleElement = 0;
+    size_t _activeElement = 0;
+    bool _isElementSelected = true;
 
     bool _isBusy = false;
     bool _showResultsPopup = false;
@@ -67,62 +67,65 @@ private:
     void OpenProject();
     void SaveProject();
 
-public:
+    size_t GetPipelineSize() const { return _pPipelineHead ? _pPipelineHead->GetElementsCount() : 0; }
 
+    PipelineElementWindow* GetActiveElement() const;
+
+public:
+    virtual void SetSize(const ImVec2& size) override;
     virtual void Show() override;
     static MainWindow& GetInstance( const FontRegistry& fontRegistry = FontRegistry::Instance() );
 
     template<class ElementType>
-    void AddElementToGrid( const Point& pos )
+    void AddElementToGrid( size_t posInPipeline, bool replace = false )
     {
-        const size_t ind = pos.y * cGridSize.width + pos.x;
+        std::shared_ptr<PipelineElementWindow> pNode = _pPipelineHead;
+        std::shared_ptr<PipelineElementWindow> pPrev = nullptr;
 
-        if ( _writers.contains( ind ) )
-            _writers.erase( ind );
-
-        auto pElement = std::make_shared<ElementType>( pos );
-
-        assert( pos.x < cGridSize.width && pos.y < cGridSize.height );        
-
-        const auto pLeft = pos.x > 0 ? _grid[ind - 1] : nullptr;
-        const auto pTop = pos.y > 0 ? _grid[ind - cGridSize.width] : nullptr;
-        const auto pRight = pos.x < cGridSize.width - 1 ? _grid[ind + 1] : nullptr;
-        const auto pBottom = pos.y < cGridSize.height - 1 ? _grid[ind + cGridSize.width] : nullptr;
-
-        const auto flags = pElement->GetInOutFlags();
-
-        if ( pElement->HasFreeInputs() && pLeft && pLeft->HasFreeOutputs() )
+        for ( size_t i = 0; i < posInPipeline; ++i )
         {
-            pLeft->SetRightOutput( pElement );
-            pElement->SetLeftInput( pLeft );
-            pElement->SetLeftRelationType( pLeft->GetRightRelationType() );
+            pPrev = pNode;
+            pNode = pNode->GetOutput();
         }
 
-        if ( pElement->HasFreeOutputs() && pRight && pRight->HasFreeInputs() )
+        auto pNewElement = std::make_shared<ElementType>();
+
+        if ( !pNode ) // insert at the end
         {
-            pRight->SetLeftInput( pElement );
-            pElement->SetRightOutput( pRight );
-            pElement->SetRightRelationType( pRight->GetLeftRelationType() );
+            if ( pPrev )
+            {
+                pPrev->SetOutput(pNewElement);
+                pNewElement->SetInput(pPrev);
+            }
+            else
+                _pPipelineHead = pNewElement;
+
+            return;
         }
 
-        if ( pElement->HasFreeInputs() && pTop && pTop->HasFreeOutputs() )
+        auto pPrevElement = pNode->GetInput();
+        auto pNextElement = pNode->GetOutput();
+
+        if ( pPrevElement )
         {
-            pTop->SetBottomOutput( pElement );
-            pElement->SetTopInput( pTop );
-            pElement->SetTopRelationType( pTop->GetBottomRelationType() );
+            pNewElement->SetInput(pPrevElement);
+            pPrevElement->SetOutput(pNewElement);
+        }
+        else
+        {
+            _pPipelineHead = pNewElement;
         }
 
-        if ( pElement->HasFreeOutputs() && pBottom && pBottom->HasFreeInputs() )
+        if ( !replace )
         {
-            pBottom->SetTopInput( pElement );
-            pElement->SetBottomOutput( pBottom );
-            pElement->SetBottomRelationType( pBottom->GetTopRelationType() );
+            pNewElement->SetOutput(pNode);
+            pNode->SetInput(pNewElement);
+            return;
         }
 
-        _grid[ind] = pElement;
-
-        if constexpr ( std::is_same_v<ElementType, ImageWriterWindow> )
-            _writers.insert_or_assign( ind, std::static_pointer_cast< ImageWriterWindow >( pElement ) );
+        pNewElement->SetOutput(pNextElement);
+        if ( pNextElement )
+            pNextElement->SetInput(pNewElement);
     }
 
     void LockInterface() {
@@ -137,10 +140,12 @@ public:
 
     bool isCudaEnabled() { return _enableCuda; }
 
-    void ClearTable()
+    void ClearPipeline()
     {
-        _pipeline.clear();
+        _pPipelineHead.reset();
     }
+
+    RectF GetImageRegionAvail() const;
 
 #ifdef _WIN32
 private:

@@ -15,7 +15,7 @@ class LevelsWindow : public PipelineElementWindow, public SettingsInterpolationU
     virtual Expected<void, std::string> AutoAdjustLevels();
 public:
 
-    LevelsWindow( const Point& gridPos );
+    LevelsWindow(  );
     virtual void DrawPipelineElementControls() override;
     virtual void Serialize( std::ostream& out ) const override;
     virtual bool Deserialize( std::istream& in ) override;

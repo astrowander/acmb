@@ -11,14 +11,14 @@
     <Filter Include="FileDialog">
       <UniqueIdentifier>{3ab0e2c0-2d27-4981-9dd7-ef7cd9bebfa7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ToolWindows">
-      <UniqueIdentifier>{449418b6-ae5b-4f90-b4ec-5bcf1af72d22}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Core">
       <UniqueIdentifier>{ac407f41-6a85-4694-a16e-9f0926bb1674}</UniqueIdentifier>
     </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{450d7bee-1b4a-4e98-aff7-9a2be2b7b755}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\ToolWindows">
+      <UniqueIdentifier>{449418b6-ae5b-4f90-b4ec-5bcf1af72d22}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -53,31 +53,31 @@
       <Filter>FileDialog</Filter>
     </ClCompile>
     <ClCompile Include="ConverterWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="CropWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="FlatFieldWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="ImageReaderWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="ImageWriterWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="PipelineElementWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="ResizeWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="StackerWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="DarkFrameWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="FontRegistry.cpp">
       <Filter>Core</Filter>
@@ -101,25 +101,25 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="LevelsWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="SaturationWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="CenterObjectWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="MedianBlurWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="WarpWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="DeflickerWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="BitmapHealerWindow.cpp">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClCompile>
     <ClCompile Include="FileListUser.cpp">
       <Filter>Utils</Filter>
@@ -160,31 +160,31 @@
       <Filter>FileDialog</Filter>
     </ClInclude>
     <ClInclude Include="ConverterWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="CropWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="FlatFieldWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="ImageReaderWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="ImageWriterWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="PipelineElementWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="ResizeWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="StackerWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="DarkFrameWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="FontRegistry.h">
       <Filter>Core</Filter>
@@ -212,25 +212,25 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="LevelsWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="SaturationWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="CenterObjectWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="MedianBlurWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="WarpWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="BitmapHealerWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="DeflickerWindow.h">
-      <Filter>ToolWindows</Filter>
+      <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
     <ClInclude Include="SettingsInterpolationUser.h">
       <Filter>Utils</Filter>

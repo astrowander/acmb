@@ -12,8 +12,8 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 
 
-ImageReaderWindow::ImageReaderWindow( const Point& gridPos )
-    : PipelineElementWindow( "Import Images", gridPos, PEFlags_NoInput | PEFlags_StrictlyOneOutput )
+ImageReaderWindow::ImageReaderWindow(  )
+    : PipelineElementWindow( "Import Images" )
     , FileListUser(this)
 {
 }
@@ -26,16 +26,19 @@ void ImageReaderWindow::DrawPipelineElementControls()
 void ImageReaderWindow::ResetTasks()
 {
     PipelineElementWindow::ResetTasks();
-    CleanUp();
 }
 
 Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
 {
-    const auto mainWindow = ImGui::FindWindowByName( "acmb" );
-    const Size size{ std::min( int( mainWindow->Size.x * 0.5f ), 1280 ),  std::min( int( mainWindow->Size.y * 0.5f ), 720 ) };
-    auto resOrErr = ReadFramePreview( _previewedFrameNumber, size );
+    const RectF rect = MainWindow::GetInstance().GetImageRegionAvail();
+    const Size size{ int( rect.width ), int( rect.height ) };
+
+    auto resOrErr = ReadFramePreview( _currentFrameIdx, size );
     if ( resOrErr )
+    {
         _pPreviewBitmap = *resOrErr;
+        return {};
+    }
 
     return unexpected( resOrErr.error() );
 }
@@ -54,7 +57,7 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::RunTask( size_t i )
 
 Expected<Size, std::string> ImageReaderWindow::GetBitmapSize()
 {
-    return GetFrameSize( _previewedFrameNumber );
+    return GetFrameSize( _currentFrameIdx );
 }
 
 void ImageReaderWindow::OnSelectedFrameChanged(int idx)
@@ -63,12 +66,13 @@ void ImageReaderWindow::OnSelectedFrameChanged(int idx)
 }
 
 void ImageReaderWindow::OnFileListChanged()
-{
-    FileListUser::OnFileListChanged();
-
+{    
     _showPreview = false;
+    _taskCount = GetTotalFrameCount();
     ImGui::CloseCurrentPopup();
     ResetProgress(PropagationDir::Forward);
+
+    FileListUser::OnFileListChanged();
 }
 
 std::string ImageReaderWindow::GetWindowName() const

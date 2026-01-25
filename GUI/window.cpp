@@ -37,6 +37,11 @@ void Window::SetPos( const ImVec2& pos )
     _pos = pos;
 }
 
+inline void Window::SetSize(const ImVec2& size) 
+{
+    _size = size;
+}
+
 float Window::GetMenuScaling()
 {
 #ifdef _WIN32
