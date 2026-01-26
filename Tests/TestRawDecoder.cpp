@@ -28,6 +28,16 @@ auto pBitmap = pDecoder->ReadBitmap();
 EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("RawDecoder/IMG_8944.ppm"), pBitmap));
 END_TEST
 
+BEGIN_TEST(TestReadTwice)
+
+auto pDecoder = std::make_unique<RawDecoder>();
+pDecoder->Attach(GetPathToTestFile("RAW/MilkyWayCR2/IMG_8944.CR2"));
+auto pBitmap1 = pDecoder->ReadBitmap();
+auto pBitmap2 = pDecoder->ReadBitmap();
+
+EXPECT_TRUE(BitmapsAreEqual(pBitmap1, pBitmap2));
+END_TEST
+
 BEGIN_TEST( JustRead )
 
 auto pDecoder = std::make_unique<RawDecoder>();
