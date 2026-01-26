@@ -443,34 +443,7 @@ void MainWindow::DrawDialog()
     drawList->AddLine({ _size.x -  cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, 0 }, { _size.x - cImageControlsRegionWidth - 2.0f * ImGui::GetStyle().ItemSpacing.x, cGridTop - cHeadRowHeight - ImGui::GetStyle().ItemSpacing.x }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
 
     auto pElement = GetActiveElement();    
-    const auto imageRegionAvail = GetImageRegionAvail();
-
-    if ( pElement )
-    {
-        if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
-        {
-            auto pTexture = textureOpt.value();
-            const uint32_t width = pTexture->GetWidth();
-            const uint32_t height = pTexture->GetHeight();
-
-            const float aspectRatio = float(width) / float(height);
-            const float imageRegionAspect = float(imageRegionAvail.width) / float(imageRegionAvail.height);
-
-            if ( aspectRatio > imageRegionAspect )
-            {
-                ImGui::SetCursorPos({ float(imageRegionAvail.x), float(imageRegionAvail.y + (imageRegionAvail.height - height)) * 0.5f });
-            }
-            else
-            {
-                ImGui::SetCursorPos({ float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f), float(imageRegionAvail.y) });
-            }
-
-            if ( pTexture && pTexture->GetTexture() != nullptr )
-            {
-                ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
-            }
-        }
-    }
+    const auto imageRegionAvail = GetImageRegionAvail();   
 
     ImGui::SetCursorPos({ float(_size.x - cImageControlsRegionWidth + 2.0f * ImGui::GetStyle().ItemSpacing.x), ImGui::GetStyle().ItemSpacing.y });
     ImGui::BeginChild("##FrameCounterSection", { cImageControlsRegionWidth - 4.0f * ImGui::GetStyle().ItemSpacing.x, imageRegionAvail.height });
@@ -499,7 +472,33 @@ void MainWindow::DrawDialog()
     }
 
     ImGui::EndChild();
-    
+
+    if ( pElement )
+    {
+        if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
+        {
+            auto pTexture = textureOpt.value();
+            const uint32_t width = pTexture->GetWidth();
+            const uint32_t height = pTexture->GetHeight();
+
+            const float aspectRatio = float(width) / float(height);
+            const float imageRegionAspect = float(imageRegionAvail.width) / float(imageRegionAvail.height);
+
+            if ( aspectRatio > imageRegionAspect )
+            {
+                ImGui::SetCursorPos({ float(imageRegionAvail.x), float(imageRegionAvail.y + (imageRegionAvail.height - height)) * 0.5f });
+            }
+            else
+            {
+                ImGui::SetCursorPos({ float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f), float(imageRegionAvail.y) });
+            }
+
+            if ( pTexture && pTexture->GetTexture() != nullptr )
+            {
+                ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
+            }
+        }
+    }    
 
     drawList->AddLine({ 0, cGridTop - cBoldLineThickness }, { _size.x - 6, cGridTop - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
     drawList->AddLine({ 0, cGridTop - cHeadRowHeight - cBoldLineThickness }, { _size.x - 6, cGridTop - cHeadRowHeight - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);

@@ -14,6 +14,7 @@ class JpegDecoder : public ImageDecoder
     std::shared_ptr<Bitmap<PixelFormat::RGB24>> _pBitmap;
     size_t _startDataPos{};
 
+    void InitJpegDecoder();
 public:
     
     using ImageDecoder::Attach;

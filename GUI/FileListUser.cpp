@@ -52,17 +52,6 @@ Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
     }
 }
 
-/*Expected<void, std::string> FileListUser::AddFiles(const std::vector<std::string>& fileNames)
-{
-    PrepareFrameForReading( GetTotalFrameCount() - 1 );
-
-    for ( const auto& fileName : fileNames )
-    {
-        
-    }
-    return {};
-}*/
-
 Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 {
     std::lock_guard<std::mutex> lock(_mutex);

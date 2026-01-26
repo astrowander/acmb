@@ -43,5 +43,14 @@ auto f = [] ()
 ASSERT_THROWS( f, std::runtime_error );
 END_TEST
 
+BEGIN_TEST( TestDoubleReading)
+JpegDecoder decoder;
+decoder.Attach(GetPathToTestFile("JPEG/4.jpg"));
+auto pBitmap1 = decoder.ReadBitmap();
+auto pBitmap2 = decoder.ReadBitmap();
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("JpegDecoder/4.ppm"), pBitmap1));
+EXPECT_TRUE(BitmapsAreEqual(GetPathToPattern("JpegDecoder/4.ppm"), pBitmap2));
+END_TEST
+
 END_SUITE
 ACMB_TESTS_NAMESPACE_END

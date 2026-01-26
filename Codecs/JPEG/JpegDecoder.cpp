@@ -7,27 +7,36 @@ JpegDecoder::JpegDecoder( PixelFormat outputPixelFormat )
 : ImageDecoder( outputPixelFormat )
 {}
 
+void JpegDecoder::InitJpegDecoder()
+{
+    _pJdec = std::make_shared<JDEC>();
+    _jdWorkspace.resize(TJPGD_WORKSPACE_SIZE);
+    
+    _pStream->clear();
+    _pStream->seekg(0, std::ios::beg);
+    const size_t pos = _pStream->tellg();
+
+    auto readBytes = [pStream = _pStream](JDEC*, uint8_t* buf, size_t len) -> size_t
+    {
+        const size_t pos = pStream->tellg();
+
+        buf ?
+            pStream->read((char*) buf, len) :
+            pStream->seekg(len, std::ios::cur);
+
+        return size_t(pStream->tellg()) - pos;
+    };
+
+    if ( jd_prepare(_pJdec.get(), readBytes, _jdWorkspace.data(), TJPGD_WORKSPACE_SIZE, 0) != JDR_OK )
+        throw std::runtime_error("Failed to initialize JDEC");
+}
+
 void JpegDecoder::Attach( std::shared_ptr<std::istream> pStream )
 {
     ImageDecoder::Attach( pStream );
     _decodedFormat = PixelFormat::RGB24;
 
-    _pJdec = std::make_shared<JDEC>();
-    _jdWorkspace.resize( TJPGD_WORKSPACE_SIZE );
-
-    auto readBytes = [pStream = _pStream] ( JDEC*, uint8_t* buf, size_t len ) -> size_t
-    {
-        const size_t pos = pStream->tellg();
-
-        buf ?
-        pStream->read( ( char* ) buf, len ) :
-        pStream->seekg( len, std::ios::cur );
-
-        return size_t( pStream->tellg() ) - pos;
-    };
-
-    if ( jd_prepare( _pJdec.get(), readBytes, _jdWorkspace.data(), TJPGD_WORKSPACE_SIZE, 0 ) != JDR_OK )
-        throw std::runtime_error( "Failed to initialize JDEC" );
+    InitJpegDecoder();
 
     _width = _pJdec->width;
     _height = _pJdec->height;
@@ -51,6 +60,7 @@ std::shared_ptr<IBitmap> JpegDecoder::ReadBitmap()
     if ( !_pStream )
         throw std::runtime_error( "Stream is not attached" );
 
+    InitJpegDecoder();
     _pStream->seekg( _startDataPos, std::ios_base::beg );
     _pBitmap = std::make_shared<Bitmap<PixelFormat::RGB24>>( _width, _height );
 
