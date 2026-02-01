@@ -10,6 +10,7 @@ class ISettingsInterpolationUser
 public:
     virtual ~ISettingsInterpolationUser() = default;
     virtual void DrawFrameCounter() = 0;
+    virtual void CutExtraKeyframes(int maxFrame) = 0;
 };
 
 template<typename TransformType>
@@ -129,6 +130,14 @@ protected:
     {
         return
             gui::GetSerializedStringSize(_mSettings);
+    }
+
+    void CutExtraKeyframes(int maxFrame) override
+    {
+        for ( auto it = _mSettings.lower_bound( maxFrame + 1 ); it != _mSettings.end(); )
+        {
+            it = _mSettings.erase( it );
+        }
     }
 };
 

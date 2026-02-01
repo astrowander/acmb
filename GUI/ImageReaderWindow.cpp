@@ -82,6 +82,14 @@ void ImageReaderWindow::OnFileListChanged()
     ResetProgress(PropagationDir::Forward);
 
     FileListUser::OnFileListChanged();
+
+    PipelineElementWindow* pElement = this;
+    while ( pElement && pElement->GetOutput() )
+    {
+        pElement = pElement->GetOutput().get();
+    }
+
+    pElement->GetTaskCount(true);
 }
 
 std::string ImageReaderWindow::GetWindowName() const

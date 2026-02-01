@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
+#include "SettingsInterpolationUser.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -119,7 +120,13 @@ size_t PipelineElementWindow::GetTaskCount(bool update)
     {
         auto pPrimaryInput = GetInput();
         if ( pPrimaryInput )
+        {
             _taskCount = pPrimaryInput->GetTaskCount(update);
+            if ( auto pSettingsInterpolationUser = dynamic_cast<ISettingsInterpolationUser*>(this); update && pSettingsInterpolationUser != nullptr)
+            {
+                pSettingsInterpolationUser->CutExtraKeyframes( std::max ( int( _taskCount ), 1 ) );
+            }
+        }
     }
 
     return _taskCount;

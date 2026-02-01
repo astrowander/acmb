@@ -270,6 +270,9 @@ void MainWindow::OpenProject()
 
         pElement->Deserialize( fin );
     }
+
+    if ( auto pReader = std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
+        pReader->OnFileListChanged();
 }
 
 void MainWindow::SaveProject()

@@ -17,7 +17,7 @@ class ImageReaderWindow : public PipelineElementWindow, public FileListUser
     virtual Expected<Size, std::string> GetBitmapSize() override;
 
     virtual void OnSelectedFrameChanged(int idx) override;
-    virtual void OnFileListChanged() override;
+
     virtual std::string GetWindowName() const override;
     virtual std::string GetFileFilters() const;
 
@@ -43,6 +43,8 @@ public:
     virtual size_t GetTaskCount(bool update = false) override;
 
     virtual void ResetTasks() override;
+
+    virtual void OnFileListChanged() override;
 
     std::string GetTaskName( size_t taskNumber ) const override;
 
