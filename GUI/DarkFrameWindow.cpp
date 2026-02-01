@@ -70,13 +70,13 @@ bool DarkFrameWindow::Deserialize( std::istream& in )
     return true;
 }
 
-Expected<void, std::string> DarkFrameWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> DarkFrameWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    auto pInputBitmap = pInputBitmapOrErr.value();
     
     auto pDarkFrameOrErr = FileListUser::ReadFramePreview(0, { int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) } );
     if ( !pDarkFrameOrErr )
@@ -84,9 +84,7 @@ Expected<void, std::string> DarkFrameWindow::GeneratePreviewBitmap()
 
     auto pDarkFrame = pDarkFrameOrErr.value()->Clone();
 
-    _pPreviewBitmap = BitmapSubtractor::Subtract( pInputBitmap, {.pBitmapToSubtract = pDarkFrame, .multiplier = _multiplier});
-    _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
-    return {};
+    return BitmapSubtractor::Subtract( pInputBitmap, {.pBitmapToSubtract = pDarkFrame, .multiplier = _multiplier});
 }
 
 REGISTER_TOOLS_ITEM( DarkFrameWindow )

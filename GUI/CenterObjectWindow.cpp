@@ -43,15 +43,14 @@ int CenterObjectWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize ) + gui::GetSerializedStringSize( _threshold );
 }
 
-Expected<void, std::string> CenterObjectWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> CenterObjectWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = CenterObjectTransform::CenterObject( pInputBitmap, { .dstSize = _dstSize, .threshold = _threshold } );
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return CenterObjectTransform::CenterObject( pInputBitmap, { .dstSize = _dstSize, .threshold = _threshold } );
 }
 
 REGISTER_TOOLS_ITEM( CenterObjectWindow );

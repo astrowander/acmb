@@ -7,7 +7,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 class BitmapHealerWindow : public PipelineElementWindow
 {
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
 public:
     BitmapHealerWindow();
     virtual void DrawPipelineElementControls() override;

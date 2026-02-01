@@ -16,15 +16,14 @@ void SaturationWindow::DrawPipelineElementControls()
     UI::DragFloat( "Saturation", &_saturationSettings, 0.01f, 0.0f, 4.0f, "Saturation factor", this );
 }
 
-Expected<void, std::string> SaturationWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> SaturationWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = SaturationTransform::Saturate( pInputBitmap, _saturationSettings );
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return SaturationTransform::Saturate( pInputBitmap, _saturationSettings );
 }
 
 IBitmapPtr SaturationWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex)

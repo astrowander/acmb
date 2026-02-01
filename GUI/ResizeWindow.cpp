@@ -40,35 +40,43 @@ int ResizeWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize );
 }
 
-Expected<void, std::string> ResizeWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> ResizeWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    if ( !GetInput() )
+        return unexpected("Primary input of the '" + _name + "' element is not set");
+
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    auto pInputBitmap = pInputBitmapOrErr.value();
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
-    const auto inputSizeExp = GetBitmapSize();
-    if ( !inputSizeExp )
-        return unexpected( inputSizeExp.error() );
+    const Size inputSize = GetInput()->GetBitmapSize().value_or(inputPreviewSize);
+    const Size dstSize = fullSize ? inputSize : _dstSize;
+    const Size maxTargetSize{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
 
-    const float dstAspectRatio = float( _dstSize.width ) / float( _dstSize.height );
-    constexpr float pivotAspectRatio = 16.0f / 9.0f;
-
-    Size previewSize;
-    if ( dstAspectRatio > pivotAspectRatio )
+    if ( dstSize.width < maxTargetSize.width && dstSize.height < maxTargetSize.height )
     {
-        previewSize.width = inputPreviewSize.width;
-        previewSize.height = std::max( int( previewSize.width / dstAspectRatio ), 1 );
+        return ResizeTransform::Resize( pInputBitmap, dstSize );
+    }
+
+    const float inputAspectRatio = float(inputSize.width) / float(inputSize.height);
+    const float dstAspectRatio = float(_dstSize.width) / float(_dstSize.height);
+    Size adjustedSize;
+
+    if ( dstAspectRatio > inputAspectRatio )
+    {        
+        adjustedSize.height = std::min( dstSize.height, maxTargetSize.height );
+        adjustedSize.width = int( float(adjustedSize.height) * inputAspectRatio );
+        return ResizeTransform::Resize( pInputBitmap, adjustedSize );
     }
     else
-    {
-        previewSize.height = inputPreviewSize.height;
-        previewSize.width = std::max( int( previewSize.height * dstAspectRatio ), 1 );
+    {        
+        adjustedSize.width = std::min( dstSize.width, maxTargetSize.width );
+        adjustedSize.height = int( float(adjustedSize.width) / inputAspectRatio );       
     }
 
-    _pPreviewBitmap = ResizeTransform::Resize( pInputBitmap, previewSize );
-    return {};
+    return ResizeTransform::Resize(pInputBitmap, adjustedSize);
 }
 
 Expected<Size, std::string> ResizeWindow::GetBitmapSize()

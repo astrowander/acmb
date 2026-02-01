@@ -34,18 +34,15 @@ void BitmapHealerWindow::DrawPipelineElementControls()
     ImGui::PopItemWidth();
 }
 
-Expected<void, std::string> BitmapHealerWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> BitmapHealerWindow::GeneratePreviewBitmap(bool, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected( pInputBitmapOrErr.error() );
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    auto bitmapSize = GetInput()->GetBitmapSize();
-    if ( !bitmapSize )
-        return unexpected( bitmapSize.error() );
-
-    const float scale = pInputBitmap->GetWidth() / float( bitmapSize->width );
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    auto bitmapSize = GetInput()->GetBitmapSize().value_or(Size{ int(pInputBitmap->GetWidth()), int(pInputBitmap->GetHeight()) });
+    const float scale = pInputBitmap->GetWidth() / float( bitmapSize.width );
     
     std::vector<BitmapHealer::Patch> patches = _patches;
     for ( auto& patch : patches )
@@ -57,8 +54,7 @@ Expected<void, std::string> BitmapHealerWindow::GeneratePreviewBitmap()
         patch.radius = int( patch.radius * scale + 0.5f );
     }
 
-    _pPreviewBitmap = BitmapHealer::ApplyTransform( pInputBitmap, patches );
-    return {};
+    return BitmapHealer::ApplyTransform( pInputBitmap, patches );
 }
 
 IBitmapPtr BitmapHealerWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

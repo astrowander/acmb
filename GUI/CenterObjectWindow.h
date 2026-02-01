@@ -9,7 +9,7 @@ class CenterObjectWindow : public PipelineElementWindow
     float _threshold = 25.0f;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
 
 public:
 

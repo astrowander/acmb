@@ -71,6 +71,8 @@ private:
 
     PipelineElementWindow* GetActiveElement() const;
 
+    void UpdateActiveElement(size_t newActiveElement);
+
 public:
     virtual void SetSize(const ImVec2& size) override;
     virtual void Show() override;

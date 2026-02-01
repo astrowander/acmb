@@ -45,16 +45,15 @@ int ConverterWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
 }
 
-Expected<void, std::string> ConverterWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> ConverterWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    auto pInputBitmap = pInputBitmapOrErr.value();
 
-    _pPreviewBitmap = Converter::Convert(pInputBitmap->Clone(), _dstPixelFormat);
-    return {};
+    return Converter::Convert(pInputBitmap, _dstPixelFormat);
 }
 
 REGISTER_TOOLS_ITEM( ConverterWindow );

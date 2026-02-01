@@ -17,15 +17,14 @@ void MedianBlurWindow::DrawPipelineElementControls()
     UI::DragInt( "Radius", &_radius, 1.0f, 1, 100, "Radius of the median blur" );
 }
 
-Expected<void, std::string> MedianBlurWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> MedianBlurWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = MedianBlurTransform::MedianBlur( pInputBitmap, 2 * _radius + 1 );
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return MedianBlurTransform::MedianBlur( pInputBitmap, 2 * _radius + 1 );
 }
 
 IBitmapPtr MedianBlurWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

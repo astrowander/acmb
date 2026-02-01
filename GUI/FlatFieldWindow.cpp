@@ -49,13 +49,13 @@ int FlatFieldWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _intensity ) + FileListUser::GetSerializedStringSize();
 }
 
-Expected<void, std::string> FlatFieldWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> FlatFieldWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
+    auto pInputBitmap = pInputBitmapOrErr.value();
 
     auto pSecondaryInputBitmapOrErr = FileListUser::ReadFramePreview(0, { int(pInputBitmap->GetWidth()), int(pInputBitmap->GetHeight()) });
     if ( !pSecondaryInputBitmapOrErr )
@@ -63,8 +63,7 @@ Expected<void, std::string> FlatFieldWindow::GeneratePreviewBitmap()
 
     auto pSecondaryInputBitmap = pSecondaryInputBitmapOrErr.value()->Clone();
 
-    _pPreviewBitmap = BitmapDivisor::Divide(pInputBitmap, { .pDivisor = pSecondaryInputBitmap, .intensity = _intensity});
-    return {};
+    return BitmapDivisor::Divide(pInputBitmap, { .pDivisor = pSecondaryInputBitmap, .intensity = _intensity});
 }
 
 std::string FlatFieldWindow::GetWindowName() const

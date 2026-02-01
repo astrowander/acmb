@@ -64,15 +64,13 @@ int DeflickerWindow::GetSerializedStringSize() const
         + gui::GetSerializedStringSize( _framesPerChunk );
 }
 
-Expected<void, std::string> DeflickerWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> DeflickerWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = pInputBitmap;
-    return {};
+    return pInputBitmapOrErr.value();
 }
 
 REGISTER_TOOLS_ITEM( DeflickerWindow )

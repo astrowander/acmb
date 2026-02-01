@@ -62,7 +62,9 @@ protected:
     std::string _error;
 
     std::shared_ptr<Texture> _pPreviewTexture;
-    IBitmapPtr _pPreviewBitmap;
+    std::atomic<IBitmapPtr> _pPreviewBitmap;
+    std::atomic<bool> _isGeneratingPreviewCancelled{ false };
+
     bool _showPreview = false;
 
     std::shared_ptr<PipelineElementWindow> _output;
@@ -81,6 +83,7 @@ public:
 
     Expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
 
+    Expected<IBitmapPtr, std::string> GetInputPreview(bool forNextElement, bool fullSize) const;
     std::shared_ptr<PipelineElementWindow> GetInput() const;
     void SetInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput );
 
@@ -104,7 +107,7 @@ public:
 
     virtual std::string GetTaskName( size_t taskNumber ) const;
 
-    Expected<IBitmapPtr, std::string> GetPreviewBitmap();
+    Expected<IBitmapPtr, std::string> GetPreviewBitmap( bool forNextElement, bool fullSize );
     Expected<std::shared_ptr<Texture>, std::string> GetPreviewTexture();
     Expected<void, std::string> GeneratePreviewTexture();
     
@@ -134,9 +137,18 @@ public:
 
     size_t GetElementsCount() const;
 
+    virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
+
+    void CancelPreviewGeneration( bool cancel )
+    {
+        _isGeneratingPreviewCancelled.store(cancel);
+        if ( auto pInput = GetInput() )
+            pInput->CancelPreviewGeneration(cancel);
+    }
+
 protected:
     virtual void DrawDialog() override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() = 0; 
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) = 0;
 };
 
 #define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \

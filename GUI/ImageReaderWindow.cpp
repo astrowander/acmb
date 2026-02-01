@@ -23,21 +23,30 @@ void ImageReaderWindow::DrawPipelineElementControls()
     FileListUser::DrawControls();
 }
 
-void ImageReaderWindow::ResetTasks()
-{
+void ImageReaderWindow::ResetTasks(){
     PipelineElementWindow::ResetTasks();
 }
 
-Expected<void, std::string> ImageReaderWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> ImageReaderWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    const RectF rect = MainWindow::GetInstance().GetImageRegionAvail();
-    const Size size{ int( rect.width ), int( rect.height ) };
+    Size size;
+    if ( fullSize )
+    {
+        auto sizeOrErr = GetFrameSize( _currentFrameIdx );
+        if ( !sizeOrErr )
+            return unexpected( sizeOrErr.error() );
+        size = *sizeOrErr;
+    }
+    else
+    {
+        const RectF rect = MainWindow::GetInstance().GetImageRegionAvail();
+        size = Size{ int( rect.width ), int( rect.height ) };
+    }
 
     auto resOrErr = ReadFramePreview( _currentFrameIdx, size );
     if ( resOrErr )
     {
-        _pPreviewBitmap = *resOrErr;
-        return {};
+        return *resOrErr;
     }
 
     return unexpected( resOrErr.error() );

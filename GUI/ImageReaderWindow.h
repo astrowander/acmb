@@ -13,7 +13,7 @@ class ImageReaderWindow : public PipelineElementWindow, public FileListUser
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }
 
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
     virtual Expected<Size, std::string> GetBitmapSize() override;
 
     virtual void OnSelectedFrameChanged(int idx) override;

@@ -24,7 +24,7 @@ class ImageWriterWindow : public PipelineElementWindow
     std::unique_ptr<Texture> _pResultTexture;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
 public:
     ImageWriterWindow(  );
     virtual void DrawPipelineElementControls() override;

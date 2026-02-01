@@ -116,15 +116,14 @@ void StackerWindow::ResetTasks()
     _taskReadiness = 0;
 }
 
-Expected<void, std::string> StackerWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> StackerWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = pInputBitmap;
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return pInputBitmap;
 }
 
 REGISTER_TOOLS_ITEM( StackerWindow )

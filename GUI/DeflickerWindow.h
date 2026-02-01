@@ -13,7 +13,7 @@ class DeflickerWindow : public PipelineElementWindow
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override {
         return nullptr;
     }
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
 
 public:
 

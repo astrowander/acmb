@@ -50,15 +50,14 @@ void WarpWindow::DrawPipelineElementControls()
     }
 }
 
-Expected<void, std::string> WarpWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> WarpWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = WarpTransform::Warp( pInputBitmap, _settings );
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return WarpTransform::Warp( pInputBitmap, _settings );
 }
 
 IBitmapPtr WarpWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )

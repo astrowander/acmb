@@ -131,7 +131,7 @@ void LevelsWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap(true, true);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -182,19 +182,18 @@ int LevelsWindow::GetSerializedStringSize() const
     + SettingsInterpolationUser<LevelsTransform>::GetSerializedStringSize();
 }
 
-Expected<void, std::string> LevelsWindow::GeneratePreviewBitmap()
+Expected<IBitmapPtr, std::string> LevelsWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
 {
     auto pInput = GetInput();
     if ( !pInput )
         return unexpected("No input connected");
 
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap();
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
-    auto pInputBitmap = pInputBitmapOrErr.value()->Clone();
-    _pPreviewBitmap = LevelsTransform::ApplyLevels(pInputBitmap, _levelsSettings);
-    return {};
+    auto pInputBitmap = pInputBitmapOrErr.value();
+    return LevelsTransform::ApplyLevels(pInputBitmap, _levelsSettings);
 }
 
 IBitmapPtr LevelsWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex)

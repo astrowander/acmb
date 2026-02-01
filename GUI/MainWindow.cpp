@@ -143,7 +143,7 @@ void MainWindow::ProcessKeyboardEvents()
     {
         if ( _activeElement == pipelineSize && pipelineSize > 0 )
         {
-            --_activeElement;
+            UpdateActiveElement(_activeElement - 1);
             return;
         }
 
@@ -157,7 +157,7 @@ void MainWindow::ProcessKeyboardEvents()
             return;
 
         _isElementSelected = true;
-        --_activeElement;
+        UpdateActiveElement(_activeElement - 1);
         if ( _activeElement < _firstVisibleElement )
             _firstVisibleElement = _activeElement;
     }
@@ -172,12 +172,12 @@ void MainWindow::ProcessKeyboardEvents()
 
         if ( _activeElement + 1 >= pipelineSize )
         {
-            _activeElement = pipelineSize;
+            UpdateActiveElement(pipelineSize);
             return;
         }
 
         _isElementSelected = false;
-        ++_activeElement;
+        UpdateActiveElement(_activeElement + 1);
         if ( _activeElement >= _firstVisibleElement + _visibleCellsCount )
             _firstVisibleElement = _activeElement - _visibleCellsCount + 1;
     }
@@ -208,7 +208,7 @@ void MainWindow::ProcessKeyboardEvents()
 
 void MainWindow::ProcessMouseEvents()
 {
-    if ( !ImGui::IsMouseClicked(ImGuiMouseButton_Left) )
+    if ( !ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) )
         return;
 
     const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
@@ -220,7 +220,7 @@ void MainWindow::ProcessMouseEvents()
 
     int col = int( mousePos.x - cGridLeft) / int( _gridCellSize.width );    
 
-    _activeElement = col + _firstVisibleElement;
+    UpdateActiveElement(size_t(col) + _firstVisibleElement);
 }
 
 void MainWindow::OpenProject()
@@ -319,6 +319,17 @@ PipelineElementWindow* MainWindow::GetActiveElement() const
         pNode = pNode->GetOutput();
     }
     return pNode.get();
+}
+
+void MainWindow::UpdateActiveElement(size_t newActiveElement)
+{
+    if ( _activeElement == newActiveElement )
+        return;
+
+    if ( _pPipelineHead )
+        _pPipelineHead->ResetPreview(PipelineElementWindow::PropagationDir::Forward);
+
+    _activeElement = newActiveElement;
 }
 
 void MainWindow::SetSize(const ImVec2& size)
@@ -475,28 +486,41 @@ void MainWindow::DrawDialog()
 
     if ( pElement )
     {
-        if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() )
+        if ( auto textureOpt = pElement->GetPreviewTexture(); textureOpt.has_value() && textureOpt.value() && textureOpt.value()->GetTexture() != nullptr)
         {
             auto pTexture = textureOpt.value();
+
             const uint32_t width = pTexture->GetWidth();
             const uint32_t height = pTexture->GetHeight();
 
             const float aspectRatio = float(width) / float(height);
             const float imageRegionAspect = float(imageRegionAvail.width) / float(imageRegionAvail.height);
 
-            if ( aspectRatio > imageRegionAspect )
+            ImVec2 topLeftPos;
+            ImVec2 scaleFactors;
+
+            if ( width < imageRegionAvail.width && height < imageRegionAvail.height )
             {
-                ImGui::SetCursorPos({ float(imageRegionAvail.x), float(imageRegionAvail.y + (imageRegionAvail.height - height)) * 0.5f });
+                topLeftPos.x = float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f);
+                topLeftPos.y = float(imageRegionAvail.y + (imageRegionAvail.height - height) * 0.5f);
+            }
+            else if ( aspectRatio > imageRegionAspect )
+            {
+                topLeftPos.x = float(imageRegionAvail.x);
+                topLeftPos.y = float(imageRegionAvail.y + (imageRegionAvail.height - (imageRegionAvail.width / aspectRatio)) * 0.5f);
+
             }
             else
             {
-                ImGui::SetCursorPos({ float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f), float(imageRegionAvail.y) });
+                topLeftPos.x = float(imageRegionAvail.x + (imageRegionAvail.width - (imageRegionAvail.height * aspectRatio)) * 0.5f);
+                topLeftPos.y = float(imageRegionAvail.y);
             }
 
-            if ( pTexture && pTexture->GetTexture() != nullptr )
-            {
-                ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
-            }
+            scaleFactors.x = float(width) / float(width);
+
+            ImGui::SetCursorPos(topLeftPos);
+            ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
+            pElement->DrawOnPreviewImage(drawList, topLeftPos, { float(width), float(height) });
         }
     }    
 

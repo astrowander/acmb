@@ -12,8 +12,10 @@ private:
     CropTransform::Settings _dstRect = { 0, 0, 10000, 10000 };
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
-    virtual Expected<void, std::string> GeneratePreviewBitmap() override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
     virtual Expected<Size, std::string> GetBitmapSize() override;
+
+    virtual void DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 scale) override;
 public:
 
     CropWindow(  );

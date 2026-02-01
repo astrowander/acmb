@@ -6,8 +6,11 @@
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
+#include "./../Transforms/ResizeTransform.h"
 
 #include "imgui/imgui_internal.h"
+
+#include <future>
 
 static int uniqueId = 0;
 ACMB_GUI_NAMESPACE_BEGIN
@@ -64,6 +67,19 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
         return unexpected( e.what() );
     }
 
+}
+
+Expected<IBitmapPtr, std::string> PipelineElementWindow::GetInputPreview(bool forNextElement, bool fullSize) const
+{
+    auto pInput = GetInput();
+    if ( !pInput )
+        return unexpected("Primary input of the '" + _name + "' element is not set");
+
+    auto pInputBitmapOrErr = pInput->GetPreviewBitmap(forNextElement, fullSize);
+    if ( !pInputBitmapOrErr )
+        return unexpected(pInputBitmapOrErr.error());
+
+    return pInputBitmapOrErr.value()->Clone();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetInput() const
@@ -333,16 +349,55 @@ std::string PipelineElementWindow::GetTaskName(size_t taskNumber) const
     return pPrimaryInput ? pPrimaryInput->GetTaskName(taskNumber) : std::string{};
 }
 
-Expected<IBitmapPtr, std::string> PipelineElementWindow::GetPreviewBitmap()
+Expected<IBitmapPtr, std::string> PipelineElementWindow::GetPreviewBitmap(bool forNextElement, bool fullSize)
 {
-    if ( !_pPreviewBitmap )
+    if ( !_pPreviewBitmap.load() )
     {
-        auto res = GeneratePreviewBitmap();
-        if ( !res.has_value() )
-            return unexpected(res.error());
+
+        std::future< Expected<IBitmapPtr, std::string>> previewGenTask = std::async(std::launch::async, [this, forNextElement, fullSize]() -> Expected<IBitmapPtr, std::string>
+        {
+            if ( _isGeneratingPreviewCancelled.load() )
+                return unexpected("preview generation was cancelled");
+
+            auto pPreviewOrErr = GeneratePreviewBitmap(forNextElement, fullSize);
+            if ( !pPreviewOrErr.has_value() )
+                return unexpected(pPreviewOrErr.error());
+
+            if ( _isGeneratingPreviewCancelled.load() )
+                return unexpected("preview generation was cancelled");
+
+            auto targetSizeOrErr = fullSize ? GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
+            if ( !targetSizeOrErr )
+                return unexpected(targetSizeOrErr.error());
+            const auto targetSize = targetSizeOrErr.value();
+
+            
+
+            auto pPreview = pPreviewOrErr.value();
+
+            if ( _isGeneratingPreviewCancelled.load() || !pPreview )
+                return unexpected("preview generation was cancelled");
+
+            Size srcSize{ int(pPreview->GetWidth()),int(pPreview->GetHeight()) };
+            if ( targetSize != srcSize )
+            {
+                return ResizeTransform::Resize(pPreview, ResizeTransform::GetSizeWithPreservedRatio(srcSize, targetSize));
+            }
+            else
+            {
+                return pPreview;
+            }
+        });
+
+        previewGenTask.wait();
+        auto previewRes = previewGenTask.get();
+        if ( !previewRes.has_value() )
+            return unexpected(previewRes.error());
+
+        _pPreviewBitmap.store(previewRes.value());
     }
 
-    return _pPreviewBitmap;
+    return _pPreviewBitmap.load();
 }
 
 Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPreviewTexture()
@@ -362,8 +417,8 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
     try
     {
         MainWindow::GetInstance().LockInterface();
-
-        auto pPreviewBitmap = GetPreviewBitmap();
+        CancelPreviewGeneration(false);
+        auto pPreviewBitmap = GetPreviewBitmap(false, false);
         if ( !pPreviewBitmap )
         {
             MainWindow::GetInstance().UnlockInterface();
@@ -383,7 +438,7 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 
 void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
-    _pPreviewBitmap.reset();
+    _pPreviewBitmap.store(nullptr);
     _pPreviewTexture.reset();
 
     if ( int(dir) & int(PropagationDir::Forward) )
