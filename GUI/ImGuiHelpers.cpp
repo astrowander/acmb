@@ -183,7 +183,7 @@ namespace UI
     bool Checkbox( const std::string& label, bool* v, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::Checkbox( label.c_str(), v, isInterfaceLocked ) )
+        if ( ImGui::Checkbox( label.c_str(), v ) && isInterfaceLocked )
         {
             ResetParentWindow(parent);
             return true;

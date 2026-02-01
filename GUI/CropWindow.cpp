@@ -130,7 +130,7 @@ void CropWindow::DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, Im
         ImVec2{ rectToDraw.x + rectToDraw.width, rectToDraw.y + rectToDraw.height },
         IM_COL32( 255, 0, 0, 255 ),
         0.0f,
-        ImDrawCornerFlags_All,
+        ImDrawFlags_RoundCornersNone,
         3.0f
     );
 }
