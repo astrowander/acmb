@@ -115,6 +115,8 @@ public:
 
     virtual Expected<Size, std::string> GetBitmapSize();
 
+    virtual void OnInputChanged() {}
+
     virtual void OnPreviewedFrameNumberChanged( int val );
 
     virtual void OnKeyframeCommited() 

@@ -53,27 +53,27 @@ Expected<IBitmapPtr, std::string> ResizeWindow::GeneratePreviewBitmap(bool forNe
     const Size inputPreviewSize{ int( pInputBitmap->GetWidth() ), int( pInputBitmap->GetHeight() ) };
     const Size inputSize = GetInput()->GetBitmapSize().value_or(inputPreviewSize);
     const Size dstSize = fullSize ? inputSize : _dstSize;
-    const Size maxTargetSize{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
+    const Size regionAvail{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
 
-    if ( dstSize.width < maxTargetSize.width && dstSize.height < maxTargetSize.height )
+    if ( dstSize.width <= regionAvail.width && dstSize.height <= regionAvail.height )
     {
         return ResizeTransform::Resize( pInputBitmap, dstSize );
     }
 
-    const float inputAspectRatio = float(inputSize.width) / float(inputSize.height);
-    const float dstAspectRatio = float(_dstSize.width) / float(_dstSize.height);
     Size adjustedSize;
+    
+    const double regionAspect = double(regionAvail.width) / double(regionAvail.height);
+    const double dstAspect = double(dstSize.width) / double(dstSize.height);
 
-    if ( dstAspectRatio > inputAspectRatio )
-    {        
-        adjustedSize.height = std::min( dstSize.height, maxTargetSize.height );
-        adjustedSize.width = int( float(adjustedSize.height) * inputAspectRatio );
-        return ResizeTransform::Resize( pInputBitmap, adjustedSize );
+    if ( dstAspect > regionAspect )
+    {
+        adjustedSize.width = regionAvail.width;
+        adjustedSize.height = int( double(regionAvail.width) / dstAspect );
     }
     else
-    {        
-        adjustedSize.width = std::min( dstSize.width, maxTargetSize.width );
-        adjustedSize.height = int( float(adjustedSize.width) / inputAspectRatio );       
+    {
+        adjustedSize.height = regionAvail.height;
+        adjustedSize.width = int( double(regionAvail.height) * dstAspect );
     }
 
     return ResizeTransform::Resize(pInputBitmap, adjustedSize);

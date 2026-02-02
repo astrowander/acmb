@@ -91,6 +91,7 @@ std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetInput() const
 void PipelineElementWindow::SetInput( std::shared_ptr<PipelineElementWindow> pLeftInput )
 {
     _input = pLeftInput;
+    OnInputChanged();
 }
 
 std::shared_ptr<PipelineElementWindow>  PipelineElementWindow::GetOutput() const
@@ -423,17 +424,23 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
     try
     {
-        MainWindow::GetInstance().LockInterface();
+        bool wasInterfaceLocked = MainWindow::GetInstance().IsInterfaceLocked();
+        
+        if ( !wasInterfaceLocked )
+            MainWindow::GetInstance().LockInterface();
+
         CancelPreviewGeneration(false);
         auto pPreviewBitmap = GetPreviewBitmap(false, false);
         if ( !pPreviewBitmap )
         {
-            MainWindow::GetInstance().UnlockInterface();
+            if ( !wasInterfaceLocked )
+                MainWindow::GetInstance().UnlockInterface();
             return unexpected(pPreviewBitmap.error());
         }
         
         _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
-        MainWindow::GetInstance().UnlockInterface();
+        if ( !wasInterfaceLocked )
+            MainWindow::GetInstance().UnlockInterface();
         return {};
     }
     catch ( std::exception& e )

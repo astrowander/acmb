@@ -16,6 +16,8 @@ private:
     virtual Expected<Size, std::string> GetBitmapSize() override;
 
     virtual void DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 scale) override;
+
+    virtual void OnInputChanged() override;
 public:
 
     CropWindow(  );

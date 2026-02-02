@@ -135,6 +135,18 @@ void CropWindow::DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, Im
     );
 }
 
+void CropWindow::OnInputChanged()
+{
+    auto pInput = GetInput();
+    if ( !pInput )
+        return;
+
+    _dstRect.x = std::clamp(_dstRect.x, 0, pInput->GetBitmapSize().value().width);
+    _dstRect.y = std::clamp(_dstRect.y, 0, pInput->GetBitmapSize().value().height);
+    _dstRect.width = std::clamp(_dstRect.width, 1, pInput->GetBitmapSize().value().width - _dstRect.x);
+    _dstRect.height = std::clamp(_dstRect.height, 1, pInput->GetBitmapSize().value().height - _dstRect.y);
+}
+
 REGISTER_TOOLS_ITEM( CropWindow );
 
 ACMB_GUI_NAMESPACE_END
