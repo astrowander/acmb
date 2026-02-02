@@ -65,8 +65,6 @@ protected:
     std::atomic<IBitmapPtr> _pPreviewBitmap;
     std::atomic<bool> _isGeneratingPreviewCancelled{ false };
 
-    bool _showPreview = false;
-
     std::shared_ptr<PipelineElementWindow> _output;
     std::weak_ptr<PipelineElementWindow> _input;
 

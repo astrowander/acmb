@@ -185,42 +185,7 @@ bool PipelineElementWindow::DrawHeader()
     
     ImGui::SetCursorPosY( oldCursorPos.y - ImGui::GetStyle().WindowPadding.y * 0.5f );
     ImGui::Text( "%s", _name.substr(0, _name.find_first_of('#') ).c_str());
-    ImGui::SameLine();
-
-    constexpr float previewButtonWidth = titleBarHeight;
-    constexpr float previewButtonHeight = titleBarHeight;
-    ImGui::SetCursorPos( { window->Size.x - previewButtonWidth, 0.0f } );
-
-    ImGui::PushStyleColor( ImGuiCol_Button, { 0.0f, 1.0f, 0.0f, 0.4f } );
-    ImGui::PushFont( FontRegistry::Instance().iconsSmall );
-    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, { 0, 0 });
-
-    const bool isPreviewOpen = ImGui::IsPopupOpen( ImGuiID( 0 ), ImGuiPopupFlags_AnyPopupId );
-    UI::Button( "\xef\x80\xbe", { previewButtonWidth, previewButtonHeight }, [&]
-    {
-        if ( isPreviewOpen )
-            return;
-
-        if ( !_pPreviewTexture )
-        {
-            auto previewExp = GeneratePreviewTexture();
-            if ( !previewExp.has_value() )
-            {
-                _error = previewExp.error();
-                _showError = true;
-                //UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError = true );
-                return;
-            }            
-        }
-
-        if ( _pPreviewTexture )
-            _showPreview = true;
-    }, isPreviewOpen ? "Another preview is already opened" : "Show preview of the image processed by this tool" );
-
-    ImGui::PopStyleVar();
-    ImGui::PopFont();
-    ImGui::PopStyleColor();
-
+    
     ImGui::PopClipRect();
     ImGui::SetCursorPosY( oldCursorPos.y + titleBarHeight );
     return true;
@@ -285,41 +250,6 @@ void PipelineElementWindow::DrawDialog()
             ImGui::CloseCurrentPopup();
         }
 
-        ImGui::EndPopup();
-    }
-
-    if ( _showPreview && !ImGui::IsPopupOpen( cPreviewPopupName.c_str() ) && _pPreviewTexture )
-    {
-        ImGui::OpenPopup( cPreviewPopupName.c_str() );
-        ImVec2 previewPos;
-        if ( const auto mainWindow = ImGui::FindWindowByName( "acmb" ); ImGui::GetMousePos().x < mainWindow->Size.x / 2 )
-            previewPos.x = mainWindow->Size.x - _pPreviewTexture->GetWidth();
-        
-        ImGui::SetNextWindowPos( previewPos );
-    }
-
-    if ( _showPreview && ImGui::BeginPopup( cPreviewPopupName.c_str(), ImGuiWindowFlags_NoFocusOnAppearing ) )
-    {
-        if ( !_pPreviewTexture )
-        {
-            auto previewExp = GeneratePreviewTexture();
-            if ( !previewExp.has_value() )
-            {
-                _showPreview = false;
-                ImGui::CloseCurrentPopup();
-                _error = previewExp.error();
-                _showError = true;                
-            }
-        }
-
-        if ( _pPreviewTexture )            
-            ImGui::Image( _pPreviewTexture->GetTexture(), { float( _pPreviewTexture->GetWidth() ), float( _pPreviewTexture->GetHeight() ) } );
-
-        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-        {
-            ImGui::CloseCurrentPopup();
-            _showPreview = false;
-        }
         ImGui::EndPopup();
     }
 

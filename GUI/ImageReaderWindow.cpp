@@ -76,7 +76,6 @@ void ImageReaderWindow::OnSelectedFrameChanged(int idx)
 
 void ImageReaderWindow::OnFileListChanged()
 {    
-    _showPreview = false;
     _taskCount = GetTotalFrameCount();
     ImGui::CloseCurrentPopup();
     ResetProgress(PropagationDir::Forward);
