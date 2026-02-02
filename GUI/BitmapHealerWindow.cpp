@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
 
+#include "./../Transforms/DebayerTransform.h"
 ACMB_GUI_NAMESPACE_BEGIN
 
 BitmapHealerWindow::BitmapHealerWindow()
@@ -59,6 +60,9 @@ Expected<IBitmapPtr, std::string> BitmapHealerWindow::GeneratePreviewBitmap(bool
 
 IBitmapPtr BitmapHealerWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+
     return BitmapHealer::ApplyTransform( pSource, _patches );
 }
 

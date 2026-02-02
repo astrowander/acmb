@@ -4,6 +4,7 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Transforms/MedianBlurTransform.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -29,6 +30,9 @@ Expected<IBitmapPtr, std::string> MedianBlurWindow::GeneratePreviewBitmap(bool f
 
 IBitmapPtr MedianBlurWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+
     return MedianBlurTransform::MedianBlur(pSource, 2 * _radius + 1 );
 }
 

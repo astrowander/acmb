@@ -4,6 +4,7 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Transforms/DeflickerTransform.h"
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 DeflickerWindow::DeflickerWindow(  )

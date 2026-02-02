@@ -3,6 +3,8 @@
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
 #include "./../Transforms/ResizeTransform.h"
+#include "./../Transforms/DebayerTransform.h"
+
 ACMB_GUI_NAMESPACE_BEGIN
 
 ResizeWindow::ResizeWindow(  )
@@ -19,6 +21,10 @@ void ResizeWindow::DrawPipelineElementControls()
 
 IBitmapPtr ResizeWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+    {
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+    }
     return ResizeTransform::Resize( pSource, _dstSize );
 }
 

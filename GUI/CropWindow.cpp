@@ -4,6 +4,7 @@
 #include "ImGuiHelpers.h"
 
 #include "./../Transforms/ResizeTransform.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -40,6 +41,12 @@ void CropWindow::OnKeyframeCommited()
 IBitmapPtr CropWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex )
 {
     auto interpolatedSettings = GetInterpolatedSettings( int( frameIndex ) );
+
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+    {
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+    }
+
     return CropTransform::Crop( pSource, interpolatedSettings);
 }
 

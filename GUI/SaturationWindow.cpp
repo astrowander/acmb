@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -28,6 +29,9 @@ Expected<IBitmapPtr, std::string> SaturationWindow::GeneratePreviewBitmap(bool f
 
 IBitmapPtr SaturationWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t frameIndex)
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+
     auto interpolatedSettings = GetInterpolatedSettings(int(frameIndex));
     return SaturationTransform::Saturate( pSource, interpolatedSettings);
 }

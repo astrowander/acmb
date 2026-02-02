@@ -3,6 +3,7 @@
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
 #include "./../Transforms/CenterObjectTransform.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -20,6 +21,9 @@ void CenterObjectWindow::DrawPipelineElementControls()
 
 IBitmapPtr CenterObjectWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+
     return CenterObjectTransform::CenterObject( pSource, {.dstSize = _dstSize, .threshold = _threshold } );
 }
 

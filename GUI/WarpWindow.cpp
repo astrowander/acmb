@@ -2,6 +2,7 @@
 #include "Serializer.h"
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
+#include "./../Transforms/DebayerTransform.h"
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -62,6 +63,9 @@ Expected<IBitmapPtr, std::string> WarpWindow::GeneratePreviewBitmap(bool forNext
 
 IBitmapPtr WarpWindow::ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t )
 {
+    if ( pSource->GetPixelFormat() == PixelFormat::Bayer16 )
+        pSource = DebayerTransform::Debayer(pSource, pSource->GetCameraSettings());
+
     return WarpTransform::Warp( pSource, _settings );
 }
 
