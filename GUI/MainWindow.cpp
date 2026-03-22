@@ -27,7 +27,7 @@ const float cImageControlsRegionWidth = 340.0f;
 static constexpr float cHeadRowHeight = 25;
 static constexpr float cMenuRowHeight = cMenuButtonSize + 30.0f;
 
-static constexpr float cGridLeft = 30;
+static constexpr float cGridLeft = 25.0f;
 static constexpr float cGridCellPadding = 25.0f;
 
 static constexpr float cGridCellMinWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
@@ -137,49 +137,14 @@ enum class UIColor : ImU32
 
 void MainWindow::ProcessKeyboardEvents()
 {
-    const size_t pipelineSize = GetPipelineSize();
-
     if ( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) )
     {
-        if ( _activeElement == pipelineSize && pipelineSize > 0 )
-        {
-            UpdateActiveElement(_activeElement - 1);
-            return;
-        }
-
-        if ( _isElementSelected )
-        {
-            _isElementSelected = false;
-            return;
-        }
-
-        if ( _activeElement == 0 )
-            return;
-
-        _isElementSelected = true;
-        UpdateActiveElement(_activeElement - 1);
-        if ( _activeElement < _firstVisibleElement )
-            _firstVisibleElement = _activeElement;
+        _isElementSelected ? UpdateActiveElement(_activeElement, false) : UpdateActiveElement(_activeElement - 1, true);        
     }
 
     if ( ImGui::IsKeyPressed( ImGuiKey_RightArrow ) )
-    {
-        if ( !_isElementSelected )
-        {
-            _isElementSelected = true;
-            return;
-        }
-
-        if ( _activeElement + 1 >= pipelineSize )
-        {
-            UpdateActiveElement(pipelineSize);
-            return;
-        }
-
-        _isElementSelected = false;
-        UpdateActiveElement(_activeElement + 1);
-        if ( _activeElement >= _firstVisibleElement + _visibleCellsCount )
-            _firstVisibleElement = _activeElement - _visibleCellsCount + 1;
+    {      
+        _isElementSelected ? UpdateActiveElement(_activeElement + 1, false) : UpdateActiveElement(_activeElement, true);
     }
 
     if ( _isElementSelected && ImGui::IsKeyPressed( ImGuiKey_Delete ) )
@@ -208,7 +173,7 @@ void MainWindow::ProcessKeyboardEvents()
 
 void MainWindow::ProcessMouseEvents()
 {
-    if ( !ImGui::IsMouseClicked(ImGuiMouseButton_Left) || ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) )
+    if ( !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) )
         return;
 
     const float cGridBottom = _size.y - 3 - ImGui::GetTextLineHeightWithSpacing();
@@ -218,9 +183,9 @@ void MainWindow::ProcessMouseEvents()
     if ( mousePos.y < cGridTop || mousePos.y > cGridBottom )
         return;
 
-    int col = int( mousePos.x - cGridLeft) / int( _gridCellSize.width );    
-
-    UpdateActiveElement(size_t(col) + _firstVisibleElement);
+    int col = int( mousePos.x ) / int( _gridCellSize.width );    
+    bool isElementSelected = (mousePos.x - col * _gridCellSize.width) > cGridCellPadding * 2.0f;
+    UpdateActiveElement(size_t(col) + _firstVisibleElement, isElementSelected);
 }
 
 void MainWindow::OpenProject()
@@ -231,6 +196,12 @@ void MainWindow::OpenProject()
         _showResultsPopup = true;
         return FileDialog::Instance().Close();
     };
+
+    _pPipelineHead.reset();
+    _activeElement = 0;
+    _firstVisibleElement = 0;
+    _isElementSelected = true;
+
     std::string filePath = FileDialog::Instance().GetFilePathName();
     std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
 
@@ -324,15 +295,41 @@ PipelineElementWindow* MainWindow::GetActiveElement() const
     return pNode.get();
 }
 
-void MainWindow::UpdateActiveElement(size_t newActiveElement)
+void MainWindow::UpdateActiveElement(int newActiveElement, bool isElementSelected)
 {
-    if ( _activeElement == newActiveElement )
-        return;
+    if ( newActiveElement < 0 )
+    {
+        newActiveElement = 0;
+        isElementSelected = false;
+    }
+    
+    const int pipelineSize = int(GetPipelineSize());
 
-    if ( _pPipelineHead )
-        _pPipelineHead->ResetPreview(PipelineElementWindow::PropagationDir::Forward);
+    if ( newActiveElement > pipelineSize )
+    {
+        newActiveElement = pipelineSize;
+        isElementSelected = true;
+    }
+
+    /*int minIndex = std::min(newActiveElement, _activeElement);
+    auto pElement = _pPipelineHead;
+    for ( int i = 0; i < minIndex; ++i )
+    {
+        if ( !pElement )
+            break;
+        pElement = pElement->GetOutput();
+    }
+
+    pElement->ResetPreview(PipelineElementWindow::PropagationDir::Forward);*/
 
     _activeElement = newActiveElement;
+    _isElementSelected = isElementSelected;
+    
+    if ( _activeElement < _firstVisibleElement )
+        _firstVisibleElement = _activeElement;
+
+    if ( _activeElement >= _firstVisibleElement + _visibleCellsCount )
+        _firstVisibleElement = _activeElement - _visibleCellsCount + 1;
 }
 
 void MainWindow::SetSize(const ImVec2& size)
@@ -699,15 +696,15 @@ void MainWindow::Show()
     if ( !DrawHeader() )
         return ImGui::End();
 
-    const size_t pipelineSize = GetPipelineSize();
+    const int pipelineSize = int( GetPipelineSize() );
     auto pElement = _pPipelineHead;
 
-    for ( size_t i = 0; i < _firstVisibleElement; ++i )
+    for ( int i = 0; i < _firstVisibleElement; ++i )
     {
         pElement = pElement->GetOutput();
     }
 
-    for ( size_t i = 0; i < std::min(_visibleCellsCount, pipelineSize - _firstVisibleElement); ++i )
+    for ( int i = 0; i < std::min(_visibleCellsCount, pipelineSize - _firstVisibleElement); ++i )
     {
         pElement->Show();
         pElement = pElement->GetOutput();

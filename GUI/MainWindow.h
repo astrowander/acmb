@@ -30,9 +30,9 @@ private:
     //Size _actualGridSize = {};
     std::shared_ptr<PipelineElementWindow> _pPipelineHead;
 
-    size_t _visibleCellsCount = 0;
-    size_t _firstVisibleElement = 0;
-    size_t _activeElement = 0;
+    int _visibleCellsCount = 0;
+    int _firstVisibleElement = 0;
+    int _activeElement = 0;
     bool _isElementSelected = true;
 
     bool _isBusy = false;
@@ -67,11 +67,11 @@ private:
     void OpenProject();
     void SaveProject();
 
-    size_t GetPipelineSize() const { return _pPipelineHead ? _pPipelineHead->GetElementsCount() : 0; }
+    int GetPipelineSize() const { return _pPipelineHead ? _pPipelineHead->GetElementsCount() : 0; }
 
     PipelineElementWindow* GetActiveElement() const;
 
-    void UpdateActiveElement(size_t newActiveElement);
+    void UpdateActiveElement(int newActiveElement, bool isElementSelected);
 
 public:
     virtual void SetSize(const ImVec2& size) override;

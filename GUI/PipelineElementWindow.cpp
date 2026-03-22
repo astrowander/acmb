@@ -11,7 +11,7 @@
 
 #include "imgui/imgui_internal.h"
 
-#include <future>
+
 
 static int uniqueId = 0;
 ACMB_GUI_NAMESPACE_BEGIN
@@ -76,7 +76,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::GetInputPreview(bool fo
     if ( !pInput )
         return unexpected("Primary input of the '" + _name + "' element is not set");
 
-    auto pInputBitmapOrErr = pInput->GetPreviewBitmap(forNextElement, fullSize);
+    auto pInputBitmapOrErr = pInput->GeneratePreviewBitmap(forNextElement, fullSize);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -191,9 +191,9 @@ bool PipelineElementWindow::DrawHeader()
     return true;
 }
 
-size_t PipelineElementWindow::GetElementsCount() const
+int PipelineElementWindow::GetElementsCount() const
 {
-    size_t count = 1;
+    int count = 1;
     auto pOutput = this;
     while ( pOutput = pOutput->GetOutput().get() )
     {
@@ -218,39 +218,6 @@ void PipelineElementWindow::DrawDialog()
         const auto windowPos = ImGui::GetWindowPos();
         mousePos.x -= windowPos.x;
         mousePos.y -= windowPos.y;
-
-        const auto& style = ImGui::GetStyle();
-        const float titleHeight = style.FramePadding.y * 2 + ImGui::GetTextLineHeight();
-
-        if ( mousePos.y >= 0 && mousePos.y < titleHeight && mousePos.x >= 0 && mousePos.x <= ImGui::GetWindowSize().x )
-        {
-            ImGui::OpenPopup( "RenameElement" );
-            mainWindow.LockInterface();
-        }
-    }
-
-    if ( ImGui::BeginPopup( "RenameElement" ) )
-    {
-        ImGui::InputText( "New name", _renameBuf.data(), _renameBuf.size() );
-
-        if ( ImGui::IsKeyPressed( ImGuiKey_Enter ) )
-        {
-            const size_t length = strlen( _renameBuf.data() );
-            if ( length > 0 )
-                _name = std::string( _renameBuf.data(), length ) +  "##C" + std::to_string( uniqueId++ );
-
-            mainWindow.UnlockInterface();
-            ImGui::CloseCurrentPopup();
-
-        }
-
-        if ( ImGui::IsKeyPressed( ImGuiKey_Escape ) )
-        {
-            mainWindow.UnlockInterface();
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
     }
 
     if ( _showError )
@@ -287,60 +254,55 @@ std::string PipelineElementWindow::GetTaskName(size_t taskNumber) const
     return pPrimaryInput ? pPrimaryInput->GetTaskName(taskNumber) : std::string{};
 }
 
-Expected<IBitmapPtr, std::string> PipelineElementWindow::GetPreviewBitmap(bool forNextElement, bool fullSize)
+Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool forNextElement, bool fullSize)
 {
-    if ( !_pPreviewBitmap.load() )
+    if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
     {
-
-        std::future< Expected<IBitmapPtr, std::string>> previewGenTask = std::async(std::launch::async, [this, forNextElement, fullSize]() -> Expected<IBitmapPtr, std::string>
+        _previewWorkers.emplace_back();
+        _previewWorkers.back().Start( [this, forNextElement, fullSize]( auto reportProgress )
         {
-            if ( _isGeneratingPreviewCancelled.load() )
-                return unexpected("preview generation was cancelled");
-
             auto pPreviewOrErr = GeneratePreviewBitmap(forNextElement, fullSize);
-            if ( !pPreviewOrErr.has_value() )
-                return unexpected(pPreviewOrErr.error());
-
-            if ( _isGeneratingPreviewCancelled.load() )
-                return unexpected("preview generation was cancelled");
+            if ( !pPreviewOrErr.has_value() || !reportProgress(0.5f) )
+            {
+                // Handle error (e.g., log it, set an error state, etc.)
+                return;
+            }
 
             auto targetSizeOrErr = fullSize ? GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
             if ( !targetSizeOrErr )
-                return unexpected(targetSizeOrErr.error());
+            {
+                // Handle error
+                return;
+            }
             const auto targetSize = targetSizeOrErr.value();
-
-            
-
             auto pPreview = pPreviewOrErr.value();
-
-            if ( _isGeneratingPreviewCancelled.load() || !pPreview )
-                return unexpected("preview generation was cancelled");
+            if ( !pPreview || !reportProgress(0.55f) )
+                return;
 
             Size srcSize{ int(pPreview->GetWidth()),int(pPreview->GetHeight()) };
+            IBitmapPtr pResizedPreview;
             if ( targetSize != srcSize )
             {
-                return ResizeTransform::Resize(pPreview, ResizeTransform::GetSizeWithPreservedRatio(srcSize, targetSize));
+                pResizedPreview = ResizeTransform::Resize(pPreview, ResizeTransform::GetSizeWithPreservedRatio(srcSize, targetSize));
             }
             else
             {
-                return pPreview;
+                pResizedPreview = pPreview;
             }
+            
+            if ( !reportProgress(1.0f) )
+                return;
+
+            _pPreviewBitmap.store(pResizedPreview, std::memory_order_release);
         });
-
-        previewGenTask.wait();
-        auto previewRes = previewGenTask.get();
-        if ( !previewRes.has_value() )
-            return unexpected(previewRes.error());
-
-        _pPreviewBitmap.store(previewRes.value());
     }
 
-    return _pPreviewBitmap.load();
+    return {};
 }
 
 Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPreviewTexture()
 {
-    if ( !_pPreviewTexture )
+    if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
     {
         auto res = GeneratePreviewTexture();
         if ( !res.has_value() )
@@ -354,36 +316,45 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 {
     try
     {
-        bool wasInterfaceLocked = MainWindow::GetInstance().IsInterfaceLocked();
-        
-        if ( !wasInterfaceLocked )
-            MainWindow::GetInstance().LockInterface();
-
-        CancelPreviewGeneration(false);
-        auto pPreviewBitmap = GetPreviewBitmap(false, false);
-        if ( !pPreviewBitmap )
+        for ( auto it = _previewWorkers.begin(); it != _previewWorkers.end(); )
         {
-            if ( !wasInterfaceLocked )
-                MainWindow::GetInstance().UnlockInterface();
-            return unexpected(pPreviewBitmap.error());
+            if ( it->GetStatus() == AsyncWorker::Status::Completed )
+            {
+                it = _previewWorkers.erase( it );
+            }
         }
-        
-        _pPreviewTexture = std::make_unique<Texture>( _pPreviewBitmap );
-        if ( !wasInterfaceLocked )
-            MainWindow::GetInstance().UnlockInterface();
+
+        auto resOrErr = FinalizePreviewBitmap(false, false);
+        if ( !resOrErr.has_value() )
+        {
+            return unexpected(resOrErr.error());
+        }
+
+        auto pPreviewBitmap = _pPreviewBitmap.load(std::memory_order_acquire);
+        if ( pPreviewBitmap )
+        {
+            _pPreviewTexture = std::make_unique<Texture>(pPreviewBitmap);
+        }
+
         return {};
     }
     catch ( std::exception& e )
     {
-        MainWindow::GetInstance().UnlockInterface();
         return unexpected( e.what() );
     }
 }
 
 void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
+    // Cancel workers
+    if ( _previewWorkers.size() > 20 )
+    {
+        auto it = std::next( _previewWorkers.begin(), 20 );
+        _previewWorkers.erase( it, _previewWorkers.end() );
+    }
+
     _pPreviewBitmap.store(nullptr);
-    _pPreviewTexture.reset();
+    //_pPreviewTexture.reset();
 
     if ( int(dir) & int(PropagationDir::Forward) )
     {

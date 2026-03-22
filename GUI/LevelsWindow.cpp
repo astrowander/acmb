@@ -131,7 +131,7 @@ void LevelsWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
-    auto pInputBitmapOrErr = GetInput()->GetPreviewBitmap(true, true);
+    auto pInputBitmapOrErr = GetInput()->GeneratePreviewBitmap(true, true);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

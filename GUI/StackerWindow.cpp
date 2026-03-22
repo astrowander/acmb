@@ -33,7 +33,7 @@ void StackerWindow::DrawPipelineElementControls()
     }
 }
 
-Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t )
+Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i)
 {
     _completedTaskCount = 0;
 
@@ -114,6 +114,12 @@ void StackerWindow::ResetTasks()
 {
     _completedTaskCount = 0;
     _taskReadiness = 0;
+}
+
+size_t StackerWindow::GetTaskCount(bool update)
+{
+    // Stacker always processes all frames at once, so it has only one task
+    return 1;
 }
 
 Expected<IBitmapPtr, std::string> StackerWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)

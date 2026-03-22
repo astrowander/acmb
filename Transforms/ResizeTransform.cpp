@@ -150,7 +150,7 @@ Size ResizeTransform::GetSizeWithPreservedRatio( Size srcSize, Size maxSize )
     const float widthRatio = static_cast<float>( maxSize.width ) / static_cast<float>( srcSize.width );
     const float heightRatio = static_cast<float>( maxSize.height ) / static_cast<float>( srcSize.height );
     const float ratio = std::min( widthRatio, heightRatio );
-    return Size( static_cast<uint32_t>( srcSize.width * ratio ), static_cast<uint32_t>( srcSize.height * ratio ) );
+    return Size( static_cast<uint32_t>( srcSize.width * ratio + 0.5f ), static_cast<uint32_t>( srcSize.height * ratio + 0.5f ) );
 }
 
 ResizeTransform::Settings ResizeTransform::Interpolate(const Settings& a, const Settings& b, double t)

@@ -31,6 +31,20 @@ protected:
         _mSettings[0] = defaultSettings;
     }
 
+    std::pair<int,Settings> GetKeyFrameForFrame(int frameIndex) const
+    {
+        auto it = _mSettings.upper_bound(frameIndex);
+        if ( it == _mSettings.end() )
+        {
+            return *std::prev(it);
+        }
+
+        if ( it == _mSettings.begin() )
+            return *it;
+
+        return *std::prev(it);
+    }
+
     void InsertOrAssignSettings(int index, const Settings& settings)
     {
         _mSettings[index] = settings;

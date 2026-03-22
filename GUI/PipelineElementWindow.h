@@ -3,6 +3,7 @@
 
 #include "MenuItemsHolder.h"
 #include "Texture.h"
+#include "AsyncWorker.h"
 
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
@@ -31,10 +32,6 @@ enum PEFlags : int
 
 class PipelineElementWindow : public Window
 {
-    bool _openRenamePopup = false;
-    std::array<char, 256> _renameBuf = {};
-    inline static const std::string cPreviewPopupName = "PreviewPopup";
-
 public:    
 
     static constexpr int cElementWidth = 150;
@@ -63,7 +60,8 @@ protected:
 
     std::shared_ptr<Texture> _pPreviewTexture;
     std::atomic<IBitmapPtr> _pPreviewBitmap;
-    std::atomic<bool> _isGeneratingPreviewCancelled{ false };
+
+    std::list<AsyncWorker> _previewWorkers;
 
     std::shared_ptr<PipelineElementWindow> _output;
     std::weak_ptr<PipelineElementWindow> _input;
@@ -105,7 +103,7 @@ public:
 
     virtual std::string GetTaskName( size_t taskNumber ) const;
 
-    Expected<IBitmapPtr, std::string> GetPreviewBitmap( bool forNextElement, bool fullSize );
+    Expected<void, std::string> FinalizePreviewBitmap( bool forNextElement, bool fullSize );
     Expected<std::shared_ptr<Texture>, std::string> GetPreviewTexture();
     Expected<void, std::string> GeneratePreviewTexture();
     
@@ -135,20 +133,14 @@ public:
             pInput->SetPreviewedFrameNumber( val ); 
     }
 
-    size_t GetElementsCount() const;
+    int GetElementsCount() const;
 
     virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
 
-    void CancelPreviewGeneration( bool cancel )
-    {
-        _isGeneratingPreviewCancelled.store(cancel);
-        if ( auto pInput = GetInput() )
-            pInput->CancelPreviewGeneration(cancel);
-    }
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) = 0;
 
 protected:
     virtual void DrawDialog() override;
-    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) = 0;
 };
 
 #define SET_MENU_PARAMS( ICON, CAPTION, TOOLTIP, ORDER ) \

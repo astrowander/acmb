@@ -175,6 +175,7 @@
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AsyncWorker.h" />
     <ClInclude Include="BitmapHealerWindow.h" />
     <ClInclude Include="CenterObjectWindow.h" />
     <ClInclude Include="ConverterWindow.h" />

@@ -36,34 +36,46 @@ public:
 
     void RunOneIteration()
     {
-        std::vector<float> medians;
+        std::vector<std::array<float, channelCount>> medians;
         medians.reserve( _settings.bitmaps.size() );
 
         for ( auto pBitmap : _settings.bitmaps )
         {
             auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( pBitmap );
-            auto pGrayBitmap = Converter::Convert( pSrcBitmap, cGrayFormat );
-            auto pHistBuilder = HistogramBuilder::Create( pGrayBitmap );
+            auto pHistBuilder = HistogramBuilder::Create(pSrcBitmap);
             pHistBuilder->BuildHistogram();
-            medians.push_back( log( pHistBuilder->GetChannelStatistics( 0 ).median ) );
+
+            medians.emplace_back();
+            for ( uint32_t ch = 0; ch < channelCount; ++ch )
+            {
+                medians.back()[ch] = log(pHistBuilder->GetChannelStatistics(ch).median);
+            }
         }
 
-        auto mediansCopy = medians;
-        auto medianIt = mediansCopy.begin() + mediansCopy.size() / 2;
-        std::nth_element( mediansCopy.begin(), medianIt, mediansCopy.end() );
-
-        const float targetMedian = float( *medianIt );
+        std::array<float, channelCount> averageMedians = {};
+        for ( const auto& median : medians )
+        {
+            for ( uint32_t ch = 0; ch < channelCount; ++ch )
+                averageMedians[ch] += median[ch] / medians.size();
+        }
         
         for ( size_t i = 0; i < _settings.bitmaps.size(); ++i )
         {
             std::cout << "Start " << i << "-th frame: " << std::endl;
             auto pBitmap = _settings.bitmaps[i];
             auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >(pBitmap);
-            const float dI = targetMedian - medians[i];
-            if ( fabs( dI ) < std::numeric_limits<float>::epsilon() )
-                continue;
 
-            const float mult = exp( dI );
+            std::array<float, channelCount> dIs = averageMedians;
+            for ( uint32_t ch = 0; ch < channelCount; ++ch )
+            {
+                dIs[ch] = averageMedians[ch] - medians[i][ch];
+            }
+
+            std::array<float, channelCount> mults = {};
+            for ( uint32_t ch = 0; ch < channelCount; ++ch )
+            {
+                mults[ch] = exp( dIs[ch] );
+            }
 
             parallel_for( blocked_range<uint32_t>( 0, pSrcBitmap->GetHeight() ), [&] ( const blocked_range<uint32_t>& range )
             {
@@ -74,7 +86,7 @@ public:
                     {
                         for ( uint32_t ch = 0; ch < channelCount; ++ch )
                         {
-                            pScanline[x * channelCount + ch] = ChannelType( std::clamp<float>( pScanline[x * channelCount + ch] * mult, 0, channelMax ) + 0.5f );
+                            pScanline[x * channelCount + ch] = ChannelType( std::clamp<float>( pScanline[x * channelCount + ch] * mults[ch], 0, channelMax) + 0.5f);
                         }
                     }
                 }

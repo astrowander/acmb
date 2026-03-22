@@ -209,6 +209,7 @@ IBitmapPtr FileListUser::GetBitmapOfStackedFrames()
 
 void FileListUser::OnFileListChanged()
 {
+    _pStackedFrames = nullptr;
     OnSelectedFrameChanged( GetTotalFrameCount() - 1 );
 }
 

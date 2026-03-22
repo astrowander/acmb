@@ -51,8 +51,6 @@ namespace UI
         if ( !parent )
             return;
 
-        size_t oldFrameNumber = parent->GetPreviewedFrameNumber();
-        parent->CancelPreviewGeneration(true);
         parent->ResetPreview(PipelineElementWindow::PropagationDir::Forward);
         parent->ResetProgress(PipelineElementWindow::PropagationDir::Both);
     }

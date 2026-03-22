@@ -238,6 +238,9 @@
     <ClInclude Include="FileListUser.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="AsyncWorker.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui\misc\debuggers\imgui.natstepfilter">

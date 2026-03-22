@@ -22,6 +22,8 @@ public:
 
     virtual void ResetTasks() override;
 
+    virtual size_t GetTaskCount(bool update = false) override;
+
     SET_MENU_PARAMS( "\xef\x97\xbd", "Stack", "Sum up a group of frames to one image", 3 );
 };
 
