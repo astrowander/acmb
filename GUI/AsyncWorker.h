@@ -4,8 +4,10 @@
 #include <atomic>
 #include <functional>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -27,8 +29,14 @@ public:
     AsyncWorker() = default;
     ~AsyncWorker()
     {
-        Cancel();
-        Wait();
+        if ( _state )
+            _state->cancelRequested.store(true);
+
+        // Move the future to a short-lived background thread so the calling
+        // (main) thread is never blocked waiting for the task to finish.
+        // The shared State keeps all task-internal data alive until it completes.
+        if ( _future.valid() )
+            std::thread( [f = std::move( _future )] {} ).detach();
     }
 
     AsyncWorker(const AsyncWorker&) = delete;
@@ -49,40 +57,39 @@ public:
     ///   });
     void Start(TaskFunc task)
     {
-        _status.store(Status::Running);
-        _progress.store(0.0f);
-        _cancelRequested.store(false);
-        {
-            std::lock_guard lock(_errorMutex);
-            _errorMessage.clear();
-        }
+        // Create fresh shared state so the running lambda does not capture
+        // a raw 'this' pointer – the AsyncWorker can be moved or destroyed
+        // without becoming a dangling pointer inside the async task.
+        _state = std::make_shared<State>();
+        _state->status.store(Status::Running);
 
-        _future = std::async(std::launch::async, [this, task = std::move(task)]()
+        auto state = _state;
+        _future = std::async(std::launch::async, [state, task = std::move(task)]()
         {
             try
             {
-                task([this](float progress) -> bool
+                task([state](float progress) -> bool
                 {
-                    _progress.store(std::clamp(progress, 0.0f, 1.0f));
-                    return !_cancelRequested.load();
+                    state->progress.store(std::clamp(progress, 0.0f, 1.0f));
+                    return !state->cancelRequested.load();
                 });
 
-                if ( _cancelRequested.load() )
-                    _status.store(Status::Cancelled);
+                if ( state->cancelRequested.load() )
+                    state->status.store(Status::Cancelled);
                 else
-                    _status.store(Status::Completed);
+                    state->status.store(Status::Completed);
             }
             catch ( const std::exception& e )
             {
-                std::lock_guard lock(_errorMutex);
-                _errorMessage = e.what();
-                _status.store(Status::Failed);
+                std::lock_guard lock(state->errorMutex);
+                state->errorMessage = e.what();
+                state->status.store(Status::Failed);
             }
             catch ( ... )
             {
-                std::lock_guard lock(_errorMutex);
-                _errorMessage = "Unknown error";
-                _status.store(Status::Failed);
+                std::lock_guard lock(state->errorMutex);
+                state->errorMessage = "Unknown error";
+                state->status.store(Status::Failed);
             }
         }).share();
     }
@@ -90,7 +97,8 @@ public:
     /// Requests cancellation of the running task.
     void Cancel()
     {
-        _cancelRequested.store(true);
+        if ( _state )
+            _state->cancelRequested.store(true);
     }
 
     /// Blocks until the task finishes (or does nothing if idle).
@@ -103,59 +111,66 @@ public:
     /// Returns the current progress in [0.0, 1.0].
     float GetProgress() const
     {
-        return _progress.load();
+        return _state ? _state->progress.load() : 0.0f;
     }
 
     /// Returns the current status.
     Status GetStatus() const
     {
-        return _status.load();
+        return _state ? _state->status.load() : Status::Idle;
     }
 
     /// Returns true if the worker is currently executing a task.
     bool IsRunning() const
     {
-        return _status.load() == Status::Running;
+        return GetStatus() == Status::Running;
     }
 
     /// Returns true if cancellation was requested.
     bool IsCancellationRequested() const
     {
-        return _cancelRequested.load();
+        return _state ? _state->cancelRequested.load() : false;
     }
 
     /// Returns the error message if the task failed.
     std::string GetErrorMessage() const
     {
-        std::lock_guard lock(_errorMutex);
-        return _errorMessage;
+        if ( !_state )
+            return {};
+        std::lock_guard lock(_state->errorMutex);
+        return _state->errorMessage;
     }
 
     /// Resets the worker back to Idle state. Must not be called while running.
     void Reset()
     {
-        if ( _status.load() == Status::Running )
+        if ( GetStatus() == Status::Running )
             return;
 
         Wait();
-        _status.store(Status::Idle);
-        _progress.store(0.0f);
-        _cancelRequested.store(false);
+        if ( _state )
         {
-            std::lock_guard lock(_errorMutex);
-            _errorMessage.clear();
+            _state->status.store(Status::Idle);
+            _state->progress.store(0.0f);
+            _state->cancelRequested.store(false);
+            std::lock_guard lock(_state->errorMutex);
+            _state->errorMessage.clear();
         }
     }
 
 private:
 
-    std::shared_future<void> _future;
-    std::atomic<Status> _status{ Status::Idle };
-    std::atomic<float> _progress{ 0.0f };
-    std::atomic<bool> _cancelRequested{ false };
+    struct State
+    {
+        std::atomic<Status> status{ Status::Idle };
+        std::atomic<float> progress{ 0.0f };
+        std::atomic<bool> cancelRequested{ false };
+        mutable std::mutex errorMutex;
+        std::string errorMessage;
+    };
 
-    mutable std::mutex _errorMutex;
-    std::string _errorMessage;
+    std::shared_ptr<State> _state = std::make_shared<State>();
+    std::shared_future<void> _future;
 };
 
 ACMB_GUI_NAMESPACE_END

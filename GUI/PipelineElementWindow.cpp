@@ -259,16 +259,17 @@ Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool fo
     if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
     {
         _previewWorkers.emplace_back();
-        _previewWorkers.back().Start( [this, forNextElement, fullSize]( auto reportProgress )
+        auto self = std::static_pointer_cast<PipelineElementWindow>(shared_from_this());
+        _previewWorkers.back().Start( [self, forNextElement, fullSize]( auto reportProgress )
         {
-            auto pPreviewOrErr = GeneratePreviewBitmap(forNextElement, fullSize);
+            auto pPreviewOrErr = self->GeneratePreviewBitmap(forNextElement, fullSize);
             if ( !pPreviewOrErr.has_value() || !reportProgress(0.5f) )
             {
                 // Handle error (e.g., log it, set an error state, etc.)
                 return;
             }
 
-            auto targetSizeOrErr = fullSize ? GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
+            auto targetSizeOrErr = fullSize ? self->GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
             if ( !targetSizeOrErr )
             {
                 // Handle error
@@ -293,7 +294,7 @@ Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool fo
             if ( !reportProgress(1.0f) )
                 return;
 
-            _pPreviewBitmap.store(pResizedPreview, std::memory_order_release);
+            self->_pPreviewBitmap.store(pResizedPreview, std::memory_order_release);
         });
     }
 
@@ -318,9 +319,14 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
     {
         for ( auto it = _previewWorkers.begin(); it != _previewWorkers.end(); )
         {
-            if ( it->GetStatus() == AsyncWorker::Status::Completed )
+            const auto status = it->GetStatus();
+            if ( status != AsyncWorker::Status::Idle && status != AsyncWorker::Status::Running )
             {
                 it = _previewWorkers.erase( it );
+            }
+            else
+            {
+                ++it;
             }
         }
 
@@ -346,12 +352,9 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
 
 void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
-    // Cancel workers
-    if ( _previewWorkers.size() > 20 )
-    {
-        auto it = std::next( _previewWorkers.begin(), 20 );
-        _previewWorkers.erase( it, _previewWorkers.end() );
-    }
+    // Cancel all preview workers so they stop as soon as possible
+    for ( auto& worker : _previewWorkers )
+        worker.Cancel();
 
     _pPreviewBitmap.store(nullptr);
     //_pPreviewTexture.reset();
