@@ -254,7 +254,7 @@ std::string PipelineElementWindow::GetTaskName(size_t taskNumber) const
     return pPrimaryInput ? pPrimaryInput->GetTaskName(taskNumber) : std::string{};
 }
 
-Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool forNextElement, bool fullSize)
+std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElement, bool fullSize)
 {
     if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
     {
@@ -263,22 +263,30 @@ Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool fo
         _previewWorkers.back().Start( [self, forNextElement, fullSize]( auto reportProgress )
         {
             auto pPreviewOrErr = self->GeneratePreviewBitmap(forNextElement, fullSize);
-            if ( !pPreviewOrErr.has_value() || !reportProgress(0.5f) )
+            if ( !pPreviewOrErr.has_value())
             {
-                // Handle error (e.g., log it, set an error state, etc.)
-                return;
+                return pPreviewOrErr.error();
             }
+            if ( !reportProgress(0.5f) )
+                return std::string( "Preview generation cancelled") ;
 
             auto targetSizeOrErr = fullSize ? self->GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
             if ( !targetSizeOrErr )
             {
                 // Handle error
-                return;
+                return targetSizeOrErr.error();
             }
+
+            if ( !reportProgress(0.52f) )
+                return std::string("Preview generation cancelled");
+
             const auto targetSize = targetSizeOrErr.value();
             auto pPreview = pPreviewOrErr.value();
-            if ( !pPreview || !reportProgress(0.55f) )
-                return;
+            if ( !pPreview)
+                return std::string("Preview bitmap is null");
+
+            if ( !reportProgress(0.55f) )
+                return std::string("Preview generation cancelled");
 
             Size srcSize{ int(pPreview->GetWidth()),int(pPreview->GetHeight()) };
             IBitmapPtr pResizedPreview;
@@ -292,37 +300,29 @@ Expected<void, std::string> PipelineElementWindow::FinalizePreviewBitmap(bool fo
             }
             
             if ( !reportProgress(1.0f) )
-                return;
+                return std::string("Preview generation cancelled");
 
             self->_pPreviewBitmap.store(pResizedPreview, std::memory_order_release);
+            self->_needToUpdatePreview = true;
+            return std::string{};
         });
+
+        return "";
     }
 
-    return {};
+    return "";
 }
 
 Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPreviewTexture()
 {
-    if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
-    {
-        auto res = GeneratePreviewTexture();
-        if ( !res.has_value() )
-            return unexpected( res.error() );
-    }
-
-    return _pPreviewTexture;
-}
-
-Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
-{
-    try
+    if ( auto pPreviewBitmap = _pPreviewBitmap.load(std::memory_order_acquire); !pPreviewBitmap )
     {
         for ( auto it = _previewWorkers.begin(); it != _previewWorkers.end(); )
         {
             const auto status = it->GetStatus();
             if ( status != AsyncWorker::Status::Idle && status != AsyncWorker::Status::Running )
             {
-                it = _previewWorkers.erase( it );
+                it = _previewWorkers.erase(it);
             }
             else
             {
@@ -330,31 +330,29 @@ Expected<void, std::string> PipelineElementWindow::GeneratePreviewTexture()
             }
         }
 
-        auto resOrErr = FinalizePreviewBitmap(false, false);
-        if ( !resOrErr.has_value() )
+        if ( _previewWorkers.empty() )
         {
-            return unexpected(resOrErr.error());
-        }
-
-        auto pPreviewBitmap = _pPreviewBitmap.load(std::memory_order_acquire);
-        if ( pPreviewBitmap )
-        {
-            _pPreviewTexture = std::make_unique<Texture>(pPreviewBitmap);
-        }
-
-        return {};
+            auto resOrErr = GeneratePreviewBitmapAsync(false, false);
+            if ( !resOrErr.empty() )
+            {
+                return unexpected(resOrErr);
+            }
+        }       
     }
-    catch ( std::exception& e )
+    else if ( _needToUpdatePreview )
     {
-        return unexpected( e.what() );
+        _pPreviewTexture = std::make_unique<Texture>(pPreviewBitmap);
+        _needToUpdatePreview = false;
     }
+
+    return _pPreviewTexture;
 }
 
 void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
     // Cancel all preview workers so they stop as soon as possible
-    for ( auto& worker : _previewWorkers )
-        worker.Cancel();
+    //for ( auto& worker : _previewWorkers )
+      //  worker.Cancel();
 
     _pPreviewBitmap.store(nullptr);
     //_pPreviewTexture.reset();

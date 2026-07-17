@@ -41,8 +41,6 @@ Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
         _frameIndicesStartsWith.push_back(indicesStartsWith);
         _pDecoder = ImageDecoder::Create(fileName);
         _totalFrameCount += _pDecoder->GetFrameCount();
-        if ( _imageParams.GetPixelFormat() == PixelFormat::Unspecified )
-            _imageParams = *_pDecoder;
 
         return {};
     }
@@ -63,15 +61,19 @@ Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
     return Size{ int(_pDecoder->GetWidth()), int(_pDecoder->GetHeight()) };
 }
 
-Expected<IBitmapPtr, std::string>  FileListUser::ReadFrame(int idx) const
+Expected<IBitmapPtr, std::string> FileListUser::ReadFrameUnlocked(int idx) const
 {
-    std::lock_guard<std::mutex> lock(_mutex);
-
     PrepareFrameForReading(idx);
     if ( !_pDecoder )
         return unexpected( "FileListUser::ReadFrame: No decoder" );
 
     return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_lastDecodedFileIdx] );
+}
+
+Expected<IBitmapPtr, std::string>  FileListUser::ReadFrame(int idx) const
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    return ReadFrameUnlocked(idx);
 }
 
 Expected<IBitmapPtr, std::string> FileListUser::ReadFramePreview(int idx, Size size) const
@@ -195,13 +197,23 @@ IBitmapPtr FileListUser::GetBitmapOfStackedFrames()
 {
     if ( _pStackedFrames )
         return _pStackedFrames;
+
+    if ( _totalFrameCount == 0 )
+        return nullptr;
     
     std::lock_guard<std::mutex> lock(_mutex);
 
-    PrepareFrameForReading(0);
-    Stacker stacker(_imageParams, acmb::StackMode::DarkOrFlat);
-    for ( int i = 0; i < _totalFrameCount; ++i )
-        stacker.AddBitmap( ReadFrame(i).value_or( nullptr ) );
+    // Do not call ReadFrame() here: it also locks _mutex (non-recursive), which
+    // throws "resource deadlock would occur" on MSVC when stacking dark/flat frames
+    // during ExportAllImages / ProcessBitmapFromPrimaryInput.
+
+    IBitmapPtr pFrame = ReadFrameUnlocked(0).value_or(nullptr);
+
+    Stacker stacker(*pFrame, acmb::StackMode::DarkOrFlat);
+    stacker.AddBitmap(pFrame);
+
+    for ( int i = 1; i < _totalFrameCount; ++i )
+        stacker.AddBitmap( ReadFrameUnlocked(i).value_or( nullptr ) );
 
     _pStackedFrames = stacker.GetResult();
     return _pStackedFrames;
@@ -222,7 +234,6 @@ void FileListUser::CleanUp()
     _frameIndicesStartsWith.clear();
     _currentFrameIdx = -1;
     _pDecoder = nullptr;
-    _imageParams = {};
 }
 
 

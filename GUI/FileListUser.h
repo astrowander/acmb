@@ -22,7 +22,6 @@ class FileListUser
     std::vector<int> _frameIndicesStartsWith;
     std::vector<std::string> _fileNames;
     IBitmapPtr _pStackedFrames;
-    ImageParams _imageParams;
 
 protected:
     mutable int _currentFrameIdx = -1; // -1 means no current
@@ -31,6 +30,9 @@ protected:
 private:
     void PrepareFrameForReading(int idx) const;
     Expected<void, std::string> AddFile(const std::string& fileName);
+
+    // Call only while holding _mutex (non-recursive). Used to avoid nested lock_guard.
+    Expected<IBitmapPtr, std::string> ReadFrameUnlocked(int idx) const;
 
     virtual void OnSelectedFrameChanged(int idx) = 0;
     

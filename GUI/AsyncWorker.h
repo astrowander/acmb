@@ -24,7 +24,9 @@ public:
         Failed
     };
 
-    using TaskFunc = std::function<void(std::function<bool(float)>)>;
+    using ProgressFunc = std::function<bool(float)>;
+    using TaskFunc = std::function<std::string(ProgressFunc)>;
+
 
     AsyncWorker() = default;
     ~AsyncWorker()

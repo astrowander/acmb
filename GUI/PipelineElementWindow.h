@@ -58,6 +58,7 @@ protected:
     bool _showError = false;
     std::string _error;
 
+    bool _needToUpdatePreview = false;
     std::shared_ptr<Texture> _pPreviewTexture;
     std::atomic<IBitmapPtr> _pPreviewBitmap;
 
@@ -103,9 +104,8 @@ public:
 
     virtual std::string GetTaskName( size_t taskNumber ) const;
 
-    Expected<void, std::string> FinalizePreviewBitmap( bool forNextElement, bool fullSize );
+    std::string GeneratePreviewBitmapAsync( bool forNextElement, bool fullSize );
     Expected<std::shared_ptr<Texture>, std::string> GetPreviewTexture();
-    Expected<void, std::string> GeneratePreviewTexture();
     
     void ResetPreview(PropagationDir dir);
 
