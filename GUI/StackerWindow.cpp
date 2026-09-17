@@ -41,7 +41,7 @@ Expected<IBitmapPtr, std::string> StackerWindow::RunTask( size_t i)
     if ( !pInput )
         return unexpected( "No primary input for the'" + _name + "' element" );
 
-    const size_t inputTaskCount = pInput->GetTaskCount();
+    const size_t inputTaskCount = pInput->GetTaskCount(i == 0);
     if ( inputTaskCount == 0 )
         return unexpected( "No input frames for the'" + _name + "' element" );
 
