@@ -27,7 +27,9 @@ public:
     {
         auto pSrcBitmap = std::static_pointer_cast< Bitmap<pixelFormat> >( _pSrcBitmap );
         auto pBitmapToSubtract = std::static_pointer_cast< Bitmap<pixelFormat> >( _settings.pBitmapToSubtract );
-        const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;        
+        const int srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;    
+        const int subtractBlackLevel = pBitmapToSubtract->GetCameraSettings() ? pBitmapToSubtract->GetCameraSettings()->blackLevel : 0;
+
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
         oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, _pSrcBitmap->GetHeight() ), [&] ( const oneapi::tbb::blocked_range<int>& range )
@@ -42,7 +44,7 @@ public:
                 for ( uint32_t j = 0; j < N; ++j )
                 {
                     const auto srcVal = pSrcScanline[j];
-                    const auto subtractVal = ( pScanlineToSubtract[j] - srcBlackLevel ) * _settings.multiplier;
+                    const auto subtractVal = ( pScanlineToSubtract[j] - subtractBlackLevel) * _settings.multiplier;
                     //const auto res = ChannelType( std::min( srcBlackLevel + std::max( 0, srcVal - subtractVal ), maxChannel ) );
                     const auto res = ChannelType( std::max( float( srcBlackLevel ), ( srcVal - subtractVal ) ) );
                     pSrcScanline[j] = res;

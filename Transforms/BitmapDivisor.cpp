@@ -33,6 +33,7 @@ public:
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
 
         const float srcBlackLevel = pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->blackLevel : 0;
+        const float divisorBlackLevel = pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->blackLevel : 0;
         
         constexpr ColorSpace colorSpace = GetColorSpace( pixelFormat );
         std::array<float, 4> pivots = {};
@@ -46,10 +47,10 @@ public:
             {
                 auto pHistogramBuilder = HistogramBuilder::Create( pDivisor );
                 pHistogramBuilder->BuildHistogram();
-                pivots[0] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
-                pivots[1] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
-                pivots[2] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
-                pivots[3] = srcBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - srcBlackLevel) / (pSrcBitmap->GetCameraSettings() ? pSrcBitmap->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
+                pivots[0] = divisorBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - divisorBlackLevel) / (pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->channelPremultipiers[0] : 1.0f);
+                pivots[1] = divisorBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - divisorBlackLevel) / (pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[2] = divisorBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - divisorBlackLevel) / (pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->channelPremultipiers[1] : 1.0f);
+                pivots[3] = divisorBlackLevel + (pHistogramBuilder->GetChannelStatistics( 0 ).topPercentile - divisorBlackLevel) / (pDivisor->GetCameraSettings() ? pDivisor->GetCameraSettings()->channelPremultipiers[2] : 1.0f);
                 _cachedPivots[pDivisor] = pivots;
             }
 
@@ -68,7 +69,7 @@ public:
                         const size_t index = x * channelCount;
                         const float srcValue = pSrcScanline[index];
                         const float divisorValue = pDivisorScanline[index];
-                        float coeff = std::max( 1.0f, (pivots[subpixelIndex] - srcBlackLevel) / (divisorValue - srcBlackLevel) );
+                        float coeff = std::max( 1.0f, (pivots[subpixelIndex] - divisorBlackLevel) / (divisorValue - divisorBlackLevel) );
                         coeff = 1.0f + (coeff - 1.0f) * (_settings.intensity / 100.0f);
                         const float res = std::min( srcBlackLevel + std::max( 0.0f, srcValue - srcBlackLevel ) * coeff, maxChannel );
                         pSrcScanline[index] = ChannelType( res );
