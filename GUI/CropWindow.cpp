@@ -74,9 +74,9 @@ int CropWindow::GetSerializedStringSize() const
             + SettingsInterpolationUser<CropTransform>::GetSerializedStringSize();
 }
 
-Expected<IBitmapPtr, std::string> CropWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> CropWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
-    auto pInputBitmapOrErr = GetInputPreview(true, true);
+    auto pInputBitmapOrErr = GetInputPreview(true, true, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

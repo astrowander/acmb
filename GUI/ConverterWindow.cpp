@@ -45,9 +45,9 @@ int ConverterWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstPixelFormat );
 }
 
-Expected<IBitmapPtr, std::string> ConverterWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> ConverterWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

@@ -47,9 +47,9 @@ int CenterObjectWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize ) + gui::GetSerializedStringSize( _threshold );
 }
 
-Expected<IBitmapPtr, std::string> CenterObjectWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> CenterObjectWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

@@ -24,7 +24,7 @@ public:
         Failed
     };
 
-    using ProgressFunc = std::function<bool(float)>;
+    using ProgressFunc = std::function<bool(std::optional<float>)>;
     using TaskFunc = std::function<std::string(ProgressFunc)>;
 
 
@@ -70,9 +70,14 @@ public:
         {
             try
             {
-                task([state](float progress) -> bool
+                // Run the task and report progress.
+                // If progress is provided, it is clamped to [0.0, 1.0] and stored in the shared state
+                // The task can be cancelled by returning false from the progress callback.
+                task([state](std::optional<float> progress) -> bool
                 {
-                    state->progress.store(std::clamp(progress, 0.0f, 1.0f));
+                    if ( progress )
+                        state->progress.store(std::clamp(*progress, 0.0f, 1.0f));
+
                     return !state->cancelRequested.load();
                 });
 

@@ -46,12 +46,12 @@ int ResizeWindow::GetSerializedStringSize() const
     return PipelineElementWindow::GetSerializedStringSize() + gui::GetSerializedStringSize( _dstSize );
 }
 
-Expected<IBitmapPtr, std::string> ResizeWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> ResizeWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
     if ( !GetInput() )
         return unexpected("Primary input of the '" + _name + "' element is not set");
 
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

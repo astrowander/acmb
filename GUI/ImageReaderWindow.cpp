@@ -27,7 +27,7 @@ void ImageReaderWindow::ResetTasks(){
     PipelineElementWindow::ResetTasks();
 }
 
-Expected<IBitmapPtr, std::string> ImageReaderWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> ImageReaderWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
     Size size;
     if ( fullSize )
@@ -48,6 +48,9 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::GeneratePreviewBitmap(bool 
     {
         return *resOrErr;
     }
+
+    if ( isCanceled && isCanceled() )
+        return unexpected("Preview generation was canceled");
 
     return unexpected( resOrErr.error() );
 }

@@ -7,7 +7,7 @@ class FlatFieldWindow : public PipelineElementWindow, public FileListUser
 {
     float _intensity = 100.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
-    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) override;
 
     virtual void OnSelectedFrameChanged(int idx) override {}
 

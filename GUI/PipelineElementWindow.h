@@ -80,7 +80,7 @@ public:
 
     Expected<IBitmapPtr, std::string> RunTaskAndReportProgress( size_t i );
 
-    Expected<IBitmapPtr, std::string> GetInputPreview(bool forNextElement, bool fullSize) const;
+    Expected<IBitmapPtr, std::string> GetInputPreview(bool forNextElement, bool fullSize, std::function<bool()> isCanceled) const;
     std::shared_ptr<PipelineElementWindow> GetInput() const;
     void SetInput( std::shared_ptr<PipelineElementWindow> pPrimaryInput );
 
@@ -137,7 +137,7 @@ public:
 
     virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
 
-    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) = 0;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) = 0;
 
 protected:
     virtual void DrawDialog() override;

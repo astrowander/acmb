@@ -70,13 +70,13 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTask( size_t i )
 
 }
 
-Expected<IBitmapPtr, std::string> PipelineElementWindow::GetInputPreview(bool forNextElement, bool fullSize) const
+Expected<IBitmapPtr, std::string> PipelineElementWindow::GetInputPreview(bool forNextElement, bool fullSize, std::function<bool()> isCanceled) const
 {
     auto pInput = GetInput();
     if ( !pInput )
         return unexpected("Primary input of the '" + _name + "' element is not set");
 
-    auto pInputBitmapOrErr = pInput->GeneratePreviewBitmap(forNextElement, fullSize);
+    auto pInputBitmapOrErr = pInput->GeneratePreviewBitmap(forNextElement, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -260,9 +260,14 @@ std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElemen
     {
         _previewWorkers.emplace_back();
         auto self = std::static_pointer_cast<PipelineElementWindow>(shared_from_this());
-        _previewWorkers.back().Start( [self, forNextElement, fullSize]( auto reportProgress )
+        _previewWorkers.back().Start( [self, forNextElement, fullSize]( std::function<bool(std::optional<float>)> reportProgress )
         {
-            auto pPreviewOrErr = self->GeneratePreviewBitmap(forNextElement, fullSize);
+            auto isCanceled = [reportProgress]() -> bool
+            {
+                return !reportProgress(std::nullopt);
+            };
+
+            auto pPreviewOrErr = self->GeneratePreviewBitmap(forNextElement, fullSize, isCanceled);
             if ( !pPreviewOrErr.has_value())
             {
                 return pPreviewOrErr.error();

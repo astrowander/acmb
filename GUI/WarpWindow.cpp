@@ -51,9 +51,9 @@ void WarpWindow::DrawPipelineElementControls()
     }
 }
 
-Expected<IBitmapPtr, std::string> WarpWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> WarpWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

@@ -131,7 +131,7 @@ void LevelsWindow::DrawPipelineElementControls()
 
 Expected<void, std::string> LevelsWindow::AutoAdjustLevels()
 {
-    auto pInputBitmapOrErr = GetInput()->GeneratePreviewBitmap(true, true);
+    auto pInputBitmapOrErr = GetInput()->GeneratePreviewBitmap(true, true, [](){ return false; });
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 
@@ -182,13 +182,13 @@ int LevelsWindow::GetSerializedStringSize() const
     + SettingsInterpolationUser<LevelsTransform>::GetSerializedStringSize();
 }
 
-Expected<IBitmapPtr, std::string> LevelsWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize)
+Expected<IBitmapPtr, std::string> LevelsWindow::GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled)
 {
     auto pInput = GetInput();
     if ( !pInput )
         return unexpected("No input connected");
 
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected(pInputBitmapOrErr.error());
 

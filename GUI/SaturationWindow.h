@@ -9,7 +9,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 class SaturationWindow : public PipelineElementWindow, public SettingsInterpolationUser<SaturationTransform>
 {
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
-    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) override;
 public:
     SaturationWindow(  );
     virtual void DrawPipelineElementControls() override;

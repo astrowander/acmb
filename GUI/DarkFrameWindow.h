@@ -8,7 +8,7 @@ class DarkFrameWindow : public PipelineElementWindow, public FileListUser
     float _multiplier = 1.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 
-    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize) override;
+    virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) override;
 
     virtual void OnSelectedFrameChanged(int idx) override {}
 

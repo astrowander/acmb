@@ -35,9 +35,9 @@ void BitmapHealerWindow::DrawPipelineElementControls()
     ImGui::PopItemWidth();
 }
 
-Expected<IBitmapPtr, std::string> BitmapHealerWindow::GeneratePreviewBitmap(bool, bool fullSize)
+Expected<IBitmapPtr, std::string> BitmapHealerWindow::GeneratePreviewBitmap(bool, bool fullSize, std::function<bool()> isCanceled)
 {
-    auto pInputBitmapOrErr = GetInputPreview(true, fullSize);
+    auto pInputBitmapOrErr = GetInputPreview(true, fullSize, isCanceled);
     if ( !pInputBitmapOrErr )
         return unexpected( pInputBitmapOrErr.error() );
 
