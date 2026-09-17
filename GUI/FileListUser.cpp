@@ -149,6 +149,7 @@ void FileListUser::DrawControls()
     if ( fileDialog.Display(openDialogName, {}, { 300 * PipelineElementWindow::cMenuScaling, 200 * PipelineElementWindow::cMenuScaling }) )
     {
         _workingDirectory = fileDialog.GetCurrentPath() + "/";
+        sLastUsedDirectory = _workingDirectory;
         // action if OK
         if ( fileDialog.IsOk() )
         {

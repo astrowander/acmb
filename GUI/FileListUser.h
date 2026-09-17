@@ -18,7 +18,9 @@ class FileListUser
     mutable std::mutex _mutex;
 
     int _totalFrameCount = 0;
-    std::string _workingDirectory = ".";
+
+    inline static std::string sLastUsedDirectory = ".";
+    std::string _workingDirectory = sLastUsedDirectory;
     std::vector<int> _frameIndicesStartsWith;
     std::vector<std::string> _fileNames;
     IBitmapPtr _pStackedFrames;
