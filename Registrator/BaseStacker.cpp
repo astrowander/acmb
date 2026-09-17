@@ -388,6 +388,7 @@ IBitmapPtr BaseStacker::GetResult()
     if ( ( _stackMode == StackMode::LightNoAlign || _stackMode == StackMode::StarTrails ) && pRes->GetPixelFormat() == PixelFormat::Bayer16 )
         pRes = DebayerTransform::Debayer( pRes, _pCameraSettings );
 
+    pRes->SetCameraSettings(_pCameraSettings);
     return pRes;
 }
 
