@@ -53,7 +53,9 @@ void Registrator::Registrate(std::shared_ptr<IBitmap> pBitmap)
     {
         auto pConverter = Converter::Create(pBitmap, BytesPerChannel(pBitmap->GetPixelFormat()) == 1 ? PixelFormat::Gray8 : PixelFormat::Gray16);
         _pBitmap = pConverter->RunAndGetBitmap();
-    }    
+    }
+
+    _pBitmapCopy = _pBitmap->Clone();
 
     oneapi::tbb::parallel_for( oneapi::tbb::blocked_range<int>( 0, hTileCount * vTileCount ), [this] ( const oneapi::tbb::blocked_range<int>& range )
     {

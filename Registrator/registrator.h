@@ -18,6 +18,7 @@ public:
 
 private:
     std::shared_ptr<IBitmap> _pBitmap;
+    std::shared_ptr<IBitmap> _pBitmapCopy;
     double _threshold = 40;
     int _minStarSize = 5;
     int _maxStarSize = 25;
@@ -43,6 +44,7 @@ private:
 
         using ChannelType = typename PixelFormatTraits<pixelFormat>::ChannelType;
         auto pGrayBitmap = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmap);
+        auto pGrayBitmapCopy = std::static_pointer_cast<Bitmap<pixelFormat>>(_pBitmapCopy);
 
         auto w = pGrayBitmap->GetWidth();
         auto h = pGrayBitmap->GetHeight();
@@ -59,7 +61,7 @@ private:
         auto threshold = static_cast<ChannelType>(std::min(static_cast<uint32_t>(*median * (1 + _threshold / 100)), static_cast<uint32_t>(std::numeric_limits<ChannelType>::max())));
 
         auto pData = pGrayBitmap->GetScanline(0);
-        
+        auto pDataCopy = pGrayBitmapCopy->GetScanline(0);
 
         for (int i = roi.y; i < roi.y + roi.height; ++i)
         {
@@ -73,8 +75,30 @@ private:
                     {
                         star.center.x /= star.luminance;
                         star.center.y /= star.luminance;
+
+                        // calculate moments
+                        for ( int y = star.rect.y; y < star.rect.y + star.rect.height; ++y )
+                        {
+                            for ( int x = star.rect.x; x < star.rect.x + star.rect.width; ++x )
+                            {
+                                double pixelLuminance = pDataCopy[y * w + x] - threshold;
+                                if ( pixelLuminance > 0 )
+                                {
+                                    double dx = x - star.center.x;
+                                    double dy = y - star.center.y;
+                                    star.m.xx += dx * dx * pixelLuminance;
+                                    star.m.yy += dy * dy * pixelLuminance;
+                                    star.m.xy += dx * dy * pixelLuminance;
+                                }
+                            }
+                        }
+
+                        star.m.xx /= star.luminance;
+                        star.m.yy /= star.luminance;
+                        star.m.xy /= star.luminance;
+
                         res.push_back(star);
-                    }
+                    }                   
                 }
             }
 
@@ -86,8 +110,10 @@ private:
     template <typename ChannelType>
     void InspectStar(Star& star, ChannelType threshold, ChannelType* pData, int x, int y, int w, int h, Rect roi)
     {
-        ++star.pixelCount;        
-        auto pixelLuminance = pData[y * w + x] - threshold;
+        ++star.pixelCount;
+        star.isClipped = star.isClipped || pData[y * w + x] >= ChannelType(std::numeric_limits<ChannelType>::max() * 0.9 + 0.5);
+
+        double pixelLuminance = pData[y * w + x] - threshold;
         star.luminance += pixelLuminance;
         star.center.x += x * pixelLuminance;
         star.center.y += y * pixelLuminance;

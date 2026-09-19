@@ -87,6 +87,7 @@
     <ClInclude Include="Transforms\CropTransform.h" />
     <ClInclude Include="Transforms\deaberratetransform.h" />
     <ClInclude Include="Transforms\DebayerTransform.h" />
+    <ClInclude Include="Transforms\DeconvTransform.h" />
     <ClInclude Include="Transforms\DeflickerTransform.h" />
     <ClInclude Include="Transforms\HistogramBuilder.h" />
     <ClInclude Include="Transforms\LaplacianTransform.h" />
@@ -124,6 +125,7 @@
     <ClCompile Include="Core\IPipelineElement.cpp" />
     <ClCompile Include="Core\log.cpp" />
     <ClCompile Include="Core\pipeline.cpp" />
+    <ClCompile Include="Geometry\delaunator.cpp" />
     <ClCompile Include="Geometry\startrektransform.cpp" />
     <ClCompile Include="Geometry\triangle.cpp" />
     <ClCompile Include="Registrator\BaseStacker.cpp" />
@@ -148,6 +150,7 @@
     <ClCompile Include="Transforms\CropTransform.cpp" />
     <ClCompile Include="Transforms\deaberratetransform.cpp" />
     <ClCompile Include="Transforms\DebayerTransform.cpp" />
+    <ClCompile Include="Transforms\DeconvTransform.cpp" />
     <ClCompile Include="Transforms\DeflickerTransform.cpp" />
     <ClCompile Include="Transforms\HistogramBuilder.cpp" />
     <ClCompile Include="Transforms\LaplacianTransform.cpp" />

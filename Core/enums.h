@@ -23,6 +23,7 @@ enum class PixelFormat : uint32_t
    Bayer16 = 0x020301,
    YUV24 = 0x010403
 };
+
 /// prints pixel format to stream
 std::ostream& operator<<(std::ostream& out, const PixelFormat& pixelFormat);
 /// represents color space of an image

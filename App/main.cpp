@@ -13,6 +13,7 @@
 #include "../Transforms/LaplacianTransform.h"
 #include "../Transforms/HistogramBuilder.h"
 #include "../Transforms/ChannelEqualizer.h"
+#include "../Transforms/DeconvTransform.h"
 #include <chrono>
 
 using namespace acmb;
@@ -60,74 +61,17 @@ int main( int argc, const char** argv )
             std::cout << "Best: " << std::endl;
             std::cout << "score: " << bestIt->first << std::endl;
             auto pBestBitmap = pDecoder->ReadBitmap( bestIt->second.index );*/
-        auto pBestBitmap = IBitmap::Create( "D:/Images/jupiter_best.tif", PixelFormat::RGB48 );
-        pBestBitmap = Converter::Convert( pBestBitmap, PixelFormat::Gray16 );
-        auto pBinningTransform = BinningTransform::Create( pBestBitmap, { 5,5 } );
-        pBestBitmap = pBinningTransform->RunAndGetBitmap();
 
-        const auto pixelFormat = pBestBitmap->GetPixelFormat();
-        const auto bytesPerChannel = BytesPerChannel( pixelFormat );
-        const float absoluteMax = (bytesPerChannel == 1) ? 255.0f : 65535.0f;
+        const std::string filePath = "F:\\Projects\\AstroCombine\\Tests\\TestFiles\\TIFF\\m22.tif";
+        auto pDecoder = ImageDecoder::Create(filePath, PixelFormat::RGB48);
+        auto pBitmap = pDecoder->ReadBitmap();
 
-        auto pHistogramBuilder = HistogramBuilder::Create( pBestBitmap );
-        pHistogramBuilder->BuildHistogram();
-        //constexpr float logTargetMedian = 1.0f;
+        auto pDeconvTransform = DeconvTransform::Create(pBitmap, { 1.0 });
+        pBitmap = pDeconvTransform->RunAndGetBitmap();
 
-        const float minLevel = pHistogramBuilder->GetChannelStatistics( 0 ).min / absoluteMax;
-        const float maxLevel = pHistogramBuilder->GetChannelStatistics( 0 ).max / absoluteMax;
-        //const float denom = log( (pHistogramBuilder->GetChannelStatistics( 0 ).median / absoluteMax- minLevel) / (maxLevel - minLevel) );
-        const float gamma = 1.5f;
+        pBitmap->Save(pBitmap, "F:\\Projects\\AstroCombine\\Tests\\TestFiles\\TIFF\\m22_deconv.tif");
 
-        pBestBitmap = ChannelEqualizer::Equalize( pBestBitmap,
-                                                  {
-                                                        [&]( float srcVal )
-                                                        {
-                                                            if ( srcVal < minLevel )
-                                                                return 0.0f;
-                                                            if ( srcVal > maxLevel )
-                                                                return 1.0f;
 
-                                                            float res = (srcVal - minLevel) / (maxLevel - minLevel);
-                                                            res = std::pow( res, gamma );
-
-                                                            return res;
-                                                        }
-                                                  } );
-        //IBitmap::Save( pBestBitmap, "F:/Images/jupiter_best_downscaled.tif" );
-        //IBitmap::Save( bestIt->second.pBitmap, "F:/Images/jupiter_best_laplacian.tif" );
-        IBitmap::Save( pBestBitmap, "D:/Images/jupiter_best_downscaled.tif" );
-        const auto features = DetectFeatures( pBestBitmap, 0.1f, 6000 );
-        //auto pGrayBitmap = std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBestBitmap);
-        for ( auto& feature : features )
-            pBestBitmap->SetChannel( feature.x, feature.y, 0, 65535 );
-        IBitmap::Save( pBestBitmap, "D:/Images/jupiter_best_downscaled_fast.tif" );
-        /*auto secondIt = std::next(bestIt);
-        std::cout << "Second: " << std::endl;
-        std::cout << "score: " << secondIt->first << std::endl;
-        IBitmap::Save( pDecoder->ReadBitmap( secondIt->second.index ), "F:/Images/jupiter_second.tif" );
-        IBitmap::Save( secondIt->second.pBitmap, "F:/Images/jupiter_second_laplacian.tif" );
-
-        auto worstIt = frames.rbegin();
-        std::cout << "Worst: " << std::endl;
-        std::cout << "score" << worstIt->first << std::endl;
-        IBitmap::Save( pDecoder->ReadBitmap( worstIt->second.index ), "F:/Images/jupiter_worst.tif" );
-
-        //pResult = MedianBlurTransform::MedianBlur( pResult, 3 );
-        //IBitmap::Save( pResult, "F:/Images/jupiter_laplacian.tif" );
-
-       /* SerDecoder decoder;
-        decoder.Attach( "F:\\Projects\\AstroCombine\\Tests\\TestFiles\\SER\\19_45_36_crop.ser" );
-
-        auto frameCount = decoder.GetFrameCount();
-        std::vector<IBitmapPtr> bitmaps( frameCount );
-        for ( size_t i = 0; i < frameCount; ++i )
-        {
-            bitmaps[i] = decoder.ReadBitmap();
-            bitmaps[i] = Converter::Convert( bitmaps[i], PixelFormat::Gray16 );
-        }
-
-        SortingHat sortingHat( bitmaps );
-        sortingHat.SortAndFilter();*/
 
         auto duration = std::chrono::steady_clock::now() - start;
         const size_t totalMilliSecs = std::chrono::duration_cast< std::chrono::milliseconds >(duration).count();

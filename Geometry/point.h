@@ -83,6 +83,17 @@ struct PointT
         return x * x + y * y;
     }
 
+	PointT Normalized() const
+	{
+		T len = Length();
+		return PointT(x / len, y / len);
+    }
+
+	PointT Rounded(double precision) const
+	{
+		return PointT(std::round(x / precision) * precision, std::round(y / precision) * precision);
+    }
+
 	bool operator==(const PointT& rhs) const 
 	{
 		return x == rhs.x && y == rhs.y;
@@ -98,6 +109,27 @@ struct PointT
 
 	template <typename U>
 	friend PointT<U> operator*( U lhs, const PointT<U>& rhs );
+
+	struct ProjectionResult
+	{
+		PointT<T> point;
+		T distanceSq;
+        T param;
+    };
+
+	static ProjectionResult ProjectPointOntoSegment(const PointT<T>& p, const PointT<T>& a, const PointT<T>& b)
+	{
+		PointT<T> ab = b - a;
+		T ab_squared = ab.SquaredLength();
+		if ( ab_squared == 0 )
+		{
+			return { a, p.SquaredDistance(a), 0 };
+		}
+		T t = ((p - a).x * ab.x + (p - a).y * ab.y) / ab_squared;
+		t = std::max(static_cast<T>(0), std::min(static_cast<T>(1), t));
+		PointT<T> projection = a + ab * t;
+		return { projection, p.SquaredDistance(projection), t };
+	}
 };
 
 template <typename T>
