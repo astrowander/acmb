@@ -9,10 +9,10 @@ class DeconvTransform : public BaseTransform
 public:
     struct Settings
     {
-        double _thresholdPercents = 40;
+        double _thresholdPercents = 10;
         int _minStarSize = 5;
         int _maxStarSize = 25;
-        int _iterations = 10;
+        int _iterations = 8;
         double _intensity = 1.0;
     };
 

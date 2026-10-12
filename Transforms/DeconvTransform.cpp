@@ -3,6 +3,7 @@
 #include "../Registrator/registrator.h"
 #include "../Geometry/delaunator.hpp"
 #include "../Geometry/triangle.h"
+#include "../Transforms/HistogramBuilder.h"
 
 #include <optional>
 #include <algorithm>
@@ -65,6 +66,14 @@ int CalcKernelSize(double sigma, double L)
     int radius = static_cast<int>(
         std::ceil(0.5 * L + k * sigma)
         );
+
+    return 2 * radius + 1;
+}
+
+int calcMotionBlurKernelSize(double L)
+{
+    int radius =
+        static_cast<int>(std::ceil(0.5 * L)) + 1;
 
     return 2 * radius + 1;
 }
@@ -253,6 +262,23 @@ struct PSF
     {
         return data[y * size + x];
     }
+
+    std::shared_ptr<Bitmap<PixelFormat::Gray16>> GetAsBitmap(const std::string& filename) const
+    {
+        std::vector<uint16_t> bitmapData(size * size);
+        double maxValue = *std::max_element(data.begin(), data.end());
+        for (int i = 0; i < size * size; ++i)
+        {
+            bitmapData[i] = static_cast<uint16_t>(std::round((data[i] / maxValue) * 65535.0));
+        }
+        auto pBitmap = IBitmap::Create(size, size, PixelFormat::Gray16);
+        for (int y = 0; y < size; ++y)
+        {
+            memcpy(pBitmap->GetPlanarScanline(y), &bitmapData[y * size], size * sizeof(uint16_t));
+        }
+
+        return std::static_pointer_cast<Bitmap<PixelFormat::Gray16>>(pBitmap);
+    }
 };
 
 PSF MakePSF(int size, double L, double sigma, double theta)
@@ -336,6 +362,86 @@ PSF MakePSF(int size, double L, double sigma, double theta)
     return psf;
 }
 
+PSF MakeMotionPSF(int size, double L, double theta)
+{
+    L = std::max(L, 0.0);
+
+    PSF psf;
+    psf.size = size;
+    psf.data.assign(size * size, 0.0);
+
+    const int halfSize = size / 2;
+
+    // Если смаза почти нет — delta kernel.
+    if ( L < 1e-6 )
+    {
+        psf(halfSize, halfSize) = 1.0;
+        return psf;
+    }
+
+    const double ct = std::cos(theta);
+    const double st = std::sin(theta);
+
+    // Количество сэмплов вдоль линии.
+    // 8 сэмплов на пиксель длины обычно хватает.
+    const int samples = std::max(
+        16,
+        static_cast<int>(std::ceil(L * 8.0))
+    );
+
+    for ( int i = 0; i < samples; ++i )
+    {
+
+        const double t =
+            L * (
+                (static_cast<double>(i) + 0.5) /
+                static_cast<double>(samples)
+                - 0.5
+                );
+
+        // Координаты sample в системе kernel
+        const double x =
+            static_cast<double>(halfSize) + t * ct;
+
+        const double y =
+            static_cast<double>(halfSize) + t * st;
+
+        const int x0 = static_cast<int>(std::floor(x));
+        const int y0 = static_cast<int>(std::floor(y));
+
+        const double fx = x - x0;
+        const double fy = y - y0;
+
+        auto Add = [&](int px, int py, double w)
+        {
+            if ( px >= 0 && px < size &&
+                py >= 0 && py < size )
+            {
+                psf(py, px) += w;
+            }
+        };
+
+        // Bilinear splatting
+        Add(x0, y0, (1.0 - fx) * (1.0 - fy));
+        Add(x0 + 1, y0, fx * (1.0 - fy));
+        Add(x0, y0 + 1, (1.0 - fx) * fy);
+        Add(x0 + 1, y0 + 1, fx * fy);
+    }
+
+    // Нормализация
+    double sum = 0.0;
+    for ( double v : psf.data )
+        sum += v;
+
+    if ( sum > 0.0 )
+    {
+        for ( double& v : psf.data )
+            v /= sum;
+    }
+
+    return psf;
+}
+
 using PositionToStarAndMomentsMap = std::unordered_map <PointD, std::pair<Star, StarMoments>, PointDHasher>;
 
 class PSFCache
@@ -364,6 +470,42 @@ public:
         _psfIdxCache.clear();
         _psfCache.clear();
         std::fill(_psfIndices.begin(), _psfIndices.end(), -1);
+    }
+
+    void GenerateFromOneStar(const Star& star, const StarMoments& moments, int width, int height)
+    {
+        Clear();
+        PSF psf = MakePSF(CalcKernelSize(moments.sigma, moments.L), moments.L, moments.sigma, moments.theta);
+
+        /*Star::MomentMatrix psfMatrix;
+        double sum = 0.0;
+        for (int y = 0; y < psf.size; ++y)
+        {
+            for (int x = 0; x < psf.size; ++x)
+            {
+                double value = psf(y, x);
+                double dx = x - psf.size / 2;
+                double dy = y - psf.size / 2;
+                psfMatrix.xx += value * dx * dx;
+                psfMatrix.yy += value * dy * dy;
+                psfMatrix.xy += value * dx * dy;
+
+                sum += value;
+            }
+        }
+
+        psfMatrix.xx /= sum;
+        psfMatrix.yy /= sum;
+        psfMatrix.xy /= sum;
+
+        auto psfMomentsOpt = CalculateStarMoments(psfMatrix);
+
+        auto psfBitmap = psf.GetAsBitmap("");
+        psfBitmap->Save(psfBitmap, "F:\\Projects\\AstroCombine\\Tests\\TestFiles\\TIFF\\psf.tif");*/
+
+        _psfCache.push_back(std::move(psf));
+        _psfIdxCache.insert({ moments, 0 });
+        _psfIndices.assign(width * height, 0);
     }
 
     void Generate(const std::vector<Triangle>& triangles, const std::vector<PointD>& hullPoints, const std::vector<int>& triangleIndices, const PositionToStarAndMomentsMap& starMomentsMap, int width, int height)
@@ -448,7 +590,7 @@ class DeconvTransformImpl : public DeconvTransform
 
     using FPImage = std::vector<double>;
 
-    static FPImage ConvertBitmapToFPImage(std::shared_ptr<Bitmap<pixelFormat>> pBitmap)
+    static FPImage ConvertBitmapToFPImage(std::shared_ptr<Bitmap<pixelFormat>> pBitmap, const std::array<double, channelCount>& bgValues)
     {
         const auto width = pBitmap->GetWidth();
         const auto height = pBitmap->GetHeight();
@@ -459,14 +601,14 @@ class DeconvTransformImpl : public DeconvTransform
             {
                 for (uint32_t c = 0; c < channelCount; ++c)
                 {
-                    image[(y * width + x) * channelCount + c] = static_cast<double>(pBitmap->GetChannel(x, y, c));
+                    image[(y * width + x) * channelCount + c] = std::max(0.0, double(pBitmap->GetChannel(x, y, c)) - bgValues[c]);
                 }
             }
         }
         return image;
     }
 
-    static std::shared_ptr<Bitmap<pixelFormat>> ConvertFPImageToBitmap(const FPImage& image, uint32_t width, uint32_t height)
+    static std::shared_ptr<Bitmap<pixelFormat>> ConvertFPImageToBitmap(const FPImage& image, uint32_t width, uint32_t height, const std::array<double, channelCount>& bgValues)
     {
         auto pBitmap = std::make_shared<Bitmap<pixelFormat>>(width, height);
         for (uint32_t y = 0; y < height; ++y)
@@ -475,7 +617,7 @@ class DeconvTransformImpl : public DeconvTransform
             {
                 for (uint32_t c = 0; c < channelCount; ++c)
                 {
-                    double value = image[(y * width + x) * channelCount + c] + 0.5;
+                    double value = image[(y * width + x) * channelCount + c] + bgValues[c] + 0.5;
                     value = std::clamp(value, 0.0, static_cast<double>(std::numeric_limits<ChannelType>::max()));
                     pBitmap->SetChannel(x, y, c, static_cast<ChannelType>(value));
                 }
@@ -574,7 +716,18 @@ class DeconvTransformImpl : public DeconvTransform
         const int width = int(pObserved->GetWidth());
         const int height = int(pObserved->GetHeight());
 
-        FPImage observed = ConvertBitmapToFPImage(pObserved);
+        auto pHistogramBuilder = HistogramBuilder::Create(pObserved);
+        pHistogramBuilder->BuildHistogram();
+
+        std::array<double, channelCount> bgValues = {};
+        for ( uint32_t c = 0; c < channelCount; ++c )
+        {
+            const auto& stats = pHistogramBuilder->GetChannelStatistics(c);
+            const double median = stats.median;
+            bgValues[c] = median;
+        }
+
+        FPImage observed = ConvertBitmapToFPImage(pObserved, bgValues);
         FPImage estimate = observed;
         FPImage predicted;
         FPImage correction;
@@ -600,28 +753,60 @@ class DeconvTransformImpl : public DeconvTransform
                     }
                 }
             }
-        }
 
-        ApplyHT(ratio, correction, width, height, cache);
+            ApplyHT(ratio, correction, width, height, cache);
 
-        for ( int y = 0; y < height; ++y )
-        {
-            for ( int x = 0; x < width; ++x )
+            for ( int y = 0; y < height; ++y )
             {
-                int pixelIndex = (y * width + x) * channelCount;
-
-                for ( uint32_t c = 0; c < channelCount; ++c )
+                for ( int x = 0; x < width; ++x )
                 {
-                    estimate[pixelIndex + c] *=
-                        correction[pixelIndex + c] /
-                        (normalization[pixelIndex + c] + epsilon);
+                    int pixelIndex = (y * width + x) * channelCount;
 
-                    estimate[pixelIndex + c] = std::max(0.0, estimate[pixelIndex + c]);
+                    for ( uint32_t c = 0; c < channelCount; ++c )
+                    {
+                        estimate[pixelIndex + c] *=
+                            correction[pixelIndex + c] /
+                            (normalization[pixelIndex + c] + epsilon);
+
+                        estimate[pixelIndex + c] = std::max(0.0, estimate[pixelIndex + c]);
+                    }
                 }
             }
         }
 
-        return ConvertFPImageToBitmap(estimate, width, height);
+        const double bg = channelCount == 1 ? bgValues[0] : (bgValues[0] + bgValues[1] + bgValues[2]) / 3.0;
+
+        // stretch the estimate to fit into the channel range
+        const double actualMax = bg + *std::max_element(estimate.begin(), estimate.end());
+        constexpr double desiredMax = 0.9 * std::numeric_limits<ChannelType>::max();
+        const double scale = desiredMax / actualMax;
+
+        if ( actualMax > 0.0 )
+        {
+            for ( double& v : estimate )
+                v *= scale;
+
+            for ( auto& bgValue : bgValues )
+                bgValue *= scale;
+        }
+
+        auto res =  ConvertFPImageToBitmap(estimate, width, height, bgValues);
+
+        for ( uint32_t i = 0; i < height; ++i )
+        {
+            ChannelType* pSrcScanline = pObserved->GetScanline(i);
+            ChannelType* pDstScanline = res->GetScanline(i);
+            for ( uint32_t j = 0; j < width; ++j )
+            {
+                for ( uint32_t c = 0; c < channelCount; ++c )
+                {
+                    if ( estimate[(i * width + j) * channelCount + c] < epsilon )
+                        pDstScanline[j * channelCount + c] = ChannelType(std::clamp(pSrcScanline[j * channelCount + c] * scale + 0.5, 0.0, double(std::numeric_limits<ChannelType>::max())));
+                }
+            }
+        }
+
+        return res;
     }
 
 public:
@@ -649,18 +834,31 @@ public:
         PositionToStarAndMomentsMap starMomentsMap;
         FilterStarsWithInvalidMoments(stars, starMomentsMap);
 
-        FilterStarsTooFarFromMedian(stars, starMomentsMap);      
+        FilterStarsTooFarFromMedian(stars, starMomentsMap);
 
-        std::vector<Triangle> triangles;
-        std::vector<PointD> hullPoints;
-        TriangulateStars(stars, triangles, hullPoints);
-
-        std::vector<int> triangleIndices;
-        RasterizeTriangles(triangles, width, height, triangleIndices);
+        if ( stars.empty() )
+            return;
 
         PSFCache psfCache(width, height);
-        psfCache.Generate(triangles, hullPoints, triangleIndices, starMomentsMap, width, height);
-       
+
+        if ( stars.size() < 3 )
+        {
+            // Not enough stars to triangulate, use the first star's moments for the whole image
+            const auto& moments = starMomentsMap[stars[0].center.Rounded(epsilon)].second;
+            psfCache.GenerateFromOneStar(stars[0], moments, width, height);
+        }
+        else
+        {
+            std::vector<Triangle> triangles;
+            std::vector<PointD> hullPoints;
+            TriangulateStars(stars, triangles, hullPoints);
+
+            std::vector<int> triangleIndices;
+            RasterizeTriangles(triangles, width, height, triangleIndices);
+
+            psfCache.Generate(triangles, hullPoints, triangleIndices, starMomentsMap, width, height);
+
+        }
 
         _pDstBitmap = LucyRichardson(pSrcBitmap, psfCache, _settings._iterations);
     }

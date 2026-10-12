@@ -76,12 +76,23 @@ private:
                         star.center.x /= star.luminance;
                         star.center.y /= star.luminance;
 
+                        auto starRect = star.rect;
+                        starRect.ExpandRight(star.rect.x + 2 * star.rect.width);
+                        starRect.ExpandLeft(star.rect.x - star.rect.width);
+
+                        double sumLuminance = 0.0;
+
+                        double bgValue = *median;
+
                         // calculate moments
-                        for ( int y = star.rect.y; y < star.rect.y + star.rect.height; ++y )
+                        for ( int y = starRect.y; y < starRect.y + starRect.height; ++y )
                         {
-                            for ( int x = star.rect.x; x < star.rect.x + star.rect.width; ++x )
+                            for ( int x = starRect.x; x < starRect.x + starRect.width; ++x )
                             {
-                                double pixelLuminance = pDataCopy[y * w + x] - threshold;
+                                if ( x < 0 || y < 0 || x >= w || y >= h )
+                                    continue;
+
+                                double pixelLuminance = pDataCopy[y * w + x] - bgValue;
                                 if ( pixelLuminance > 0 )
                                 {
                                     double dx = x - star.center.x;
@@ -90,12 +101,13 @@ private:
                                     star.m.yy += dy * dy * pixelLuminance;
                                     star.m.xy += dx * dy * pixelLuminance;
                                 }
+                                sumLuminance += pixelLuminance;
                             }
                         }
 
-                        star.m.xx /= star.luminance;
-                        star.m.yy /= star.luminance;
-                        star.m.xy /= star.luminance;
+                        star.m.xx /= sumLuminance;
+                        star.m.yy /= sumLuminance;
+                        star.m.xy /= sumLuminance;
 
                         res.push_back(star);
                     }                   
