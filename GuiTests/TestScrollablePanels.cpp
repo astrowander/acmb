@@ -118,20 +118,23 @@ BEGIN_TEST(SmallWorkspaceScrollsInsteadOfCompressingPanels)
     EXPECT_TRUE(maxY > 0);
 END_TEST
 
-BEGIN_TEST(VerticalScrollMakesFinalToolAndSettingReachable)
+BEGIN_TEST(EveryToolAndSettingControlRemainsReachableAtSmallSizes)
+    const ImVec2 sizes[] = {{1280, 720}, {1024, 600}, {800, 600}, {640, 480}};
+    for (const auto size : sizes)
+    for (const float scale : {1.0f, 1.25f, 1.5f})
     for (const char* panel : {"ToolboxSection", "SettingsSection"})
     {
-        TestAppHost host;
+        std::cout << panel << ": " << size.x << "x" << size.y << " @ " << scale << '\n';
+        TestAppHost host({size, scale});
         float maxScroll = 0;
         float currentScroll = 0;
-        bool scrollToEnd = false;
-        ImVec2 lastCenter{};
+        int revealControl = -1;
+        ImVec2 centers[20]{};
+        bool visible[20]{};
         int activated = -1;
         const auto draw = [&] {
             BeginFixture();
             gui::BeginVerticalPanel(panel, {320, 180}, 220);
-            if (scrollToEnd)
-                ImGui::SetScrollY(ImGui::GetScrollMaxY());
             maxScroll = ImGui::GetScrollMaxY();
             currentScroll = ImGui::GetScrollY();
             for (int i = 0; i < 20; ++i)
@@ -139,8 +142,21 @@ BEGIN_TEST(VerticalScrollMakesFinalToolAndSettingReachable)
                 ImGui::PushID(i);
                 gui::IconTextButton("row", "+", "Tool or setting " + std::to_string(i),
                     240, false, [&] { activated = i; });
-                if (i == 19)
-                    lastCenter = ItemCenter();
+                centers[i] = ItemCenter();
+                const auto itemMin = ImGui::GetItemRectMin();
+                const auto itemMax = ImGui::GetItemRectMax();
+                const auto panelPosition = ImGui::GetWindowPos();
+                const auto panelSize = ImGui::GetWindowSize();
+                const auto padding = ImGui::GetStyle().WindowPadding;
+                const float scrollbar = ImGui::GetStyle().ScrollbarSize;
+                visible[i] = ImGui::IsItemVisible() &&
+                    itemMin.x >= panelPosition.x + padding.x - 0.5f &&
+                    itemMin.y >= panelPosition.y + padding.y - 0.5f &&
+                    itemMax.x <= panelPosition.x + panelSize.x - padding.x - scrollbar + 0.5f &&
+                    itemMax.y <= panelPosition.y + panelSize.y - padding.y + 0.5f &&
+                    itemMin.x >= 0 && itemMin.y >= 0 && itemMax.x <= size.x && itemMax.y <= size.y;
+                if (i == revealControl)
+                    ImGui::SetScrollHereY(0.5f);
                 ImGui::PopID();
             }
             ImGui::EndChild();
@@ -151,12 +167,20 @@ BEGIN_TEST(VerticalScrollMakesFinalToolAndSettingReachable)
         EXPECT_TRUE(maxScroll > 0);
         host.Wheel({120, 100}, 0, -1, draw);
         EXPECT_TRUE(currentScroll > 0);
-        scrollToEnd = true;
-        host.RenderFrame(draw);
-        host.RenderFrame(draw);
-        scrollToEnd = false;
-        host.Click(lastCenter, draw);
-        EXPECT_EQ(19, activated);
+        // Check every control, not just the existence of a scrollbar or the
+        // final row. Activate only through injected input after revealing it.
+        for (int control = 0; control < 20; ++control)
+        {
+            revealControl = control;
+            host.RenderFrame(draw);
+            host.RenderFrame(draw);
+            EXPECT_TRUE(visible[control]);
+            EXPECT_TRUE(centers[control].x >= 0 && centers[control].x < size.x);
+            EXPECT_TRUE(centers[control].y >= 0 && centers[control].y < size.y);
+            activated = -1;
+            host.Click(centers[control], draw);
+            EXPECT_EQ(control, activated);
+        }
     }
 END_TEST
 

@@ -151,3 +151,36 @@ the card's window padding, including space around the scrollbar.
 Clear Pipeline and the interaction-help tooltip live in a separate fixed column
 to the left of the scrolling cards. A horizontal separator runs above the pipeline
 area, and a vertical divider separates its command column from the card grid.
+
+## Completion check: small-window reachability
+
+**Every control remains reachable at small window sizes, even before the
+reorganization is complete.** Deliberately disabled controls are checked again
+once the application returns to an editable state.
+
+Use 1280 x 720, 1024 x 600, 800 x 600, and 640 x 480 client sizes at 100%,
+125%, and 150% UI scale. A control passes when it can be brought fully into view
+using the available workspace/panel scrollbars and operated with the mouse or
+keyboard, without enlarging the window. Check after shrinking and restoring
+the window as well as when opening it at the small size.
+
+Before marking the application-level check complete:
+
+- [ ] Reach and operate Open, Save, Help, Run, Stop, and every tool command;
+  include CUDA settings when available.
+- [ ] Reach every enabled setting in each processing-tool card, including the
+  final setting in long forms and settings that appear conditionally.
+- [ ] Reach frame selection and all applicable keyframe actions, including
+  wrapped button rows.
+- [ ] Scroll to the first and last pipeline cards and insertion positions;
+  select them, edit their settings, and verify selection remains visible.
+- [ ] Reach Clear Pipeline and its help tooltip while the pipeline is scrolled.
+- [ ] Repeat during processing: Stop stays reachable; editing controls become
+  usable again after completion or cancellation.
+
+Automated coverage: `EveryToolAndSettingControlRemainsReachableAtSmallSizes`
+reveals and clicks all 20 fixture controls in both tool and settings panels for
+every size/scale combination. Other scrolling and interaction tests cover
+horizontal card scrolling, insertion selection, resize, and Run/Stop locking.
+These component tests support this gate; they do not replace the unchecked
+full-application checks above or prove coverage of every real tool's controls.
