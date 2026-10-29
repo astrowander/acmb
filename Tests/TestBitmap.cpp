@@ -68,9 +68,73 @@ EXPECT_NEAR( pBitmap->GetChannel(0,0,0), pBitmap->GetInterpolatedChannel(0.0, 0.
 EXPECT_NEAR( pBitmap->GetChannel( 5, 10, 0 ), pBitmap->GetInterpolatedChannel( 5.0, 10.0, 0 ), 0.01 );
 END_TEST
 
+BEGIN_TEST( InterpolationOnSmallImages )
+    // Exercise 1x1, single rows/columns, 2x2 and mixed small/large axes.
+    for (uint32_t width = 1; width <= 4; ++width)
+    for (uint32_t height = 1; height <= 4; ++height)
+    {
+        Bitmap<PixelFormat::RGB48> bitmap(width, height);
+        for (uint32_t y = 0; y < height; ++y)
+        for (uint32_t x = 0; x < width; ++x)
+        for (uint32_t ch = 0; ch < 3; ++ch)
+            bitmap.SetChannel(x, y, ch, 10000 * ch + 100 * x + 200 * y);
+
+        for (uint32_t ch = 0; ch < 3; ++ch)
+        {
+            const float x = (width - 1) * 0.25f;
+            const float y = (height - 1) * 0.75f;
+            EXPECT_NEAR(10000 * ch + 100 * x + 200 * y,
+                bitmap.GetInterpolatedChannel(x, y, ch), 0.01f);
+            for (uint32_t row = 0; row < height; ++row)
+            for (uint32_t col = 0; col < width; ++col)
+            {
+                EXPECT_EQ(bitmap.GetChannel(col, row, ch),
+                    bitmap.GetInterpolatedChannel(float(col), float(row), ch));
+            }
+        }
+        EXPECT_EQ(0.0f, bitmap.GetInterpolatedChannel(-0.1f, 0, 0));
+        EXPECT_EQ(0.0f, bitmap.GetInterpolatedChannel(0, float(height), 0));
+    }
+END_TEST
+
+BEGIN_TEST( BilinearInterpolationOn2x2Image )
+    Bitmap<PixelFormat::Gray8> bitmap(2, 2);
+    bitmap.SetData({0, 40, 80, 200});
+    EXPECT_NEAR(85.0f, bitmap.GetInterpolatedChannel(0.25f, 0.75f, 0), 0.01f);
+END_TEST
+
 BEGIN_TEST(TestZeroSize)
     auto f = []() {auto pBitmap = std::make_unique<Bitmap<PixelFormat::RGB24>>(0, 0, NamedColor32::Red ); };
     ASSERT_THROWS(f, std::invalid_argument);
+END_TEST
+
+BEGIN_TEST( RejectOverflowingStorage )
+    // Both dimensions pass the dimension limit. The RGB24 channel count
+    // previously wrapped to 65,534, allowing a tiny allocation for this image.
+    bool rejected = false;
+    try
+    {
+        Bitmap<PixelFormat::RGB24> bitmap(65535, 21846, NamedColor32::Red);
+    }
+    catch (const std::invalid_argument&)
+    {
+        rejected = true;
+    }
+    EXPECT_TRUE(rejected);
+END_TEST
+
+BEGIN_TEST( RejectOverflowingByteSize )
+    // The channel count fits uint32_t, but the 16-bit storage byte count does not.
+    bool rejected = false;
+    try
+    {
+        Bitmap<PixelFormat::RGB48> bitmap(32768, 21846);
+    }
+    catch (const std::invalid_argument&)
+    {
+        rejected = true;
+    }
+    EXPECT_TRUE(rejected);
 END_TEST
 
 BEGIN_TEST( TooLarge)

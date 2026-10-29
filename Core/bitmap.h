@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <limits>
 #include <algorithm>
+#include <cstddef>
 
 //#undef max
 
@@ -75,10 +76,18 @@ public:
         if (width > 0xFFFF || height > 0xFFFF)
             throw std::invalid_argument("size  is too large");
 
+        // Keep the allocation representable by GetByteSize() and the pipeline's
+        // 32-bit byte counts. Check before multiplying or allocating storage.
+        const size_t rowSize = size_t( width ) * channelCount;
+        const size_t maxElements = std::min( _data.max_size(),
+            size_t( std::numeric_limits<uint32_t>::max() ) / sizeof( ChannelType ) );
+        if ( rowSize > maxElements / height )
+            throw std::invalid_argument( "bitmap storage is too large" );
+
         _width = width;
         _height = height;
         _pixelFormat = pixelFormat;
-        _data.resize(_width * _height * channelCount);
+        _data.resize(rowSize * height);
 
         if ( pColor )
             Fill( pColor );
@@ -92,27 +101,27 @@ public:
     /// returns given scanline
     ChannelType* GetScanline(uint32_t i)
     {
-        return &_data[_width * i * channelCount];
+        return &_data[size_t( _width ) * i * channelCount];
     }
     /// returns given scanline casted to char*
     char* GetPlanarScanline(uint32_t i) override
     {
-        return reinterpret_cast<char*>(&_data[_width * i * channelCount]);
+        return reinterpret_cast<char*>(GetScanline( i ));
     }
     /// returns ch-th channel of x-th pixel on y-th scanline
     uint32_t GetChannel(uint32_t x, uint32_t y, uint32_t ch) const override
     {
-        return _data[(_width * y + x) * channelCount + ch];
+        return _data[(size_t( _width ) * y + x) * channelCount + ch];
     }
     /// returns ch-th channel of x-th pixel on y-th scanline
     void SetChannel(uint32_t x, uint32_t y, uint32_t ch, uint32_t value) override
     {
-        _data[(_width * y + x) * channelCount + ch] = value;
+        _data[(size_t( _width ) * y + x) * channelCount + ch] = value;
     }
     /// returns count of allocated bytes
     uint32_t GetByteSize() const override
     {
-        return _width * _height * BytesPerPixel(pixelFormat);
+        return static_cast<uint32_t>(size_t( _width ) * _height * sizeof( ChannelType ) * channelCount);
     }
     
     /// returns data vector    
@@ -146,6 +155,27 @@ public:
         if (ch >= channelCount)
             throw std::invalid_argument("ch");
 
+        // A quadratic neighborhood needs three samples on each axis. Use
+        // bilinear interpolation for small images, repeating the sole sample
+        // on any axis whose length is one.
+        if ( _width < 3 || _height < 3 )
+        {
+            const uint32_t left = static_cast<uint32_t>(x);
+            const uint32_t top = static_cast<uint32_t>(y);
+            const uint32_t right = std::min(left + 1, _width - 1);
+            const uint32_t bottom = std::min(top + 1, _height - 1);
+            const float dx = x - left;
+            const float dy = y - top;
+            const float upperLeft = GetChannel(left, top, ch);
+            const float upperRight = GetChannel(right, top, ch);
+            const float lowerLeft = GetChannel(left, bottom, ch);
+            const float lowerRight = GetChannel(right, bottom, ch);
+            const float upper = upperLeft + dx * (upperRight - upperLeft);
+            const float lower = lowerLeft + dx * (lowerRight - lowerLeft);
+            return std::clamp<float>(upper + dy * (lower - upper),
+                0, std::numeric_limits<ChannelType>::max());
+        }
+
         uint32_t x0 = FastRound<uint32_t>(x);
         if (x0 == _width - 1)
             x0 -= 2;
@@ -158,11 +188,12 @@ public:
         else if (y0 >= 1)
             y0 -= 1;
 
+        const size_t width = _width;
         float yIn[3] =
         {
-            QuadraticInterpolation(x - x0, _data[(y0 * _width + x0) * channelCount + ch], _data[(y0 * _width + x0 + 1) * channelCount + ch], _data[(y0 * _width + x0 + 2) * channelCount + ch]),
-            QuadraticInterpolation(x - x0, _data[((y0 + 1) * _width + x0) * channelCount + ch], _data[((y0 + 1) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 1) * _width + x0 + 2) * channelCount + ch]),
-            QuadraticInterpolation(x - x0, _data[((y0 + 2) * _width + x0) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 1) * channelCount + ch], _data[((y0 + 2) * _width + x0 + 2) * channelCount + ch])
+            QuadraticInterpolation(x - x0, _data[(y0 * width + x0) * channelCount + ch], _data[(y0 * width + x0 + 1) * channelCount + ch], _data[(y0 * width + x0 + 2) * channelCount + ch]),
+            QuadraticInterpolation(x - x0, _data[((y0 + 1) * width + x0) * channelCount + ch], _data[((y0 + 1) * width + x0 + 1) * channelCount + ch], _data[((y0 + 1) * width + x0 + 2) * channelCount + ch]),
+            QuadraticInterpolation(x - x0, _data[((y0 + 2) * width + x0) * channelCount + ch], _data[((y0 + 2) * width + x0 + 1) * channelCount + ch], _data[((y0 + 2) * width + x0 + 2) * channelCount + ch])
         };
 
         return std::clamp<float>(QuadraticInterpolation(y - y0, yIn[0], yIn[1], yIn[2]), 0, std::numeric_limits<ChannelType>::max() );

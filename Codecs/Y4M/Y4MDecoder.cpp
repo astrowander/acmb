@@ -57,34 +57,59 @@ void Y4MDecoder::Attach( std::shared_ptr<std::istream> pStream )
 
     //check file size
     _pStream->seekg( 0, std::ios_base::end );
-    uint64_t fileSize = _pStream->tellg();
+    const auto endPos = _pStream->tellg();
+    if ( !_pStream->good() || endPos < std::streampos(0) )
+        throw std::runtime_error( "Y4MDecoder: unable to determine stream size" );
+    const uint64_t fileSize = static_cast<uint64_t>(endPos);
     _pStream->seekg( 0, std::ios_base::beg );
 
-    if ( fileSize < Y4M::cSignatureSize )
+    if ( !_pStream->good() || fileSize < 10 )
         throw std::runtime_error( "Y4MDecoder: invalid stream" );
 
     char signature[10] = {};
     pStream->read( signature, 9 );
-    if ( std::string( signature, 9 ) != "YUV4MPEG2" )
+    if ( !*pStream || std::string( signature, 9 ) != "YUV4MPEG2" )
         throw std::runtime_error( "Y4MDecoder: invalid signature" );
 
-    char nextChar = pStream->get();
+    // Include the signature, separators and terminating newline in the header
+    // limit; include the key in the token limit. Never narrow EOF to char.
+    constexpr size_t maxHeaderSize = 4096;
+    constexpr size_t maxTokenSize = 256;
+    size_t headerSize = 9;
+    auto readHeaderChar = [&]() -> char
+    {
+        if ( headerSize >= maxHeaderSize )
+            throw std::runtime_error( "Y4MDecoder: header is too long" );
+        char value;
+        if ( !pStream->get(value) )
+            throw std::runtime_error( "Y4MDecoder: truncated header" );
+        ++headerSize;
+        return value;
+    };
+
+    _width = _height = _frameRate = 0;
+    char nextChar = readHeaderChar();
     if ( nextChar != ' ' )
         throw std::runtime_error( "Y4MDecoder: invalid stream" );
 
     while ( nextChar != 0x0A )
     {
         while ( nextChar == ' ' )
-            nextChar = pStream->get();
+            nextChar = readHeaderChar();
+
+        if ( nextChar == 0x0A )
+            break;
 
         const char key = nextChar;
-        nextChar = pStream->get();
+        nextChar = readHeaderChar();
 
         std::string data;
         while ( nextChar != ' ' && nextChar != 0x0A )
         {
+            if ( data.size() >= maxTokenSize - 1 )
+                throw std::runtime_error( "Y4MDecoder: header token is too long" );
             data.push_back( nextChar );
-            nextChar = pStream->get();
+            nextChar = readHeaderChar();
         }
 
         uint32_t value = 0;
@@ -112,6 +137,8 @@ void Y4MDecoder::Attach( std::shared_ptr<std::istream> pStream )
         throw std::runtime_error( "Y4MDecoder:  stream" );
 
     _headerSize = pStream->tellg();
+    if ( !*pStream || _headerSize > fileSize )
+        throw std::runtime_error( "Y4MDecoder: invalid header position" );
     _frameBufferSize = _width * _height * 3 / 2;
     _frameByteSize = _frameBufferSize + 6;
 
@@ -130,13 +157,13 @@ std::shared_ptr<IBitmap> Y4MDecoder::ReadBitmap()
     uint64_t oldPos = _pStream->tellg();
     char signature[7] = {};
     _pStream->read( signature, 6 );
-    if ( std::string( signature, 6 ) != "FRAME\x0a" )
+    if ( !*_pStream || std::string( signature, 6 ) != "FRAME\x0a" )
         throw std::runtime_error( "Y4MDecoder: invalid stream" );
 
     std::vector<uint8_t> buffer( _frameBufferSize );
     _pStream->read( (char*)buffer.data(), _frameBufferSize );
 
-    if ( _pStream->tellg() != oldPos + _frameByteSize )
+    if ( !*_pStream || _pStream->tellg() != oldPos + _frameByteSize )
         throw std::runtime_error( "Y4MDecoder: attempt to read past end of stream" );
 
     return YUVBitmapFromPlanarData( buffer, _width, _height );
@@ -151,6 +178,8 @@ std::shared_ptr<IBitmap> Y4MDecoder::ReadBitmap( uint32_t i )
         throw std::out_of_range( "Frame index out of range" );
 
     _pStream->seekg( _headerSize + i * _frameByteSize, std::ios_base::beg );
+    if ( !*_pStream )
+        throw std::runtime_error( "Y4MDecoder: unable to seek to frame" );
     return ReadBitmap();
 }
 
