@@ -8,7 +8,6 @@
 #include "./../Tools/SystemTools.h"
 #include "./../Cuda/CudaInfo.h"
 #include <fstream>
-#include <thread>
 
 #ifdef _WIN32
 #include <atltypes.h>
@@ -43,66 +42,81 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (size_t, bool)
     {
+        if ( _processingFuture.valid() )
+            return;
+
         _errors.clear();
+        _showResultsPopup = false;
+        _stopRequested.store(false);
         _isBusy = true;
         LockInterface();
+        _startTime = std::chrono::high_resolution_clock::now();
+        _durationString.clear();
 
-        std::thread process( [&]
+        try
         {
-            _startTime = std::chrono::high_resolution_clock::now();
-            _durationString.clear();
+            _processingFuture = std::async(std::launch::async, [head = _pPipelineHead]
+            {
+                std::vector<std::string> errors;
 
-            if ( _pPipelineHead == nullptr )
-            {
-                _errors.push_back( "Pipeline is empty" );
-            }
-            
-            if ( !std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
-            {
-                _errors.push_back( "First element must be an image reader" );
-            }
-
-            auto pTailElement = _pPipelineHead;
-            while ( pTailElement && pTailElement->GetOutput() != nullptr )
-            {
-                pTailElement = pTailElement->GetOutput();
-                if ( std::dynamic_pointer_cast<ImageReaderWindow>(pTailElement) )
+                if ( head == nullptr )
                 {
-                    _errors.push_back( "Image reader can only be the first element in the pipeline" );
-                    break;
+                    errors.push_back( "Pipeline is empty" );
                 }
 
-                if ( std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement) && pTailElement->GetOutput() != nullptr )
+                if ( !std::dynamic_pointer_cast<ImageReaderWindow>(head) )
                 {
-                    _errors.push_back( "Image writer can only be the last element in the pipeline" );
-                    break;
+                    errors.push_back( "First element must be an image reader" );
                 }
-            }
 
-            auto pWriter = std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement);
-            if ( !pWriter )
-            {
-                _errors.push_back( "Last element must be an image writer" );
-            }
+                auto pTailElement = head;
+                while ( pTailElement && pTailElement->GetOutput() != nullptr )
+                {
+                    pTailElement = pTailElement->GetOutput();
+                    if ( std::dynamic_pointer_cast<ImageReaderWindow>(pTailElement) )
+                    {
+                        errors.push_back( "Image reader can only be the first element in the pipeline" );
+                        break;
+                    }
 
-            if ( _errors.empty() )
-            {
-                pWriter->ResetTasks();
-                const auto errors = pWriter->ExportAllImages();
-                _errors.insert(_errors.end(), errors.begin(), errors.end());
-            }
+                    if ( std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement) && pTailElement->GetOutput() != nullptr )
+                    {
+                        errors.push_back( "Image writer can only be the last element in the pipeline" );
+                        break;
+                    }
+                }
 
-            _isBusy = false;
-            _showResultsPopup = true;
-            UnlockInterface();
-        } );
-        process.detach();
+                auto pWriter = std::dynamic_pointer_cast<ImageWriterWindow>(pTailElement);
+                if ( !pWriter )
+                {
+                    errors.push_back( "Last element must be an image writer" );
+                }
+
+                if ( errors.empty() )
+                {
+                    pWriter->ResetTasks();
+                    return pWriter->ExportAllImages();
+                }
+
+                return errors;
+            } );
+        }
+        catch ( const std::exception& e )
+        {
+            _errors.push_back(e.what());
+            FinishProcessing();
+        }
+        catch ( ... )
+        {
+            _errors.push_back("Unknown error while starting processing");
+            FinishProcessing();
+        }
     } );
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 2, "\xef\x81\x8D", "Stop", "Stop processing", [this] (size_t, bool)
     {
-        _errors.clear();
-        _isBusy = false;
+        if ( _isBusy )
+            _stopRequested.store(true);
     }, true );
 
     const auto acmbPath = GetAcmbPath();
@@ -121,6 +135,13 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     {
         _showHelpPopup = true;
     } );
+}
+
+void MainWindow::FinishProcessing()
+{
+    _isBusy = false;
+    _showResultsPopup = true;
+    UnlockInterface();
 }
 
 constexpr uint32_t U32Color( uint8_t r, uint8_t g, uint32_t b, uint32_t a )
@@ -430,8 +451,31 @@ void MainWindow::DrawMenu()
     }
 }
 
+void MainWindow::UpdateProcessing()
+{
+    if ( _processingFuture.valid() &&
+         _processingFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready )
+    {
+        try
+        {
+            // get() rethrows exceptions captured at the async worker boundary.
+            _errors = _processingFuture.get();
+        }
+        catch ( const std::exception& e )
+        {
+            _errors = { e.what() };
+        }
+        catch ( ... )
+        {
+            _errors = { "Unknown error while processing images" };
+        }
+        FinishProcessing();
+    }
+}
+
 void MainWindow::DrawDialog()
 {
+    UpdateProcessing();
     if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() && !_isBusy )
         UnlockInterface();
 

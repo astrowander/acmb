@@ -28,7 +28,7 @@ Expected<IBitmapPtr, std::string> PipelineElementWindow::RunTaskAndReportProgres
     try
     {
         res = RunTask( i );
-        if ( !MainWindow::GetInstance().IsInterfaceLocked() )
+        if ( MainWindow::GetInstance().IsProcessingCancelled() )
             throw std::runtime_error( "Processing was interrupted" );
     }
     catch ( std::exception& e )

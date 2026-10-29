@@ -6,6 +6,8 @@
 #include <array>
 #include <unordered_map>
 #include <chrono>
+#include <atomic>
+#include <future>
 
 #ifdef _WIN32
 #include <d3d11.h>
@@ -47,6 +49,10 @@ private:
 
     SizeF _gridCellSize = { 1.0f, 1.0f };
 
+    std::atomic<bool> _stopRequested{ false };
+    // Declared last so destruction waits for processing before releasing state.
+    std::future<std::vector<std::string>> _processingFuture;
+
     MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistry& fontRegistry );
     MainWindow( const MainWindow& ) = delete;
     MainWindow( MainWindow&& ) = delete;
@@ -66,6 +72,8 @@ private:
     
     void OpenProject();
     void SaveProject();
+    void FinishProcessing();
+    void UpdateProcessing();
 
     int GetPipelineSize() const { return _pPipelineHead ? _pPipelineHead->GetElementsCount() : 0; }
 
@@ -139,6 +147,8 @@ public:
     }
 
     bool IsInterfaceLocked() { return _lockInterface; }
+
+    bool IsProcessingCancelled() const { return _stopRequested.load(); }
 
     bool isCudaEnabled() { return _enableCuda; }
 
