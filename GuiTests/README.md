@@ -124,7 +124,7 @@ engine dependency is needed for these three cases.
 
 ## Minimum sizes and scrolling
 
-The workspace preserves a minimum 1000 x 600 logical canvas (scaled for larger
+The workspace preserves a minimum 1000 x 640 logical canvas (scaled for larger
 fonts). Pipeline cards start at 280 x 250 logical units, with independent vertical
 settings scrolling. The pipeline scrolls horizontally instead of compressing its
 cards. Selecting a step with the keyboard brings it into view. Toolbox commands
@@ -151,6 +151,39 @@ the card's window padding, including space around the scrollbar.
 Clear Pipeline and the interaction-help tooltip live in a separate fixed column
 to the left of the scrolling cards. A horizontal separator runs above the pipeline
 area, and a vertical divider separates its command column from the card grid.
+
+## Top toolbar and menus
+
+Open, Save, Run, and Stop share a compact top toolbar. The sidebar contains only
+processing tools. Help > Instructions dispatches the existing Help callback, and
+Settings > Enable CUDA updates the existing CUDA preference. CUDA is disabled
+when unavailable. The toolbar reuses the registered project/processing callbacks
+and selection arguments, with Stop retaining its unlockable behavior during
+processing. Project actions, Run, and menu settings respect interface locks.
+
+`TopToolbar` adds three input-driven tests covering callback arguments, action
+locking and Stop availability at 640 x 480 (100% and 150% UI scale), Help menu
+dispatch, and CUDA availability/locking. Toolbar geometry is also included in the
+panel containment/overlap matrix. The minimum canvas height includes room for
+the toolbar so the existing panels keep their usable minimum sizes.
+
+## Collapsible tool library
+
+The tool library uses icon-and-text rows under five collapsible groups, initially
+expanded: Input / Output, Stack & Calibration, Geometry, Adjustments, and Cleanup.
+Tools appear in the requested order within each group; unknown additional tools
+remain accessible under Other.
+
+`MenuItem::presentation` stores display group and order. `MenuItemsHolder` assigns
+that metadata and builds non-owning grouped views of its existing registry.
+The registry category remains `"Tools"`, its numeric keys are unchanged, and the
+project loader still dispatches `GetItems().at("Tools").at(menuOrder)->action(...)`.
+Neither grouping nor collapse state changes `GetMenuOrder()` or serialized IDs.
+
+`ToolLibrary` tests cover the exact group/tool ordering, item identity and callback
+arguments after regrouping, project-byte-ID lookup, unknown-tool fallback, and
+input-driven collapse/expand with processing locks. They verify registry-level
+compatibility; they do not replace full application project-load integration tests.
 
 ## Completion check: small-window reachability
 

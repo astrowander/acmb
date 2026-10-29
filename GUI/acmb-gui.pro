@@ -79,6 +79,8 @@ HEADERS += \
     PipelineEditing.h \
     GuiInteractions.h \
     ScrollablePanels.h \
+    TopToolbar.h \
+    ToolLibrary.h \
     MenuItem.h \
     MenuItemsHolder.h \
     PipelineElementWindow.h \

@@ -11,6 +11,8 @@ HEADERS += \
     ../GUI/PipelineEditing.h \
     ../GUI/GuiInteractions.h \
     ../GUI/ScrollablePanels.h \
+    ../GUI/TopToolbar.h \
+    ../GUI/ToolLibrary.h \
     ../Tests/TestRunner.h \
     ../Tests/test.h \
     ../GUI/MenuItem.h
@@ -23,6 +25,8 @@ SOURCES += \
     TestPipelineEditing.cpp \
     TestGuiInteractions.cpp \
     TestScrollablePanels.cpp \
+    TestTopToolbar.cpp \
+    TestToolLibrary.cpp \
     ../Tests/TestRunner.cpp \
     ../GUI/imgui/imgui.cpp \
     ../GUI/imgui/imgui_draw.cpp \

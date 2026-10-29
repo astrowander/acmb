@@ -5,6 +5,8 @@
 #include "FontRegistry.h"
 #include "FileDialog.h"
 #include "ImGuiHelpers.h"
+#include "TopToolbar.h"
+#include "ToolLibrary.h"
 #include "./../Tools/SystemTools.h"
 #include "./../Cuda/CudaInfo.h"
 #include <fstream>
@@ -335,6 +337,24 @@ void MainWindow::SetSize(const ImVec2& size)
     UpdateActiveElement(_selection.activeIndex, _selection.elementSelected);
 }
 
+void MainWindow::DrawToolbar()
+{
+    const auto layout = GetPanelLayout();
+    if (layout.toolbar.width <= 0 || layout.toolbar.height <= 0)
+        return;
+    const auto& items = MenuItemsHolder::GetInstance().GetItems();
+    const ToolbarActions actions{items.at("Project").at(1).get(), items.at("Project").at(2).get(),
+        items.at("Run").at(1).get(), items.at("Run").at(2).get(), items.at("Help").at(1).get()};
+    ImGui::SetCursorPos({layout.toolbar.x, layout.toolbar.y});
+    ImGui::PushFont(_fontRegistry.byDefault);
+    DrawTopToolbar({layout.toolbar.width, layout.toolbar.height}, actions,
+        [this] { return IsInterfaceLocked() || _showHelpPopup || _showResultsPopup || FileDialog::Instance().IsOpened(); },
+        size_t(_selection.activeIndex), _selection.elementSelected, cuda::isCudaAvailable(), _enableCuda);
+    ImGui::PopFont();
+    ImGui::SetCursorPos({layout.toolbar.x, layout.toolbar.GetBottom()});
+    ImGui::Separator();
+}
+
 void MainWindow::DrawMenu()
 {    
     const auto layout = GetPanelLayout();
@@ -344,28 +364,10 @@ void MainWindow::DrawMenu()
         ImGui::PushFont(_fontRegistry.byDefault);
         if (BeginVerticalPanel("##ToolboxSection", {layout.toolbox.width, layout.toolbox.height}, 220))
         {
-            for (const auto& [category, items] : MenuItemsHolder::GetInstance().GetItems())
-            {
-                ImGui::PushID(category.c_str());
-                ImGui::SeparatorText(category.c_str());
-                for (const auto& [order, item] : items)
-                {
-                    ImGui::PushID(order);
-                    const bool popupOpen = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId);
-                    const bool locked = !item->unlockable && (IsInterfaceLocked() || popupOpen);
-                    IconTextButton("command", item->icon, item->caption,
-                        ImGui::GetContentRegionAvail().x, locked, [&] {
-                            item->action(_selection.activeIndex, _selection.elementSelected);
-                        });
-                    UI::SetTooltipIfHovered(item->tooltip, cMenuScaling);
-                    ImGui::PopID();
-                }
-                ImGui::PopID();
-                ImGui::Spacing();
-            }
-            ImGui::SeparatorText("General Settings");
-            if (cuda::isCudaAvailable())
-                UI::Checkbox("Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available");
+            DrawToolLibrary(MenuItemsHolder::GetInstance().GetToolGroups(),
+                [this] { return IsInterfaceLocked(); }, size_t(_selection.activeIndex),
+                _selection.elementSelected,
+                [this](const MenuItem& item) { UI::SetTooltipIfHovered(item.tooltip, cMenuScaling); });
         }
         ImGui::EndChild();
         ImGui::PopFont();
@@ -546,6 +548,7 @@ void MainWindow::DrawDialog()
         ProcessKeyboardEvents();
     }
 
+    DrawToolbar();
     DrawMenu();
 
     ImGui::PushFont( _fontRegistry.byDefault );
@@ -555,9 +558,9 @@ void MainWindow::DrawDialog()
     auto drawList = ImGui::GetWindowDrawList();
     const auto windowPos = ImGui::GetWindowPos();
     const ImVec2 origin{windowPos.x - ImGui::GetScrollX(), windowPos.y - ImGui::GetScrollY()};
-    drawList->AddLine({origin.x + layout.toolboxSeparatorX, origin.y},
+    drawList->AddLine({origin.x + layout.toolboxSeparatorX, origin.y + layout.toolbar.GetBottom()},
         {origin.x + layout.toolboxSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
-    drawList->AddLine({origin.x + layout.inspectorSeparatorX, origin.y},
+    drawList->AddLine({origin.x + layout.inspectorSeparatorX, origin.y + layout.toolbar.GetBottom()},
         {origin.x + layout.inspectorSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
 
     auto pElement = GetActiveElement();    

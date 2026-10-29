@@ -64,6 +64,7 @@ private:
     virtual void DrawDialog() override;
 
     void DrawMenu();
+    void DrawToolbar();
     void DrawPipeline(const MainWindowLayout& layout);
     MainWindowLayout GetPanelLayout() const;
 

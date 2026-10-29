@@ -41,9 +41,9 @@ BEGIN_TEST(PreservesExistingDesktopGeometry)
     // A fixed reference catches accidental changes to the current panel layout.
     const auto layout = gui::MainWindowLayout::Calculate({1280, 720}, {8, 4}, {8, 8}, 17);
     EXPECT_EQ(368.0f, layout.preview.x);
-    EXPECT_EQ(8.0f, layout.preview.y);
+    EXPECT_EQ(48.0f, layout.preview.y);
     EXPECT_EQ(540.0f, layout.preview.width);
-    EXPECT_EQ(344.0f, layout.preview.height);
+    EXPECT_EQ(304.0f, layout.preview.height);
     EXPECT_EQ(956.0f, layout.frameControls.x);
     EXPECT_EQ(308.0f, layout.frameControls.width);
     EXPECT_EQ(336.0f, layout.toolbox.width);
@@ -64,12 +64,12 @@ BEGIN_TEST(PanelsFitWithoutOverlapAcrossSizeAndScaleMatrix)
             std::cout << "Panel case: " << size.x << "x" << size.y << " @ " << scale << '\n';
             TestAppHost host({size, scale});
             const auto layout = MeasurePanels(host);
-            const RectF panels[] = {layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
+            const RectF panels[] = {layout.toolbar, layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
                 layout.pipelineHeader, layout.pipeline};
             for (const auto& panel : panels)
                 EXPECT_TRUE(IsContained(panel, layout.canvasSize));
-            for (size_t i = 0; i < 6; ++i)
-                for (size_t j = i + 1; j < 6; ++j)
+            for (size_t i = 0; i < 7; ++i)
+                for (size_t j = i + 1; j < 7; ++j)
                     EXPECT_FALSE(Overlaps(panels[i], panels[j]));
             EXPECT_TRUE(layout.visibleCells >= 1);
             EXPECT_TRUE(layout.cellWidth >= gui::MainWindowLayout::CellMinWidth);
@@ -98,7 +98,7 @@ BEGIN_TEST(SmallAndMinimizedWindowsHaveFiniteClampedBounds)
     {
         TestAppHost host({size, 1.5f});
         const auto layout = MeasurePanels(host);
-        for (const auto& panel : {layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
+        for (const auto& panel : {layout.toolbar, layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
             layout.pipelineHeader, layout.pipeline})
             EXPECT_TRUE(IsContained(panel, layout.canvasSize));
         EXPECT_TRUE(layout.visibleCells >= 1);

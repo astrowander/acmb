@@ -204,6 +204,12 @@
     <ClInclude Include="ScrollablePanels.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="TopToolbar.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolLibrary.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="MenuItem.h">
       <Filter>Core</Filter>
     </ClInclude>

@@ -203,6 +203,8 @@
     <ClInclude Include="PipelineEditing.h" />
     <ClInclude Include="GuiInteractions.h" />
     <ClInclude Include="ScrollablePanels.h" />
+    <ClInclude Include="TopToolbar.h" />
+    <ClInclude Include="ToolLibrary.h" />
     <ClInclude Include="MedianBlurWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />

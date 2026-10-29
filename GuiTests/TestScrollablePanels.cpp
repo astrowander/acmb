@@ -28,7 +28,7 @@ BEGIN_TEST(WorkspacePreservesMinimumPanelAndCardSizes)
     const auto small = gui::MainWindowLayout::Calculate({640, 480}, {8, 4}, {8, 8}, 19);
     const auto large = gui::MainWindowLayout::Calculate({1920, 1080}, {8, 4}, {8, 8}, 19);
     EXPECT_EQ(1000.0f, small.canvasSize.x);
-    EXPECT_EQ(600.0f, small.canvasSize.y);
+    EXPECT_EQ(640.0f, small.canvasSize.y);
     EXPECT_EQ(large.toolbox.width, small.toolbox.width);
     EXPECT_EQ(large.frameControls.width, small.frameControls.width);
     EXPECT_EQ(large.cardSize.x, small.cardSize.x);

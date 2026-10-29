@@ -17,7 +17,7 @@ struct MainWindowLayout
     inline static constexpr float CommandsWidth = 160.0f;
     inline static constexpr float GridLeft = CommandsWidth + 16.0f;
     inline static constexpr float MinimumWorkspaceWidth = 1000.0f;
-    inline static constexpr float MinimumWorkspaceHeight = 600.0f;
+    inline static constexpr float MinimumWorkspaceHeight = 640.0f;
     inline static constexpr float CardWidth = 280.0f;
     inline static constexpr float CardHeight = 250.0f;
     inline static constexpr float CellPadding = 25.0f;
@@ -25,6 +25,7 @@ struct MainWindowLayout
     inline static constexpr float CellHeight = 300.0f;
 
     RectF toolbox;
+    RectF toolbar;
     ImVec2 canvasSize;
     ImVec2 cardSize;
     RectF preview;
@@ -53,6 +54,9 @@ struct MainWindowLayout
         const float width = std::max(MinimumWorkspaceWidth * scale, size.x);
         const float height = std::max(MinimumWorkspaceHeight * scale, size.y);
         result.canvasSize = {width, height};
+        result.toolbar = {windowPadding.x, windowPadding.y, width - 2 * windowPadding.x,
+            std::max(36.0f * scale, textLineHeightWithSpacing + 2 * windowPadding.y)};
+        const float bodyTop = result.toolbar.GetBottom() + spacing.y;
         result.cardSize = {CardWidth * scale, CardHeight * scale};
         const float menuWidth = MenuWidth * scale;
         const float inspectorWidth = InspectorWidth * scale;
@@ -69,19 +73,19 @@ struct MainWindowLayout
         result.visibleCells = std::max(1, int((result.pipeline.width - 2 * windowPadding.x) / result.cellWidth));
 
         const float toolboxX = std::min(windowPadding.x, width);
-        const float toolboxY = std::min(windowPadding.y, headerTop);
+        const float toolboxY = std::min(bodyTop, headerTop);
         result.toolbox = {toolboxX, toolboxY,
             std::min(menuWidth + 2.0f * spacing.x, width - toolboxX),
             std::max(0.0f, headerTop - spacing.y - toolboxY)};
         result.toolboxSeparatorX = std::min(menuWidth + 4.0f * spacing.x, width);
         const float previewLeft = std::min(menuWidth + 6.0f * spacing.x, width);
         const float previewRight = std::clamp(width - inspectorWidth - 4.0f * spacing.x, previewLeft, width);
-        const float previewTop = std::min(2.0f * spacing.y, headerTop);
+        const float previewTop = std::min(bodyTop, headerTop);
         const float previewBottom = std::clamp(headerTop - 2.0f * spacing.y, previewTop, headerTop);
         result.preview = {previewLeft, previewTop, previewRight - previewLeft, previewBottom - previewTop};
 
         const float inspectorX = std::clamp(width - inspectorWidth + 2.0f * spacing.x, previewRight, width);
-        result.frameControls = {inspectorX, std::min(spacing.y, headerTop),
+        result.frameControls = {inspectorX, std::min(bodyTop, headerTop),
             std::clamp(inspectorWidth - 4.0f * spacing.x, 0.0f, width - inspectorX),
             result.preview.height};
         result.inspectorSeparatorX = std::clamp(width - inspectorWidth - 2.0f * spacing.x,
