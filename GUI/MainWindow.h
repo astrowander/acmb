@@ -71,7 +71,10 @@ private:
     const FontRegistry& _fontRegistry;
     
     void OpenProject();
+    bool LoadProject( const std::string& filePath );
     void SaveProject();
+    void WriteProject( const std::string& filePath ) const;
+    bool AutoSaveProject();
     void FinishProcessing();
     void UpdateProcessing();
 
@@ -82,6 +85,8 @@ private:
     void UpdateActiveElement(int newActiveElement, bool isElementSelected);
 
 public:
+    void RestoreAutoSavedProject();
+    bool PrepareForExit();
     virtual void SetSize(const ImVec2& size) override;
     virtual void Show() override;
     static MainWindow& GetInstance( const FontRegistry& fontRegistry = FontRegistry::Instance() );

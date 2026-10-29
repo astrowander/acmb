@@ -8,6 +8,21 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
+namespace
+{
+    Rect ClampCropRect(Rect rect, const Size& imageSize)
+    {
+        if ( imageSize.width <= 0 || imageSize.height <= 0 )
+            return rect;
+
+        rect.width = std::clamp(rect.width, 1, imageSize.width);
+        rect.height = std::clamp(rect.height, 1, imageSize.height);
+        rect.x = std::clamp(rect.x, 0, imageSize.width - rect.width);
+        rect.y = std::clamp(rect.y, 0, imageSize.height - rect.height);
+        return rect;
+    }
+}
+
 CropWindow::CropWindow(  )
 : PipelineElementWindow( "Crop" )
 , SettingsInterpolationUser<CropTransform>( this, { 0, 0, 10000, 10000 })
@@ -21,10 +36,15 @@ void CropWindow::DrawPipelineElementControls()
         if ( auto inputBitmapSizeExp = pPrimaryInput->GetBitmapSize() )
             inputBitmapSize = inputBitmapSizeExp.value();
 
-    UI::DragInt( "Left", &_dstRect.x, 1.0f, 0, inputBitmapSize.width - _dstRect.width - 1, "Left boundary of the crop area", nullptr );
-    UI::DragInt( "Top", &_dstRect.y, 1.0f, 0, inputBitmapSize.height - _dstRect.height - 1,"Top boundary of the crop area", nullptr);
+    if ( inputBitmapSize.width <= 0 || inputBitmapSize.height <= 0 )
+        return;
+
+    _dstRect = ClampCropRect(_dstRect, inputBitmapSize);
+    UI::DragInt( "Left", &_dstRect.x, 1.0f, 0, inputBitmapSize.width - _dstRect.width, "Left boundary of the crop area", nullptr );
+    UI::DragInt( "Top", &_dstRect.y, 1.0f, 0, inputBitmapSize.height - _dstRect.height,"Top boundary of the crop area", nullptr);
     UI::DragInt( "Width", &_dstRect.width, 1.0f, 1, inputBitmapSize.width - _dstRect.x,  "Width of the crop area", nullptr);
     UI::DragInt( "Height", &_dstRect.height, 1.0f, 1, inputBitmapSize.height - _dstRect.y, "Height of the crop area", nullptr);
+    _dstRect = ClampCropRect(_dstRect, inputBitmapSize);
 }
 
 void CropWindow::OnPreviewedFrameNumberChanged(int val)
@@ -156,21 +176,12 @@ void CropWindow::OnInputChanged()
 
     const auto& bitmapSize = pBitmapSizeExp.value();
 
-    _dstRect.x = std::clamp(_dstRect.x, 0, bitmapSize.width);
-    _dstRect.y = std::clamp(_dstRect.y, 0, bitmapSize.height);
-    _dstRect.width = std::clamp(_dstRect.width, 1, bitmapSize.width - _dstRect.x);
-    _dstRect.height = std::clamp(_dstRect.height, 1, bitmapSize.height - _dstRect.y);
+    _dstRect = ClampCropRect(_dstRect, bitmapSize);
 
     const std::pair<int, CropTransform::Settings> keyFrameAndSettings = GetKeyFrameForFrame(GetPreviewedFrameNumber());
     if ( keyFrameAndSettings.first == 0 )
     {
-        Rect clampedRect
-        {
-            .x = std::clamp(keyFrameAndSettings.second.x, 0, bitmapSize.width),
-            .y = std::clamp(keyFrameAndSettings.second.y, 0, bitmapSize.height),
-            .width = std::clamp(keyFrameAndSettings.second.width, 1, bitmapSize.width - clampedRect.x),
-            .height = std::clamp(keyFrameAndSettings.second.height, 1, bitmapSize.height - clampedRect.y)
-        };
+        const Rect clampedRect = ClampCropRect(keyFrameAndSettings.second, bitmapSize);
 
         InsertOrAssignSettings(0, clampedRect);
     }

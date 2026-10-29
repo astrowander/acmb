@@ -454,6 +454,7 @@ int main(int, char**)
 
     auto& mainWindow = acmb::gui::MainWindow::GetInstance( acmb::gui::FontRegistry::Instance() );
     mainWindow.SetD3D11Device( g_pd3dDevice );
+    mainWindow.RestoreAutoSavedProject();
 
     // Main loop
     bool done = false;
@@ -500,6 +501,8 @@ int main(int, char**)
         //g_pSwapChain->Present(0, 0); // Present without vsync
     }
 
+    if ( !mainWindow.PrepareForExit() )
+        ::MessageBoxW( nullptr, L"Unable to autosave the current pipeline to .autosave.acmb.", L"Pipeline autosave failed", MB_OK | MB_ICONERROR );
     mainWindow.ClearPipeline();
     // Cleanup
     ImGui_ImplDX11_Shutdown();
@@ -630,6 +633,7 @@ int main(int, char**)
     mainWindow.SetAllocator( g_Allocator );
     mainWindow.SetMainWindowData( &g_MainWindowData );
     mainWindow.SetQueue( g_Queue );
+    mainWindow.RestoreAutoSavedProject();
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -676,7 +680,9 @@ int main(int, char**)
         }
     }
 
-    mainWindow.ClearTable();
+    if ( !mainWindow.PrepareForExit() )
+        fprintf( stderr, "Unable to autosave the current pipeline to .autosave.acmb.\n" );
+    mainWindow.ClearPipeline();
     // Cleanup
     err = vkDeviceWaitIdle(g_Device);
     check_vk_result(err);

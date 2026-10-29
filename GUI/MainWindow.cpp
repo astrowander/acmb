@@ -8,6 +8,8 @@
 #include "./../Tools/SystemTools.h"
 #include "./../Cuda/CudaInfo.h"
 #include <fstream>
+#include <filesystem>
+#include <stdexcept>
 
 #ifdef _WIN32
 #include <atltypes.h>
@@ -46,6 +48,8 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
             return;
 
         _errors.clear();
+        if ( !AutoSaveProject() )
+            return;
         _showResultsPopup = false;
         _stopRequested.store(false);
         _isBusy = true;
@@ -211,74 +215,111 @@ void MainWindow::ProcessMouseEvents()
 
 void MainWindow::OpenProject()
 {
+    LoadProject( FileDialog::Instance().GetFilePathName() );
+}
+
+void MainWindow::RestoreAutoSavedProject()
+{
+    try
+    {
+        const auto filePath = std::filesystem::path( GetAcmbPath() ) / ".autosave.acmb";
+        if ( std::filesystem::exists( filePath ) )
+            LoadProject( filePath.string() );
+    }
+    catch ( const std::exception& e )
+    {
+        _errors.push_back( std::string( "Unable to restore pipeline autosave: " ) + e.what() );
+        _showResultsPopup = true;
+    }
+}
+
+bool MainWindow::LoadProject( const std::string& filePath )
+{
     auto reportError = [this] ( const std::string msg )
     {
+        _pPipelineHead.reset();
         _errors.push_back( msg );
         _showResultsPopup = true;
-        return FileDialog::Instance().Close();
+        return false;
     };
 
-    _pPipelineHead.reset();
-    _activeElement = 0;
-    _firstVisibleElement = 0;
-    _isElementSelected = true;
-
-    std::string filePath = FileDialog::Instance().GetFilePathName();
-    std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
-
-    _errors.clear();
-    if ( !fin )
-        return reportError( "Unable to open file" );
-
-    fin.seekg( 0, std::ios_base::end );
-    int streamSize = int( fin.tellg() );
-    if ( streamSize < 6 )
-        return reportError( "File is too small" );
-
-    fin.seekg( 0 );
-
-    std::string header( 4, '\0' );
-    fin.read( &header[0], 4 );
-    if ( header != "ACMB" )
-        return reportError( "File is corrupted" );
-
-    uint8_t pipelineSize = fin.get();
-
-    if ( streamSize < pipelineSize + 6 )
-        return reportError( "File is corrupted" );
-
-    std::string serialized(pipelineSize, '\0' );
-    fin.read( serialized.data(), pipelineSize);
-
-    std::shared_ptr<PipelineElementWindow> pElement = nullptr;
-    for ( size_t i = 0; i < pipelineSize; ++i )
+    try
     {
-        const uint8_t menuOrder = serialized[i];
-        MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action(i, true);
-        if ( i == 0 )
-            pElement = _pPipelineHead;
-        else
-            pElement = pElement->GetOutput();
+        _pPipelineHead.reset();
+        _activeElement = 0;
+        _firstVisibleElement = 0;
+        _isElementSelected = true;
 
-        pElement->Deserialize( fin );
+        std::ifstream fin( filePath, std::ios_base::in | std::ios_base::binary );
+
+        _errors.clear();
+        if ( !fin )
+            return reportError( "Unable to open file" );
+        fin.exceptions( std::ios_base::failbit | std::ios_base::badbit );
+
+        fin.seekg( 0, std::ios_base::end );
+        int streamSize = int( fin.tellg() );
+        if ( streamSize < 5 )
+            return reportError( "File is too small" );
+
+        fin.seekg( 0 );
+
+        std::string header( 4, '\0' );
+        fin.read( &header[0], 4 );
+        if ( header != "ACMB" )
+            return reportError( "File is corrupted" );
+
+        uint8_t pipelineSize = fin.get();
+
+        if ( streamSize < pipelineSize + 5 )
+            return reportError( "File is corrupted" );
+
+        std::string serialized(pipelineSize, '\0' );
+        fin.read( serialized.data(), pipelineSize);
+
+        std::shared_ptr<PipelineElementWindow> pElement = nullptr;
+        for ( size_t i = 0; i < pipelineSize; ++i )
+        {
+            const uint8_t menuOrder = static_cast<uint8_t>( serialized[i] );
+            MenuItemsHolder::GetInstance().GetItems().at( "Tools" ).at( menuOrder )->action(i, true);
+            if ( i == 0 )
+                pElement = _pPipelineHead;
+            else
+                pElement = pElement->GetOutput();
+
+            if ( !pElement || !pElement->Deserialize( fin ) )
+                return reportError( "File is corrupted" );
+        }
+
+        if ( auto pReader = std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
+            pReader->OnFileListChanged();
+        return true;
     }
-
-    if ( auto pReader = std::dynamic_pointer_cast<ImageReaderWindow>(_pPipelineHead) )
-        pReader->OnFileListChanged();
+    catch ( const std::exception& e )
+    {
+        return reportError( std::string( "Unable to load pipeline: " ) + e.what() );
+    }
 }
 
 void MainWindow::SaveProject()
 {
-    std::string filePath = FileDialog::Instance().GetFilePathName();
-    std::ofstream fout( filePath, std::ios_base::out | std::ios_base::binary );
-
     _errors.clear();
-    if ( !fout )
+    try
     {
-        _errors.push_back( "Unable to save file" );
-        _showResultsPopup = true;
-        return FileDialog::Instance().Close();
+        WriteProject( FileDialog::Instance().GetFilePathName() );
     }
+    catch ( const std::exception& e )
+    {
+        _errors.push_back( e.what() );
+        _showResultsPopup = true;
+    }
+}
+
+void MainWindow::WriteProject( const std::string& filePath ) const
+{
+    std::ofstream fout;
+    fout.exceptions( std::ios_base::failbit | std::ios_base::badbit );
+    fout.open( filePath, std::ios_base::out | std::ios_base::binary );
 
     fout.write( "ACMB", 4 );
 
@@ -302,6 +343,44 @@ void MainWindow::SaveProject()
         pElement->Serialize( fout );
         pElement = pElement->GetOutput();
     }
+    fout.close();
+}
+
+bool MainWindow::AutoSaveProject()
+{
+    try
+    {
+        const auto filePath = std::filesystem::path( GetAcmbPath() ) / ".autosave.acmb";
+        const auto tempPath = std::filesystem::path( GetAcmbPath() ) / ".autosave.acmb.tmp";
+#ifdef _WIN32
+        // A previous failed replacement may have left the temporary file hidden.
+        if ( std::filesystem::exists( tempPath ) && !SetFileAttributesW( tempPath.c_str(), FILE_ATTRIBUTE_NORMAL ) )
+            throw std::runtime_error( "Unable to prepare pipeline autosave" );
+#endif
+        WriteProject( tempPath.string() );
+#ifdef _WIN32
+        if ( !SetFileAttributesW( tempPath.c_str(), FILE_ATTRIBUTE_HIDDEN ) ||
+             !MoveFileExW( tempPath.c_str(), filePath.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH ) )
+            throw std::runtime_error( "Unable to replace hidden pipeline autosave" );
+#else
+        std::filesystem::rename( tempPath, filePath );
+#endif
+        return true;
+    }
+    catch ( const std::exception& e )
+    {
+        _errors.push_back( std::string( "Unable to autosave pipeline: " ) + e.what() );
+        _showResultsPopup = true;
+        return false;
+    }
+}
+
+bool MainWindow::PrepareForExit()
+{
+    _stopRequested.store( true );
+    if ( _processingFuture.valid() )
+        _processingFuture.wait();
+    return AutoSaveProject();
 }
 
 PipelineElementWindow* MainWindow::GetActiveElement() const

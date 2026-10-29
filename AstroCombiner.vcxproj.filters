@@ -144,19 +144,19 @@
     <ClInclude Include="Transforms\ResizeTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transforms\avir\avir.h">
+    <ClInclude Include="Libs\avir\avir.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transforms\avir\avir_dil.h">
+    <ClInclude Include="Libs\avir\avir_dil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transforms\avir\avir_float4_sse.h">
+    <ClInclude Include="Libs\avir\avir_float4_sse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transforms\avir\avir_float8_avx.h">
+    <ClInclude Include="Libs\avir\avir_float8_avx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Transforms\avir\lancir.h">
+    <ClInclude Include="Libs\avir\lancir.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Transforms\CropTransform.h">
