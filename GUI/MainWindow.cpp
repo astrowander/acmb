@@ -20,13 +20,6 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
-static constexpr float cMenuButtonSize = 60.0f;
-constexpr int cItemCountInRow = 5;
-
-static constexpr float cHeadRowHeight = MainWindowLayout::HeaderHeight;
-static constexpr float cMenuRowHeight = cMenuButtonSize + 30.0f;
-
-static constexpr float cGridLeft = MainWindowLayout::GridLeft;
 static constexpr float cGridCellPadding = 25.0f;
 
 static constexpr float cGridCellMinWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
@@ -40,7 +33,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     , _gridCellSize( { cGridCellMinWidth, cGridCellHeight } )
 {
     SetPos( pos );
-    _visibleCellsCount = MainWindowLayout::CountVisibleCells(size.x);
+    _visibleCellsCount = GetPanelLayout().visibleCells;
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 1, "\xef\x81\x8B", "Run", "Start processing", [this] (size_t, bool)
     {
@@ -51,8 +44,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
         if ( !AutoSaveProject() )
             return;
         _showResultsPopup = false;
-        _stopRequested.store(false);
-        _isBusy = true;
+        _processingState.Begin();
         LockInterface();
         _startTime = std::chrono::high_resolution_clock::now();
         _durationString.clear();
@@ -119,8 +111,7 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
     MenuItemsHolder::GetInstance().AddItem( "Run", 2, "\xef\x81\x8D", "Stop", "Stop processing", [this] (size_t, bool)
     {
-        if ( _isBusy )
-            _stopRequested.store(true);
+        _processingState.RequestStop();
     }, true );
 
     const auto acmbPath = GetAcmbPath();
@@ -143,58 +134,21 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
 
 void MainWindow::FinishProcessing()
 {
-    _isBusy = false;
+    _processingState.Finish();
     _showResultsPopup = true;
     UnlockInterface();
 }
 
-constexpr uint32_t U32Color( uint8_t r, uint8_t g, uint32_t b, uint32_t a )
-{
-    return r | ( g << 8 ) | ( b << 16 ) | ( a << 24 );
-}
-enum class UIColor : ImU32
-{
-    Arrow = U32Color( 0, 255, 0, 255 ),
-    EmptyCell = U32Color( 32, 32, 32, 255 ),
-    ActiveCellBorder = U32Color( 255, 0, 0, 255 ),
-    TableBorders = U32Color( 64, 64, 64, 255 )
-};
-
 void MainWindow::ProcessKeyboardEvents()
 {
-    if ( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) )
-        _selection.MoveLeft(GetPipelineSize(), _visibleCellsCount);
-    if ( ImGui::IsKeyPressed( ImGuiKey_RightArrow ) )
-        _selection.MoveRight(GetPipelineSize(), _visibleCellsCount);
+    if (ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive())
+        return;
+    ProcessSelectionKeys(_selection, GetPipelineSize(), _visibleCellsCount);
     if ( _selection.elementSelected && ImGui::IsKeyPressed( ImGuiKey_Delete ) )
     {
         DeletePipelineElement(_pPipelineHead, size_t(_selection.activeIndex));
         UpdateActiveElement(_selection.activeIndex, _selection.elementSelected);
     }
-}
-
-void MainWindow::ProcessMouseEvents()
-{
-    if ( !ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) )
-        return;
-
-    const auto layout = GetPanelLayout();
-    const float cGridBottom = layout.pipeline.GetBottom();
-    const float cGridTop = layout.pipeline.y;
-    if (layout.cellWidth <= 0)
-        return;
-
-    auto mousePos = ImGui::GetMousePos();
-    mousePos.x -= _pos.x;
-    mousePos.y -= _pos.y;
-    if ( mousePos.y < cGridTop || mousePos.y > cGridBottom )
-        return;
-    if (mousePos.x < layout.pipeline.x || mousePos.x >= layout.pipeline.GetRight())
-        return;
-    const float gridX = mousePos.x - layout.pipeline.x;
-    const int col = int(gridX / layout.cellWidth);
-    bool isElementSelected = (gridX - col * layout.cellWidth) > cGridCellPadding * 2.0f;
-    UpdateActiveElement(size_t(col) + _selection.firstVisible, isElementSelected);
 }
 
 void MainWindow::OpenProject()
@@ -358,7 +312,7 @@ bool MainWindow::AutoSaveProject()
 
 bool MainWindow::PrepareForExit()
 {
-    _stopRequested.store( true );
+    _processingState.RequestShutdown();
     if ( _processingFuture.valid() )
         _processingFuture.wait();
     return AutoSaveProject();
@@ -377,7 +331,7 @@ void MainWindow::UpdateActiveElement(int newActiveElement, bool isElementSelecte
 void MainWindow::SetSize(const ImVec2& size)
 {
     Window::SetSize(size);
-    _visibleCellsCount = MainWindowLayout::CountVisibleCells(size.x);
+    _visibleCellsCount = GetPanelLayout().visibleCells;
     UpdateActiveElement(_selection.activeIndex, _selection.elementSelected);
 }
 
@@ -387,77 +341,34 @@ void MainWindow::DrawMenu()
     if (layout.toolbox.width > 0 && layout.toolbox.height > 0)
     {
         ImGui::SetCursorPos({layout.toolbox.x, layout.toolbox.y});
-        ImGui::BeginChild("##ToolboxSection", {layout.toolbox.width, layout.toolbox.height});
-
-        ImVec2 cachedPos = ImGui::GetCursorPos();
-
-        for ( const auto& it : MenuItemsHolder::GetInstance().GetItems() )
+        ImGui::PushFont(_fontRegistry.byDefault);
+        if (BeginVerticalPanel("##ToolboxSection", {layout.toolbox.width, layout.toolbox.height}, 220))
         {
-            const std::string &category = it.first;
-            const auto& items = it.second;
-
-            ImGui::PushFont( _fontRegistry.bold );
-            ImGui::SeparatorText( category.c_str() );
-            ImGui::PopFont();
-
-            const size_t itemCount = items.size();
-            for ( size_t i = 0; i < itemCount; ++i)
+            for (const auto& [category, items] : MenuItemsHolder::GetInstance().GetItems())
             {
-                const auto& item = *(std::next(items.begin(), i));
-                if ( i > 0 && i % cItemCountInRow == 0 )
+                ImGui::PushID(category.c_str());
+                ImGui::SeparatorText(category.c_str());
+                for (const auto& [order, item] : items)
                 {
-                    ImGui::SetCursorPos( {0, cachedPos.y + cMenuRowHeight});
+                    ImGui::PushID(order);
+                    const bool popupOpen = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId);
+                    const bool locked = !item->unlockable && (IsInterfaceLocked() || popupOpen);
+                    IconTextButton("command", item->icon, item->caption,
+                        ImGui::GetContentRegionAvail().x, locked, [&] {
+                            item->action(_selection.activeIndex, _selection.elementSelected);
+                        });
+                    UI::SetTooltipIfHovered(item->tooltip, cMenuScaling);
+                    ImGui::PopID();
                 }
-                ImGui::PushFont( _fontRegistry.icons );
-
-                cachedPos = ImGui::GetCursorPos();
-
-                if ( item.second->unlockable )
-                {
-                    UI::UnlockableButton( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
-                    {
-                        item.second->action(_selection.activeIndex, _selection.elementSelected);
-                    }, item.second->tooltip );
-                }
-                else
-                {
-                    const bool isAnyPopupOpen = ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId );
-                    UI::Button( item.second->icon, { cMenuButtonSize, cMenuButtonSize }, [&]
-                    {
-                        if ( !isAnyPopupOpen )
-                            item.second->action(_selection.activeIndex, _selection.elementSelected);
-                    }, isAnyPopupOpen ? "Menu is disabled while any ancillary window is opened" : item.second->tooltip );
-                }
-
-                ImGui::PopFont();
-
-                const float textWidth = ImGui::CalcTextSize( item.second->caption.c_str() ).x;
-                ImGui::SetCursorPos( { cachedPos.x + ( cMenuButtonSize - textWidth ) * 0.5f, cachedPos.y + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.y } );
-                ImGui::Text( "%s", item.second->caption.c_str() );
-                ImGui::SetCursorPos( { cachedPos.x + cMenuButtonSize + ImGui::GetStyle().ItemSpacing.x, cachedPos.y});
-
-                cachedPos = ImGui::GetCursorPos();
+                ImGui::PopID();
+                ImGui::Spacing();
             }
-
-            ImGui::SetCursorPos({ 0, cachedPos.y + cMenuRowHeight + 3.0f * ImGui::GetStyle().ItemSpacing.y });
-            cachedPos = ImGui::GetCursorPos();
+            ImGui::SeparatorText("General Settings");
+            if (cuda::isCudaAvailable())
+                UI::Checkbox("Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available");
         }
-
-
-
-        if ( _fontRegistry.bold )
-            ImGui::PushFont( _fontRegistry.bold );
-
-        ImGui::SeparatorText( "General Settings" );
-
-        if ( _fontRegistry.bold )
-            ImGui::PopFont();
-
-        ImGui::SetCursorPos( { cachedPos.x, cachedPos.y + ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y } );
-        if ( cuda::isCudaAvailable() )
-            UI::Checkbox( "Enable CUDA", &_enableCuda, "Performs computations on a graphic card if available" );
-
         ImGui::EndChild();
+        ImGui::PopFont();
     }
 
     auto fileDialog = FileDialog::Instance();
@@ -500,16 +411,139 @@ void MainWindow::UpdateProcessing()
     }
 }
 
+void MainWindow::DrawPipeline(const MainWindowLayout& layout)
+{
+    if (layout.pipeline.width <= 0 || layout.pipeline.height <= 0)
+        return;
+    const auto& panelStyle = ImGui::GetStyle();
+    ImGui::SetCursorPos({panelStyle.WindowPadding.x,
+        layout.pipelineHeader.GetBottom() - panelStyle.ItemSpacing.y * 2});
+    ImGui::Separator();
+
+    ImGui::SetCursorPos({layout.pipelineCommands.x, layout.pipelineCommands.y});
+    const auto commandsOrigin = ImGui::GetCursorScreenPos();
+    auto* separators = ImGui::GetWindowDrawList();
+    const float dividerX = commandsOrigin.x + layout.pipelineCommands.width + panelStyle.ItemSpacing.x * 0.5f;
+    separators->AddLine({dividerX, commandsOrigin.y},
+        {dividerX, commandsOrigin.y + layout.pipelineCommands.height}, ImGui::GetColorU32(ImGuiCol_Separator));
+    if (ImGui::BeginChild("##PipelineCommands",
+        {layout.pipelineCommands.width, layout.pipelineCommands.height}, ImGuiChildFlags_AlwaysUseWindowPadding))
+    {
+        // Match the borderless pipeline panel's header origin while keeping
+        // horizontal padding in the command column.
+        ImGui::SetCursorPosY(0);
+        UI::Button("Clear pipeline", {-1, 0}, [this] { ClearPipeline(); }, "Clear all processing steps");
+        ImGui::Spacing();
+        ImGui::TextDisabled("Pipeline help (?)");
+        UI::SetTooltipIfHovered("Double-click a card to select it.\nHold Shift and use the mouse wheel to scroll horizontally.", cMenuScaling);
+    }
+    ImGui::EndChild();
+
+    ImGui::SetCursorPos({layout.pipeline.x, layout.pipeline.y});
+    const int count = GetPipelineSize();
+    const int columns = std::max(count + 1, layout.visibleCells);
+    if (BeginPipelinePanel("##PipelineSection", {layout.pipeline.width, layout.pipeline.height}, columns, layout.cellWidth))
+    {
+        const auto& style = ImGui::GetStyle();
+        const float viewportWidth = ImGui::GetWindowWidth() - 2 * style.WindowPadding.x;
+        const float insetX = (layout.cellWidth - layout.cardSize.x) * 0.5f;
+        const float insetY = style.WindowPadding.y;
+        const float headerHeight = std::max(24.0f, ImGui::GetTextLineHeightWithSpacing() + style.ItemSpacing.y);
+        const float cellHeight = layout.pipeline.height - 2 * style.WindowPadding.y - style.ScrollbarSize;
+        const auto gridOrigin = ImGui::GetCursorScreenPos();
+        auto* grid = ImGui::GetWindowDrawList();
+        const auto borderColor = ImGui::GetColorU32(ImGuiCol_TableBorderStrong);
+        grid->AddRect(gridOrigin, {gridOrigin.x + columns * layout.cellWidth, gridOrigin.y + cellHeight}, borderColor);
+        grid->AddLine({gridOrigin.x, gridOrigin.y + headerHeight},
+            {gridOrigin.x + columns * layout.cellWidth, gridOrigin.y + headerHeight}, borderColor);
+        for (int column = 1; column < columns; ++column)
+            grid->AddLine({gridOrigin.x + column * layout.cellWidth, gridOrigin.y},
+                {gridOrigin.x + column * layout.cellWidth, gridOrigin.y + cellHeight}, borderColor);
+        const int selectionKey = _selection.activeIndex * 2 + int(_selection.elementSelected);
+        if (_lastPipelineSelection != selectionKey || _lastPipelineWidth != viewportWidth)
+        {
+            const float left = _selection.activeIndex * layout.cellWidth +
+                (_selection.elementSelected ? insetX : 0);
+            const float right = left + (_selection.elementSelected ? layout.cardSize.x : 2.0f);
+            if (left < ImGui::GetScrollX())
+                ImGui::SetScrollX(left);
+            else if (right > ImGui::GetScrollX() + viewportWidth)
+                ImGui::SetScrollX(right - viewportWidth);
+            _lastPipelineSelection = selectionKey;
+            _lastPipelineWidth = viewportWidth;
+        }
+
+        // Hit testing uses the same content coordinates as the scrolled cards.
+        if (!_lockInterface && !_showHelpPopup &&
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+        {
+            auto hitLayout = layout;
+            hitLayout.pipeline = {0, 0, viewportWidth,
+                layout.pipeline.height - 2 * style.WindowPadding.y - style.ScrollbarSize};
+            const auto position = ImGui::GetWindowPos();
+            ProcessSelectionMouse(_selection, count, hitLayout,
+                {position.x + style.WindowPadding.x, position.y + style.WindowPadding.y},
+                ImGui::GetScrollX(), 0);
+        }
+
+        auto element = _pPipelineHead;
+        const float height = std::min(layout.cardSize.y,
+            cellHeight - headerHeight - 2 * insetY);
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + insetX);
+        const float cellTop = ImGui::GetCursorPosY();
+        for (int index = 0; index < columns; ++index)
+        {
+            if (index > 0)
+                ImGui::SameLine(0, layout.cellWidth - layout.cardSize.x);
+            ImGui::PushID(index);
+            ImGui::BeginGroup();
+            const auto label = std::to_string(index + 1) + (element ? "" : "  + Add step");
+            ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5f, 0.5f});
+
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + style.ItemSpacing.y);
+            if (ImGui::Selectable(label.c_str(), false,
+                ImGuiSelectableFlags_None, {layout.cardSize.x, headerHeight - 2 * style.ItemSpacing.y}) && !_lockInterface)
+                UpdateActiveElement(index, true);
+            ImGui::PopStyleVar();
+            ImGui::SetCursorPosY(cellTop + headerHeight + insetY);
+            const bool selected = _selection.activeIndex == index && _selection.elementSelected;
+            ImGui::PushStyleColor(ImGuiCol_Border, selected ? ImVec4(1, 0, 0, 1) : ImVec4(0.38f, 0.40f, 0.45f, 1));
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, selected ? 2.0f : 1.0f);
+            if (element)
+            {
+                element->DrawInPipeline({layout.cardSize.x, height});
+                element = element->GetOutput();
+            }
+            else
+            {
+                ImGui::BeginChild("empty", {layout.cardSize.x, height}, ImGuiChildFlags_Borders);
+                ImGui::TextWrapped("Select this position, then choose a tool.");
+                ImGui::EndChild();
+            }
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor();
+            ImGui::EndGroup();
+            ImGui::PopID();
+        }
+        if (!_selection.elementSelected)
+        {
+            const float x = gridOrigin.x + _selection.activeIndex * layout.cellWidth;
+            grid->AddLine({x, gridOrigin.y}, {x, gridOrigin.y + cellHeight},
+                IM_COL32(255, 0, 0, 255), 2.0f);
+        }
+    }
+    ImGui::EndChild();
+}
+
 void MainWindow::DrawDialog()
 {
     UpdateProcessing();
-    if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() && !_isBusy )
+    if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() && !_processingState.IsBusy() )
         UnlockInterface();
 
     if ( !_lockInterface && !_showHelpPopup )
     {
         ProcessKeyboardEvents();
-        ProcessMouseEvents();
     }
 
     DrawMenu();
@@ -518,13 +552,13 @@ void MainWindow::DrawDialog()
 
     const auto layout = GetPanelLayout();
     _visibleCellsCount = layout.visibleCells;
-    const float cGridBottom = layout.pipeline.GetBottom();
-    const float cGridTop = layout.pipeline.y;
-    const float cBoldLineThickness = 3.0f;
-
     auto drawList = ImGui::GetWindowDrawList();
-    drawList->AddLine({layout.toolboxSeparatorX, 0}, {layout.toolboxSeparatorX, layout.pipelineHeader.y}, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
-    drawList->AddLine({layout.inspectorSeparatorX, 0}, {layout.inspectorSeparatorX, layout.pipelineHeader.y}, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
+    const auto windowPos = ImGui::GetWindowPos();
+    const ImVec2 origin{windowPos.x - ImGui::GetScrollX(), windowPos.y - ImGui::GetScrollY()};
+    drawList->AddLine({origin.x + layout.toolboxSeparatorX, origin.y},
+        {origin.x + layout.toolboxSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
+    drawList->AddLine({origin.x + layout.inspectorSeparatorX, origin.y},
+        {origin.x + layout.inspectorSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
 
     auto pElement = GetActiveElement();    
     const auto imageRegionAvail = GetImageRegionAvail();   
@@ -532,31 +566,32 @@ void MainWindow::DrawDialog()
     if (layout.frameControls.width > 0 && layout.frameControls.height > 0)
     {
         ImGui::SetCursorPos({layout.frameControls.x, layout.frameControls.y});
-        ImGui::BeginChild("##FrameCounterSection", {layout.frameControls.width, layout.frameControls.height});
-
-        ImGui::PushFont(_fontRegistry.bold);
-        ImGui::SeparatorText("Frame Number Selection");
-        ImGui::PopFont();
-
-        if ( pElement && pElement->GetTaskCount() > 1 )
+        const bool settingsVisible = BeginVerticalPanel("##FrameCounterSection",
+            {layout.frameControls.width, layout.frameControls.height}, 220);
+        if (settingsVisible)
         {
-            const float buttonWidth = 150.0f;
-            const float spacing = ImGui::GetStyle().ItemSpacing.x;
-            const float totalWidth = buttonWidth * 2 + spacing;
 
-            int frameNumber = pElement->GetPreviewedFrameNumber();
-            ImGui::SetNextItemWidth(totalWidth - ImGui::CalcTextSize("Frame Number").x - spacing);
-            if ( UI::SliderInt("Frame Number", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
+            ImGui::PushFont(_fontRegistry.bold);
+            ImGui::SeparatorText("Frame Number Selection");
+            ImGui::PopFont();
+
+            if ( pElement && pElement->GetTaskCount() > 1 )
             {
-                pElement->OnPreviewedFrameNumberChanged(frameNumber);
+                int frameNumber = pElement->GetPreviewedFrameNumber();
+                ImGui::TextUnformatted("Frame Number");
+                ImGui::SetNextItemWidth(std::max(150.0f, ImGui::GetContentRegionAvail().x));
+                if ( UI::SliderInt("##FrameNumber", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
+                {
+                    pElement->OnPreviewedFrameNumberChanged(frameNumber);
+                }
+
+                if ( auto pSettingsInterpolationUser = dynamic_cast<ISettingsInterpolationUser*>(pElement) )
+                {
+                    pSettingsInterpolationUser->DrawFrameCounter();
+                }
             }
 
-            if ( auto pSettingsInterpolationUser = dynamic_cast<ISettingsInterpolationUser*>(pElement) )
-            {
-                pSettingsInterpolationUser->DrawFrameCounter();
-            }
         }
-
         ImGui::EndChild();
     }
 
@@ -596,96 +631,13 @@ void MainWindow::DrawDialog()
 
             ImGui::SetCursorPos(topLeftPos);
             ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
-            pElement->DrawOnPreviewImage(drawList, topLeftPos, { float(width), float(height) });
+            // Preview overlays use screen coordinates, including workspace scroll.
+            const ImVec2 screenTopLeft{origin.x + topLeftPos.x, origin.y + topLeftPos.y};
+            pElement->DrawOnPreviewImage(drawList, screenTopLeft, { float(width), float(height) });
         }
     }    
 
-    drawList->AddLine({ 0, cGridTop - cBoldLineThickness }, { _size.x - 6, cGridTop - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
-    drawList->AddLine({ 0, cGridTop - cHeadRowHeight - cBoldLineThickness }, { _size.x - 6, cGridTop - cHeadRowHeight - cBoldLineThickness }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
-    drawList->AddLine({ 0, cGridBottom }, { _size.x - 6, cGridBottom }, ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator)), 3.0f);
-
-    drawList->AddLine({ 5, cGridTop - cHeadRowHeight - 1 }, { 5, cGridBottom }, ImU32(UIColor::TableBorders), 3.0f);
-
-
-    ImGui::SetCursorPos({5, cGridTop - cHeadRowHeight - cBoldLineThickness * 0.5f });
-    UI::Button( "##ClearPipeline", { cGridLeft - 5, cHeadRowHeight - cBoldLineThickness * 0.5f }, [this]
-    {
-        ClearPipeline();
-    }, "Clear pipeline" );
-
-    ImVec2 topLeft;
-    ImVec2 bottomRight;
-
-    _gridCellSize.width = layout.cellWidth;
-
-    for ( int x = 0; x < int(_visibleCellsCount); ++x )
-    {
-        topLeft.x = float( cGridLeft + x * _gridCellSize.width);
-        drawList->AddLine( { topLeft.x - 1, cGridTop - cHeadRowHeight - 1 }, { topLeft.x - 1, cGridBottom }, ImU32( UIColor::TableBorders ) );
-        ImGui::SetCursorPos( { topLeft.x + _gridCellSize.width * 0.5f, cGridTop - cHeadRowHeight + ImGui::GetTextLineHeightWithSpacing() * 0.25f } );
-
-        std::string columnHeader = std::to_string( x + _selection.firstVisible + 1 );
-        ImGui::Text( "%s", columnHeader.c_str() );
-    }
-
-    topLeft.x = float(cGridLeft + _visibleCellsCount * _gridCellSize.width);
-    drawList->AddLine( { _size.x - 8, cGridTop - cHeadRowHeight - 1 }, { _size.x - 8, cGridBottom }, ImU32( UIColor::TableBorders ), 3.0f );
-
-    
-    topLeft.y = cGridTop;
-    bottomRight.y = topLeft.y + cGridCellHeight;
-    
-    ImGui::SetCursorPos( { cGridLeft * 0.5f, topLeft.y + cGridCellHeight * 0.5f - ImGui::GetTextLineHeightWithSpacing() * 0.5f } );    
-    ImGui::Text("%s", "1");
-
-    const float gridCellPaddingX = ( _gridCellSize.width - PipelineElementWindow::cElementWidth ) * 0.5f;
-
-    pElement = _pPipelineHead.get();
-    for ( int i = 0; i < _selection.firstVisible; ++i )
-    {
-        pElement = pElement->GetOutput().get();
-    }
-
-    for ( int x = 0; x < int(_visibleCellsCount); ++x )
-    {
-        topLeft.x = float( cGridLeft + x * _gridCellSize.width);
-        bottomRight.x = topLeft.x + _gridCellSize.width;
-
-        const size_t elementIdx = x + _selection.firstVisible;
-
-        ImGui::PushClipRect( { topLeft.x - 1, topLeft.y - 1 }, bottomRight, false );
-
-        if ( _selection.activeIndex == elementIdx )
-        {
-            if ( _selection.elementSelected )
-                drawList->AddRect({ topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32(UIColor::ActiveCellBorder), 0, 0, 2.0f);
-            else
-                drawList->AddLine( { topLeft.x, topLeft.y}, { topLeft.x, bottomRight.y }, ImU32( UIColor::ActiveCellBorder ), 2.0f );
-        }
-
-        if ( pElement )
-        {
-            pElement->SetPos( { topLeft.x + gridCellPaddingX, topLeft.y + cGridCellPadding } );
-            pElement = pElement->GetOutput().get();
-            ImGui::PopClipRect();
-            continue;
-        }
-        
-        drawList->AddRectFilled( { topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32( UIColor::EmptyCell ) );           
-        
-        if ( _selection.activeIndex == elementIdx )
-        {
-            if ( _selection.elementSelected )
-                drawList->AddRect({ topLeft.x + gridCellPaddingX - 1, topLeft.y + cGridCellPadding - 1 }, { bottomRight.x - gridCellPaddingX + 1, bottomRight.y - cGridCellPadding + 1 }, ImU32(UIColor::ActiveCellBorder), 0, 0, 2.0f);
-            else
-                drawList->AddLine({ topLeft.x, topLeft.y }, { topLeft.x, bottomRight.y }, ImU32(UIColor::ActiveCellBorder), 2.0f);
-        }
-
-        ImGui::PopClipRect();
-    }
-
-    //topLeft.y = float( cGridTop + _viewportSize.height * cGridCellHeight );
-    //drawList->AddLine( { 0, topLeft.y - 1 }, { _size.x, topLeft.y - 1 }, ImU32( UIColor::TableBorders ) );
+    DrawPipeline(layout);
 
     ImGui::PopFont();
 
@@ -767,28 +719,16 @@ MainWindowLayout MainWindow::GetPanelLayout() const
 
 void MainWindow::Show()
 {
-    if ( !DrawHeader() )
-        return ImGui::End();
-
-    const int pipelineSize = int( GetPipelineSize() );
-    auto pElement = _pPipelineHead;
-
-    for ( int i = 0; i < _selection.firstVisible; ++i )
-    {
-        pElement = pElement->GetOutput();
-    }
-
-    for ( int i = 0; i < std::min(_visibleCellsCount, pipelineSize - _selection.firstVisible); ++i )
-    {
-        pElement->Show();
-        pElement = pElement->GetOutput();
-    }
-
-    ImGui::SetNextWindowPos(_pos, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(_size, ImGuiCond_FirstUseEver);
-
-    DrawDialog();
-    ImGui::End();   
+    const auto layout = GetPanelLayout();
+    const auto padding = ImGui::GetStyle().WindowPadding;
+    ImGui::SetNextWindowPos(_pos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(_size, ImGuiCond_Always);
+    if (layout.canvasSize.x > 0 && layout.canvasSize.y > 0)
+        ImGui::SetNextWindowContentSize({layout.canvasSize.x - 2 * padding.x,
+            layout.canvasSize.y - 2 * padding.y});
+    if (DrawHeader())
+        DrawDialog();
+    ImGui::End();
 }
 
 ACMB_GUI_NAMESPACE_END

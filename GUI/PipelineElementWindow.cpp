@@ -3,6 +3,7 @@
 #include "MainWindow.h"
 #include "ImGuiHelpers.h"
 #include "SettingsInterpolationUser.h"
+#include "ScrollablePanels.h"
 
 #include "./../Registrator/stacker.h"
 #include "./../Cuda/CudaInfo.h"
@@ -207,7 +208,7 @@ void PipelineElementWindow::DrawDialog()
     const auto taskCount = GetTaskCount();
     ImGui::ProgressBar(taskCount > 0 ? (float(_completedTaskCount) + _taskReadiness) / float(taskCount) : 0.0f, { _itemWidth, 0 });
 
-    ImGui::PushItemWidth( 50.0f * cMenuScaling );
+    ImGui::PushItemWidth(50.0f * cMenuScaling);
     DrawPipelineElementControls();
     ImGui::PopItemWidth();
 
@@ -222,6 +223,38 @@ void PipelineElementWindow::DrawDialog()
 
     if ( _showError )
         UI::ShowModalMessage( { _error }, UI::ModalMessageType::Error, _showError );    
+}
+
+void PipelineElementWindow::DrawInPipeline(ImVec2 size)
+{
+    _size = size;
+    // Keep the original window caption fixed above the independently scrolling
+    // settings. The outer child owns the visible/selected card border.
+    const bool visible = ImGui::BeginChild(_name.c_str(), size, ImGuiChildFlags_Borders,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    if (visible)
+    {
+        CenteredCardCaption(_name.c_str());
+        const auto padding = ImGui::GetStyle().WindowPadding;
+        ImGui::SetCursorPos({padding.x, 24 + padding.y});
+        const ImVec2 settingsSize{size.x - 2 * padding.x,
+            std::max(1.0f, size.y - 24 - 2 * padding.y)};
+        const float minimumWidth = settingsSize.x - ImGui::GetStyle().ScrollbarSize;
+        // The card supplies the padding; avoid adding it a second time in the
+        // nested settings viewport. Leave space around its scrollbar as well.
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {0, 0});
+        const bool settingsVisible = BeginVerticalPanel("settings", settingsSize, minimumWidth, false);
+        ImGui::PopStyleVar();
+        if (settingsVisible)
+        {
+            _itemWidth = std::max(minimumWidth, ImGui::GetContentRegionAvail().x);
+            ImGui::PushItemWidth(_itemWidth);
+            DrawDialog();
+            ImGui::PopItemWidth();
+        }
+        ImGui::EndChild();
+    }
+    ImGui::EndChild();
 }
 
 void PipelineElementWindow::Serialize( std::ostream& out ) const

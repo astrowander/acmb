@@ -43,14 +43,16 @@ BEGIN_TEST(PreservesExistingDesktopGeometry)
     EXPECT_EQ(368.0f, layout.preview.x);
     EXPECT_EQ(8.0f, layout.preview.y);
     EXPECT_EQ(540.0f, layout.preview.width);
-    EXPECT_EQ(359.0f, layout.preview.height);
+    EXPECT_EQ(344.0f, layout.preview.height);
     EXPECT_EQ(956.0f, layout.frameControls.x);
     EXPECT_EQ(308.0f, layout.frameControls.width);
     EXPECT_EQ(336.0f, layout.toolbox.width);
-    EXPECT_EQ(375.0f, layout.pipelineHeader.y);
+    EXPECT_EQ(360.0f, layout.pipelineHeader.y);
     EXPECT_EQ(400.0f, layout.pipeline.y);
     EXPECT_EQ(700.0f, layout.pipeline.GetBottom());
-    EXPECT_EQ(6, layout.visibleCells);
+    EXPECT_EQ(3, layout.visibleCells);
+    EXPECT_EQ(280.0f, layout.cardSize.x);
+    EXPECT_EQ(330.0f, layout.cellWidth);
 END_TEST
 
 BEGIN_TEST(PanelsFitWithoutOverlapAcrossSizeAndScaleMatrix)
@@ -62,16 +64,17 @@ BEGIN_TEST(PanelsFitWithoutOverlapAcrossSizeAndScaleMatrix)
             std::cout << "Panel case: " << size.x << "x" << size.y << " @ " << scale << '\n';
             TestAppHost host({size, scale});
             const auto layout = MeasurePanels(host);
-            const RectF panels[] = {layout.toolbox, layout.preview, layout.frameControls,
+            const RectF panels[] = {layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
                 layout.pipelineHeader, layout.pipeline};
             for (const auto& panel : panels)
-                EXPECT_TRUE(IsContained(panel, size));
-            for (size_t i = 0; i < 5; ++i)
-                for (size_t j = i + 1; j < 5; ++j)
+                EXPECT_TRUE(IsContained(panel, layout.canvasSize));
+            for (size_t i = 0; i < 6; ++i)
+                for (size_t j = i + 1; j < 6; ++j)
                     EXPECT_FALSE(Overlaps(panels[i], panels[j]));
             EXPECT_TRUE(layout.visibleCells >= 1);
             EXPECT_TRUE(layout.cellWidth >= gui::MainWindowLayout::CellMinWidth);
-            EXPECT_NEAR(layout.pipeline.width, layout.cellWidth * layout.visibleCells, 0.01f);
+            EXPECT_TRUE(layout.cellWidth * layout.visibleCells <= layout.pipeline.width);
+            EXPECT_TRUE(layout.cardSize.x >= gui::MainWindowLayout::CardWidth);
         }
     }
 END_TEST
@@ -95,9 +98,9 @@ BEGIN_TEST(SmallAndMinimizedWindowsHaveFiniteClampedBounds)
     {
         TestAppHost host({size, 1.5f});
         const auto layout = MeasurePanels(host);
-        for (const auto& panel : {layout.toolbox, layout.preview, layout.frameControls,
+        for (const auto& panel : {layout.toolbox, layout.preview, layout.frameControls, layout.pipelineCommands,
             layout.pipelineHeader, layout.pipeline})
-            EXPECT_TRUE(IsContained(panel, size));
+            EXPECT_TRUE(IsContained(panel, layout.canvasSize));
         EXPECT_TRUE(layout.visibleCells >= 1);
         EXPECT_TRUE(std::isfinite(layout.cellWidth));
         EXPECT_TRUE(layout.cellWidth >= 0);
@@ -108,11 +111,11 @@ END_TEST
 BEGIN_TEST(PipelineColumnThresholdsAvoidDivisionByZero)
     EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(0));
     EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(24));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(224));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(225));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(424));
-    EXPECT_EQ(2, gui::MainWindowLayout::CountVisibleCells(425));
-    EXPECT_EQ(9, gui::MainWindowLayout::CountVisibleCells(1920));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(505));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(506));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(835));
+    EXPECT_EQ(2, gui::MainWindowLayout::CountVisibleCells(836));
+    EXPECT_EQ(5, gui::MainWindowLayout::CountVisibleCells(1920));
 END_TEST
 
 BEGIN_TEST(ResizeAndRestorePreservesPanelGeometry)

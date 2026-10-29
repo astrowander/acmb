@@ -2,6 +2,7 @@
 #include "PipelineElementWindow.h"
 #include "MainWindowLayout.h"
 #include "PipelineEditing.h"
+#include "GuiInteractions.h"
 #include "./../Geometry/size.h"
 #include "./../Geometry/point.h"
 
@@ -36,8 +37,9 @@ private:
 
     int _visibleCellsCount = 0;
     PipelineSelection _selection;
+    int _lastPipelineSelection = -1;
+    float _lastPipelineWidth = 0;
 
-    bool _isBusy = false;
     bool _showResultsPopup = false;
     bool _showHelpPopup = false;
 
@@ -49,7 +51,7 @@ private:
 
     SizeF _gridCellSize = { 1.0f, 1.0f };
 
-    std::atomic<bool> _stopRequested{ false };
+    ProcessingState _processingState;
     // Declared last so destruction waits for processing before releasing state.
     std::future<std::vector<std::string>> _processingFuture;
 
@@ -62,12 +64,12 @@ private:
     virtual void DrawDialog() override;
 
     void DrawMenu();
+    void DrawPipeline(const MainWindowLayout& layout);
     MainWindowLayout GetPanelLayout() const;
 
     void ProcessKeyboardEvents();
-    void ProcessMouseEvents();
 
-    virtual ImGuiWindowFlags flags() const override { return  ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration; }
+    virtual ImGuiWindowFlags flags() const override { return ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_HorizontalScrollbar; }
 
     const FontRegistry& _fontRegistry;
     
@@ -110,13 +112,14 @@ public:
 
     bool IsInterfaceLocked() { return _lockInterface; }
 
-    bool IsProcessingCancelled() const { return _stopRequested.load(); }
+    bool IsProcessingCancelled() const { return _processingState.IsCancellationRequested(); }
 
     bool isCudaEnabled() { return _enableCuda; }
 
     void ClearPipeline()
     {
         ClearEditedPipeline(_pPipelineHead, _selection);
+        _lastPipelineSelection = -1;
     }
 
     RectF GetImageRegionAvail() const;

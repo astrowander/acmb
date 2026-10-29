@@ -84,5 +84,36 @@ public:
         draw();
         ImGui::Render();
     }
+
+    void Click(ImVec2 position, const std::function<void()>& draw)
+    {
+        ImGui::SetCurrentContext(_context);
+        auto& io = ImGui::GetIO();
+        io.AddMousePosEvent(position.x, position.y);
+        RenderFrame(draw);
+        io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+        RenderFrame(draw);
+        io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+        RenderFrame(draw);
+    }
+
+    void PressKey(ImGuiKey key, const std::function<void()>& draw)
+    {
+        ImGui::SetCurrentContext(_context);
+        ImGui::GetIO().AddKeyEvent(key, true);
+        RenderFrame(draw);
+        ImGui::GetIO().AddKeyEvent(key, false);
+        RenderFrame(draw);
+    }
+
+    void Wheel(ImVec2 position, float horizontal, float vertical, const std::function<void()>& draw)
+    {
+        ImGui::SetCurrentContext(_context);
+        ImGui::GetIO().AddMousePosEvent(position.x, position.y);
+        RenderFrame(draw);
+        ImGui::GetIO().AddMouseWheelEvent(horizontal, vertical);
+        RenderFrame(draw);
+        RenderFrame(draw);
+    }
 };
 }

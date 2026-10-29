@@ -198,6 +198,12 @@
     <ClInclude Include="PipelineEditing.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="GuiInteractions.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollablePanels.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="MenuItem.h">
       <Filter>Core</Filter>
     </ClInclude>

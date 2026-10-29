@@ -34,7 +34,7 @@ class PipelineElementWindow : public Window
 {
 public:    
 
-    static constexpr int cElementWidth = 150;
+    static constexpr int cElementWidth = 280;
     static constexpr int cElementHeight = 250;
 
     enum class PropagationDir
@@ -134,6 +134,7 @@ public:
     }
 
     int GetElementsCount() const;
+    void DrawInPipeline(ImVec2 size);
 
     virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
 

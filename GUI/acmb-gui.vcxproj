@@ -201,6 +201,8 @@
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MainWindowLayout.h" />
     <ClInclude Include="PipelineEditing.h" />
+    <ClInclude Include="GuiInteractions.h" />
+    <ClInclude Include="ScrollablePanels.h" />
     <ClInclude Include="MedianBlurWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />

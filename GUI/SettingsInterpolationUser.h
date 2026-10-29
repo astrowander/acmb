@@ -72,9 +72,12 @@ protected:
     {
         ImGui::Separator();
 
-        const float buttonWidth = 150.0f;
+        const float buttonWidth = std::max(150.0f,
+            ImGui::CalcTextSize("Previous Keyframe").x + 2 * ImGui::GetStyle().FramePadding.x);
         const float spacing = ImGui::GetStyle().ItemSpacing.x;
-        const float totalWidth = buttonWidth * 2 + spacing;
+        const float availableWidth = ImGui::GetContentRegionAvail().x;
+        const bool pairFits = availableWidth >= buttonWidth * 2 + spacing;
+        const float totalWidth = std::max(buttonWidth, std::min(availableWidth, buttonWidth * 2 + spacing));
 
         int currentFrame = _pHostWindow->GetPreviewedFrameNumber();
         auto it = _mSettings.find(currentFrame);
@@ -88,7 +91,8 @@ protected:
             // Can't delete the first keyframe
             if ( currentFrame != 0 )
             {
-                ImGui::SameLine();
+                if (pairFits)
+                    ImGui::SameLine();
 
                 UI::Button("Delete Keyframe", { buttonWidth, 0 }, [&]
                 {
@@ -115,7 +119,8 @@ protected:
             _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
         }, "Go to previous keyframe", nullptr);
 
-        ImGui::SameLine();
+        if (pairFits)
+            ImGui::SameLine();
 
         UI::Button("Next Keyframe", { buttonWidth, 0 },
                    [&]

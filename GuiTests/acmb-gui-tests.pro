@@ -9,6 +9,8 @@ HEADERS += \
     TestAppHost.h \
     ../GUI/MainWindowLayout.h \
     ../GUI/PipelineEditing.h \
+    ../GUI/GuiInteractions.h \
+    ../GUI/ScrollablePanels.h \
     ../Tests/TestRunner.h \
     ../Tests/test.h \
     ../GUI/MenuItem.h
@@ -19,6 +21,8 @@ SOURCES += \
     TestLayoutInputs.cpp \
     TestMainWindowPanels.cpp \
     TestPipelineEditing.cpp \
+    TestGuiInteractions.cpp \
+    TestScrollablePanels.cpp \
     ../Tests/TestRunner.cpp \
     ../GUI/imgui/imgui.cpp \
     ../GUI/imgui/imgui_draw.cpp \

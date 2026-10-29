@@ -12,6 +12,12 @@ FontRegistry::FontRegistry( float )
 
     ImFontAtlas fontAtlas;
     byDefault = io.Fonts->AddFontFromFileTTF( (acmb_path + "/GUI/Fonts/NotoSans-Regular.ttf").c_str(), 15, nullptr, fontAtlas.GetGlyphRangesCyrillic() );
+    const ImWchar mergedIconRanges[] = {0xe005, 0xf8ff, 0};
+    ImFontConfig mergedIcons;
+    mergedIcons.MergeMode = true;
+    mergedIcons.GlyphMinAdvanceX = 18;
+    io.Fonts->AddFontFromFileTTF((acmb_path + "/GUI/Fonts/fa-solid-900.ttf").c_str(),
+        15, &mergedIcons, mergedIconRanges);
     bold = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Bold.ttf" ).c_str(), 15 );
     big = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Regular.ttf" ).c_str(), 20 );
     bigBold = io.Fonts->AddFontFromFileTTF( ( acmb_path + "/GUI/Fonts/NotoSans-Bold.ttf" ).c_str(), 20 );

@@ -2,6 +2,7 @@
 #include "window.h"
 #include "FontRegistry.h"
 #include "MainWindow.h"
+#include "GuiInteractions.h"
 
 using namespace acmb::gui;
 
@@ -137,9 +138,8 @@ namespace UI
     bool Button( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::Button( name.c_str(), size) && !isInterfaceLocked )
+        if ( CommandButton(name.c_str(), size, isInterfaceLocked, action) )
         {
-            action();
             ResetParentWindow( parent );
 
             return true;
@@ -151,9 +151,8 @@ namespace UI
 
     bool UnlockableButton( const std::string& name, const ImVec2& size, std::function<void()> action, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
-        if ( ImGui::Button( name.c_str(), size ) )
+        if ( CommandButton(name.c_str(), size, false, action) )
         {
-            action();
             ResetParentWindow(parent);
 
             return true;
@@ -165,10 +164,10 @@ namespace UI
 
     bool RadioButton( const std::string& label, int* v, int v_button, const std::string& tooltip, PipelineElementWindow* parent )
     {
-        const bool pressed = ImGui::RadioButton( label.c_str(), *v == v_button) && !MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked();
+        const bool pressed = RadioSetting(label.c_str(), *v, v_button,
+            MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked());
         if ( pressed )
         { 
-            *v = v_button;
             ResetParentWindow(parent);
 
             return true;
