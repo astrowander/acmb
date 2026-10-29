@@ -1,0 +1,26 @@
+TEMPLATE = app
+TARGET = acmb-gui-tests
+CONFIG += console c++2a
+CONFIG -= app_bundle qt
+
+INCLUDEPATH += $$PWD/../GUI/imgui
+
+HEADERS += \
+    TestAppHost.h \
+    ../GUI/MainWindowLayout.h \
+    ../GUI/PipelineEditing.h \
+    ../Tests/TestRunner.h \
+    ../Tests/test.h \
+    ../GUI/MenuItem.h
+
+SOURCES += \
+    main.cpp \
+    TestGuiSmoke.cpp \
+    TestLayoutInputs.cpp \
+    TestMainWindowPanels.cpp \
+    TestPipelineEditing.cpp \
+    ../Tests/TestRunner.cpp \
+    ../GUI/imgui/imgui.cpp \
+    ../GUI/imgui/imgui_draw.cpp \
+    ../GUI/imgui/imgui_tables.cpp \
+    ../GUI/imgui/imgui_widgets.cpp

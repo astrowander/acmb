@@ -75,6 +75,8 @@ HEADERS += \
     ImageWriterWindow.h \
     LevelsWindow.h \
     MainWindow.h \
+    MainWindowLayout.h \
+    PipelineEditing.h \
     MenuItem.h \
     MenuItemsHolder.h \
     PipelineElementWindow.h \

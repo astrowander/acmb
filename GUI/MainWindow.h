@@ -1,5 +1,7 @@
 #pragma once
 #include "PipelineElementWindow.h"
+#include "MainWindowLayout.h"
+#include "PipelineEditing.h"
 #include "./../Geometry/size.h"
 #include "./../Geometry/point.h"
 
@@ -33,9 +35,7 @@ private:
     std::shared_ptr<PipelineElementWindow> _pPipelineHead;
 
     int _visibleCellsCount = 0;
-    int _firstVisibleElement = 0;
-    int _activeElement = 0;
-    bool _isElementSelected = true;
+    PipelineSelection _selection;
 
     bool _isBusy = false;
     bool _showResultsPopup = false;
@@ -62,6 +62,7 @@ private:
     virtual void DrawDialog() override;
 
     void DrawMenu();
+    MainWindowLayout GetPanelLayout() const;
 
     void ProcessKeyboardEvents();
     void ProcessMouseEvents();
@@ -94,53 +95,9 @@ public:
     template<class ElementType>
     void AddElementToGrid( size_t posInPipeline, bool replace = false )
     {
-        std::shared_ptr<PipelineElementWindow> pNode = _pPipelineHead;
-        std::shared_ptr<PipelineElementWindow> pPrev = nullptr;
-
-        for ( size_t i = 0; i < posInPipeline; ++i )
-        {
-            pPrev = pNode;
-            pNode = pNode->GetOutput();
-        }
-
-        auto pNewElement = std::make_shared<ElementType>();
-
-        if ( !pNode ) // insert at the end
-        {
-            if ( pPrev )
-            {
-                pPrev->SetOutput(pNewElement);
-                pNewElement->SetInput(pPrev);
-            }
-            else
-                _pPipelineHead = pNewElement;
-
-            return;
-        }
-
-        auto pPrevElement = pNode->GetInput();
-        auto pNextElement = pNode->GetOutput();
-
-        if ( pPrevElement )
-        {
-            pNewElement->SetInput(pPrevElement);
-            pPrevElement->SetOutput(pNewElement);
-        }
-        else
-        {
-            _pPipelineHead = pNewElement;
-        }
-
-        if ( !replace )
-        {
-            pNewElement->SetOutput(pNode);
-            pNode->SetInput(pNewElement);
-            return;
-        }
-
-        pNewElement->SetOutput(pNextElement);
-        if ( pNextElement )
-            pNextElement->SetInput(pNewElement);
+        InsertPipelineElement<PipelineElementWindow>(_pPipelineHead,
+            std::make_shared<ElementType>(), posInPipeline, replace);
+        UpdateActiveElement(_selection.activeIndex, _selection.elementSelected);
     }
 
     void LockInterface() {
@@ -159,7 +116,7 @@ public:
 
     void ClearPipeline()
     {
-        _pPipelineHead.reset();
+        ClearEditedPipeline(_pPipelineHead, _selection);
     }
 
     RectF GetImageRegionAvail() const;

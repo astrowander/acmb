@@ -199,6 +199,8 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="LevelsWindow.h" />
     <ClInclude Include="MainWindow.h" />
+    <ClInclude Include="MainWindowLayout.h" />
+    <ClInclude Include="PipelineEditing.h" />
     <ClInclude Include="MedianBlurWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />

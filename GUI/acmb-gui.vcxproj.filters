@@ -192,6 +192,12 @@
     <ClInclude Include="MainWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="MainWindowLayout.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineEditing.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="MenuItem.h">
       <Filter>Core</Filter>
     </ClInclude>
