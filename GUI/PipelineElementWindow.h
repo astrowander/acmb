@@ -7,6 +7,7 @@
 
 #include "./../Core/bitmap.h"
 #include "./../Geometry/point.h"
+#include <cstdint>
 
 #if ( defined _MSC_VER && _MSC_VER > 1900 ) || ( __cplusplus > 202002L && __cpp_concepts >= 202002L )
 #include <expected>
@@ -34,8 +35,8 @@ class PipelineElementWindow : public Window
 {
 public:    
 
-    static constexpr int cElementWidth = 280;
-    static constexpr int cElementHeight = 250;
+    static constexpr int cElementWidth = 200;
+    static constexpr int cElementHeight = 110;
 
     enum class PropagationDir
     {
@@ -70,6 +71,7 @@ protected:
     PipelineElementWindow( const std::string& name );
 
     virtual void DrawPipelineElementControls() = 0;
+    virtual void DrawElementAuxiliaryUi() {}
     
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i );
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
@@ -134,7 +136,13 @@ public:
     }
 
     int GetElementsCount() const;
-    void DrawInPipeline(ImVec2 size);
+    void DrawCompactCard(ImVec2 size);
+    void DrawSettings(const std::function<void()>& extraControls = {});
+    void DrawAuxiliaryUi();
+    std::string GetUiKey(const char* prefix) const
+    {
+        return std::string(prefix) + "##" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
+    }
 
     virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
 

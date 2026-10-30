@@ -10,6 +10,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class ImageWriterWindow : public PipelineElementWindow
 {
+    void DrawElementAuxiliaryUi() override;
     std::string _workingDirectory;
     std::string _fileName;
     std::string _extension;

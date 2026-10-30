@@ -48,6 +48,7 @@
     <ClCompile Include="TestScrollablePanels.cpp" />
     <ClCompile Include="TestTopToolbar.cpp" />
     <ClCompile Include="TestToolLibrary.cpp" />
+    <ClCompile Include="TestStepPresentation.cpp" />
     <ClCompile Include="..\Tests\TestRunner.cpp" />
     <ClCompile Include="..\GUI\imgui\imgui.cpp" />
     <ClCompile Include="..\GUI\imgui\imgui_draw.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="..\GUI\ScrollablePanels.h" />
     <ClInclude Include="..\GUI\TopToolbar.h" />
     <ClInclude Include="..\GUI\ToolLibrary.h" />
+    <ClInclude Include="..\GUI\StepPresentation.h" />
     <ClInclude Include="..\Tests\TestRunner.h" />
     <ClInclude Include="..\Tests\test.h" />
     <ClInclude Include="..\GUI\MenuItem.h" />

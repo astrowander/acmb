@@ -5,6 +5,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class DarkFrameWindow : public PipelineElementWindow, public FileListUser
 {
+    void DrawElementAuxiliaryUi() override { FileListUser::DrawDialogs(); }
     float _multiplier = 1.0f;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber ) override;
 

@@ -14,6 +14,15 @@ ACMB_GUI_NAMESPACE_END
 
 namespace UI
 {
+    class SettingsParentScope
+    {
+        acmb::gui::PipelineElementWindow* _previous;
+    public:
+        explicit SettingsParentScope(acmb::gui::PipelineElementWindow* parent);
+        ~SettingsParentScope();
+        SettingsParentScope(const SettingsParentScope&) = delete;
+        SettingsParentScope& operator=(const SettingsParentScope&) = delete;
+    };
     void SetTooltipIfHovered( const std::string& text, float scaling );
 
     enum class ModalMessageType

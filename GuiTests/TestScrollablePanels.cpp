@@ -35,7 +35,7 @@ BEGIN_TEST(WorkspacePreservesMinimumPanelAndCardSizes)
     EXPECT_EQ(large.cellWidth, small.cellWidth);
     EXPECT_TRUE(small.preview.width >= 240);
     EXPECT_TRUE(small.toolbox.height >= 200);
-    EXPECT_TRUE(small.pipeline.height >= 300);
+    EXPECT_TRUE(small.pipeline.height >= gui::MainWindowLayout::CellHeight);
 END_TEST
 
 BEGIN_TEST(IconTextRowsDoNotShrinkOrOverlap)
@@ -213,7 +213,7 @@ BEGIN_TEST(HorizontalScrollKeepsCardWidthAndSelectionCorrect)
             ImGui::PushID(i);
             ImGui::BeginGroup();
             ImGui::BeginChild("card", {gui::MainWindowLayout::CardWidth, 220}, ImGuiChildFlags_Borders);
-            gui::CommandButton("Select", {200, 32}, false, [] {});
+            gui::CommandButton("Select", {-1, 32}, false, [] {});
             if (i == 7)
                 lastCenter = ItemCenter();
             ImGui::EndChild();

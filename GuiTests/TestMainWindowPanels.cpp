@@ -43,16 +43,16 @@ BEGIN_TEST(PreservesExistingDesktopGeometry)
     EXPECT_EQ(368.0f, layout.preview.x);
     EXPECT_EQ(48.0f, layout.preview.y);
     EXPECT_EQ(540.0f, layout.preview.width);
-    EXPECT_EQ(304.0f, layout.preview.height);
+    EXPECT_EQ(444.0f, layout.preview.height);
     EXPECT_EQ(956.0f, layout.frameControls.x);
     EXPECT_EQ(308.0f, layout.frameControls.width);
     EXPECT_EQ(336.0f, layout.toolbox.width);
-    EXPECT_EQ(360.0f, layout.pipelineHeader.y);
-    EXPECT_EQ(400.0f, layout.pipeline.y);
+    EXPECT_EQ(500.0f, layout.pipelineHeader.y);
+    EXPECT_EQ(540.0f, layout.pipeline.y);
     EXPECT_EQ(700.0f, layout.pipeline.GetBottom());
-    EXPECT_EQ(3, layout.visibleCells);
-    EXPECT_EQ(280.0f, layout.cardSize.x);
-    EXPECT_EQ(330.0f, layout.cellWidth);
+    EXPECT_EQ(4, layout.visibleCells);
+    EXPECT_EQ(200.0f, layout.cardSize.x);
+    EXPECT_EQ(250.0f, layout.cellWidth);
 END_TEST
 
 BEGIN_TEST(PanelsFitWithoutOverlapAcrossSizeAndScaleMatrix)
@@ -111,11 +111,11 @@ END_TEST
 BEGIN_TEST(PipelineColumnThresholdsAvoidDivisionByZero)
     EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(0));
     EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(24));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(505));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(506));
-    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(835));
-    EXPECT_EQ(2, gui::MainWindowLayout::CountVisibleCells(836));
-    EXPECT_EQ(5, gui::MainWindowLayout::CountVisibleCells(1920));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(425));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(426));
+    EXPECT_EQ(1, gui::MainWindowLayout::CountVisibleCells(675));
+    EXPECT_EQ(2, gui::MainWindowLayout::CountVisibleCells(676));
+    EXPECT_EQ(6, gui::MainWindowLayout::CountVisibleCells(1920));
 END_TEST
 
 BEGIN_TEST(ResizeAndRestorePreservesPanelGeometry)

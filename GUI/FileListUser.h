@@ -53,6 +53,7 @@ protected:
     int GetTotalFrameCount() const;
 
     void DrawControls();
+    void DrawDialogs();
     void Serialize(std::ostream& out) const;
     bool Deserialize(std::istream& in, int& remainingBytes);
     int GetSerializedStringSize() const;

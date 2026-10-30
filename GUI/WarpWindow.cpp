@@ -17,7 +17,8 @@ void WarpWindow::DrawPipelineElementControls()
     {
         ImGui::Text( "%3d", lineIndex );
         ImGui::SameLine();
-        ImGui::PushItemWidth( 50.0f );
+        ImGui::PushItemWidth(std::max(50.0f,
+            (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x) * 0.5f));
         const std::string xId = "##control_x_" + std::to_string( lineIndex );
         UI::DragFloat( xId, &_settings.controls[lineIndex].x, 0.01f, -2.0f, 2.0f, "Edit x coordinate of the control point", this );
         ImGui::SameLine();

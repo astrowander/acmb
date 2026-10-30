@@ -125,8 +125,9 @@ engine dependency is needed for these three cases.
 ## Minimum sizes and scrolling
 
 The workspace preserves a minimum 1000 x 640 logical canvas (scaled for larger
-fonts). Pipeline cards start at 280 x 250 logical units, with independent vertical
-settings scrolling. The pipeline scrolls horizontally instead of compressing its
+fonts). Pipeline cards start at 200 x 110 logical units and contain only their
+title, progress, and status. Selected-step settings scroll in the right inspector.
+The pipeline scrolls horizontally instead of compressing its
 cards. Selecting a step with the keyboard brings it into view. Toolbox commands
 are single icon-and-text rows using the merged icon/text font, with no manually
 positioned captions. Frame/keyframe settings scroll vertically and button pairs
@@ -140,13 +141,12 @@ the same child-panel helpers as the production GUI.
 
 Pipeline cards retain visible borders (red for the selected card) and centered
 title bars and column captions. Each title bar uses the original window name and
-title-background style, spans the card width, and stays visible while its settings
-scroll independently below it. Settings controls use the original frame padding,
-natural button heights, and compact numeric widths; scrolling provides access
+title-background style and spans the card width. Settings controls use the original
+frame padding and natural button heights, with inspector-driven widths; scrolling provides access
 to overflowing controls without enlarging them. The pipeline also draws an outer
 grid border, column dividers, and a header separator. Cards are centered inside
-their cells with horizontal and vertical gutters; their settings viewports respect
-the card's window padding, including space around the scrollbar.
+their cells with horizontal and vertical gutters. The inspector reserves its own
+padding and space for its scrollbar independently of the cards.
 
 Clear Pipeline and the interaction-help tooltip live in a separate fixed column
 to the left of the scrolling cards. A horizontal separator runs above the pipeline
@@ -201,7 +201,7 @@ Before marking the application-level check complete:
 
 - [ ] Reach and operate Open, Save, Help, Run, Stop, and every tool command;
   include CUDA settings when available.
-- [ ] Reach every enabled setting in each processing-tool card, including the
+- [ ] Reach every enabled setting in each selected tool's inspector, including the
   final setting in long forms and settings that appear conditionally.
 - [ ] Reach frame selection and all applicable keyframe actions, including
   wrapped button rows.
@@ -217,3 +217,30 @@ every size/scale combination. Other scrolling and interaction tests cover
 horizontal card scrolling, insertion selection, resize, and Run/Stop locking.
 These component tests support this gate; they do not replace the unchecked
 full-application checks above or prove coverage of every real tool's controls.
+
+## Compact cards and selected-step inspector
+
+`PipelineElementWindow` exposes `DrawCompactCard`, `DrawSettings`, and
+`DrawAuxiliaryUi`. Import, Stacker, Export, and all remaining registered tools
+reuse their existing controls in the inspector. Per-element child/ID scopes
+isolate scroll, focus, and widget state, including duplicate tool instances and
+saved names. Widths follow the inspector's available content region; Import's
+file list, Export's paths, Levels columns, and Warp coordinate rows adapt too.
+Frame selection/keyframes remain in a collapsible inspector section.
+
+Settings are disabled as a unit while the interface is locked. The settings
+parent scope lets existing UI helpers invalidate the owning step's preview and
+progress even when they omit an explicit parent argument. Checkbox/format edits
+use the same invalidation path. Card rendering never invokes settings controls.
+
+File dialogs, Export result popups, and error dialogs run separately for every
+pipeline element, regardless of selection or card visibility. Dialog keys use
+per-instance identities rather than saved names. Serialized tool IDs/settings
+are unchanged.
+
+`StepPresentation` covers stable/distinct IDs, edits isolated to the selected
+instance, inspector-driven field widths (including visible labels and explicit
+table widths), processing locks, and scrolling long forms without expanding cards.
+These tests exercise shared rendering components; native file dialogs, actual
+tool processing, and full-application preview/error flows still need integration
+verification.

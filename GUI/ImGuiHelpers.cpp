@@ -3,11 +3,16 @@
 #include "FontRegistry.h"
 #include "MainWindow.h"
 #include "GuiInteractions.h"
+#include "StepPresentation.h"
 
 using namespace acmb::gui;
 
 namespace UI
 {
+    static PipelineElementWindow* settingsParent = nullptr;
+    SettingsParentScope::SettingsParentScope(PipelineElementWindow* parent)
+        : _previous(settingsParent) { settingsParent = parent; }
+    SettingsParentScope::~SettingsParentScope() { settingsParent = _previous; }
     void SetTooltipIfHovered( const std::string& text, float scaling )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
@@ -49,6 +54,8 @@ namespace UI
 
     static void ResetParentWindow(PipelineElementWindow* parent)
     {
+        if (!parent)
+            parent = settingsParent;
         if ( !parent )
             return;
 
@@ -180,8 +187,10 @@ namespace UI
     bool Checkbox( const std::string& label, bool* v, const std::string& tooltip, PipelineElementWindow* parent )
     {
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
-        if ( ImGui::Checkbox( label.c_str(), v ) && isInterfaceLocked )
+        bool editedValue = *v;
+        if ( ImGui::Checkbox( label.c_str(), &editedValue ) && !isInterfaceLocked )
         {
+            *v = editedValue;
             ResetParentWindow(parent);
             return true;
         }
@@ -192,6 +201,7 @@ namespace UI
 
     bool DragInt( const std::string& label, int* v, float v_speed, int v_min, int v_max, const std::string& tooltip, PipelineElementWindow* parent )
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragInt( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : (ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_ClampZeroRange) ) )
         {
@@ -205,6 +215,7 @@ namespace UI
 
     bool DragInt2( const std::string& label, int v[2], float v_speed, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragInt2( label.c_str(), v, v_speed, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) )
         {
@@ -218,6 +229,7 @@ namespace UI
 
     bool DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max,  const std::string& tooltip, PipelineElementWindow* parent )
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::DragFloat( label.c_str(), v, v_speed, v_min, v_max, "%.4f", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp ) )
         {
@@ -231,6 +243,7 @@ namespace UI
 
     bool InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent )
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
         if ( ImGui::InputInt( label.c_str(), v, step, step_fast, isInterfaceLocked ? ImGuiInputTextFlags_ReadOnly : 0 ) )
         {
@@ -245,6 +258,7 @@ namespace UI
 
     bool SliderInt(const std::string& label, int* v, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent)
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance(FontRegistry::Instance()).IsInterfaceLocked();
         if (ImGui::SliderInt(label.c_str(), v, v_min, v_max, "%d", isInterfaceLocked ? ImGuiSliderFlags_ReadOnly : ImGuiSliderFlags_AlwaysClamp))
         {
@@ -278,6 +292,7 @@ namespace UI
 
     bool Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, PipelineElementWindow* parent )
     {
+        FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
 
         int items_count = 0;
@@ -291,7 +306,7 @@ namespace UI
             }
         }
 
-        if ( ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count ) && parent )
+        if ( ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count ) && !isInterfaceLocked )
         {
             ResetParentWindow(parent);
             return true;

@@ -18,11 +18,11 @@ struct MainWindowLayout
     inline static constexpr float GridLeft = CommandsWidth + 16.0f;
     inline static constexpr float MinimumWorkspaceWidth = 1000.0f;
     inline static constexpr float MinimumWorkspaceHeight = 640.0f;
-    inline static constexpr float CardWidth = 280.0f;
-    inline static constexpr float CardHeight = 250.0f;
+    inline static constexpr float CardWidth = 200.0f;
+    inline static constexpr float CardHeight = 110.0f;
     inline static constexpr float CellPadding = 25.0f;
     inline static constexpr float CellMinWidth = CardWidth + 2 * CellPadding;
-    inline static constexpr float CellHeight = 300.0f;
+    inline static constexpr float CellHeight = CardHeight + 2 * CellPadding;
 
     RectF toolbox;
     RectF toolbar;

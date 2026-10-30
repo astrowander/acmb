@@ -70,7 +70,8 @@ void ImageWriterWindow::DrawPipelineElementControls()
 
     ImGui::Separator();
 
-    const float itemWidth = 100.0f * cMenuScaling;
+    const float itemWidth = _itemWidth;
+    const auto dialogKey = GetUiKey("SelectOutputFile");
     auto fileDialog = FileDialog::Instance();
 
     if ( _keepOriginalFileName )
@@ -80,7 +81,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
         ImGui::InputText( "##Directory", ( char* ) _workingDirectory.c_str(), 1024, ImGuiInputTextFlags_ReadOnly );
         UI::Button( "Select Directory", { itemWidth, 0 }, [&]
         {
-            fileDialog.OpenDialog( "SelectOutputFile", "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
+            fileDialog.OpenDialog( dialogKey, "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
         }, "Choose a directory to export the results" );
 
         UI::Combo( "Format", &_formatId, _formatList, "Choose a file format to export the results" );
@@ -95,7 +96,7 @@ void ImageWriterWindow::DrawPipelineElementControls()
         UI::Button( "Select File", { itemWidth, 0 }, [&]
         {
             static auto filters = GetFilters();
-            fileDialog.OpenDialog( "SelectOutputFile", "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
+            fileDialog.OpenDialog( dialogKey, "Select File", filters.c_str(), _workingDirectory.c_str(), 0 );
         }, "Choose a file format to export the results" );
     }
 
@@ -110,7 +111,13 @@ void ImageWriterWindow::DrawPipelineElementControls()
         }
     }
 
-    if ( fileDialog.Display( "SelectOutputFile", {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
+}
+
+void ImageWriterWindow::DrawElementAuxiliaryUi()
+{
+    auto fileDialog = FileDialog::Instance();
+    const auto dialogKey = GetUiKey("SelectOutputFile");
+    if ( fileDialog.Display( dialogKey, {}, { 300 * cMenuScaling, 200 * cMenuScaling } ) )
     {
         _workingDirectory = fileDialog.GetCurrentPath() + "/";
         // action if OK
@@ -128,7 +135,9 @@ void ImageWriterWindow::DrawPipelineElementControls()
         fileDialog.Close();
     }
 
-    if ( _pResultTexture )
+    if (_pResultTexture &&
+        (!ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) ||
+         ImGui::IsPopupOpen("PreviewResult")))
     {
         ImGui::OpenPopup( "PreviewResult" );
     }

@@ -105,8 +105,7 @@ int FileListUser::GetTotalFrameCount() const
 
 void FileListUser::DrawControls()
 {
-    const auto& style = ImGui::GetStyle();
-    const float itemWidth = PipelineElementWindow::cElementWidth - 2.0f * style.WindowPadding.x;
+    const float itemWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
 
     if ( ImGui::BeginListBox("##ImageList", { itemWidth, 110 }) )
     {
@@ -128,7 +127,7 @@ void FileListUser::DrawControls()
     ImGui::Text("%d frames in %d files", _totalFrameCount, int(_fileNames.size()));
 
     auto fileDialog = FileDialog::Instance();
-    const auto openDialogName = "SelectImagesDialog##" + GetWindowName();
+    const auto openDialogName = _pHost->GetUiKey("SelectImagesDialog");
 
     UI::Button("Select Images", { itemWidth, 0 }, [&]
     {
@@ -146,6 +145,12 @@ void FileListUser::DrawControls()
         }
     }, "Delete all images from the importing list", _pHost);
 
+}
+
+void FileListUser::DrawDialogs()
+{
+    auto fileDialog = FileDialog::Instance();
+    const auto openDialogName = _pHost->GetUiKey("SelectImagesDialog");
     if ( fileDialog.Display(openDialogName, {}, { 300 * PipelineElementWindow::cMenuScaling, 200 * PipelineElementWindow::cMenuScaling }) )
     {
         _workingDirectory = fileDialog.GetCurrentPath() + "/";

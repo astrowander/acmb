@@ -81,6 +81,7 @@ HEADERS += \
     ScrollablePanels.h \
     TopToolbar.h \
     ToolLibrary.h \
+    StepPresentation.h \
     MenuItem.h \
     MenuItemsHolder.h \
     PipelineElementWindow.h \

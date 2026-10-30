@@ -205,6 +205,7 @@
     <ClInclude Include="ScrollablePanels.h" />
     <ClInclude Include="TopToolbar.h" />
     <ClInclude Include="ToolLibrary.h" />
+    <ClInclude Include="StepPresentation.h" />
     <ClInclude Include="MedianBlurWindow.h" />
     <ClInclude Include="MenuItem.h" />
     <ClInclude Include="MenuItemsHolder.h" />

@@ -513,7 +513,7 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
             ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, selected ? 2.0f : 1.0f);
             if (element)
             {
-                element->DrawInPipeline({layout.cardSize.x, height});
+                element->DrawCompactCard({layout.cardSize.x, height});
                 element = element->GetOutput();
             }
             else
@@ -543,7 +543,7 @@ void MainWindow::DrawDialog()
     if ( IsInterfaceLocked() && !ImGui::IsPopupOpen( "", ImGuiPopupFlags_AnyPopupId ) && !FileDialog::Instance().IsOpened() && !_processingState.IsBusy() )
         UnlockInterface();
 
-    if ( !_lockInterface && !_showHelpPopup )
+    if ( !_lockInterface && !_showHelpPopup && !ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel) )
     {
         ProcessKeyboardEvents();
     }
@@ -569,31 +569,26 @@ void MainWindow::DrawDialog()
     if (layout.frameControls.width > 0 && layout.frameControls.height > 0)
     {
         ImGui::SetCursorPos({layout.frameControls.x, layout.frameControls.y});
-        const bool settingsVisible = BeginVerticalPanel("##FrameCounterSection",
-            {layout.frameControls.width, layout.frameControls.height}, 220);
-        if (settingsVisible)
+        if (ImGui::BeginChild("##StepInspector", {layout.frameControls.width, layout.frameControls.height},
+            ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
         {
-
-            ImGui::PushFont(_fontRegistry.bold);
-            ImGui::SeparatorText("Frame Number Selection");
-            ImGui::PopFont();
-
-            if ( pElement && pElement->GetTaskCount() > 1 )
+            if (pElement && _selection.elementSelected)
             {
-                int frameNumber = pElement->GetPreviewedFrameNumber();
-                ImGui::TextUnformatted("Frame Number");
-                ImGui::SetNextItemWidth(std::max(150.0f, ImGui::GetContentRegionAvail().x));
-                if ( UI::SliderInt("##FrameNumber", &frameNumber, 0, int(pElement->GetTaskCount()) - 1, "Select frame number", pElement) )
-                {
-                    pElement->OnPreviewedFrameNumberChanged(frameNumber);
-                }
-
-                if ( auto pSettingsInterpolationUser = dynamic_cast<ISettingsInterpolationUser*>(pElement) )
-                {
-                    pSettingsInterpolationUser->DrawFrameCounter();
-                }
+                pElement->DrawSettings([&] {
+                    if (pElement->GetTaskCount() > 1 && ImGui::CollapsingHeader("Frame Number Selection", ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        int frameNumber = pElement->GetPreviewedFrameNumber();
+                        ImGui::SetNextItemWidth(std::max(1.0f, ImGui::GetContentRegionAvail().x));
+                        if (UI::SliderInt("##FrameNumber", &frameNumber, 0, int(pElement->GetTaskCount()) - 1,
+                            "Select frame number", pElement))
+                            pElement->OnPreviewedFrameNumberChanged(frameNumber);
+                        if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(pElement))
+                            interpolation->DrawFrameCounter();
+                    }
+                });
             }
-
+            else
+                ImGui::TextWrapped("Select a pipeline step to edit its settings.");
         }
         ImGui::EndChild();
     }
@@ -641,6 +636,8 @@ void MainWindow::DrawDialog()
     }    
 
     DrawPipeline(layout);
+    for (auto element = _pPipelineHead; element; element = element->GetOutput())
+        element->DrawAuxiliaryUi();
 
     ImGui::PopFont();
 

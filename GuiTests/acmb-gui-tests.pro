@@ -13,6 +13,7 @@ HEADERS += \
     ../GUI/ScrollablePanels.h \
     ../GUI/TopToolbar.h \
     ../GUI/ToolLibrary.h \
+    ../GUI/StepPresentation.h \
     ../Tests/TestRunner.h \
     ../Tests/test.h \
     ../GUI/MenuItem.h
@@ -27,6 +28,7 @@ SOURCES += \
     TestScrollablePanels.cpp \
     TestTopToolbar.cpp \
     TestToolLibrary.cpp \
+    TestStepPresentation.cpp \
     ../Tests/TestRunner.cpp \
     ../GUI/imgui/imgui.cpp \
     ../GUI/imgui/imgui_draw.cpp \

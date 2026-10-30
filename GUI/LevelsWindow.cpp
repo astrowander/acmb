@@ -18,7 +18,8 @@ void LevelsWindow::DrawPipelineElementControls()
 
     ImGui::BeginTable( "##LevelsSettings", 4, ImGuiTableFlags_SizingFixedFit );
     
-    constexpr float colWidth = 35.0f;
+    const float colWidth = std::max(35.0f,
+        (ImGui::GetContentRegionAvail().x - 10 - 8 * ImGui::GetStyle().CellPadding.x) / 3);
     ImGui::TableSetupColumn( "##Channel", ImGuiTableColumnFlags_WidthFixed, 10 );
     ImGui::TableSetupColumn( "Min", ImGuiTableColumnFlags_WidthFixed, colWidth );
     ImGui::TableSetupColumn( "Gamma", ImGuiTableColumnFlags_WidthFixed, colWidth );

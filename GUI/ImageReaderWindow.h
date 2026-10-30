@@ -10,6 +10,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class ImageReaderWindow : public PipelineElementWindow, public FileListUser
 {
+    void DrawElementAuxiliaryUi() override { FileListUser::DrawDialogs(); }
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr, size_t ) override { return nullptr; }
 
