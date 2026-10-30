@@ -1,10 +1,19 @@
 #pragma once
 #include "ScrollablePanels.h"
+#include <cmath>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
+template<class Element>
+float PipelineHeadProgress(Element* head)
+{
+    if (!head) return 0;
+    const float progress = head->GetProgress();
+    return std::isfinite(progress) ? std::clamp(progress, 0.0f, 1.0f) : 0;
+}
+
 inline void RenderCompactStepCard(const void* element, const char* name, ImVec2 size,
-    float progress, const char* status)
+    const char* status)
 {
     ImGui::PushID(element);
     if (ImGui::BeginChild("card", size, ImGuiChildFlags_Borders,
@@ -13,7 +22,6 @@ inline void RenderCompactStepCard(const void* element, const char* name, ImVec2 
         CenteredCardCaption(name);
         const auto padding = ImGui::GetStyle().WindowPadding;
         ImGui::SetCursorPos({padding.x, 24 + padding.y});
-        ImGui::ProgressBar(std::clamp(progress, 0.0f, 1.0f), {ImGui::GetContentRegionAvail().x, 0});
         ImGui::TextUnformatted(status);
     }
     ImGui::EndChild();

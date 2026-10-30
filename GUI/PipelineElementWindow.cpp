@@ -209,14 +209,19 @@ void PipelineElementWindow::DrawDialog()
     DrawSettings();
 }
 
+float PipelineElementWindow::GetProgress()
+{
+    const auto tasks = GetTaskCount();
+    return tasks > 0 ? (float(_completedTaskCount) + _taskReadiness) / float(tasks) : 0;
+}
+
 void PipelineElementWindow::DrawCompactCard(ImVec2 size)
 {
     const auto tasks = GetTaskCount();
-    const float progress = tasks > 0 ? (float(_completedTaskCount) + _taskReadiness) / float(tasks) : 0;
     const char* status = _showError ? "Error" :
         tasks > 0 && _completedTaskCount >= tasks ? "Complete" :
         _completedTaskCount > 0 || _taskReadiness > 0 ? "Processing" : "Ready";
-    RenderCompactStepCard(this, _name.c_str(), size, progress, status);
+    RenderCompactStepCard(this, _name.c_str(), size, status);
 }
 
 void PipelineElementWindow::DrawSettings(const std::function<void()>& extraControls)

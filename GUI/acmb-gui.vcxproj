@@ -200,6 +200,8 @@
     <ClInclude Include="LevelsWindow.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MainWindowLayout.h" />
+    <ClInclude Include="LayoutPreferences.h" />
+    <ClInclude Include="AdaptivePanels.h" />
     <ClInclude Include="PipelineEditing.h" />
     <ClInclude Include="GuiInteractions.h" />
     <ClInclude Include="ScrollablePanels.h" />

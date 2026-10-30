@@ -137,8 +137,10 @@ public:
 
     int GetElementsCount() const;
     void DrawCompactCard(ImVec2 size);
+    float GetProgress();
     void DrawSettings(const std::function<void()>& extraControls = {});
     void DrawAuxiliaryUi();
+    std::string GetDisplayName() const { return _name.substr(0, _name.find("##")); }
     std::string GetUiKey(const char* prefix) const
     {
         return std::string(prefix) + "##" + std::to_string(reinterpret_cast<std::uintptr_t>(this));

@@ -76,6 +76,8 @@ HEADERS += \
     LevelsWindow.h \
     MainWindow.h \
     MainWindowLayout.h \
+    LayoutPreferences.h \
+    AdaptivePanels.h \
     PipelineEditing.h \
     GuiInteractions.h \
     ScrollablePanels.h \

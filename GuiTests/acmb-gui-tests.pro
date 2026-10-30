@@ -8,6 +8,8 @@ INCLUDEPATH += $$PWD/../GUI/imgui
 HEADERS += \
     TestAppHost.h \
     ../GUI/MainWindowLayout.h \
+    ../GUI/LayoutPreferences.h \
+    ../GUI/AdaptivePanels.h \
     ../GUI/PipelineEditing.h \
     ../GUI/GuiInteractions.h \
     ../GUI/ScrollablePanels.h \
@@ -23,6 +25,7 @@ SOURCES += \
     TestGuiSmoke.cpp \
     TestLayoutInputs.cpp \
     TestMainWindowPanels.cpp \
+    TestAdaptivePanels.cpp \
     TestPipelineEditing.cpp \
     TestGuiInteractions.cpp \
     TestScrollablePanels.cpp \

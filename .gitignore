@@ -90,3 +90,5 @@ build*
 *.fits
 
 *.user
+/GUI/layout.ini
+/GUI/layout.ini.tmp

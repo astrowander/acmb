@@ -2,6 +2,7 @@
 #include "../GUI/ScrollablePanels.h"
 #include "../GUI/GuiInteractions.h"
 #include "TestAppHost.h"
+#include "imgui_internal.h"
 
 namespace
 {
@@ -24,17 +25,44 @@ ACMB_TESTS_NAMESPACE_BEGIN
 
 BEGIN_SUITE(ScrollablePanels)
 
+BEGIN_TEST(ScrollbarsAppearOnlyForOverflowAndDisappearAfterShrink)
+    TestAppHost host;
+    bool overflow = false;
+    bool vertical = false, horizontal = false;
+    const auto draw = [&] {
+        BeginFixture();
+        gui::BeginVerticalPanel("automatic vertical", {320, 180}, 220);
+        vertical = ImGui::GetCurrentWindow()->ScrollbarY;
+        for (int i = 0; i < (overflow ? 40 : 2); ++i)
+            ImGui::Text("Setting %d", i);
+        ImGui::EndChild();
+        gui::BeginPipelinePanel("automatic horizontal", {650, 200}, overflow ? 8 : 1, 250);
+        horizontal = ImGui::GetCurrentWindow()->ScrollbarX;
+        ImGui::EndChild();
+        ImGui::End();
+    };
+    for (bool longContent : {false, true, false})
+    {
+        overflow = longContent;
+        // Overflow is determined from the preceding frame's content extent.
+        for (int frame = 0; frame < 3; ++frame)
+            host.RenderFrame(draw);
+        EXPECT_EQ(overflow, vertical);
+        EXPECT_EQ(overflow, horizontal);
+    }
+END_TEST
+
 BEGIN_TEST(WorkspacePreservesMinimumPanelAndCardSizes)
     const auto small = gui::MainWindowLayout::Calculate({640, 480}, {8, 4}, {8, 8}, 19);
     const auto large = gui::MainWindowLayout::Calculate({1920, 1080}, {8, 4}, {8, 8}, 19);
-    EXPECT_EQ(1000.0f, small.canvasSize.x);
-    EXPECT_EQ(640.0f, small.canvasSize.y);
-    EXPECT_EQ(large.toolbox.width, small.toolbox.width);
-    EXPECT_EQ(large.frameControls.width, small.frameControls.width);
+    EXPECT_EQ(640.0f, small.canvasSize.x);
+    EXPECT_EQ(480.0f, small.canvasSize.y);
+    EXPECT_EQ(0.0f, small.toolbox.width);
+    EXPECT_TRUE(small.frameControls.width >= 260);
     EXPECT_EQ(large.cardSize.x, small.cardSize.x);
     EXPECT_EQ(large.cellWidth, small.cellWidth);
-    EXPECT_TRUE(small.preview.width >= 240);
-    EXPECT_TRUE(small.toolbox.height >= 200);
+    EXPECT_TRUE(small.preview.width >= 320);
+    EXPECT_TRUE(small.toolsDrawer.width >= 220);
     EXPECT_TRUE(small.pipeline.height >= gui::MainWindowLayout::CellHeight);
 END_TEST
 
@@ -97,14 +125,14 @@ BEGIN_TEST(SettingsControlsPreserveThemeSizes)
 END_TEST
 
 BEGIN_TEST(SmallWorkspaceScrollsInsteadOfCompressingPanels)
-    TestAppHost host({{640, 480}});
+    TestAppHost host({{320, 240}});
     float maxX = 0, maxY = 0;
     const auto draw = [&] {
         const auto& style = ImGui::GetStyle();
-        const auto layout = gui::MainWindowLayout::Calculate({640, 480}, style.ItemSpacing,
+        const auto layout = gui::MainWindowLayout::Calculate({320, 240}, style.ItemSpacing,
             style.WindowPadding, ImGui::GetTextLineHeightWithSpacing());
         ImGui::SetNextWindowPos({0, 0});
-        ImGui::SetNextWindowSize({640, 480});
+        ImGui::SetNextWindowSize({320, 240});
         ImGui::SetNextWindowContentSize({layout.canvasSize.x - 2 * style.WindowPadding.x,
             layout.canvasSize.y - 2 * style.WindowPadding.y});
         ImGui::Begin("Small workspace", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_HorizontalScrollbar);

@@ -39,6 +39,12 @@ private:
     PipelineSelection _selection;
     int _lastPipelineSelection = -1;
     float _lastPipelineWidth = 0;
+    LayoutPreferences _layoutPreferences;
+    std::filesystem::path _layoutPreferencesPath;
+    bool _layoutPreferencesDirty = false;
+    bool _layoutPreferencesSaveFailed = false;
+    bool _toolsDrawerRequested = false;
+    bool _inspectorDrawerRequested = false;
 
     bool _showResultsPopup = false;
     bool _showHelpPopup = false;
@@ -65,6 +71,13 @@ private:
 
     void DrawMenu();
     void DrawToolbar();
+    void DrawToolsContent(bool closeOnAction = false);
+    void DrawInspectorContent();
+    void DrawLayoutMenu();
+    void DrawAdaptivePanels(const MainWindowLayout& layout);
+    void DrawSplitters(const MainWindowLayout& layout);
+    void SaveLayoutPreferences();
+    void ResetLayout();
     void DrawPipeline(const MainWindowLayout& layout);
     MainWindowLayout GetPanelLayout() const;
 

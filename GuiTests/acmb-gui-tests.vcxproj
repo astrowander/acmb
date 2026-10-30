@@ -43,6 +43,7 @@
     <ClCompile Include="TestGuiSmoke.cpp" />
     <ClCompile Include="TestLayoutInputs.cpp" />
     <ClCompile Include="TestMainWindowPanels.cpp" />
+    <ClCompile Include="TestAdaptivePanels.cpp" />
     <ClCompile Include="TestPipelineEditing.cpp" />
     <ClCompile Include="TestGuiInteractions.cpp" />
     <ClCompile Include="TestScrollablePanels.cpp" />
@@ -58,6 +59,8 @@
   <ItemGroup>
     <ClInclude Include="TestAppHost.h" />
     <ClInclude Include="..\GUI\MainWindowLayout.h" />
+    <ClInclude Include="..\GUI\LayoutPreferences.h" />
+    <ClInclude Include="..\GUI\AdaptivePanels.h" />
     <ClInclude Include="..\GUI\PipelineEditing.h" />
     <ClInclude Include="..\GUI\GuiInteractions.h" />
     <ClInclude Include="..\GUI\ScrollablePanels.h" />

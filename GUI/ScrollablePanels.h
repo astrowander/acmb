@@ -27,18 +27,17 @@ inline void CenteredCardCaption(const char* windowName)
 
 inline bool BeginVerticalPanel(const char* id, ImVec2 size, float minimumContentWidth, bool borders = true)
 {
-    // Reserve a scrollbar even before content overflows, so controls do not
-    // change width when a tool adds settings or an error message appears.
+    // Let ImGui show scrollbars only when the content exceeds the viewport.
     ImGui::SetNextWindowContentSize({minimumContentWidth, 0});
     return ImGui::BeginChild(id, size, borders ? ImGuiChildFlags_Borders : ImGuiChildFlags_None,
-        ImGuiWindowFlags_AlwaysVerticalScrollbar | ImGuiWindowFlags_HorizontalScrollbar);
+        ImGuiWindowFlags_HorizontalScrollbar);
 }
 
 inline bool BeginPipelinePanel(const char* id, ImVec2 size, int columns, float cellWidth)
 {
     ImGui::SetNextWindowContentSize({columns * cellWidth, 1.0f});
     return ImGui::BeginChild(id, size, ImGuiChildFlags_None,
-        ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar);
+        ImGuiWindowFlags_HorizontalScrollbar);
 }
 
 inline ImVec2 MinimumButtonSize(const char* label, ImVec2 requested)

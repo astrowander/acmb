@@ -69,7 +69,7 @@ calculator used by `MainWindow` for its toolbox, preview, frame controls,
 pipeline, preview sizing, and pipeline mouse bounds. It runs without constructing
 the application singleton or loading CUDA and image-processing dependencies.
 
-Coverage includes a fixed desktop reference, panel containment and overlap across
+Coverage includes default desktop preferences, panel containment and overlap across
 four viewport sizes at 100%, 125%, and 150% UI scale, toolbox/pipeline separation,
 pipeline column thresholds, small/minimized windows, resize/restore, and
 framebuffer-density independence. Panel containment is checked against the
@@ -124,14 +124,20 @@ engine dependency is needed for these three cases.
 
 ## Minimum sizes and scrolling
 
-The workspace preserves a minimum 1000 x 640 logical canvas (scaled for larger
+The workspace preserves a minimum 600 x 480 logical canvas (scaled for larger
 fonts). Pipeline cards start at 200 x 110 logical units and contain only their
-title, progress, and status. Selected-step settings scroll in the right inspector.
+title and status. One full-width progress bar below the pipeline shows the first
+element's progress, including partial task readiness. It stays visible in the
+collapsed layout and shows 0% for an empty pipeline. Selected-step settings scroll in the right inspector.
 The pipeline scrolls horizontally instead of compressing its
 cards. Selecting a step with the keyboard brings it into view. Toolbox commands
 are single icon-and-text rows using the merged icon/text font, with no manually
 positioned captions. Frame/keyframe settings scroll vertically and button pairs
 wrap onto separate rows when they do not fit.
+
+Panel scrollbars appear only when content overflows and disappear when it fits
+again. The pipeline reclaims the scrollbar's height when horizontal scrolling is
+unnecessary. A regression checks both overflow and the return to short content.
 
 `ScrollablePanels` verifies minimum canvas/panel/card dimensions, non-overlapping
 icon-and-text rows, original theme sizing for settings controls, scrollbars on small workspaces,
@@ -244,3 +250,34 @@ table widths), processing locks, and scrolling long forms without expanding card
 These tests exercise shared rendering components; native file dialogs, actual
 tool processing, and full-application preview/error flows still need integration
 verification.
+
+## Adaptive panels and layout preferences
+
+Panel modes follow scaled minimum widths (toolbox 220, preview 320, inspector
+260 logical pixels), splitter widths, and spacing. Wide windows show all three;
+medium windows use a Tools drawer; narrow windows also use an Inspector drawer.
+Drawers stay within the visible viewport. A scrolling workspace is retained as
+a fallback below the minimum usable canvas of 600 by 480 logical pixels.
+
+Drag the vertical dividers to resize docked side panels, or the horizontal
+divider above the pipeline to resize its height. Sizes clamp to usable ranges.
+The pipeline's Collapse/Expand button switches to a horizontally scrolling strip
+without discarding its expanded height. View contains drawer commands, the same
+collapse toggle, and Reset layout; these presentation actions remain available
+during processing while tool and settings locks still apply.
+
+Preferences save on splitter release, collapse, reset, and exit. They use
+`%LOCALAPPDATA%/AstroCombine/layout.ini` on Windows, or
+`$XDG_CONFIG_HOME/AstroCombine/layout.ini` (falling back to
+`$HOME/.config/AstroCombine/layout.ini`) elsewhere. If no user configuration
+directory is available, `GUI/layout.ini` beside the application is used.
+This versioned file is independent of project/processing serialization.
+Temporary panel collapse during window resizing never overwrites preferred sizes.
+
+`AdaptivePanels` tests preference round trips and replacement, missing/malformed
+files, failed writes, reset defaults, actual mouse dragging, clamped ranges,
+drawer callbacks and locks, close-on-selection, and closing a drawer when its
+panel becomes docked. Every control in long drawer fixtures is revealed and
+clicked across small sizes and font scales. `MainWindowPanels` covers exact
+mode thresholds, preview fitting, and the size/scale matrix. Native rendering and real processing still require the
+full-application completion checks above.

@@ -33,7 +33,7 @@ struct InspectorFixture
             if (i > 0) ImGui::SameLine();
             // Intentionally duplicate the saved/display name. IDs must still
             // distinguish two instances of the same processing tool.
-            acmb::gui::RenderCompactStepCard(&values[i], "Stacker##same", {cardWidth, 110}, 0.5f, "Processing");
+            acmb::gui::RenderCompactStepCard(&values[i], "Stacker##same", {cardWidth, 110}, "Processing");
             cardSize = ImGui::GetItemRectSize();
         }
         ImGui::SetCursorPos({650, 8});
@@ -80,6 +80,19 @@ struct InspectorFixture
 ACMB_TESTS_NAMESPACE_BEGIN
 
 BEGIN_SUITE(StepPresentation)
+
+BEGIN_TEST(SharedProgressUsesOnlyFirstElement)
+    struct Element { float progress; Element* next; float GetProgress() { return progress; } };
+    Element tail{1, nullptr}, head{0.25f, &tail};
+    EXPECT_EQ(0.25f, gui::PipelineHeadProgress(&head));
+    tail.progress = 0;
+    EXPECT_EQ(0.25f, gui::PipelineHeadProgress(&head));
+    EXPECT_EQ(0.0f, gui::PipelineHeadProgress(static_cast<Element*>(nullptr)));
+    head.progress = 1.2f;
+    EXPECT_EQ(1.0f, gui::PipelineHeadProgress(&head));
+    head.progress = NAN;
+    EXPECT_EQ(0.0f, gui::PipelineHeadProgress(&head));
+END_TEST
 
 BEGIN_TEST(InspectorIdsAreDistinctAndStableAcrossSelection)
     TestAppHost host;

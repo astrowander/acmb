@@ -7,6 +7,9 @@
 #include "ImGuiHelpers.h"
 #include "TopToolbar.h"
 #include "ToolLibrary.h"
+#include "AdaptivePanels.h"
+#include "StepPresentation.h"
+#include <cstdlib>
 #include "./../Tools/SystemTools.h"
 #include "./../Cuda/CudaInfo.h"
 #include <fstream>
@@ -22,6 +25,28 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
+static std::filesystem::path UserLayoutPreferencesPath()
+{
+#ifdef _WIN32
+#ifdef _MSC_VER
+    char* local = nullptr;
+    size_t length = 0;
+    _dupenv_s(&local, &length, "LOCALAPPDATA");
+    const std::unique_ptr<char, decltype(&std::free)> ownedLocal(local, &std::free);
+    if (local && *local)
+#else
+    if (const auto local = std::getenv("LOCALAPPDATA"); local && *local)
+#endif
+        return std::filesystem::path(local) / "AstroCombine" / "layout.ini";
+#else
+    if (const auto config = std::getenv("XDG_CONFIG_HOME"); config && *config)
+        return std::filesystem::path(config) / "AstroCombine" / "layout.ini";
+    if (const auto homeDirectory = std::getenv("HOME"); homeDirectory && *homeDirectory)
+        return std::filesystem::path(homeDirectory) / ".config" / "AstroCombine" / "layout.ini";
+#endif
+    return std::filesystem::path(GetAcmbPath()) / "GUI" / "layout.ini";
+}
+
 static constexpr float cGridCellPadding = 25.0f;
 
 static constexpr float cGridCellMinWidth = PipelineElementWindow::cElementWidth + 2.0f * cGridCellPadding;
@@ -34,6 +59,8 @@ MainWindow::MainWindow( const ImVec2& pos, const ImVec2& size, const FontRegistr
     , _fontRegistry( fontRegistry )
     , _gridCellSize( { cGridCellMinWidth, cGridCellHeight } )
 {
+    _layoutPreferencesPath = UserLayoutPreferencesPath();
+    _layoutPreferences.Load(_layoutPreferencesPath);
     SetPos( pos );
     _visibleCellsCount = GetPanelLayout().visibleCells;
 
@@ -314,6 +341,7 @@ bool MainWindow::AutoSaveProject()
 
 bool MainWindow::PrepareForExit()
 {
+    if (_layoutPreferencesDirty) SaveLayoutPreferences();
     _processingState.RequestShutdown();
     if ( _processingFuture.valid() )
         _processingFuture.wait();
@@ -349,10 +377,123 @@ void MainWindow::DrawToolbar()
     ImGui::PushFont(_fontRegistry.byDefault);
     DrawTopToolbar({layout.toolbar.width, layout.toolbar.height}, actions,
         [this] { return IsInterfaceLocked() || _showHelpPopup || _showResultsPopup || FileDialog::Instance().IsOpened(); },
-        size_t(_selection.activeIndex), _selection.elementSelected, cuda::isCudaAvailable(), _enableCuda);
+        size_t(_selection.activeIndex), _selection.elementSelected, cuda::isCudaAvailable(), _enableCuda,
+        {}, [this] { DrawLayoutMenu(); });
     ImGui::PopFont();
     ImGui::SetCursorPos({layout.toolbar.x, layout.toolbar.GetBottom()});
     ImGui::Separator();
+}
+
+void MainWindow::SaveLayoutPreferences()
+{
+    _layoutPreferences.Clamp();
+    _layoutPreferencesSaveFailed = !_layoutPreferences.Save(_layoutPreferencesPath);
+    _layoutPreferencesDirty = _layoutPreferencesSaveFailed;
+}
+
+void MainWindow::ResetLayout()
+{
+    _layoutPreferences = {};
+    _lastPipelineSelection = -1;
+    _lastPipelineWidth = 0;
+    SaveLayoutPreferences();
+}
+
+void MainWindow::DrawLayoutMenu()
+{
+    if (!ImGui::BeginMenu("View")) return;
+    const auto layout = GetPanelLayout();
+    if (ImGui::MenuItem("Tools drawer", nullptr, false, layout.mode != PanelMode::Wide))
+        _toolsDrawerRequested = true;
+    if (ImGui::MenuItem("Inspector drawer", nullptr, false, layout.mode == PanelMode::Narrow))
+        _inspectorDrawerRequested = true;
+    if (ImGui::MenuItem("Collapse pipeline", nullptr, &_layoutPreferences.pipelineCollapsed))
+    {
+        _lastPipelineSelection = -1;
+        SaveLayoutPreferences();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem("Reset layout")) ResetLayout();
+    if (_layoutPreferencesSaveFailed)
+    {
+        ImGui::TextDisabled("Layout preferences not saved");
+        ImGui::SetItemTooltip("Could not write %s", _layoutPreferencesPath.string().c_str());
+    }
+    ImGui::EndMenu();
+}
+
+void MainWindow::DrawToolsContent(bool closeOnAction)
+{
+    DrawToolLibrary(MenuItemsHolder::GetInstance().GetToolGroups(),
+        [this] { return IsInterfaceLocked(); }, size_t(_selection.activeIndex), _selection.elementSelected,
+        [this](const MenuItem& item) { UI::SetTooltipIfHovered(item.tooltip, cMenuScaling); }, {}, closeOnAction);
+}
+
+void MainWindow::DrawInspectorContent()
+{
+    auto element = GetActiveElement();
+    if (!element || !_selection.elementSelected)
+    {
+        ImGui::TextWrapped("Select a pipeline step to edit its settings.");
+        return;
+    }
+    element->DrawSettings([&] {
+        if (element->GetTaskCount() > 1 && ImGui::CollapsingHeader("Frame Number Selection", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            int frame = element->GetPreviewedFrameNumber();
+            ImGui::SetNextItemWidth(std::max(1.0f, ImGui::GetContentRegionAvail().x));
+            if (UI::SliderInt("##FrameNumber", &frame, 0, int(element->GetTaskCount()) - 1, "Select frame number", element))
+                element->OnPreviewedFrameNumberChanged(frame);
+            if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element))
+                interpolation->DrawFrameCounter();
+        }
+    });
+}
+
+void MainWindow::DrawAdaptivePanels(const MainWindowLayout& layout)
+{
+    if (layout.drawerBar.width > 0)
+    {
+        ImGui::SetCursorPos({layout.drawerBar.x, layout.drawerBar.y});
+        if (ImGui::Button("Tools")) _toolsDrawerRequested = true;
+        if (layout.mode == PanelMode::Narrow)
+        {
+            ImGui::SameLine();
+            if (ImGui::Button("Inspector")) _inspectorDrawerRequested = true;
+        }
+    }
+    const auto origin = ImGui::GetWindowPos();
+    if (BeginLayoutDrawer("Tools drawer", "Tools", layout.toolsDrawer, origin, _toolsDrawerRequested))
+    {
+        if (BeginVerticalPanel("toolDrawerContent", {0, 0}, 220)) DrawToolsContent(true);
+        ImGui::EndChild();
+        ImGui::EndPopup();
+    }
+    if (BeginLayoutDrawer("Inspector drawer", "Inspector", layout.inspectorDrawer, origin, _inspectorDrawerRequested))
+    {
+        DrawInspectorContent();
+        ImGui::EndPopup();
+    }
+}
+
+void MainWindow::DrawSplitters(const MainWindowLayout& layout)
+{
+    const auto toolbox = DrawLayoutSplitter("toolboxSplitter", layout.toolboxSplitter, true);
+    _layoutPreferencesDirty |= ResizeLayoutPanel(_layoutPreferences, layout, LayoutSplitter::Toolbox, toolbox.delta);
+    const auto inspector = DrawLayoutSplitter("inspectorSplitter", layout.inspectorSplitter, true);
+    _layoutPreferencesDirty |= ResizeLayoutPanel(_layoutPreferences, layout, LayoutSplitter::Inspector, inspector.delta);
+    SplitterDrag pipeline;
+    if (!layout.pipelineCollapsed)
+        pipeline = DrawLayoutSplitter("pipelineSplitter", layout.pipelineSplitter, false);
+    else if (layout.pipelineSplitter.width > 0)
+    {
+        ImGui::SetCursorPos({layout.pipelineSplitter.x,
+            layout.pipelineSplitter.y + layout.pipelineSplitter.height * 0.5f});
+        ImGui::Separator();
+    }
+    _layoutPreferencesDirty |= ResizeLayoutPanel(_layoutPreferences, layout, LayoutSplitter::Pipeline, pipeline.delta);
+    if (_layoutPreferencesDirty && (toolbox.released || inspector.released || pipeline.released))
+        SaveLayoutPreferences();
 }
 
 void MainWindow::DrawMenu()
@@ -364,10 +505,7 @@ void MainWindow::DrawMenu()
         ImGui::PushFont(_fontRegistry.byDefault);
         if (BeginVerticalPanel("##ToolboxSection", {layout.toolbox.width, layout.toolbox.height}, 220))
         {
-            DrawToolLibrary(MenuItemsHolder::GetInstance().GetToolGroups(),
-                [this] { return IsInterfaceLocked(); }, size_t(_selection.activeIndex),
-                _selection.elementSelected,
-                [this](const MenuItem& item) { UI::SetTooltipIfHovered(item.tooltip, cMenuScaling); });
+            DrawToolsContent();
         }
         ImGui::EndChild();
         ImGui::PopFont();
@@ -418,10 +556,6 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
     if (layout.pipeline.width <= 0 || layout.pipeline.height <= 0)
         return;
     const auto& panelStyle = ImGui::GetStyle();
-    ImGui::SetCursorPos({panelStyle.WindowPadding.x,
-        layout.pipelineHeader.GetBottom() - panelStyle.ItemSpacing.y * 2});
-    ImGui::Separator();
-
     ImGui::SetCursorPos({layout.pipelineCommands.x, layout.pipelineCommands.y});
     const auto commandsOrigin = ImGui::GetCursorScreenPos();
     auto* separators = ImGui::GetWindowDrawList();
@@ -434,6 +568,12 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
         // Match the borderless pipeline panel's header origin while keeping
         // horizontal padding in the command column.
         ImGui::SetCursorPosY(0);
+        if (ImGui::Button(layout.pipelineCollapsed ? "Expand pipeline" : "Collapse pipeline", {-1, 0}))
+        {
+            _layoutPreferences.pipelineCollapsed = !_layoutPreferences.pipelineCollapsed;
+            _lastPipelineSelection = -1;
+            SaveLayoutPreferences();
+        }
         UI::Button("Clear pipeline", {-1, 0}, [this] { ClearPipeline(); }, "Clear all processing steps");
         ImGui::Spacing();
         ImGui::TextDisabled("Pipeline help (?)");
@@ -448,10 +588,56 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
     {
         const auto& style = ImGui::GetStyle();
         const float viewportWidth = ImGui::GetWindowWidth() - 2 * style.WindowPadding.x;
+        if (layout.pipelineCollapsed)
+        {
+            const auto stripOrigin = ImGui::GetCursorScreenPos();
+            const float inset = (layout.cellWidth - layout.cardSize.x) * 0.5f;
+            if (!_lockInterface && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
+            {
+                auto hit = layout;
+                hit.pipeline = {0, 0, viewportWidth, layout.pipeline.height};
+                ProcessSelectionMouse(_selection, count, hit,
+                    {stripOrigin.x + ImGui::GetScrollX(), stripOrigin.y}, ImGui::GetScrollX(), 0);
+            }
+            ImGui::SetCursorPosX(ImGui::GetCursorPosX() + inset);
+            auto element = _pPipelineHead;
+            for (int index = 0; index < columns; ++index)
+            {
+                if (index > 0) ImGui::SameLine(0, layout.cellWidth - layout.cardSize.x);
+                ImGui::PushID(index);
+                const auto label = std::to_string(index + 1) + "  " +
+                    (element ? element->GetDisplayName() : "+ Add step");
+                ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, {0.5f, 0.5f});
+                if (ImGui::Selectable(label.c_str(), false, ImGuiSelectableFlags_None,
+                    {layout.cardSize.x, ImGui::GetFrameHeight()}) && !_lockInterface)
+                    UpdateActiveElement(index, true);
+                ImGui::PopStyleVar();
+                if (_selection.activeIndex == index && _selection.elementSelected)
+                    ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+                const int selectionKey = _selection.activeIndex * 2 + int(_selection.elementSelected);
+                if (_selection.activeIndex == index && (_lastPipelineSelection != selectionKey || _lastPipelineWidth != viewportWidth))
+                {
+                    ImGui::SetScrollHereX(0.5f);
+                    _lastPipelineSelection = selectionKey;
+                    _lastPipelineWidth = viewportWidth;
+                }
+                ImGui::PopID();
+                if (element) element = element->GetOutput();
+            }
+            if (!_selection.elementSelected)
+            {
+                const float x = stripOrigin.x + _selection.activeIndex * layout.cellWidth;
+                ImGui::GetWindowDrawList()->AddLine({x, stripOrigin.y},
+                    {x, stripOrigin.y + ImGui::GetFrameHeight()}, IM_COL32(255, 0, 0, 255), 2);
+            }
+            ImGui::EndChild();
+            return;
+        }
         const float insetX = (layout.cellWidth - layout.cardSize.x) * 0.5f;
         const float insetY = style.WindowPadding.y;
         const float headerHeight = std::max(24.0f, ImGui::GetTextLineHeightWithSpacing() + style.ItemSpacing.y);
-        const float cellHeight = layout.pipeline.height - 2 * style.WindowPadding.y - style.ScrollbarSize;
+        const float scrollbarHeight = ImGui::GetScrollMaxX() > 0 ? style.ScrollbarSize : 0;
+        const float cellHeight = layout.pipeline.height - 2 * style.WindowPadding.y - scrollbarHeight;
         const auto gridOrigin = ImGui::GetCursorScreenPos();
         auto* grid = ImGui::GetWindowDrawList();
         const auto borderColor = ImGui::GetColorU32(ImGuiCol_TableBorderStrong);
@@ -480,11 +666,9 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
             ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows))
         {
             auto hitLayout = layout;
-            hitLayout.pipeline = {0, 0, viewportWidth,
-                layout.pipeline.height - 2 * style.WindowPadding.y - style.ScrollbarSize};
-            const auto position = ImGui::GetWindowPos();
+            hitLayout.pipeline = {0, 0, viewportWidth, cellHeight};
             ProcessSelectionMouse(_selection, count, hitLayout,
-                {position.x + style.WindowPadding.x, position.y + style.WindowPadding.y},
+                {gridOrigin.x + ImGui::GetScrollX(), gridOrigin.y},
                 ImGui::GetScrollX(), 0);
         }
 
@@ -549,6 +733,7 @@ void MainWindow::DrawDialog()
     }
 
     DrawToolbar();
+    DrawAdaptivePanels(GetPanelLayout());
     DrawMenu();
 
     ImGui::PushFont( _fontRegistry.byDefault );
@@ -558,11 +743,6 @@ void MainWindow::DrawDialog()
     auto drawList = ImGui::GetWindowDrawList();
     const auto windowPos = ImGui::GetWindowPos();
     const ImVec2 origin{windowPos.x - ImGui::GetScrollX(), windowPos.y - ImGui::GetScrollY()};
-    drawList->AddLine({origin.x + layout.toolboxSeparatorX, origin.y + layout.toolbar.GetBottom()},
-        {origin.x + layout.toolboxSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
-    drawList->AddLine({origin.x + layout.inspectorSeparatorX, origin.y + layout.toolbar.GetBottom()},
-        {origin.x + layout.inspectorSeparatorX, origin.y + layout.pipelineHeader.y}, ImGui::GetColorU32(ImGuiCol_Separator));
-
     auto pElement = GetActiveElement();    
     const auto imageRegionAvail = GetImageRegionAvail();   
 
@@ -572,23 +752,7 @@ void MainWindow::DrawDialog()
         if (ImGui::BeginChild("##StepInspector", {layout.frameControls.width, layout.frameControls.height},
             ImGuiChildFlags_Borders, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
         {
-            if (pElement && _selection.elementSelected)
-            {
-                pElement->DrawSettings([&] {
-                    if (pElement->GetTaskCount() > 1 && ImGui::CollapsingHeader("Frame Number Selection", ImGuiTreeNodeFlags_DefaultOpen))
-                    {
-                        int frameNumber = pElement->GetPreviewedFrameNumber();
-                        ImGui::SetNextItemWidth(std::max(1.0f, ImGui::GetContentRegionAvail().x));
-                        if (UI::SliderInt("##FrameNumber", &frameNumber, 0, int(pElement->GetTaskCount()) - 1,
-                            "Select frame number", pElement))
-                            pElement->OnPreviewedFrameNumberChanged(frameNumber);
-                        if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(pElement))
-                            interpolation->DrawFrameCounter();
-                    }
-                });
-            }
-            else
-                ImGui::TextWrapped("Select a pipeline step to edit its settings.");
+            DrawInspectorContent();
         }
         ImGui::EndChild();
     }
@@ -602,40 +766,25 @@ void MainWindow::DrawDialog()
             const uint32_t width = pTexture->GetWidth();
             const uint32_t height = pTexture->GetHeight();
 
-            const float aspectRatio = float(width) / float(height);
-            const float imageRegionAspect = float(imageRegionAvail.width) / float(imageRegionAvail.height);
-
-            ImVec2 topLeftPos;
-            ImVec2 scaleFactors;
-
-            if ( width < imageRegionAvail.width && height < imageRegionAvail.height )
+            const auto fitted = layout.FitPreview({float(width), float(height)});
+            if (fitted.width > 0 && fitted.height > 0)
             {
-                topLeftPos.x = float(imageRegionAvail.x + (imageRegionAvail.width - width) * 0.5f);
-                topLeftPos.y = float(imageRegionAvail.y + (imageRegionAvail.height - height) * 0.5f);
+                ImGui::SetCursorPos({fitted.x, fitted.y});
+                ImGui::Image(pTexture->GetTexture(), {fitted.width, fitted.height});
+                const ImVec2 screenTopLeft{origin.x + fitted.x, origin.y + fitted.y};
+                pElement->DrawOnPreviewImage(drawList, screenTopLeft, {fitted.width, fitted.height});
             }
-            else if ( aspectRatio > imageRegionAspect )
-            {
-                topLeftPos.x = float(imageRegionAvail.x);
-                topLeftPos.y = float(imageRegionAvail.y + (imageRegionAvail.height - (imageRegionAvail.width / aspectRatio)) * 0.5f);
-
-            }
-            else
-            {
-                topLeftPos.x = float(imageRegionAvail.x + (imageRegionAvail.width - (imageRegionAvail.height * aspectRatio)) * 0.5f);
-                topLeftPos.y = float(imageRegionAvail.y);
-            }
-
-            scaleFactors.x = float(width) / float(width);
-
-            ImGui::SetCursorPos(topLeftPos);
-            ImGui::Image(pTexture->GetTexture(), { float(width), float(height) });
-            // Preview overlays use screen coordinates, including workspace scroll.
-            const ImVec2 screenTopLeft{origin.x + topLeftPos.x, origin.y + topLeftPos.y};
-            pElement->DrawOnPreviewImage(drawList, screenTopLeft, { float(width), float(height) });
         }
     }    
 
     DrawPipeline(layout);
+    if (layout.pipelineProgress.width > 0 && layout.pipelineProgress.height > 0)
+    {
+        ImGui::SetCursorPos({layout.pipelineProgress.x, layout.pipelineProgress.y});
+        ImGui::ProgressBar(PipelineHeadProgress(_pPipelineHead.get()),
+            {layout.pipelineProgress.width, layout.pipelineProgress.height});
+    }
+    DrawSplitters(layout);
     for (auto element = _pPipelineHead; element; element = element->GetOutput())
         element->DrawAuxiliaryUi();
 
@@ -714,7 +863,7 @@ MainWindowLayout MainWindow::GetPanelLayout() const
 {
     const auto& style = ImGui::GetStyle();
     return MainWindowLayout::Calculate(_size, style.ItemSpacing,
-        style.WindowPadding, ImGui::GetTextLineHeightWithSpacing());
+        style.WindowPadding, ImGui::GetTextLineHeightWithSpacing(), _layoutPreferences);
 }
 
 void MainWindow::Show()

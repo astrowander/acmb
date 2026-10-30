@@ -19,7 +19,8 @@ struct ToolbarActions
 inline void DrawTopToolbar(ImVec2 size, const ToolbarActions& actions,
     const std::function<bool()>& isLocked, size_t position, bool replace,
     bool cudaAvailable, bool& enableCuda,
-    const std::function<void(const char*)>& observeItem = {})
+    const std::function<void(const char*)>& observeItem = {},
+    const std::function<void()>& drawLayoutMenu = {})
 {
     const auto observe = [&](const char* id) { if (observeItem) observeItem(id); };
     if (ImGui::BeginChild("##TopToolbar", size, ImGuiChildFlags_None,
@@ -59,6 +60,7 @@ inline void DrawTopToolbar(ImVec2 size, const ToolbarActions& actions,
                 observe("Instructions");
                 ImGui::EndMenu();
             }
+            if (drawLayoutMenu) drawLayoutMenu();
             ImGui::EndMenuBar();
         }
     }

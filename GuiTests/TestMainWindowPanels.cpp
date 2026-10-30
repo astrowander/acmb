@@ -37,22 +37,91 @@ ACMB_TESTS_NAMESPACE_BEGIN
 
 BEGIN_SUITE(MainWindowPanels)
 
-BEGIN_TEST(PreservesExistingDesktopGeometry)
-    // A fixed reference catches accidental changes to the current panel layout.
-    const auto layout = gui::MainWindowLayout::Calculate({1280, 720}, {8, 4}, {8, 8}, 17);
-    EXPECT_EQ(368.0f, layout.preview.x);
-    EXPECT_EQ(48.0f, layout.preview.y);
-    EXPECT_EQ(540.0f, layout.preview.width);
-    EXPECT_EQ(444.0f, layout.preview.height);
-    EXPECT_EQ(956.0f, layout.frameControls.x);
-    EXPECT_EQ(308.0f, layout.frameControls.width);
-    EXPECT_EQ(336.0f, layout.toolbox.width);
-    EXPECT_EQ(500.0f, layout.pipelineHeader.y);
-    EXPECT_EQ(540.0f, layout.pipeline.y);
-    EXPECT_EQ(700.0f, layout.pipeline.GetBottom());
+BEGIN_TEST(SharedProgressFitsBelowExpandedAndCollapsedPipeline)
+    for (auto size : {ImVec2{1920, 1080}, ImVec2{1366, 768}, ImVec2{1280, 720}, ImVec2{640, 480}})
+        for (float scale : {1.0f, 1.25f, 1.5f})
+            for (bool collapsed : {false, true})
+            {
+                gui::LayoutPreferences preferences;
+                preferences.pipelineCollapsed = collapsed;
+                const auto layout = gui::MainWindowLayout::Calculate(size, {8*scale, 4*scale},
+                    {8*scale, 8*scale}, 19*scale, preferences);
+                EXPECT_TRUE(IsContained(layout.pipelineProgress, layout.canvasSize));
+                EXPECT_TRUE(layout.pipeline.GetBottom() < layout.pipelineProgress.y);
+                EXPECT_TRUE(layout.pipelineCommands.GetBottom() < layout.pipelineProgress.y);
+                EXPECT_EQ(layout.toolbar.width, layout.pipelineProgress.width);
+                EXPECT_TRUE(layout.preview.height >= gui::MainWindowLayout::MinimumPreviewHeight * layout.scale - 0.001f);
+            }
+END_TEST
+
+BEGIN_TEST(DefaultDesktopUsesPreferredSizesAndMinimumPreview)
+    const auto layout = gui::MainWindowLayout::Calculate({1280, 720}, {8, 4}, {8, 8}, 19);
+    EXPECT_TRUE(layout.mode == gui::PanelMode::Wide);
+    EXPECT_EQ(320.0f, layout.toolbox.width);
+    EXPECT_EQ(340.0f, layout.frameControls.width);
+    EXPECT_TRUE(layout.preview.width >= gui::MainWindowLayout::MinimumPreviewWidth);
+    EXPECT_EQ(160.0f, layout.pipeline.height);
     EXPECT_EQ(4, layout.visibleCells);
     EXPECT_EQ(200.0f, layout.cardSize.x);
     EXPECT_EQ(250.0f, layout.cellWidth);
+END_TEST
+
+BEGIN_TEST(ModesChangeAtMinimumPanelWidths)
+    const auto measure = [](float width) { return gui::MainWindowLayout::Calculate({width, 720}, {8, 4}, {8, 8}, 19); };
+    EXPECT_TRUE(measure(617).mode == gui::PanelMode::Narrow);
+    EXPECT_TRUE(measure(618).mode == gui::PanelMode::Medium);
+    EXPECT_TRUE(measure(859).mode == gui::PanelMode::Medium);
+    EXPECT_TRUE(measure(860).mode == gui::PanelMode::Wide);
+    EXPECT_EQ(0.0f, measure(617).frameControls.width);
+    EXPECT_TRUE(measure(617).inspectorDrawer.width >= 260);
+    EXPECT_EQ(0.0f, measure(618).toolbox.width);
+    EXPECT_TRUE(measure(618).toolsDrawer.width >= 220);
+    EXPECT_TRUE(measure(860).preview.width >= 320);
+END_TEST
+
+BEGIN_TEST(PreviewFitsAfterPanelAndPipelineResizing)
+    for (float width : {600.0f, 800.0f, 1280.0f})
+    {
+        const auto layout = gui::MainWindowLayout::Calculate({width, 720}, {8, 4}, {8, 8}, 19, {500, 500, 350});
+        for (const auto image : {ImVec2{6000, 4000}, ImVec2{1000, 6000}, ImVec2{100, 80}})
+        {
+            const auto fitted = layout.FitPreview(image);
+            EXPECT_TRUE(fitted.x >= layout.preview.x && fitted.y >= layout.preview.y);
+            EXPECT_TRUE(fitted.GetRight() <= layout.preview.GetRight() + 0.001f);
+            EXPECT_TRUE(fitted.GetBottom() <= layout.preview.GetBottom() + 0.001f);
+            EXPECT_TRUE(std::abs(fitted.width / fitted.height - image.x / image.y) < 0.001f);
+            EXPECT_TRUE(fitted.width <= image.x && fitted.height <= image.y);
+        }
+        EXPECT_EQ(0.0f, layout.FitPreview({0, 400}).width);
+    }
+END_TEST
+
+BEGIN_TEST(PreferredSizesSurviveDrawersAndCollapse)
+    gui::LayoutPreferences preferences{390, 420, 280, false};
+    const auto measure = [&](float width) { return gui::MainWindowLayout::Calculate({width, 900}, {8, 4}, {8, 8}, 19, preferences); };
+    const auto before = measure(1920);
+    EXPECT_TRUE(measure(600).mode == gui::PanelMode::Narrow);
+    EXPECT_EQ(before.toolbox.width, measure(1920).toolbox.width);
+    EXPECT_EQ(before.frameControls.width, measure(1920).frameControls.width);
+    preferences.pipelineCollapsed = true;
+    const auto collapsed = measure(1920);
+    EXPECT_EQ(64.0f, collapsed.pipeline.height);
+    EXPECT_TRUE(collapsed.preview.height > before.preview.height);
+    preferences.pipelineCollapsed = false;
+    EXPECT_EQ(before.pipeline.height, measure(1920).pipeline.height);
+END_TEST
+
+BEGIN_TEST(ExtremePreferencesKeepDockedPanelsUsable)
+    for (float width : {618.0f, 860.0f, 1280.0f, 1920.0f})
+        for (const auto preferences : {gui::LayoutPreferences{-500, -500, -500}, gui::LayoutPreferences{5000, 5000, 5000}})
+        {
+            const auto layout = gui::MainWindowLayout::Calculate({width, 480}, {8, 4}, {8, 8}, 19, preferences);
+            EXPECT_TRUE(layout.preview.width >= 320);
+            EXPECT_TRUE(layout.preview.height >= 120);
+            if (layout.toolbox.width > 0) EXPECT_TRUE(layout.toolbox.width >= 220);
+            if (layout.frameControls.width > 0) EXPECT_TRUE(layout.frameControls.width >= 260);
+            EXPECT_TRUE(layout.pipeline.height >= 160);
+        }
 END_TEST
 
 BEGIN_TEST(PanelsFitWithoutOverlapAcrossSizeAndScaleMatrix)
