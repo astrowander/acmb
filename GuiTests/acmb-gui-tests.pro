@@ -12,6 +12,7 @@ HEADERS += \
     ../GUI/AdaptivePanels.h \
     ../GUI/PipelineEditing.h \
     ../GUI/GuiInteractions.h \
+    ../GUI/DarkFrameAdjustment.h \
     ../GUI/ScrollablePanels.h \
     ../GUI/TopToolbar.h \
     ../GUI/ToolLibrary.h \
@@ -28,6 +29,7 @@ SOURCES += \
     TestAdaptivePanels.cpp \
     TestPipelineEditing.cpp \
     TestGuiInteractions.cpp \
+    TestDarkFrameAdjustment.cpp \
     TestScrollablePanels.cpp \
     TestTopToolbar.cpp \
     TestToolLibrary.cpp \

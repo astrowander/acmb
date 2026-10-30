@@ -1,4 +1,5 @@
 #include "DarkFrameWindow.h"
+#include "DarkFrameAdjustment.h"
 #include "MainWindow.h"
 #include "Serializer.h"
 
@@ -22,10 +23,9 @@ void DarkFrameWindow::DrawPipelineElementControls()
     UI::Button( "Adjust Multiplier", { -1, 0 }, [&]
     {
         auto& mainWindow = MainWindow::GetInstance( FontRegistry::Instance() );
-        mainWindow.LockInterface();
-        IBitmapPtr pLightFrame = GetInput()->RunTaskAndReportProgress(0).value_or( nullptr );
-        _multiplier = BitmapSubtractor::AutoAdjustMultiplier(pLightFrame, FileListUser::ReadFrame(0).value_or(nullptr));
-        mainWindow.UnlockInterface();
+        AdjustDarkFrameMultiplier(mainWindow, GetInput(), FileListUser::GetTotalFrameCount(),
+            [&] { return FileListUser::ReadFrame(0); },
+            BitmapSubtractor::AutoAdjustMultiplier, _multiplier, _error, _showError);
     }, "Calculate appropriate multiplier automatically", this );
     
     ImGui::Separator();

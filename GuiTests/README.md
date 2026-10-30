@@ -122,6 +122,17 @@ Application startup, autosave, menu registration, tool-specific preview updates,
 and the real export worker still need integration coverage. No additional test
 engine dependency is needed for these three cases.
 
+## Dark frame multiplier regression
+
+`DarkFrameAdjustment` clicks Adjust Multiplier through ImGui mouse events and
+executes the same adjustment action as `DarkFrameWindow`. It covers a disconnected
+input, a connected input with zero frames, missing dark frames, frame-loading and
+calculation failures, and successful adjustment after adding missing frames.
+Failures must request an error dialog, preserve the multiplier, avoid downstream
+processing, and unlock the interface. Image readers, calculation, and interface
+state use lightweight substitutes; this is a headless component test, not a full
+application or error-popup rendering test.
+
 ## Minimum sizes and scrolling
 
 The workspace preserves a minimum 600 x 480 logical canvas (scaled for larger

@@ -92,6 +92,7 @@ HEADERS += \
     Serializer.h \
     StackerWindow.h \
     DarkFrameWindow.h \
+    DarkFrameAdjustment.h \
     Texture.h \
     imgui/backends/imgui_impl_glfw.h \
     imgui/backends/imgui_impl_vulkan.h \

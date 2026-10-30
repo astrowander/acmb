@@ -219,6 +219,7 @@
     <ClInclude Include="SettingsInterpolationUser.h" />
     <ClInclude Include="StackerWindow.h" />
     <ClInclude Include="DarkFrameWindow.h" />
+    <ClInclude Include="DarkFrameAdjustment.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="tl\expected.hpp" />
     <ClInclude Include="WarpWindow.h" />

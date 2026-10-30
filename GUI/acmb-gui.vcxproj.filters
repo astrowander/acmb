@@ -186,6 +186,9 @@
     <ClInclude Include="DarkFrameWindow.h">
       <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
+    <ClInclude Include="DarkFrameAdjustment.h">
+      <Filter>Resource Files\ToolWindows</Filter>
+    </ClInclude>
     <ClInclude Include="FontRegistry.h">
       <Filter>Core</Filter>
     </ClInclude>

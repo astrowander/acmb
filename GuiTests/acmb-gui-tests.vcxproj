@@ -46,6 +46,7 @@
     <ClCompile Include="TestAdaptivePanels.cpp" />
     <ClCompile Include="TestPipelineEditing.cpp" />
     <ClCompile Include="TestGuiInteractions.cpp" />
+    <ClCompile Include="TestDarkFrameAdjustment.cpp" />
     <ClCompile Include="TestScrollablePanels.cpp" />
     <ClCompile Include="TestTopToolbar.cpp" />
     <ClCompile Include="TestToolLibrary.cpp" />
@@ -63,6 +64,7 @@
     <ClInclude Include="..\GUI\AdaptivePanels.h" />
     <ClInclude Include="..\GUI\PipelineEditing.h" />
     <ClInclude Include="..\GUI\GuiInteractions.h" />
+    <ClInclude Include="..\GUI\DarkFrameAdjustment.h" />
     <ClInclude Include="..\GUI\ScrollablePanels.h" />
     <ClInclude Include="..\GUI\TopToolbar.h" />
     <ClInclude Include="..\GUI\ToolLibrary.h" />
