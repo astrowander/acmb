@@ -438,14 +438,11 @@ void MainWindow::DrawInspectorContent()
         return;
     }
     element->DrawSettings([&] {
-        if (element->GetTaskCount() > 1 && ImGui::CollapsingHeader("Frame Number Selection", ImGuiTreeNodeFlags_DefaultOpen))
+        if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element);
+            interpolation && element->GetTaskCount() > 1 &&
+            ImGui::CollapsingHeader("Keyframes", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            int frame = element->GetPreviewedFrameNumber();
-            ImGui::SetNextItemWidth(std::max(1.0f, ImGui::GetContentRegionAvail().x));
-            if (UI::SliderInt("##FrameNumber", &frame, 0, int(element->GetTaskCount()) - 1, "Select frame number", element))
-                element->OnPreviewedFrameNumberChanged(frame);
-            if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element))
-                interpolation->DrawFrameCounter();
+            interpolation->DrawFrameCounter();
         }
     });
 }
@@ -556,6 +553,24 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
     if (layout.pipeline.width <= 0 || layout.pipeline.height <= 0)
         return;
     const auto& panelStyle = ImGui::GetStyle();
+    if (auto element = GetActiveElement(); element && _selection.elementSelected && element->GetTaskCount() > 1)
+    {
+        ImGui::SetCursorPos({layout.pipeline.x, layout.pipelineHeader.y});
+        ImGui::PushID(element);
+        ImGui::BeginDisabled(IsInterfaceLocked());
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Select frame number");
+        ImGui::SameLine();
+        ImGui::PushItemWidth(std::max(1.0f,
+            layout.pipeline.width - (ImGui::GetCursorPosX() - layout.pipeline.x)));
+        int frame = element->GetPreviewedFrameNumber();
+        if (UI::SliderInt("##FrameNumber", &frame, 0, int(element->GetTaskCount()) - 1,
+            "Select frame number", element))
+            element->OnPreviewedFrameNumberChanged(frame);
+        ImGui::PopItemWidth();
+        ImGui::EndDisabled();
+        ImGui::PopID();
+    }
     ImGui::SetCursorPos({layout.pipelineCommands.x, layout.pipelineCommands.y});
     const auto commandsOrigin = ImGui::GetCursorScreenPos();
     auto* separators = ImGui::GetWindowDrawList();
