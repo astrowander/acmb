@@ -407,6 +407,20 @@ Expected<Size, std::string> PipelineElementWindow::GetBitmapSize()
     return pPrimaryInput->GetBitmapSize();
 }
 
+Expected<ImageParams, std::string> PipelineElementWindow::GetImageParams()
+{
+    auto input = GetInput();
+    if (!input)
+        return unexpected("no primary input element");
+    auto params = input->GetImageParams();
+    if (!params)
+        return unexpected(params.error());
+    auto size = GetBitmapSize();
+    if (!size)
+        return unexpected(size.error());
+    return ImageParams(size->width, size->height, GetOutputPixelFormat(params->GetPixelFormat()));
+}
+
 void PipelineElementWindow::OnPreviewedFrameNumberChanged(int val)
 {
     if ( GetPreviewedFrameNumber() == val || val < 0 || val >= _taskCount )

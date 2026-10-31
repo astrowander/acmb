@@ -15,6 +15,7 @@
 #include <fstream>
 #include <filesystem>
 #include <stdexcept>
+#include <sstream>
 
 #ifdef _WIN32
 #include <atltypes.h>
@@ -455,7 +456,26 @@ void MainWindow::DrawInspectorContent()
         ImGui::TextWrapped("Select a pipeline step to edit its settings.");
         return;
     }
-    element->DrawSettings();
+    const float footerHeight = 2 * ImGui::GetTextLineHeightWithSpacing() +
+        2 * ImGui::GetStyle().ItemSpacing.y + 1;
+    const float settingsHeight = std::max(1.0f, ImGui::GetContentRegionAvail().y - footerHeight);
+    if (ImGui::BeginChild("##InspectorSettings", {0, settingsHeight}, ImGuiChildFlags_None,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        element->DrawSettings();
+    ImGui::EndChild();
+    ImGui::Separator();
+    if (auto params = element->GetImageParams())
+    {
+        ImGui::Text("Size: %u x %u", params->GetWidth(), params->GetHeight());
+        std::ostringstream format;
+        format << params->GetPixelFormat();
+        ImGui::Text("Pixel format: %s", format.str().c_str());
+    }
+    else
+    {
+        ImGui::TextDisabled("Size: unavailable");
+        ImGui::TextDisabled("Pixel format: unavailable");
+    }
 }
 
 void MainWindow::DrawAdaptivePanels(const MainWindowLayout& layout)

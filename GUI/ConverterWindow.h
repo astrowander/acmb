@@ -7,6 +7,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 class ConverterWindow : public PipelineElementWindow
 {
     PixelFormat _dstPixelFormat = PixelFormat::RGB24;
+    PixelFormat GetOutputPixelFormat(PixelFormat) const override { return _dstPixelFormat; }
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
     virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) override;

@@ -5,7 +5,13 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class CenterObjectWindow : public PipelineElementWindow
 {
+    PixelFormat GetOutputPixelFormat(PixelFormat input) const override
+    {
+        return input == PixelFormat::Bayer16 ? PixelFormat::RGB48 : input;
+    }
+
     Size _dstSize;
+    Expected<Size, std::string> GetBitmapSize() override { return _dstSize; }
     float _threshold = 25.0f;
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;

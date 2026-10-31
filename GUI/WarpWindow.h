@@ -6,6 +6,11 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class WarpWindow : public PipelineElementWindow
 {
+    PixelFormat GetOutputPixelFormat(PixelFormat input) const override
+    {
+        return input == PixelFormat::Bayer16 ? PixelFormat::RGB48 : input;
+    }
+
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;
     virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) override;
 public:

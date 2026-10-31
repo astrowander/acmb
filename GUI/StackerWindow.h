@@ -6,6 +6,10 @@ ACMB_GUI_NAMESPACE_BEGIN
 class StackerWindow : public PipelineElementWindow
 {
     StackMode _stackMode = StackMode::Light;
+    PixelFormat GetOutputPixelFormat(PixelFormat input) const override
+    {
+        return input == PixelFormat::Bayer16 && _stackMode != StackMode::DarkOrFlat ? PixelFormat::RGB48 : input;
+    }
     float _threshold = 25.0f;
 
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i ) override;

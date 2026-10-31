@@ -8,6 +8,11 @@ ACMB_GUI_NAMESPACE_BEGIN
 
 class CropWindow : public PipelineElementWindow, public SettingsInterpolationUser<CropTransform>
 {
+    PixelFormat GetOutputPixelFormat(PixelFormat input) const override
+    {
+        return input == PixelFormat::Bayer16 ? PixelFormat::RGB48 : input;
+    }
+
 private:
     Settings GetCurrentSettings() const override { return _dstRect; }
     CropTransform::Settings _dstRect = { 0, 0, 10000, 10000 };

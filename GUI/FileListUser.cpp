@@ -50,13 +50,28 @@ Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
 
 Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 {
+    auto params = GetFrameParams(idx);
+    if (!params)
+        return unexpected(params.error());
+    return Size{int(params->GetWidth()), int(params->GetHeight())};
+}
+
+Expected<ImageParams, std::string> FileListUser::GetFrameParams(int idx) const
+{
     std::lock_guard<std::mutex> lock(_mutex);
-
-    PrepareFrameForReading(idx);
-    if ( !_pDecoder )
-        return unexpected( "FileListUser::GetFrameSize: No decoder" );
-
-    return Size{ int(_pDecoder->GetWidth()), int(_pDecoder->GetHeight()) };
+    if (idx < 0 || idx >= _totalFrameCount)
+        return unexpected("No frame selected");
+    try
+    {
+        PrepareFrameForReading(idx);
+        if (!_pDecoder)
+            return unexpected("No decoder");
+        return ImageParams(_pDecoder->GetWidth(), _pDecoder->GetHeight(), _pDecoder->GetPixelFormat());
+    }
+    catch (const std::exception& error)
+    {
+        return unexpected(error.what());
+    }
 }
 
 Expected<IBitmapPtr, std::string> FileListUser::ReadFrameUnlocked(int idx) const

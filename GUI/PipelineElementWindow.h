@@ -6,6 +6,7 @@
 #include "AsyncWorker.h"
 
 #include "./../Core/bitmap.h"
+#include "./../Core/imageparams.h"
 #include "./../Geometry/point.h"
 #include <cstdint>
 
@@ -72,6 +73,7 @@ protected:
 
     virtual void DrawPipelineElementControls() = 0;
     virtual void DrawElementAuxiliaryUi() {}
+    virtual PixelFormat GetOutputPixelFormat(PixelFormat input) const { return input; }
     
     virtual Expected<IBitmapPtr, std::string> RunTask( size_t i );
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) = 0;
@@ -112,6 +114,7 @@ public:
     void ResetPreview(PropagationDir dir);
 
     virtual Expected<Size, std::string> GetBitmapSize();
+    virtual Expected<ImageParams, std::string> GetImageParams();
 
     virtual void OnInputChanged() {}
 

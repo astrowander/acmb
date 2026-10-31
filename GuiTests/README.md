@@ -247,7 +247,11 @@ Frame selection and compact keyframe actions appear in a separate Keyframes
 panel above the pipeline table. The buttons are labeled Manage Keyframes.
 
 Settings are disabled as a unit while the interface is locked. The settings
-parent scope lets existing UI helpers invalidate the owning step's preview and
+inspector reserves a fixed footer for the selected step's full output dimensions
+and pixel format, with unavailable values when metadata cannot be read. The
+settings controls scroll above that footer.
+
+The settings parent scope lets existing UI helpers invalidate the owning step's preview and
 progress even when they omit an explicit parent argument. Checkbox/format edits
 use the same invalidation path. Card rendering never invokes settings controls.
 

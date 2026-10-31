@@ -46,6 +46,7 @@ protected:
     ~FileListUser() = default;
 
     Expected<Size, std::string> GetFrameSize(int idx) const;
+    Expected<ImageParams, std::string> GetFrameParams(int idx) const;
     Expected<IBitmapPtr, std::string> ReadFrame(int idx) const;
     Expected<IBitmapPtr, std::string> ReadFramePreview(int idx, Size size) const;
     Expected<std::string, std::string> GetFrameSourceName(int idx) const;
