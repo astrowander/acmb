@@ -23,6 +23,7 @@ public:
     virtual void OnKeyframeCommited() override;
 
 private:
+    Settings GetCurrentSettings() const override { return _saturationSettings; }
     SaturationTransform::Settings _saturationSettings = 1.0f;
 };
 

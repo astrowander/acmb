@@ -9,6 +9,7 @@ ACMB_GUI_NAMESPACE_BEGIN
 class CropWindow : public PipelineElementWindow, public SettingsInterpolationUser<CropTransform>
 {
 private:
+    Settings GetCurrentSettings() const override { return _dstRect; }
     CropTransform::Settings _dstRect = { 0, 0, 10000, 10000 };
 
     virtual IBitmapPtr ProcessBitmapFromPrimaryInput( IBitmapPtr pSource, size_t taskNumber = 0 ) override;

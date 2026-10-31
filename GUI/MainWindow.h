@@ -79,6 +79,7 @@ private:
     void SaveLayoutPreferences();
     void ResetLayout();
     void DrawPipeline(const MainWindowLayout& layout);
+    void DrawKeyframes(const MainWindowLayout& layout);
     MainWindowLayout GetPanelLayout() const;
 
     void ProcessKeyboardEvents();

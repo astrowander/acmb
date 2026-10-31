@@ -135,7 +135,7 @@ application or error-popup rendering test.
 
 ## Minimum sizes and scrolling
 
-The workspace preserves a minimum 600 x 480 logical canvas (scaled for larger
+The workspace preserves a minimum 600 x 544 logical canvas (scaled for larger
 fonts). Pipeline cards start at 200 x 110 logical units and contain only their
 title and status. One full-width progress bar below the pipeline shows the first
 element's progress, including partial task readiness. It stays visible in the
@@ -243,7 +243,8 @@ reuse their existing controls in the inspector. Per-element child/ID scopes
 isolate scroll, focus, and widget state, including duplicate tool instances and
 saved names. Widths follow the inspector's available content region; Import's
 file list, Export's paths, Levels columns, and Warp coordinate rows adapt too.
-Frame selection/keyframes remain in a collapsible inspector section.
+Frame selection and compact keyframe actions appear in a separate Keyframes
+panel above the pipeline table. The buttons are labeled Manage Keyframes.
 
 Settings are disabled as a unit while the interface is locked. The settings
 parent scope lets existing UI helpers invalidate the owning step's preview and

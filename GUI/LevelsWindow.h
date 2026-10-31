@@ -27,6 +27,7 @@ public:
     SET_MENU_PARAMS( "\xef\x82\x80", "Levels", "Adjust levels of the image", 9 );
 
 private:
+    Settings GetCurrentSettings() const override { return _levelsSettings; }
     LevelsTransform::Settings _levelsSettings;
 };
 

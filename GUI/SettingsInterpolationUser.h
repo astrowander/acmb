@@ -2,6 +2,7 @@
 #include "ImGuiHelpers.h"
 #include "PipelineElementWindow.h"
 #include "Serializer.h"
+#include <vector>
 
 ACMB_GUI_NAMESPACE_BEGIN
 
@@ -9,8 +10,9 @@ class ISettingsInterpolationUser
 {
 public:
     virtual ~ISettingsInterpolationUser() = default;
-    virtual void DrawFrameCounter() = 0;
+    virtual void DrawFrameCounter(float availableWidth) = 0;
     virtual void CutExtraKeyframes(int maxFrame) = 0;
+    virtual std::vector<int> GetKeyframeNumbers() const = 0;
 };
 
 template<typename TransformType>
@@ -20,11 +22,22 @@ public:
     using Transform = TransformType;
     using Settings = typename TransformType::Settings;
 
+    std::vector<int> GetKeyframeNumbers() const override
+    {
+        std::vector<int> frames;
+        frames.reserve(_mSettings.size());
+        for (const auto& entry : _mSettings)
+            frames.push_back(entry.first);
+        return frames;
+    }
+
 private:
     std::map<int, Settings> _mSettings;
     PipelineElementWindow* _pHostWindow = nullptr;
 
 protected:
+    virtual Settings GetCurrentSettings() const = 0;
+
     SettingsInterpolationUser(PipelineElementWindow* pHostWindow, Settings defaultSettings)
     : _pHostWindow( pHostWindow ) 
     {
@@ -68,22 +81,16 @@ protected:
         return TransformType::Interpolate( it->second, nextIt->second, double(frameIndex - it->first) / double(nextIt->first - it->first) );
     }
 
-    void DrawFrameCounter()
+    void DrawFrameCounter(float availableWidth) override
     {
-        ImGui::Separator();
-
-        const float buttonWidth = std::max(150.0f,
-            ImGui::CalcTextSize("Previous Keyframe").x + 2 * ImGui::GetStyle().FramePadding.x);
         const float spacing = ImGui::GetStyle().ItemSpacing.x;
-        const float availableWidth = ImGui::GetContentRegionAvail().x;
-        const bool pairFits = availableWidth >= buttonWidth * 2 + spacing;
-        const float totalWidth = std::max(buttonWidth, std::min(availableWidth, buttonWidth * 2 + spacing));
+        const float buttonWidth = std::max(1.0f, (availableWidth - spacing) * 0.5f);
 
         int currentFrame = _pHostWindow->GetPreviewedFrameNumber();
         auto it = _mSettings.find(currentFrame);
         if ( it != _mSettings.end() )
         {
-            UI::Button("Commit Keyframe", { buttonWidth, 0 }, [&]
+            UI::Button("Commit", { buttonWidth, 0 }, [&]
             {
                 _pHostWindow->OnKeyframeCommited();
             }, "Commit this keyframe", nullptr);
@@ -91,10 +98,9 @@ protected:
             // Can't delete the first keyframe
             if ( currentFrame != 0 )
             {
-                if (pairFits)
-                    ImGui::SameLine();
+                ImGui::SameLine();
 
-                UI::Button("Delete Keyframe", { buttonWidth, 0 }, [&]
+                UI::Button("Delete", { buttonWidth, 0 }, [&]
                 {
                     _mSettings.erase(it);
                 }, "Delete this keyframe", nullptr);
@@ -102,13 +108,13 @@ protected:
         }
         else
         {
-            UI::Button("Add Keyframe", { totalWidth, 0 }, [&]
+            UI::Button("Add", { availableWidth, 0 }, [&]
             {
                 _pHostWindow->OnKeyframeCommited();
             }, "Add this keyframe", nullptr );
         }
 
-        UI::Button("Previous Keyframe", { buttonWidth, 0 },
+        UI::Button("< Prev", { buttonWidth, 0 },
                    [&]
         {
             auto it = _mSettings.lower_bound(currentFrame);
@@ -119,10 +125,9 @@ protected:
             _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
         }, "Go to previous keyframe", nullptr);
 
-        if (pairFits)
-            ImGui::SameLine();
+        ImGui::SameLine();
 
-        UI::Button("Next Keyframe", { buttonWidth, 0 },
+        UI::Button("Next >", { buttonWidth, 0 },
                    [&]
         {
             auto it = _mSettings.upper_bound(currentFrame);
@@ -132,7 +137,15 @@ protected:
                 _pHostWindow->OnPreviewedFrameNumberChanged(currentFrame);
             }
         }, "Go to next keyframe", nullptr);
-                
+
+        ImGui::BeginDisabled(_mSettings.lower_bound(currentFrame) == _mSettings.begin());
+        UI::Button("Assign settings to\nprev keyframe", { availableWidth, 0 }, [&]
+        {
+            auto previous = _mSettings.lower_bound(currentFrame);
+            if (previous != _mSettings.begin())
+                std::prev(previous)->second = GetCurrentSettings();
+        }, "Assign current settings to the previous keyframe", _pHostWindow);
+        ImGui::EndDisabled();
     }
 
     void Serialize(std::ostream& out) const

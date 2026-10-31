@@ -17,12 +17,12 @@ struct MainWindowLayout
     inline static constexpr float MinimumPreviewWidth = 320;
     inline static constexpr float MinimumPreviewHeight = 120;
     inline static constexpr float SplitterWidth = 6;
-    inline static constexpr float HeaderHeight = 32;
+    inline static constexpr float HeaderHeight = 128;
     inline static constexpr float CommandsWidth = 160;
     inline static constexpr float GridLeft = CommandsWidth + 16;
     // Hard fallback only for windows too small to fit even the toolbar.
     inline static constexpr float MinimumWorkspaceWidth = 600;
-    inline static constexpr float MinimumWorkspaceHeight = 480;
+    inline static constexpr float MinimumWorkspaceHeight = 544;
     inline static constexpr float CardWidth = 200;
     inline static constexpr float CardHeight = 110;
     inline static constexpr float CellPadding = 25;
@@ -34,6 +34,7 @@ struct MainWindowLayout
     RectF toolsDrawer, inspectorDrawer;
     RectF toolboxSplitter, inspectorSplitter, pipelineSplitter;
     RectF pipelineHeader, pipelineCommands, pipeline, pipelineProgress;
+    RectF keyframes;
     ImVec2 canvasSize{}, cardSize{};
     float toolboxSeparatorX = 0, inspectorSeparatorX = 0;
     int visibleCells = 1;
@@ -103,7 +104,8 @@ struct MainWindowLayout
         const float headerTop = pipelineTop - HeaderHeight * s;
         const float bodyBottom = headerTop - split - 2 * spacing.y;
         const float bodyHeight = std::max(0.0f, bodyBottom - top);
-        r.pipelineHeader = {bodyX, headerTop, bodyWidth, HeaderHeight * s};
+        r.keyframes = {bodyX, headerTop, bodyWidth, HeaderHeight * s - spacing.y};
+        r.pipelineHeader = r.keyframes;
         r.pipelineSplitter = {bodyX, bodyBottom + spacing.y, bodyWidth, split};
         r.pipelineCommands = {bodyX, pipelineTop, CommandsWidth * s, pipelineHeight};
         const float pipelineLeft = r.pipelineCommands.GetRight() + gap;

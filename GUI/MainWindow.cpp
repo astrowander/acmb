@@ -25,6 +25,22 @@
 
 ACMB_GUI_NAMESPACE_BEGIN
 
+static void DrawPanelCaption(const char* caption, ImFont* font, float width = 0)
+{
+    const float left = ImGui::GetCursorPosX();
+    if (width <= 0) width = ImGui::GetContentRegionAvail().x;
+    ImGui::PushFont(font);
+    ImGui::SetCursorPosX(left + std::max(0.0f, (width - ImGui::CalcTextSize(caption).x) * 0.5f));
+    ImGui::TextUnformatted(caption);
+    ImGui::PopFont();
+    ImGui::SetCursorPosX(left);
+    const auto line = ImGui::GetCursorScreenPos();
+    ImGui::GetWindowDrawList()->AddLine(line, {line.x + width, line.y},
+        ImGui::GetColorU32(ImGuiCol_Separator));
+    ImGui::Dummy({width, 1.0f});
+    ImGui::SetCursorPosX(left);
+}
+
 static std::filesystem::path UserLayoutPreferencesPath()
 {
 #ifdef _WIN32
@@ -424,6 +440,7 @@ void MainWindow::DrawLayoutMenu()
 
 void MainWindow::DrawToolsContent(bool closeOnAction)
 {
+    DrawPanelCaption("Toolbox", _fontRegistry.bold);
     DrawToolLibrary(MenuItemsHolder::GetInstance().GetToolGroups(),
         [this] { return IsInterfaceLocked(); }, size_t(_selection.activeIndex), _selection.elementSelected,
         [this](const MenuItem& item) { UI::SetTooltipIfHovered(item.tooltip, cMenuScaling); }, {}, closeOnAction);
@@ -431,20 +448,14 @@ void MainWindow::DrawToolsContent(bool closeOnAction)
 
 void MainWindow::DrawInspectorContent()
 {
+    DrawPanelCaption("Tool Settings", _fontRegistry.bold);
     auto element = GetActiveElement();
     if (!element || !_selection.elementSelected)
     {
         ImGui::TextWrapped("Select a pipeline step to edit its settings.");
         return;
     }
-    element->DrawSettings([&] {
-        if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element);
-            interpolation && element->GetTaskCount() > 1 &&
-            ImGui::CollapsingHeader("Keyframes", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            interpolation->DrawFrameCounter();
-        }
-    });
+    element->DrawSettings();
 }
 
 void MainWindow::DrawAdaptivePanels(const MainWindowLayout& layout)
@@ -548,29 +559,102 @@ void MainWindow::UpdateProcessing()
     }
 }
 
+void MainWindow::DrawKeyframes(const MainWindowLayout& layout)
+{
+    ImGui::SetCursorPos({layout.keyframes.x, layout.keyframes.y});
+    if (ImGui::BeginChild("##KeyframesPanel", {layout.keyframes.width, layout.keyframes.height},
+        ImGuiChildFlags_Borders))
+    {
+        const auto& panelStyle = ImGui::GetStyle();
+        const auto controlsOrigin = ImGui::GetCursorPos();
+        const float sliderX = layout.pipeline.x - layout.keyframes.x;
+        const float buttonsWidth = layout.pipelineCommands.width - 2 * panelStyle.WindowPadding.x;
+        auto element = _selection.elementSelected ? GetActiveElement() : nullptr;
+        auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element);
+        const auto panelOrigin = ImGui::GetWindowPos();
+        const float dividerX = panelOrigin.x + sliderX - panelStyle.ItemSpacing.x * 0.5f;
+        ImGui::GetWindowDrawList()->AddLine(
+            {dividerX, panelOrigin.y + panelStyle.WindowPadding.y},
+            {dividerX, panelOrigin.y + ImGui::GetWindowHeight() - panelStyle.WindowPadding.y},
+            ImGui::GetColorU32(ImGuiCol_Separator));
+        DrawPanelCaption("Manage Keyframes", _fontRegistry.bold, buttonsWidth);
+        if (interpolation)
+        {
+            ImGui::PushID(element);
+            ImGui::BeginDisabled(IsInterfaceLocked() || element->GetTaskCount() <= 1);
+            UI::SettingsParentScope parent(element);
+            interpolation->DrawFrameCounter(buttonsWidth);
+            ImGui::EndDisabled();
+            ImGui::PopID();
+        }
+        else
+        {
+            const char* message = element ? "No keyframes for this tool" : "No tool selected";
+            const auto textSize = ImGui::CalcTextSize(message, nullptr, false, buttonsWidth);
+            const float top = ImGui::GetCursorPosY();
+            const float availableHeight = std::max(0.0f,
+                ImGui::GetWindowHeight() - panelStyle.WindowPadding.y - top);
+            ImGui::SetCursorPos({controlsOrigin.x + std::max(0.0f, (buttonsWidth - textSize.x) * 0.5f),
+                top + std::max(0.0f, (availableHeight - textSize.y) * 0.5f)});
+            ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + textSize.x);
+            ImGui::TextUnformatted(message);
+            ImGui::PopTextWrapPos();
+        }
+        if (element && element->GetTaskCount() > 1)
+        {
+            ImGui::PushID(element);
+            ImGui::BeginDisabled(IsInterfaceLocked());
+            UI::SettingsParentScope parent(element);
+            ImGui::SetCursorPos({sliderX, controlsOrigin.y});
+            const float sliderWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+            ImGui::SetCursorPosX(sliderX + std::max(0.0f,
+                (sliderWidth - ImGui::CalcTextSize("Select frame number").x) * 0.5f));
+            ImGui::TextUnformatted("Select frame number");
+            ImGui::SetCursorPosX(sliderX);
+            ImGui::PushItemWidth(sliderWidth);
+            int frame = element->GetPreviewedFrameNumber();
+            if (UI::SliderInt("##FrameNumber", &frame, 0, int(element->GetTaskCount()) - 1,
+                "Select frame number", element))
+                element->OnPreviewedFrameNumberChanged(frame);
+            if (auto interpolation = dynamic_cast<ISettingsInterpolationUser*>(element))
+            {
+                const auto sliderMin = ImGui::GetItemRectMin();
+                const auto sliderMax = ImGui::GetItemRectMax();
+                const int lastFrame = int(element->GetTaskCount()) - 1;
+                // Match ImGui's integer slider grab centers, including its end padding.
+                const float trackWidth = std::max(0.0f, sliderMax.x - sliderMin.x - 4.0f);
+                const float grabWidth = std::min(trackWidth,
+                    std::max(panelStyle.GrabMinSize, trackWidth / float(lastFrame + 1)));
+                const float firstX = sliderMin.x + 2.0f + grabWidth * 0.5f;
+                const float travel = trackWidth - grabWidth;
+                auto* drawList = ImGui::GetWindowDrawList();
+                const auto tickColor = ImGui::GetColorU32(ImGuiCol_Text);
+                for (int keyframe : interpolation->GetKeyframeNumbers())
+                {
+                    if (keyframe < 0 || keyframe > lastFrame) continue;
+                    const float x = firstX + travel * float(keyframe) / float(lastFrame);
+                    drawList->AddLine({x, sliderMax.y + layout.scale},
+                        {x, sliderMax.y + 6.0f * layout.scale}, tickColor, layout.scale);
+                }
+            }
+            ImGui::PopItemWidth();
+            ImGui::EndDisabled();
+            ImGui::PopID();
+        }
+        else
+        {
+            ImGui::SetCursorPos({sliderX, controlsOrigin.y});
+            ImGui::TextDisabled("Select a pipeline step with multiple frames.");
+        }
+    }
+    ImGui::EndChild();
+}
+
 void MainWindow::DrawPipeline(const MainWindowLayout& layout)
 {
     if (layout.pipeline.width <= 0 || layout.pipeline.height <= 0)
         return;
     const auto& panelStyle = ImGui::GetStyle();
-    if (auto element = GetActiveElement(); element && _selection.elementSelected && element->GetTaskCount() > 1)
-    {
-        ImGui::SetCursorPos({layout.pipeline.x, layout.pipelineHeader.y});
-        ImGui::PushID(element);
-        ImGui::BeginDisabled(IsInterfaceLocked());
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Select frame number");
-        ImGui::SameLine();
-        ImGui::PushItemWidth(std::max(1.0f,
-            layout.pipeline.width - (ImGui::GetCursorPosX() - layout.pipeline.x)));
-        int frame = element->GetPreviewedFrameNumber();
-        if (UI::SliderInt("##FrameNumber", &frame, 0, int(element->GetTaskCount()) - 1,
-            "Select frame number", element))
-            element->OnPreviewedFrameNumberChanged(frame);
-        ImGui::PopItemWidth();
-        ImGui::EndDisabled();
-        ImGui::PopID();
-    }
     ImGui::SetCursorPos({layout.pipelineCommands.x, layout.pipelineCommands.y});
     const auto commandsOrigin = ImGui::GetCursorScreenPos();
     auto* separators = ImGui::GetWindowDrawList();
@@ -583,6 +667,7 @@ void MainWindow::DrawPipeline(const MainWindowLayout& layout)
         // Match the borderless pipeline panel's header origin while keeping
         // horizontal padding in the command column.
         ImGui::SetCursorPosY(0);
+        DrawPanelCaption("Manage Pipeline", _fontRegistry.bold);
         if (ImGui::Button(layout.pipelineCollapsed ? "Expand pipeline" : "Collapse pipeline", {-1, 0}))
         {
             _layoutPreferences.pipelineCollapsed = !_layoutPreferences.pipelineCollapsed;
@@ -792,6 +877,7 @@ void MainWindow::DrawDialog()
         }
     }    
 
+    DrawKeyframes(layout);
     DrawPipeline(layout);
     if (layout.pipelineProgress.width > 0 && layout.pipelineProgress.height > 0)
     {

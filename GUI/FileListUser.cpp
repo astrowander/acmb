@@ -34,9 +34,7 @@ Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
     {
         _fileNames.push_back(fileName);
 
-        int indicesStartsWith = _frameIndicesStartsWith.empty() ? 0 : _frameIndicesStartsWith.back();
-        if ( _pDecoder )
-            indicesStartsWith += _pDecoder->GetFrameCount();
+        const int indicesStartsWith = _totalFrameCount;
 
         _frameIndicesStartsWith.push_back(indicesStartsWith);
         _pDecoder = ImageDecoder::Create(fileName);
@@ -111,10 +109,13 @@ void FileListUser::DrawControls()
     {
         for ( int i = 0; i < int(_fileNames.size()); ++i )
         {
-            const bool is_selected = (_currentFrameIdx == i);
+            const int endFrame = i + 1 < int(_frameIndicesStartsWith.size())
+                ? _frameIndicesStartsWith[i + 1] : _totalFrameCount;
+            const bool is_selected = _currentFrameIdx >= _frameIndicesStartsWith[i] && _currentFrameIdx < endFrame;
             const std::string shortName = _fileNames[i].substr(_fileNames[i].find_last_of("\\/") + 1);
             if ( ImGui::Selectable(shortName.c_str(), is_selected) )
             {
+                _currentFrameIdx = _frameIndicesStartsWith[i];
                 OnSelectedFrameChanged(_frameIndicesStartsWith[i]);
             }
             // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -135,6 +136,35 @@ void FileListUser::DrawControls()
         static auto filters = GetFileFilters();
         fileDialog.OpenDialog(openDialogName, "Select Images", filters.c_str(), _workingDirectory.c_str(), 0);
     }, "Add images to the importing list", _pHost);
+
+    ImGui::BeginDisabled(_currentFrameIdx < 0 || _currentFrameIdx >= _totalFrameCount);
+    UI::Button("Delete Item", { itemWidth, 0 }, [&]
+    {
+        int nextFrame = -1;
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            const auto next = std::upper_bound(_frameIndicesStartsWith.begin(),
+                _frameIndicesStartsWith.end(), _currentFrameIdx);
+            if (next == _frameIndicesStartsWith.begin()) return;
+            const auto index = size_t(std::distance(_frameIndicesStartsWith.begin(), next) - 1);
+            const int firstFrame = _frameIndicesStartsWith[index];
+            const int endFrame = next == _frameIndicesStartsWith.end() ? _totalFrameCount : *next;
+            const int removedFrames = endFrame - firstFrame;
+            _fileNames.erase(_fileNames.begin() + index);
+            _frameIndicesStartsWith.erase(_frameIndicesStartsWith.begin() + index);
+            for (size_t i = index; i < _frameIndicesStartsWith.size(); ++i)
+                _frameIndicesStartsWith[i] -= removedFrames;
+            _totalFrameCount -= removedFrames;
+            _pDecoder.reset();
+            _lastDecodedFileIdx = -1;
+            _currentFrameIdx = -1;
+            nextFrame = _totalFrameCount > 0 ? std::min(firstFrame, _totalFrameCount - 1) : -1;
+        }
+        OnFileListChanged();
+        _currentFrameIdx = nextFrame;
+        OnSelectedFrameChanged(nextFrame);
+    }, "Remove the selected file from the list", _pHost);
+    ImGui::EndDisabled();
 
     UI::Button("Clear List", { itemWidth, 0 }, [&]
     {
@@ -228,7 +258,8 @@ IBitmapPtr FileListUser::GetBitmapOfStackedFrames()
 void FileListUser::OnFileListChanged()
 {
     _pStackedFrames = nullptr;
-    OnSelectedFrameChanged( GetTotalFrameCount() - 1 );
+    _currentFrameIdx = GetTotalFrameCount() - 1;
+    OnSelectedFrameChanged(_currentFrameIdx);
 }
 
 void FileListUser::CleanUp()
