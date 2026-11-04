@@ -1,7 +1,6 @@
 #include "Texture.h"
 #include "MainWindow.h"
 
-#include "./../Transforms/converter.h"
 #ifdef _WIN32
 #include <d3d11.h>
 #elif defined ( __linux__ )
@@ -264,7 +263,9 @@ Texture::Texture( IBitmapPtr pBitmap )
     if ( !pBitmap )
         return;
 
-    _pTextureBitmap = Converter::Convert(pBitmap, PixelFormat::RGBA32);
+    if (pBitmap->GetPixelFormat() != PixelFormat::RGBA32)
+        throw std::invalid_argument("Texture requires prepared RGBA32 pixels");
+    _pTextureBitmap = std::move(pBitmap);
 #ifdef _WIN32
     // Create texture
     D3D11_TEXTURE2D_DESC desc;
@@ -300,10 +301,10 @@ Texture::Texture( IBitmapPtr pBitmap )
     pTexture->Release();
 #elif defined ( __linux__ )
     _pTextureData = std::make_shared<VulkanTextureData>();
-    _pTextureData->Width = pBitmap->GetWidth();
-    _pTextureData->Height = pBitmap->GetHeight();
+    _pTextureData->Width = _width;
+    _pTextureData->Height = _height;
     _pTextureData->Channels = 4;
-    LoadTextureFromMemory( (unsigned char*)( pTextureBitmap->GetPlanarScanline( 0 ) ), _pTextureData.get() );
+    LoadTextureFromMemory( (unsigned char*)( _pTextureBitmap->GetPlanarScanline( 0 ) ), _pTextureData.get() );
 #endif
 }
 

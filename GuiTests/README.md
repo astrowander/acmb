@@ -250,6 +250,16 @@ Settings are disabled as a unit while the interface is locked. The settings
 inspector reserves a fixed footer for the selected step's full output dimensions
 and pixel format, with unavailable values when metadata cannot be read. The
 settings controls scroll above that footer.
+The footer also contains a collapsible Preview Histogram of the displayed preview's
+8-bit RGB values (one curve for grayscale). The preview worker converts pixels to
+RGBA32 and computes the histogram before publishing them together. The UI only
+uploads prepared pixels to the GPU and draws the published histogram. Source
+metadata is read from an immutable per-file cache without taking the decoder
+mutex; project-loaded metadata becomes available on the first worker read.
+Invalidated workers cannot publish into the new preview's result slot.
+Its channels share a pixel-count scale, with a Logarithmic scale checkbox switching
+between linear counts and log(1 + count). Histogram expansion reserves footer
+space while keeping the settings in their own scrolling region.
 
 The settings parent scope lets existing UI helpers invalidate the owning step's preview and
 progress even when they omit an explicit parent argument. Checkbox/format edits

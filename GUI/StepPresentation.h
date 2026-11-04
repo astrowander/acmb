@@ -1,8 +1,25 @@
 #pragma once
 #include "ScrollablePanels.h"
 #include <cmath>
+#include <array>
 
 ACMB_GUI_NAMESPACE_BEGIN
+
+// RGB display values use 256 bins; alpha is intentionally excluded.
+template<class GetScanline>
+std::array<std::array<float, 256>, 3> BuildPreviewHistogram(uint32_t width, uint32_t height,
+    GetScanline getScanline, uint32_t pixelStride = 3)
+{
+    std::array<std::array<float, 256>, 3> bins{};
+    for (uint32_t y = 0; y < height; ++y)
+    {
+        const auto* row = getScanline(y);
+        for (uint32_t x = 0; x < width; ++x)
+            for (uint32_t channel = 0; channel < 3; ++channel)
+                ++bins[channel][row[x * pixelStride + channel]];
+    }
+    return bins;
+}
 
 template<class Element>
 float PipelineHeadProgress(Element* head)

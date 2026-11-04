@@ -456,26 +456,93 @@ void MainWindow::DrawInspectorContent()
         ImGui::TextWrapped("Select a pipeline step to edit its settings.");
         return;
     }
-    const float footerHeight = 2 * ImGui::GetTextLineHeightWithSpacing() +
-        2 * ImGui::GetStyle().ItemSpacing.y + 1;
-    const float settingsHeight = std::max(1.0f, ImGui::GetContentRegionAvail().y - footerHeight);
+    const float availableHeight = ImGui::GetContentRegionAvail().y;
+    const float baseFooterHeight = 2 * ImGui::GetTextLineHeightWithSpacing() + ImGui::GetFrameHeight() +
+        3 * ImGui::GetStyle().ItemSpacing.y + 2 * ImGui::GetStyle().WindowPadding.y + 1;
+    const float footerHeight = _histogramExpanded
+        ? std::max(baseFooterHeight, std::min(baseFooterHeight + 150 * GetPanelLayout().scale, availableHeight * 0.5f))
+        : baseFooterHeight;
+    const float settingsHeight = std::max(1.0f, availableHeight - footerHeight - ImGui::GetStyle().ItemSpacing.y);
     if (ImGui::BeginChild("##InspectorSettings", {0, settingsHeight}, ImGuiChildFlags_None,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
         element->DrawSettings();
     ImGui::EndChild();
-    ImGui::Separator();
-    if (auto params = element->GetImageParams())
+    if (ImGui::BeginChild("##InspectorFooter", {0, footerHeight}))
     {
-        ImGui::Text("Size: %u x %u", params->GetWidth(), params->GetHeight());
-        std::ostringstream format;
-        format << params->GetPixelFormat();
-        ImGui::Text("Pixel format: %s", format.str().c_str());
+        ImGui::Separator();
+        if (auto params = element->GetImageParams())
+        {
+            ImGui::Text("Size: %u x %u", params->GetWidth(), params->GetHeight());
+            std::ostringstream format;
+            format << params->GetPixelFormat();
+            ImGui::Text("Pixel format: %s", format.str().c_str());
+        }
+        else
+        {
+            ImGui::TextDisabled("Size: unavailable");
+            ImGui::TextDisabled("Pixel format: unavailable");
+        }
+        ImGui::SetNextItemOpen(_histogramExpanded, ImGuiCond_Always);
+        _histogramExpanded = ImGui::CollapsingHeader("Preview Histogram");
+        if (_histogramExpanded)
+            DrawPreviewHistogram(element);
     }
-    else
+    ImGui::EndChild();
+}
+
+void MainWindow::DrawPreviewHistogram(PipelineElementWindow* element)
+{
+    ImGui::Checkbox("Logarithmic scale", &_histogramLogarithmic);
+    auto preview = element->GetPreviewData();
+    const bool updating = !preview;
+    if (updating)
+        preview = element->GetDisplayedPreviewData();
+    if (!preview)
     {
-        ImGui::TextDisabled("Size: unavailable");
-        ImGui::TextDisabled("Pixel format: unavailable");
+        ImGui::TextDisabled("Preview not available yet.");
+        return;
     }
+    const ImU32 colors[] = {IM_COL32(255, 90, 90, 255), IM_COL32(90, 230, 110, 255), IM_COL32(100, 150, 255, 255)};
+    float maximum = 1;
+    for (const auto& channel : preview->histogram)
+        for (float count : channel) maximum = std::max(maximum, count);
+    const float scaleMaximum = _histogramLogarithmic ? std::log1p(maximum) : maximum;
+    const float scale = GetPanelLayout().scale;
+    const ImVec2 size{std::max(1.0f, ImGui::GetContentRegionAvail().x),
+        std::clamp(ImGui::GetContentRegionAvail().y - ImGui::GetTextLineHeightWithSpacing(), 40 * scale, 120 * scale)};
+    ImGui::InvisibleButton("##PreviewHistogramPlot", size);
+    const auto topLeft = ImGui::GetItemRectMin();
+    const auto bottomRight = ImGui::GetItemRectMax();
+    auto* draw = ImGui::GetWindowDrawList();
+    draw->AddRectFilled(topLeft, bottomRight, ImGui::GetColorU32(ImGuiCol_FrameBg));
+    const ImVec2 plotMin{topLeft.x + 1, topLeft.y + 1};
+    const ImVec2 plotMax{std::max(plotMin.x, bottomRight.x - 1), std::max(plotMin.y, bottomRight.y - 1)};
+    // Polyline joins and their antialiasing can extend beyond the input points.
+    draw->PushClipRect(plotMin, plotMax, true);
+    const bool grayscale = preview->grayscale;
+    for (int channel = 0; channel < (grayscale ? 1 : 3); ++channel)
+    {
+        std::array<ImVec2, 256> points;
+        for (int bin = 0; bin < 256; ++bin)
+        {
+            const float count = preview->histogram[channel][bin];
+            const float height = std::clamp(
+                (_histogramLogarithmic ? std::log1p(count) : count) / scaleMaximum, 0.0f, 1.0f);
+            points[bin] = {plotMin.x + (plotMax.x - plotMin.x) * bin / 255.0f,
+                plotMax.y - (plotMax.y - plotMin.y) * height};
+        }
+        draw->AddPolyline(points.data(), int(points.size()),
+            grayscale ? ImGui::GetColorU32(ImGuiCol_Text) : colors[channel], ImDrawFlags_None, 1.0f);
+    }
+    draw->PopClipRect();
+    if (updating)
+        draw->AddRectFilled(topLeft, bottomRight, IM_COL32(0, 0, 0, 120));
+    draw->AddRect(topLeft, bottomRight, ImGui::GetColorU32(ImGuiCol_Border));
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Preview brightness: 0 (left) to 255 (right).\nHeight: %s, shared across channels.",
+            _histogramLogarithmic ? "log(1 + pixel count)" : "pixel count (linear)");
+    ImGui::TextDisabled(updating ? "Updating preview..." :
+        (grayscale ? "Grayscale | 0 - 255" : "RGB channels | 0 - 255"));
 }
 
 void MainWindow::DrawAdaptivePanels(const MainWindowLayout& layout)

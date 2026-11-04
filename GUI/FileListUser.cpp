@@ -24,21 +24,35 @@ void FileListUser::PrepareFrameForReading(int frameIdx) const
     if ( _pDecoder && _lastDecodedFileIdx == fileIdx )
         return;
 
-    _lastDecodedFileIdx = fileIdx;
     _pDecoder = ImageDecoder::Create( _fileNames[fileIdx] );
+    _lastDecodedFileIdx = fileIdx;
+    CacheDecoderParams(size_t(fileIdx));
+}
+
+void FileListUser::CacheDecoderParams(size_t fileIndex) const
+{
+    auto previous = _frameParams.load(std::memory_order_acquire);
+    auto cache = previous ? std::make_shared<FrameParamsCache>(*previous) : std::make_shared<FrameParamsCache>();
+    cache->resize(_fileNames.size());
+    (*cache)[fileIndex] = ImageParams(_pDecoder->GetWidth(), _pDecoder->GetHeight(), _pDecoder->GetPixelFormat());
+    _frameParams.store(std::move(cache), std::memory_order_release);
 }
 
 Expected<void, std::string> FileListUser::AddFile(const std::string& fileName)
 {
+    std::lock_guard<std::mutex> lock(_mutex);
     try
     {
+        auto decoder = ImageDecoder::Create(fileName);
         _fileNames.push_back(fileName);
 
         const int indicesStartsWith = _totalFrameCount;
 
         _frameIndicesStartsWith.push_back(indicesStartsWith);
-        _pDecoder = ImageDecoder::Create(fileName);
+        _pDecoder = std::move(decoder);
+        _lastDecodedFileIdx = int(_fileNames.size()) - 1;
         _totalFrameCount += _pDecoder->GetFrameCount();
+        CacheDecoderParams(size_t(_lastDecodedFileIdx));
 
         return {};
     }
@@ -58,20 +72,18 @@ Expected<Size, std::string> FileListUser::GetFrameSize(int idx) const
 
 Expected<ImageParams, std::string> FileListUser::GetFrameParams(int idx) const
 {
-    std::lock_guard<std::mutex> lock(_mutex);
     if (idx < 0 || idx >= _totalFrameCount)
         return unexpected("No frame selected");
-    try
-    {
-        PrepareFrameForReading(idx);
-        if (!_pDecoder)
-            return unexpected("No decoder");
-        return ImageParams(_pDecoder->GetWidth(), _pDecoder->GetHeight(), _pDecoder->GetPixelFormat());
-    }
-    catch (const std::exception& error)
-    {
-        return unexpected(error.what());
-    }
+    // Rendering never acquires the decoder mutex or opens a file. Missing entries
+    // after project load are populated by the first background preview read.
+    auto cache = _frameParams.load(std::memory_order_acquire);
+    const auto next = std::upper_bound(_frameIndicesStartsWith.begin(), _frameIndicesStartsWith.end(), idx);
+    if (next == _frameIndicesStartsWith.begin())
+        return unexpected("No frame metadata available");
+    const auto index = size_t(std::distance(_frameIndicesStartsWith.begin(), next) - 1);
+    if (!cache || index >= cache->size() || !(*cache)[index])
+        return unexpected("Frame metadata not loaded yet");
+    return *(*cache)[index];
 }
 
 Expected<IBitmapPtr, std::string> FileListUser::ReadFrameUnlocked(int idx) const
@@ -81,6 +93,22 @@ Expected<IBitmapPtr, std::string> FileListUser::ReadFrameUnlocked(int idx) const
         return unexpected( "FileListUser::ReadFrame: No decoder" );
 
     return _pDecoder->ReadBitmap( idx - _frameIndicesStartsWith[_lastDecodedFileIdx] );
+}
+
+Expected<ImageParams, std::string> FileListUser::LoadFrameParams(int idx) const
+{
+    std::lock_guard<std::mutex> lock(_mutex);
+    if (idx < 0 || idx >= _totalFrameCount)
+        return unexpected("No frame selected");
+    try
+    {
+        PrepareFrameForReading(idx);
+        return GetFrameParams(idx);
+    }
+    catch (const std::exception& error)
+    {
+        return unexpected(error.what());
+    }
 }
 
 Expected<IBitmapPtr, std::string>  FileListUser::ReadFrame(int idx) const
@@ -166,6 +194,12 @@ void FileListUser::DrawControls()
             const int endFrame = next == _frameIndicesStartsWith.end() ? _totalFrameCount : *next;
             const int removedFrames = endFrame - firstFrame;
             _fileNames.erase(_fileNames.begin() + index);
+            if (auto previous = _frameParams.load(std::memory_order_acquire))
+            {
+                auto cache = std::make_shared<FrameParamsCache>(*previous);
+                if (index < cache->size()) cache->erase(cache->begin() + index);
+                _frameParams.store(std::move(cache), std::memory_order_release);
+            }
             _frameIndicesStartsWith.erase(_frameIndicesStartsWith.begin() + index);
             for (size_t i = index; i < _frameIndicesStartsWith.size(); ++i)
                 _frameIndicesStartsWith[i] -= removedFrames;
@@ -227,6 +261,9 @@ void FileListUser::Serialize(std::ostream& out) const
 
 bool FileListUser::Deserialize(std::istream& in, int& remainingBytes)
 {
+    _frameParams.store(nullptr, std::memory_order_release);
+    _pDecoder.reset();
+    _lastDecodedFileIdx = -1;
     _fileNames = gui::Deserialize<std::vector<std::string>>( in, remainingBytes );
     _frameIndicesStartsWith = gui::Deserialize<std::vector<int>>( in, remainingBytes );
     _totalFrameCount = gui::Deserialize<int>( in, remainingBytes );
@@ -286,6 +323,8 @@ void FileListUser::CleanUp()
     _frameIndicesStartsWith.clear();
     _currentFrameIdx = -1;
     _pDecoder = nullptr;
+    _lastDecodedFileIdx = -1;
+    _frameParams.store(nullptr, std::memory_order_release);
 }
 
 

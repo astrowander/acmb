@@ -51,10 +51,7 @@ static std::string GetFormatList( bool excludeVideoFormats = false )
         ss << extension << '\0';
     }
 
-    const auto res = ss.str();
-    auto endIt = res.end();
-    std::advance( endIt, -1 );
-    return { res.begin(), endIt };
+    return ss.str();
 }
 
 ImageWriterWindow::ImageWriterWindow(  )
@@ -84,7 +81,28 @@ void ImageWriterWindow::DrawPipelineElementControls()
             fileDialog.OpenDialog( dialogKey, "Select Directory", nullptr, _workingDirectory.c_str(), 0 );
         }, "Choose a directory to export the results" );
 
-        UI::Combo( "Format", &_formatId, _formatList, "Choose a file format to export the results" );
+        if ( UI::Combo("Format", &_formatId, _formatList, "Choose a file format to export the results") )
+        {
+            size_t startPos = 0;
+            for ( int i = 0; i < _formatId; ++i )
+            {
+                const size_t nullPos = _formatList.find( '\0', startPos );
+                if ( nullPos == std::string::npos )
+                    break;
+
+                startPos = nullPos + 1;
+            }
+
+            const size_t nullPos = _formatList.find('\0', startPos);
+            if ( nullPos != std::string::npos )
+            {
+                _extension = _formatList.substr( startPos, nullPos - startPos );
+            }
+            else
+            {
+                _extension = _formatList.substr( startPos );
+            }
+        }
     }
     else
     {

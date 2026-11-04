@@ -45,6 +45,8 @@ private:
     bool _layoutPreferencesSaveFailed = false;
     bool _toolsDrawerRequested = false;
     bool _inspectorDrawerRequested = false;
+    bool _histogramExpanded = false;
+    bool _histogramLogarithmic = false;
 
     bool _showResultsPopup = false;
     bool _showHelpPopup = false;
@@ -73,6 +75,7 @@ private:
     void DrawToolbar();
     void DrawToolsContent(bool closeOnAction = false);
     void DrawInspectorContent();
+    void DrawPreviewHistogram(PipelineElementWindow* element);
     void DrawLayoutMenu();
     void DrawAdaptivePanels(const MainWindowLayout& layout);
     void DrawSplitters(const MainWindowLayout& layout);

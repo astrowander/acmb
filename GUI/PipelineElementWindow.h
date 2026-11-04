@@ -9,6 +9,7 @@
 #include "./../Core/imageparams.h"
 #include "./../Geometry/point.h"
 #include <cstdint>
+#include <array>
 
 #if ( defined _MSC_VER && _MSC_VER > 1900 ) || ( __cplusplus > 202002L && __cpp_concepts >= 202002L )
 #include <expected>
@@ -30,6 +31,13 @@ enum PEFlags : int
     PEFlags_StrictlyOneOutput = 2,    
     PEFlags_NoInput = 8,
     PEFlags_StrictlyOneInput = 16
+};
+
+struct PreviewData
+{
+    IBitmapPtr displayBitmap; // RGBA32, ready for GPU upload.
+    std::array<std::array<float, 256>, 3> histogram{};
+    bool grayscale = false;
 };
 
 class PipelineElementWindow : public Window
@@ -60,9 +68,15 @@ protected:
     bool _showError = false;
     std::string _error;
 
-    bool _needToUpdatePreview = false;
     std::shared_ptr<Texture> _pPreviewTexture;
-    std::atomic<IBitmapPtr> _pPreviewBitmap;
+    struct PreviewState
+    {
+        std::atomic<std::shared_ptr<const PreviewData>> data;
+    };
+    // Each invalidation replaces this publication slot. Old workers can only
+    // publish into their old slot, never overwrite a newer request's result.
+    std::shared_ptr<PreviewState> _previewState = std::make_shared<PreviewState>();
+    std::shared_ptr<const PreviewData> _uploadedPreview;
 
     std::list<AsyncWorker> _previewWorkers;
 
@@ -110,6 +124,11 @@ public:
 
     std::string GeneratePreviewBitmapAsync( bool forNextElement, bool fullSize );
     Expected<std::shared_ptr<Texture>, std::string> GetPreviewTexture();
+    std::shared_ptr<const PreviewData> GetPreviewData() const
+    {
+        return _previewState->data.load(std::memory_order_acquire);
+    }
+    std::shared_ptr<const PreviewData> GetDisplayedPreviewData() const { return _uploadedPreview; }
     
     void ResetPreview(PropagationDir dir);
 

@@ -26,6 +26,7 @@ class Texture
     uint32_t _height;
 
 public:
+    // Upload only: display conversion must already have run on the preview worker.
     Texture( IBitmapPtr pBitmap );
     ~Texture();
 

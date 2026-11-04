@@ -270,43 +270,16 @@ namespace UI
         return false;
     }
 
-    static bool Items_SingleStringGetter( void* data, int idx, const char** out_text )
-    {
-        // FIXME-OPT: we could pre-compute the indices to fasten this. But only 1 active combo means the waste is limited.
-        const char* items_separated_by_zeros = ( const char* ) data;
-        int items_count = 0;
-        const char* p = items_separated_by_zeros;
-        while ( *p )
-        {
-            if ( idx == items_count )
-                break;
-            p += strlen( p ) + 1;
-            items_count++;
-        }
-        if ( !*p )
-            return false;
-        if ( out_text )
-            *out_text = p;
-        return true;
-    }
-
     bool Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, PipelineElementWindow* parent )
     {
         FitSettingWidth(label.c_str());
         const bool isInterfaceLocked = MainWindow::GetInstance( FontRegistry::Instance() ).IsInterfaceLocked();
 
-        int items_count = 0;
-        if ( !isInterfaceLocked )
-        {
-            const char* p = items_separated_by_zeros.c_str();
-            while ( *p )
-            {
-                p += strlen( p ) + 1;
-                items_count++;
-            }
-        }
-
-        if ( ImGui::Combo( label.c_str(), current_item, Items_SingleStringGetter, ( void* ) items_separated_by_zeros.c_str(), items_count ) && !isInterfaceLocked )
+        const auto items = GetComboItems(items_separated_by_zeros);
+        ImGui::BeginDisabled(isInterfaceLocked);
+        const bool changed = ImGui::Combo(label.c_str(), current_item, items.data(), int(items.size()));
+        ImGui::EndDisabled();
+        if (changed && !isInterfaceLocked)
         {
             ResetParentWindow(parent);
             return true;

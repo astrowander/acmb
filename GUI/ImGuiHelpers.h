@@ -47,6 +47,20 @@ namespace UI
     bool DragInt2( const std::string& label, int v[2], float v_speed, int v_min, int v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
     bool DragFloat( const std::string& label, float* v, float v_speed, float v_min, float v_max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
+    // Pointers remain valid while the supplied string is unchanged.
+    inline std::vector<const char*> GetComboItems(const std::string& items)
+    {
+        std::vector<const char*> result;
+        for (size_t start = 0; start < items.size() && items[start] != '\0';)
+        {
+            result.push_back(items.c_str() + start);
+            const size_t end = items.find('\0', start);
+            if (end == std::string::npos) break;
+            start = end + 1;
+        }
+        return result;
+    }
+
     bool Combo( const std::string& label, int* current_item, const std::string& items_separated_by_zeros, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );
 
     bool InputInt( const std::string& label, int* v, int step, int step_fast, int min, int max, const std::string& tooltip, acmb::gui::PipelineElementWindow* parent = nullptr );

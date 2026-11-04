@@ -1,6 +1,7 @@
 #include "../Tests/test.h"
 #include "../GUI/StepPresentation.h"
 #include "../GUI/GuiInteractions.h"
+#include "../GUI/ImGuiHelpers.h"
 #include "TestAppHost.h"
 
 namespace
@@ -167,6 +168,73 @@ BEGIN_TEST(LongSettingsScrollWithoutExpandingCards)
     EXPECT_EQ(29, fixture.applied);
     EXPECT_EQ(200.0f, fixture.cardSize.x);
     EXPECT_EQ(110.0f, fixture.cardSize.y);
+END_TEST
+
+BEGIN_TEST(PreviewHistogramSeparatesChannelsAndCountsEveryPixel)
+    const unsigned char rows[2][8] = {
+        {0, 128, 255, 255, 128, 0, 99, 99},
+        {0, 64, 255, 127, 64, 127, 99, 99}
+    };
+    const auto bins = gui::BuildPreviewHistogram(2, 2, [&](uint32_t y) { return rows[y]; });
+    EXPECT_EQ(2.0f, bins[0][0]);
+    EXPECT_EQ(1.0f, bins[0][255]);
+    EXPECT_EQ(1.0f, bins[0][127]);
+    EXPECT_EQ(2.0f, bins[1][128]);
+    EXPECT_EQ(2.0f, bins[1][64]);
+    EXPECT_EQ(2.0f, bins[2][255]);
+    EXPECT_EQ(1.0f, bins[2][0]);
+    EXPECT_EQ(1.0f, bins[2][127]);
+    for (const auto& channel : bins)
+    {
+        float total = 0;
+        for (float count : channel) total += count;
+        EXPECT_EQ(4.0f, total);
+        EXPECT_EQ(0.0f, channel[99]);
+    }
+END_TEST
+
+BEGIN_TEST(EmptyPreviewHistogramDoesNotReadPixels)
+    bool read = false;
+    const auto bins = gui::BuildPreviewHistogram(0, 0, [&](uint32_t) {
+        read = true;
+        return static_cast<const unsigned char*>(nullptr);
+    });
+    EXPECT_FALSE(read);
+    for (const auto& channel : bins)
+    {
+        for (float count : channel)
+        {
+            EXPECT_EQ(0.0f, count);
+        }
+    }
+END_TEST
+
+BEGIN_TEST(PreviewHistogramUsesDisplayRgbaAndIgnoresAlpha)
+    const unsigned char rgba[] = {0, 64, 255, 100, 255, 128, 0, 200};
+    const auto bins = gui::BuildPreviewHistogram(2, 1, [&](uint32_t) { return rgba; }, 4);
+    EXPECT_EQ(1.0f, bins[0][0]);
+    EXPECT_EQ(1.0f, bins[0][255]);
+    EXPECT_EQ(1.0f, bins[1][64]);
+    EXPECT_EQ(1.0f, bins[1][128]);
+    EXPECT_EQ(1.0f, bins[2][255]);
+    EXPECT_EQ(1.0f, bins[2][0]);
+    for (const auto& channel : bins)
+    {
+        EXPECT_EQ(0.0f, channel[100]);
+        EXPECT_EQ(0.0f, channel[200]);
+    }
+END_TEST
+
+BEGIN_TEST(ComboListDoesNotReadBeyondLastFormat)
+    for (const auto& list : {std::string(".tif\0.y4m", 9), std::string(".tif\0.y4m\0", 10),
+        std::string(".tif\0.y4m\0\0", 11)})
+    {
+        const auto items = UI::GetComboItems(list);
+        EXPECT_EQ(size_t(2), items.size());
+        EXPECT_EQ(std::string(".tif"), std::string(items[0]));
+        EXPECT_EQ(std::string(".y4m"), std::string(items[1]));
+    }
+    EXPECT_TRUE(UI::GetComboItems("").empty());
 END_TEST
 
 END_SUITE

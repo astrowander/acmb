@@ -3,6 +3,7 @@
 #include "PipelineElementWindow.h"
 
 #include <mutex>
+#include <optional>
 
 ACMB_NAMESPACE_BEGIN
 class ImageDecoder;
@@ -16,6 +17,8 @@ class FileListUser
 
     mutable std::shared_ptr<ImageDecoder> _pDecoder;
     mutable std::mutex _mutex;
+    using FrameParamsCache = std::vector<std::optional<ImageParams>>;
+    mutable std::atomic<std::shared_ptr<const FrameParamsCache>> _frameParams;
 
     int _totalFrameCount = 0;
 
@@ -31,6 +34,7 @@ protected:
 
 private:
     void PrepareFrameForReading(int idx) const;
+    void CacheDecoderParams(size_t fileIndex) const; // Caller holds _mutex.
     Expected<void, std::string> AddFile(const std::string& fileName);
 
     // Call only while holding _mutex (non-recursive). Used to avoid nested lock_guard.
@@ -46,7 +50,8 @@ protected:
     ~FileListUser() = default;
 
     Expected<Size, std::string> GetFrameSize(int idx) const;
-    Expected<ImageParams, std::string> GetFrameParams(int idx) const;
+    Expected<ImageParams, std::string> GetFrameParams(int idx) const; // Cache only; never waits for decoding.
+    Expected<ImageParams, std::string> LoadFrameParams(int idx) const; // Preview/processing worker only.
     Expected<IBitmapPtr, std::string> ReadFrame(int idx) const;
     Expected<IBitmapPtr, std::string> ReadFramePreview(int idx, Size size) const;
     Expected<std::string, std::string> GetFrameSourceName(int idx) const;

@@ -32,10 +32,10 @@ Expected<IBitmapPtr, std::string> ImageReaderWindow::GeneratePreviewBitmap(bool 
     Size size;
     if ( fullSize )
     {
-        auto sizeOrErr = GetFrameSize( _currentFrameIdx );
-        if ( !sizeOrErr )
-            return unexpected( sizeOrErr.error() );
-        size = *sizeOrErr;
+        auto params = LoadFrameParams(_currentFrameIdx);
+        if (!params)
+            return unexpected(params.error());
+        size = Size{int(params->GetWidth()), int(params->GetHeight())};
     }
     else
     {

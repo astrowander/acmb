@@ -11,6 +11,7 @@
 #include "./../Cuda/CudaInfo.h"
 #include "./../Cuda/CudaStacker.h"
 #include "./../Transforms/ResizeTransform.h"
+#include "./../Transforms/converter.h"
 
 #include "imgui/imgui_internal.h"
 
@@ -279,11 +280,15 @@ std::string PipelineElementWindow::GetTaskName(size_t taskNumber) const
 
 std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElement, bool fullSize)
 {
-    if ( !_pPreviewBitmap.load(std::memory_order_acquire) )
+    if ( !GetPreviewData() )
     {
         _previewWorkers.emplace_back();
         auto self = std::static_pointer_cast<PipelineElementWindow>(shared_from_this());
-        _previewWorkers.back().Start( [self, forNextElement, fullSize]( std::function<bool(std::optional<float>)> reportProgress )
+        auto publication = _previewState;
+        // Read UI geometry on the UI thread, before starting the worker.
+        const auto region = MainWindow::GetInstance().GetImageRegionAvail();
+        const Size previewSize{int(region.width), int(region.height)};
+        _previewWorkers.back().Start( [self, publication, previewSize, forNextElement, fullSize]( std::function<bool(std::optional<float>)> reportProgress )
         {
             auto isCanceled = [reportProgress]() -> bool
             {
@@ -298,7 +303,7 @@ std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElemen
             if ( !reportProgress(0.5f) )
                 return std::string( "Preview generation cancelled") ;
 
-            auto targetSizeOrErr = fullSize ? self->GetBitmapSize() : Size{ int(MainWindow::GetInstance().GetImageRegionAvail().width), int(MainWindow::GetInstance().GetImageRegionAvail().height) };
+            auto targetSizeOrErr = fullSize ? self->GetBitmapSize() : previewSize;
             if ( !targetSizeOrErr )
             {
                 // Handle error
@@ -327,11 +332,20 @@ std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElemen
                 pResizedPreview = pPreview;
             }
             
-            if ( !reportProgress(1.0f) )
+            if ( !reportProgress(0.8f) )
                 return std::string("Preview generation cancelled");
 
-            self->_pPreviewBitmap.store(pResizedPreview, std::memory_order_release);
-            self->_needToUpdatePreview = true;
+            auto result = std::make_shared<PreviewData>();
+            result->grayscale = GetColorSpace(pResizedPreview->GetPixelFormat()) == ColorSpace::Gray;
+            result->displayBitmap = Converter::Convert(pResizedPreview, PixelFormat::RGBA32);
+            if (!reportProgress(0.9f))
+                return std::string("Preview generation cancelled");
+            const auto& display = result->displayBitmap;
+            result->histogram = BuildPreviewHistogram(display->GetWidth(), display->GetHeight(),
+                [&](uint32_t y) { return reinterpret_cast<const uint8_t*>(display->GetPlanarScanline(y)); }, 4);
+            if (!reportProgress(1.0f))
+                return std::string("Preview generation cancelled");
+            publication->data.store(std::move(result), std::memory_order_release);
             return std::string{};
         });
 
@@ -343,7 +357,7 @@ std::string PipelineElementWindow::GeneratePreviewBitmapAsync(bool forNextElemen
 
 Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPreviewTexture()
 {
-    if ( auto pPreviewBitmap = _pPreviewBitmap.load(std::memory_order_acquire); !pPreviewBitmap )
+    if ( auto preview = GetPreviewData(); !preview )
     {
         for ( auto it = _previewWorkers.begin(); it != _previewWorkers.end(); )
         {
@@ -367,10 +381,10 @@ Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPrevie
             }
         }       
     }
-    else if ( _needToUpdatePreview )
+    else if ( _uploadedPreview != preview )
     {
-        _pPreviewTexture = std::make_unique<Texture>(pPreviewBitmap);
-        _needToUpdatePreview = false;
+        _pPreviewTexture = std::make_shared<Texture>(preview->displayBitmap);
+        _uploadedPreview = preview;
     }
 
     return _pPreviewTexture;
@@ -378,12 +392,9 @@ Expected<std::shared_ptr<Texture>, std::string> PipelineElementWindow::GetPrevie
 
 void PipelineElementWindow::ResetPreview( PropagationDir dir )
 {
-    // Cancel all preview workers so they stop as soon as possible
-    //for ( auto& worker : _previewWorkers )
-      //  worker.Cancel();
-
-    _pPreviewBitmap.store(nullptr);
-    //_pPreviewTexture.reset();
+    for (auto& worker : _previewWorkers)
+        worker.Cancel();
+    _previewState = std::make_shared<PreviewState>();
 
     if ( int(dir) & int(PropagationDir::Forward) )
     {
