@@ -170,6 +170,12 @@ public:
 
     virtual void DrawOnPreviewImage( ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize ) {}
 
+    // Called in an instance ID scope with editing disabled while the interface is
+    // locked. Return true when settings change to invalidate preview and progress.
+    // Implementations may submit ImGui items; active items retain mouse capture
+    // when the pointer leaves the image.
+    virtual bool DrawPreviewInteraction(ImVec2 topLeftPos, ImVec2 previewSize) { return false; }
+
     virtual Expected<IBitmapPtr, std::string> GeneratePreviewBitmap(bool forNextElement, bool fullSize, std::function<bool()> isCanceled ) = 0;
 
 protected:

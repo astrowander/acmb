@@ -959,6 +959,18 @@ void MainWindow::DrawDialog()
                 ImGui::SetCursorPos({fitted.x, fitted.y});
                 ImGui::Image(pTexture->GetTexture(), {fitted.width, fitted.height});
                 const ImVec2 screenTopLeft{origin.x + fitted.x, origin.y + fitted.y};
+                const auto cursorPos = ImGui::GetCursorPos();
+                ImGui::PushID(pElement);
+                ImGui::BeginDisabled(IsInterfaceLocked());
+                const bool previewEdited = pElement->DrawPreviewInteraction(screenTopLeft, {fitted.width, fitted.height});
+                ImGui::EndDisabled();
+                ImGui::PopID();
+                ImGui::SetCursorPos(cursorPos);
+                if (previewEdited)
+                {
+                    pElement->ResetPreview(PipelineElementWindow::PropagationDir::Forward);
+                    pElement->ResetProgress(PipelineElementWindow::PropagationDir::Both);
+                }
                 pElement->DrawOnPreviewImage(drawList, screenTopLeft, {fitted.width, fitted.height});
             }
         }

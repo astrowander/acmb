@@ -1,4 +1,5 @@
 #include "CropWindow.h"
+#include "CropPreviewInteraction.h"
 #include "MainWindow.h"
 #include "Serializer.h"
 #include "ImGuiHelpers.h"
@@ -136,7 +137,10 @@ Expected<Size, std::string> CropWindow::GetBitmapSize()
 
 void CropWindow::DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, ImVec2 previewSize)
 {
-    auto origSize = GetInput()->GetBitmapSize();
+    auto input = GetInput();
+    if (!input)
+        return;
+    auto origSize = input->GetBitmapSize();
     if ( !origSize )
         return;
 
@@ -162,6 +166,19 @@ void CropWindow::DrawOnPreviewImage(ImDrawList* pDrawList, ImVec2 topLeftPos, Im
         ImDrawFlags_RoundCornersNone,
         3.0f
     );
+}
+
+bool CropWindow::DrawPreviewInteraction(ImVec2 topLeftPos, ImVec2 previewSize)
+{
+    const auto input = GetInput();
+    if (!input)
+        return false;
+    const auto size = input->GetBitmapSize();
+    if (!size || size->width <= 0 || size->height <= 0 || previewSize.x <= 0 || previewSize.y <= 0)
+        return false;
+
+    _dstRect = ClampCropRect(_dstRect, *size);
+    return DrawCropBorderHandles(_dstRect, _dragStartRect, *size, topLeftPos, previewSize);
 }
 
 void CropWindow::OnInputChanged()
@@ -190,3 +207,4 @@ void CropWindow::OnInputChanged()
 REGISTER_TOOLS_ITEM( CropWindow );
 
 ACMB_GUI_NAMESPACE_END
+

@@ -165,6 +165,9 @@
     <ClInclude Include="CropWindow.h">
       <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>
+    <ClInclude Include="CropPreviewInteraction.h">
+      <Filter>Resource Files\ToolWindows</Filter>
+    </ClInclude>
     <ClInclude Include="FlatFieldWindow.h">
       <Filter>Resource Files\ToolWindows</Filter>
     </ClInclude>

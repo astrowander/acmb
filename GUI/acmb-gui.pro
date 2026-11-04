@@ -62,6 +62,7 @@ SOURCES += \
 HEADERS += \
     ConverterWindow.h \
     CropWindow.h \
+    CropPreviewInteraction.h \
     FileDialog.h \
     FlatFieldWindow.h \
     FontRegistry.h \

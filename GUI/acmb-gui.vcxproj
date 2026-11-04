@@ -180,6 +180,7 @@
     <ClInclude Include="CenterObjectWindow.h" />
     <ClInclude Include="ConverterWindow.h" />
     <ClInclude Include="CropWindow.h" />
+    <ClInclude Include="CropPreviewInteraction.h" />
     <ClInclude Include="DeflickerWindow.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="FileListUser.h" />
